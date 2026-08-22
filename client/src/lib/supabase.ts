@@ -26,6 +26,7 @@ export interface ExamQuestion {
   options?: string[];
   correct_answer: string | number;
   marks: number;
+  critical_aspect?: string;
 }
 
 export interface ExamSection {
@@ -40,8 +41,13 @@ export interface ExamPayload {
   duration_minutes: number;
   total_marks: number;
   instructions: string;
-  section_a: ExamSection;
-  section_b: ExamSection;
+  type?: "written" | "practical";
+  section_a?: ExamSection;
+  section_b?: ExamSection;
+  project_brief?: string;
+  elements_covered?: string[];
+  tasks?: Array<{ id: string; title: string; marks: number; details: string[] }>;
+  rubric?: Array<{ category: string; max_marks: number; criteria: Array<{ description: string; marks: number }> }>;
 }
 
 export interface Exam {
@@ -96,6 +102,173 @@ export interface Database {
         Row: Submission;
         Insert: Omit<Submission, "id" | "created_at">;
         Update: Partial<Omit<Submission, "id" | "created_at">>;
+      };
+      session_plans: {
+        Row: {
+          id: string;
+          document_code: string;
+          trainer_name: string;
+          department: string;
+          unit_name: string;
+          unit_code: string;
+          class_code: string;
+          level: string;
+          trainees_count: number;
+          date: string;
+          time_duration: string;
+          week_number: number;
+          session_title: string;
+          learning_outcomes: any;
+          resources: any;
+          safety_requirements: string;
+          introduction: string;
+          delivery_steps: any;
+          session_review: string;
+          assignment: string;
+          reflection: string;
+          signature: string;
+          signature_date: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Insert: {
+          id?: string;
+          document_code?: string;
+          trainer_name?: string;
+          department?: string;
+          unit_name?: string;
+          unit_code?: string;
+          class_code?: string;
+          level?: string;
+          trainees_count?: number;
+          date?: string;
+          time_duration?: string;
+          week_number?: number;
+          session_title?: string;
+          learning_outcomes?: any;
+          resources?: any;
+          safety_requirements?: string;
+          introduction?: string;
+          delivery_steps?: any;
+          session_review?: string;
+          assignment?: string;
+          reflection?: string;
+          signature?: string;
+          signature_date?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          document_code?: string;
+          trainer_name?: string;
+          department?: string;
+          unit_name?: string;
+          unit_code?: string;
+          class_code?: string;
+          level?: string;
+          trainees_count?: number;
+          date?: string;
+          time_duration?: string;
+          week_number?: number;
+          session_title?: string;
+          learning_outcomes?: any;
+          resources?: any;
+          safety_requirements?: string;
+          introduction?: string;
+          delivery_steps?: any;
+          session_review?: string;
+          assignment?: string;
+          reflection?: string;
+          signature?: string;
+          signature_date?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      learning_plans: {
+        Row: {
+          id: string;
+          unit_code: string;
+          unit_name: string;
+          trainer_name: string;
+          class_code: string;
+          week_number: number;
+          topic: string;
+          learning_outcomes: any;
+          resources: any;
+          status: string;
+          session_plan_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Insert: any;
+        Update: any;
+      };
+      records_of_work: {
+        Row: {
+          id: string;
+          session_plan_id: string;
+          unit_code: string;
+          class_code: string;
+          week_number: number;
+          date_delivered: string;
+          trainees_present: number;
+          hours_covered: number;
+          work_actually_covered: string;
+          reflection: string;
+          status: string;
+          signature: string;
+          signature_date: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Insert: any;
+        Update: any;
+      };
+      unit_offerings: {
+        Row: {
+          id: string;
+          term_id: string;
+          class_id: string;
+          unit_id: string;
+          trainer_id: string | null;
+        };
+        Insert: any;
+        Update: any;
+      };
+      assessment_marks: {
+        Row: {
+          id: string;
+          unit_offering_id: string;
+          trainee_id: string;
+          ct1: number | null;
+          ct2: number | null;
+          ct3: number | null;
+          computed_average_theory: number | null;
+          cp1: number | null;
+          cp2: number | null;
+          cp3: number | null;
+          computed_average_practical: number | null;
+          weighted_mark: number | null;
+          is_locked: boolean;
+        };
+        Insert: any;
+        Update: any;
+      };
+      assessment_evidence: {
+        Row: {
+          id: string;
+          unit_offering_id: string;
+          trainee_id: string;
+          assessment_type: string;
+          file_url: string;
+          uploaded_by_id: string | null;
+          verified_by_trainer: boolean;
+          created_at?: string;
+        };
+        Insert: any;
+        Update: any;
       };
     };
   };

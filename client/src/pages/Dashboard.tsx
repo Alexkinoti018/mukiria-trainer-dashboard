@@ -20,9 +20,9 @@ import {
   ClipboardCheck,
   Download,
 } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+import TrainerLayout from "@/components/TrainerLayout";
 import { supabase, isSupabaseConfigured, verifyDatabaseState } from "@/lib/supabase";
-import { MOCK_EXAMS, MOCK_SUBMISSIONS } from "@/lib/mockData";
+import { useExam } from "@/contexts/ExamContext";
 import type { Exam, Submission } from "@/lib/supabase";
 import { format } from "date-fns";
 
@@ -37,39 +37,12 @@ interface StatCard {
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
-  const [exams, setExams] = useState<Exam[]>([]);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { exams, submissions } = useExam();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadData();
     verifyDatabaseState();
   }, []);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      if (isSupabaseConfigured()) {
-        const [{ data: examsData }, { data: subsData }] = await Promise.all([
-          supabase.from("exams").select("*").order("created_at", { ascending: false }),
-          supabase.from("submissions").select("*").order("created_at", { ascending: false }).limit(20),
-        ]);
-        setExams(examsData ?? []);
-        setSubmissions(subsData ?? []);
-        console.log("✅ [MTTI Dashboard] Loaded", examsData?.length, "exams,", subsData?.length, "submissions");
-      } else {
-        setExams(MOCK_EXAMS);
-        setSubmissions(MOCK_SUBMISSIONS);
-        console.log("ℹ️ [MTTI Dashboard] Using mock data (Supabase not configured)");
-      }
-    } catch (err) {
-      console.error("❌ [MTTI Dashboard] Load error:", err);
-      setExams(MOCK_EXAMS);
-      setSubmissions(MOCK_SUBMISSIONS);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const totalSubs = submissions.length;
   const gradedSubs = submissions.filter((s) => s.status === "graded").length;
@@ -139,7 +112,7 @@ export default function Dashboard() {
   };
 
   return (
-    <DashboardLayout
+    <TrainerLayout
       title="Overview"
       subtitle="Mukiria Technical Training Institute — Institutional Operating System"
     >
@@ -416,7 +389,7 @@ export default function Dashboard() {
           </button>
         ))}
       </motion.div>
-    </DashboardLayout>
+    </TrainerLayout>
   );
 }
 

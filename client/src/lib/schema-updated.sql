@@ -156,3 +156,55 @@ CREATE POLICY "Students can read audit for their submissions"
       WHERE student_email = auth.jwt() ->> 'email'
     )
   );
+
+-- ─── Table: unit_offerings ─────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.unit_offerings (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  term_id UUID, -- References a terms table if it exists
+  class_id UUID, -- References a classes table if it exists
+  unit_id UUID, -- References units
+  trainer_id UUID, -- References trainers
+  UNIQUE(term_id, class_id, unit_id)
+);
+ALTER TABLE public.unit_offerings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Trainers can manage unit offerings" ON public.unit_offerings FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- ─── Table: assessment_marks ─────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.assessment_marks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  unit_offering_id UUID REFERENCES public.unit_offerings(id) ON DELETE CASCADE,
+  trainee_id UUID, -- References trainees
+  ct1 NUMERIC(5,2),
+  ct2 NUMERIC(5,2),
+  ct3 NUMERIC(5,2),
+  computed_average_theory NUMERIC(5,2),
+  cp1 NUMERIC(5,2),
+  cp2 NUMERIC(5,2),
+  cp3 NUMERIC(5,2),
+  computed_average_practical NUMERIC(5,2),
+  weighted_mark NUMERIC(5,2),
+  is_locked BOOLEAN DEFAULT FALSE,
+  UNIQUE(unit_offering_id, trainee_id)
+);
+COMMENT ON TABLE public.assessment_marks IS 'Continuous assessment marks sheet data, normalized';
+ALTER TABLE public.assessment_marks ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Trainers can read assessment marks" ON public.assessment_marks FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Trainers can insert assessment marks" ON public.assessment_marks FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Trainers can update assessment marks" ON public.assessment_marks FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+
+-- ─── Table: assessment_evidence ──────────────────────────────
+CREATE TABLE IF NOT EXISTS public.assessment_evidence (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  unit_offering_id UUID,
+  trainee_id UUID,
+  assessment_type VARCHAR(10) NOT NULL CHECK (assessment_type IN ('CT1', 'CT2', 'CT3', 'CP1', 'CP2', 'CP3')),
+  file_url TEXT NOT NULL,
+  uploaded_by_id UUID,
+  verified_by_trainer BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  FOREIGN KEY (unit_offering_id, trainee_id) REFERENCES public.assessment_marks(unit_offering_id, trainee_id) ON DELETE CASCADE
+);
+ALTER TABLE public.assessment_evidence ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Trainers can manage evidence" ON public.assessment_evidence FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+

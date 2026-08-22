@@ -15,17 +15,25 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    if (isAuthenticated) navigate("/dashboard");
-  }, [isAuthenticated, navigate]);
+    if (isAuthenticated && user) {
+      if (user.role === "hod") {
+        navigate("/hod/dashboard");
+      } else if (user.role === "trainee") {
+        navigate("/trainee/dashboard");
+      } else {
+        navigate("/trainer/dashboard");
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password.trim()) {
-      setError("Please enter your password");
+      setError("Please enter your PIN");
       return;
     }
 
@@ -34,9 +42,17 @@ export default function Login() {
     const result = await login(password);
     if (result.success) {
       toast.success("Welcome back!", {
-        description: "Redirecting to dashboard...",
+        description: "Redirecting to portal...",
       });
-      navigate("/dashboard");
+      
+      // Route based on role
+      if (result.role === "hod") {
+        navigate("/hod/dashboard");
+      } else if (result.role === "trainee") {
+        navigate("/trainee/dashboard");
+      } else {
+        navigate("/trainer/dashboard");
+      }
     } else {
       setError(result.error ?? "Authentication failed");
       toast.error("Authentication Failed", { description: result.error });
@@ -143,9 +159,10 @@ export default function Login() {
           </form>
 
           {/* Footer note */}
-          <p className="text-xs text-center text-muted-foreground">
-            Trainers only. Unauthorized access is prohibited.
-          </p>
+          <div className="text-xs text-center text-muted-foreground space-y-1">
+            <p>Demo PINs:</p>
+            <p>Trainer: <strong>1234</strong> | HOD: <strong>5678</strong> | Trainee: <strong>9012</strong></p>
+          </div>
         </div>
       </motion.div>
     </div>

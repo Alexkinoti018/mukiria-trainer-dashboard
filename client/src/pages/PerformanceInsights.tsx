@@ -18,7 +18,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+import TrainerLayout from "@/components/TrainerLayout";
 import { toast } from "sonner";
 
 interface StudentPerformance {
@@ -158,7 +158,7 @@ export default function PerformanceInsights() {
   };
 
   return (
-    <DashboardLayout
+    <TrainerLayout
       title="Performance Insights"
       subtitle="Predictive analytics and at-risk student detection"
     >
@@ -465,6 +465,6 @@ export default function PerformanceInsights() {
           </motion.div>
         )}
       </div>
-    </DashboardLayout>
+    </TrainerLayout>
   );
 }

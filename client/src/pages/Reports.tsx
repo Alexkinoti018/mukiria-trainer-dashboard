@@ -16,9 +16,9 @@ import {
   Award,
   BookOpen,
 } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+import TrainerLayout from "@/components/TrainerLayout";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { MOCK_EXAMS, MOCK_SUBMISSIONS } from "@/lib/mockData";
+import { useExam } from "@/contexts/ExamContext";
 import type { Exam, Submission } from "@/lib/supabase";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -43,38 +43,13 @@ function getGradeRemark(score: number | null): string {
 }
 
 export default function Reports() {
-  const [exams, setExams] = useState<Exam[]>([]);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { exams, submissions } = useExam();
+  const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState<string | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    loadData();
-  }, []);
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      if (isSupabaseConfigured()) {
-        const [{ data: examsData }, { data: subsData }] = await Promise.all([
-          supabase.from("exams").select("*"),
-          supabase.from("submissions").select("*").order("student_name"),
-        ]);
-        setExams(examsData ?? []);
-        setSubmissions(subsData ?? []);
-      } else {
-        setExams(MOCK_EXAMS);
-        setSubmissions(MOCK_SUBMISSIONS);
-      }
-    } catch {
-      setExams(MOCK_EXAMS);
-      setSubmissions(MOCK_SUBMISSIONS);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // ── Generate Individual Transcript ────────────────────────
   const generateTranscript = async (sub: Submission) => {
@@ -181,7 +156,7 @@ export default function Reports() {
         y += 8;
 
         sub.section_a.forEach((ans, idx) => {
-          const question = exam.payload.section_a.questions.find((q) => q.id === ans.question_id);
+          const question = exam.payload?.section_a?.questions?.find((q) => q.id === ans.question_id);
           const isCorrect = (ans.marks_awarded ?? 0) > 0;
 
           if (idx % 2 === 0) {
@@ -223,7 +198,7 @@ export default function Reports() {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(8.5);
         doc.setTextColor(13, 27, 42);
-        doc.text(`Section A Total: ${sectionAScore} / ${exam.payload.section_a.total_marks} marks`, margin + 3, y + 5);
+        doc.text(`Section A Total: ${sectionAScore} / ${exam.payload?.section_a?.total_marks ?? 0} marks`, margin + 3, y + 5);
         y += 12;
       }
 
@@ -238,7 +213,7 @@ export default function Reports() {
         y += 10;
 
         sub.section_b.forEach((ans, idx) => {
-          const question = exam.payload.section_b.questions.find((q) => q.id === ans.question_id);
+          const question = exam.payload?.section_b?.questions?.find((q) => q.id === ans.question_id);
 
           doc.setFillColor(248, 252, 250);
           doc.rect(margin, y, pageW - 2 * margin, 7, "F");
@@ -280,7 +255,7 @@ export default function Reports() {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(8.5);
         doc.setTextColor(13, 27, 42);
-        doc.text(`Section B Total: ${sectionBScore} / ${exam.payload.section_b.total_marks} marks`, margin + 3, y + 5);
+        doc.text(`Section B Total: ${sectionBScore} / ${exam.payload?.section_b?.total_marks ?? 0} marks`, margin + 3, y + 5);
         y += 12;
       }
 
@@ -467,7 +442,7 @@ export default function Reports() {
   });
 
   return (
-    <DashboardLayout title="Reports" subtitle="Generate official transcripts and class performance reports">
+    <TrainerLayout title="Reports" subtitle="Generate official transcripts and class performance reports">
       {/* Class Reports */}
       <div className="mb-6">
         <h3
@@ -684,6 +659,6 @@ export default function Reports() {
           </table>
         </div>
       </div>
-    </DashboardLayout>
+    </TrainerLayout>
   );
 }

@@ -20,6 +20,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { useExam } from "@/contexts/ExamContext";
 import { toast } from "sonner";
 import type { Submission } from "@/lib/supabase";
 
@@ -31,7 +32,8 @@ interface StudentSession {
 
 export default function StudentResults() {
   const [session, setSession] = useState<StudentSession | null>(null);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const { submissions: allSubmissions } = useExam();
+  const submissions = session ? allSubmissions.filter(s => s.reg_number === session.reg_number) : [];
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [searchReg, setSearchReg] = useState("");
@@ -56,7 +58,14 @@ export default function StudentResults() {
             name: authSession.user.user_metadata?.name ?? "Student",
             reg_number: authSession.user.user_metadata?.reg_number ?? "",
           });
-          await loadSubmissions(authSession.user.email ?? "");
+
+        }
+      } else {
+        const stored = localStorage.getItem("student_demo_session");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setSession(parsed);
+          console.log("✅ [Student Results] Demo session restored");
         }
       }
     } catch (err) {
@@ -66,31 +75,35 @@ export default function StudentResults() {
     }
   };
 
-  const loadSubmissions = async (email: string) => {
-    try {
-      if (isSupabaseConfigured()) {
-        const { data, error } = await supabase
-          .from("submissions")
-          .select("*")
-          .eq("student_email", email)
-          .order("created_at", { ascending: false });
 
-        if (error) throw error;
-        setSubmissions(data ?? []);
-        console.log("✅ [Student Results] Loaded", data?.length, "submissions");
-      }
-    } catch (err) {
-      console.error("❌ [Student Results] Load error:", err);
-      toast.error("Failed to load results");
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setSearching(true);
     try {
       if (!isSupabaseConfigured()) {
-        toast.error("System not configured");
+        const email = loginEmail.trim().toLowerCase();
+        const pin = loginPassword.trim();
+        
+        const demoStudents: Record<string, { name: string; reg_number: string }> = {
+          "alice@mtti.ac.ke": { name: "Alice Wanjiku Kamau", reg_number: "MTTI/2024/001" },
+          "brian@mtti.ac.ke": { name: "Brian Otieno Odhiambo", reg_number: "MTTI/2024/002" },
+          "catherine@mtti.ac.ke": { name: "Catherine Muthoni Njoroge", reg_number: "MTTI/2024/003" },
+          "student@mtti.ac.ke": { name: "Alice Wanjiku Kamau", reg_number: "MTTI/2024/001" },
+        };
+        
+        if (demoStudents[email] && (pin === "1234" || pin === "student")) {
+          const studentSession = {
+            email,
+            name: demoStudents[email].name,
+            reg_number: demoStudents[email].reg_number,
+          };
+          setSession(studentSession);
+          localStorage.setItem("student_demo_session", JSON.stringify(studentSession));
+          toast.success("Welcome!", { description: `Logged in as ${email} (Demo Mode)` });
+        } else {
+          toast.error("Login Failed", { description: "Invalid email or PIN. Try student@mtti.ac.ke with PIN 1234." });
+        }
         return;
       }
 
@@ -110,7 +123,6 @@ export default function StudentResults() {
           name: data.user.user_metadata?.name ?? "Student",
           reg_number: data.user.user_metadata?.reg_number ?? "",
         });
-        await loadSubmissions(data.user.email ?? "");
         toast.success("Welcome!", { description: `Logged in as ${data.user.email}` });
       }
     } catch (err: any) {
@@ -122,9 +134,12 @@ export default function StudentResults() {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      if (isSupabaseConfigured()) {
+        await supabase.auth.signOut();
+      } else {
+        localStorage.removeItem("student_demo_session");
+      }
       setSession(null);
-      setSubmissions([]);
       setLoginEmail("");
       setLoginPassword("");
       toast.success("Logged out successfully");
@@ -182,25 +197,29 @@ export default function StudentResults() {
             <div className="text-center mb-8">
               <div className="flex justify-center mb-4">
                 <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                  className="w-16 h-16 rounded-full overflow-hidden border bg-white flex items-center justify-center shrink-0"
                   style={{
-                    background: "oklch(0.72 0.18 160 / 0.15)",
-                    border: "1px solid oklch(0.72 0.18 160 / 0.4)",
+                    background: "rgba(196, 136, 32, 0.1)",
+                    borderColor: "var(--accent)",
                   }}
                 >
-                  <Award className="w-8 h-8" style={{ color: "oklch(0.72 0.18 160)" }} />
+                  <img
+                    src="/mtti-logo.jpg"
+                    alt="Mukiria TTI Logo"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
               </div>
               <h1
                 className="text-2xl font-bold mb-1"
                 style={{
-                  fontFamily: "Syne, sans-serif",
-                  color: "oklch(0.94 0.005 240)",
+                  fontFamily: "Maiandra GD, sans-serif",
+                  color: "var(--accent)",
                 }}
               >
                 Student Results
               </h1>
-              <p style={{ color: "oklch(0.58 0.012 240)" }}>
+              <p style={{ color: "var(--primary-foreground)", opacity: 0.8 }}>
                 Mukiria Technical Training Institute
               </p>
             </div>
@@ -210,7 +229,7 @@ export default function StudentResults() {
               <div>
                 <label
                   className="block text-sm font-medium mb-2"
-                  style={{ color: "oklch(0.72 0.18 160)" }}
+                  style={{ color: "var(--accent)" }}
                 >
                   Email
                 </label>
@@ -222,7 +241,7 @@ export default function StudentResults() {
                   required
                   className="w-full px-4 py-2 rounded-lg bg-slate-900/50 border transition-colors"
                   style={{
-                    borderColor: "oklch(1 0 0 / 0.1)",
+                    borderColor: "rgba(255, 255, 255, 0.1)",
                     color: "oklch(0.94 0.005 240)",
                   }}
                 />
@@ -231,7 +250,7 @@ export default function StudentResults() {
               <div>
                 <label
                   className="block text-sm font-medium mb-2"
-                  style={{ color: "oklch(0.72 0.18 160)" }}
+                  style={{ color: "var(--accent)" }}
                 >
                   Password
                 </label>
@@ -244,7 +263,7 @@ export default function StudentResults() {
                     required
                     className="w-full px-4 py-2 rounded-lg bg-slate-900/50 border transition-colors"
                     style={{
-                      borderColor: "oklch(1 0 0 / 0.1)",
+                      borderColor: "rgba(255, 255, 255, 0.1)",
                       color: "oklch(0.94 0.005 240)",
                     }}
                   />
@@ -265,10 +284,10 @@ export default function StudentResults() {
               <button
                 type="submit"
                 disabled={searching}
-                className="w-full py-3 rounded-lg font-semibold transition-all duration-150 disabled:opacity-50"
+                className="w-full py-3 rounded-lg font-semibold transition-all duration-150 disabled:opacity-50 hover:brightness-110"
                 style={{
-                  background: "oklch(0.72 0.18 160)",
-                  color: "oklch(0.94 0.005 240)",
+                  background: "var(--accent)",
+                  color: "#ffffff",
                 }}
               >
                 {searching ? (
@@ -301,24 +320,29 @@ export default function StudentResults() {
       <div
         className="border-b"
         style={{
-          borderColor: "oklch(1 0 0 / 0.1)",
-          background: "oklch(0.16 0.012 240 / 0.5)",
+          borderColor: "rgba(255, 255, 255, 0.1)",
+          background: "rgba(0, 9, 83, 0.5)",
           backdropFilter: "blur(12px)",
         }}
       >
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: "oklch(0.94 0.005 240)" }}>
-              My Results
-            </h1>
-            <p style={{ color: "oklch(0.58 0.012 240)" }}>{session.email}</p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full overflow-hidden border bg-white flex items-center justify-center shrink-0">
+              <img src="/mtti-logo.jpg" alt="Mukiria TTI Logo" className="w-full h-full object-contain" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold" style={{ fontFamily: "Maiandra GD, sans-serif", color: "var(--accent)" }}>
+                My Results Portal
+              </h1>
+              <p className="text-xs text-slate-400">{session.email}</p>
+            </div>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-xs font-semibold"
             style={{
-              background: "oklch(0.65 0.22 25 / 0.15)",
-              color: "oklch(0.75 0.18 25)",
+              background: "rgba(196, 136, 32, 0.15)",
+              color: "var(--accent)",
             }}
           >
             <LogOut className="w-4 h-4" />

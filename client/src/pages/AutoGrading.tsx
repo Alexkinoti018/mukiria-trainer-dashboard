@@ -16,7 +16,7 @@ import {
   MessageSquare,
   BarChart3,
 } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+import TrainerLayout from "@/components/TrainerLayout";
 import { toast } from "sonner";
 
 interface GradingItem {
@@ -36,67 +36,132 @@ interface GradingItem {
   aiReasoning?: string;
   reviewerComment?: string;
 }
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+
+
+/**
+ * Active AI & Rubric Scoring Engine
+ */
+async function scoreSubjectiveAnswer(item: GradingItem): Promise<{ score: number; confidence: number; reasoning: string }> {
+  // 1. Attempt call to FastAPI / backend auto-grade service
+  try {
+    const res = await fetch("/api/auto-grade", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        student_answer: item.studentAnswer,
+        correct_answer: item.correctAnswer || "",
+        marks: item.marks,
+        question_type: item.questionType,
+        question_text: item.questionText,
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        score: Math.min(item.marks, Math.max(0, Number(data.score) || 0)),
+        confidence: Number(data.confidence) || 0.85,
+        reasoning: data.reasoning || "Scored via automated NLP evaluation service.",
+      };
+    }
+  } catch (err) {
+    console.warn("FastAPI auto-grade service unreachable; applying rubric heuristic.", err);
+  }
+
+  // 2. Deterministic Fallback Rubric Evaluator
+  const answer = (item.studentAnswer || "").trim().toLowerCase();
+  const guide = (item.correctAnswer || "").trim().toLowerCase();
+
+  if (!answer) {
+    return { score: 0, confidence: 1.0, reasoning: "No answer was provided by the candidate." };
+  }
+
+  // Calculate semantic term overlap
+  const guideTokens = guide.split(/\W+/).filter((w) => w.length > 3);
+  let matches = 0;
+  guideTokens.forEach((token) => {
+    if (answer.includes(token)) matches++;
+  });
+
+  const overlapRatio = guideTokens.length > 0 ? matches / guideTokens.length : 0.5;
+  const lengthScore = Math.min(1, answer.length / 80);
+  const compositeRatio = Math.min(1, overlapRatio * 0.7 + lengthScore * 0.3);
+  const calculatedScore = Math.round(item.marks * compositeRatio * 10) / 10;
+
+  return {
+    score: calculatedScore,
+    confidence: Math.round((0.6 + compositeRatio * 0.3) * 100) / 100,
+    reasoning: `Rubric evaluated: ${matches}/${guideTokens.length} key marking concepts identified (${Math.round(compositeRatio * 100)}% match).`,
+  };
+}
 
 export default function AutoGrading() {
-  const [items, setItems] = useState<GradingItem[]>([
-    {
-      id: "g1",
-      studentName: "Alice Johnson",
-      regNumber: "MT-2024-001",
-      questionId: "q1",
-      questionText: "What is the SI unit of force?",
-      questionType: "mcq",
-      studentAnswer: "Newton",
-      correctAnswer: "Newton",
-      marks: 2,
-      autoScore: 2,
-      confidence: 0.99,
-      status: "auto_graded",
-      aiReasoning: "Correct answer matches expected response",
-    },
-    {
-      id: "g2",
-      studentName: "Bob Smith",
-      regNumber: "MT-2024-002",
-      questionId: "q2",
-      questionText: "Explain the concept of torque in mechanical systems",
-      questionType: "essay",
-      studentAnswer: "Torque is a rotational force that causes objects to rotate around an axis...",
-      marks: 30,
-      confidence: 0.65,
-      status: "pending",
-      aiReasoning: "Complex subjective answer requires manual review for full evaluation",
-    },
-    {
-      id: "g3",
-      studentName: "Carol Davis",
-      regNumber: "MT-2024-003",
-      questionId: "q3",
-      questionText: "Calculate the work done by a force of 10N over 5m",
-      questionType: "short_answer",
-      studentAnswer: "W = F × d = 10 × 5 = 50J",
-      correctAnswer: "50 Joules",
-      marks: 5,
-      autoScore: 5,
-      confidence: 0.95,
-      status: "auto_graded",
-      aiReasoning: "Calculation correct with proper units",
-    },
-    {
-      id: "g4",
-      studentName: "David Lee",
-      regNumber: "MT-2024-004",
-      questionId: "q4",
-      questionText: "What is Newton's second law?",
-      questionType: "short_answer",
-      studentAnswer: "F = ma",
-      marks: 3,
-      autoScore: 2,
-      confidence: 0.72,
-      status: "flagged",
-      aiReasoning: "Partial answer - missing explanation. Flagged for review.",
-    },
-  ]);
+  const [items, setItems] = useState<GradingItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPendingSubmissions() {
+      if (!isSupabaseConfigured()) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const { data: submissions, error } = await (supabase as any)
+          .from("submissions")
+          .select("*, exams(payload)")
+          .eq("status", "pending");
+          
+        if (error) throw error;
+        
+        if (submissions) {
+          const loadedItems: GradingItem[] = [];
+          
+          submissions.forEach((sub: any) => {
+            const examPayload = sub.exams?.payload;
+            if (!examPayload) return;
+            
+            const processSection = (sectionAnswers: any[], sectionQuestions: any[]) => {
+              if (!sectionAnswers || !sectionQuestions) return;
+              sectionAnswers.forEach((ans: any) => {
+                const q = sectionQuestions.find((sq: any) => sq.id === ans.question_id);
+                if (!q) return;
+                
+                // Only pull items that need manual review or are flagged
+                if (ans.marks_awarded === null || q.type !== "mcq") {
+                  loadedItems.push({
+                    id: `${sub.id}-${q.id}`,
+                    studentName: sub.student_name,
+                    regNumber: sub.reg_number,
+                    questionId: q.id,
+                    questionText: q.text,
+                    questionType: q.type,
+                    studentAnswer: ans.answer,
+                    correctAnswer: q.correct_answer,
+                    marks: q.marks,
+                    autoScore: ans.marks_awarded,
+                    confidence: 0.8,
+                    status: ans.marks_awarded === null ? "pending" : "flagged",
+                    aiReasoning: ans.ai_reasoning || "Pending manual review",
+                  });
+                }
+              });
+            };
+            
+            processSection(sub.section_a, examPayload.section_a?.questions);
+            processSection(sub.section_b, examPayload.section_b?.questions);
+          });
+          
+          setItems(loadedItems);
+        }
+      } catch (err) {
+        console.error("Failed to fetch submissions:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPendingSubmissions();
+  }, []);
 
   const [selectedItem, setSelectedItem] = useState<GradingItem | null>(null);
   const [manualScore, setManualScore] = useState<number | null>(null);
@@ -108,19 +173,45 @@ export default function AutoGrading() {
     return item.status === filterStatus;
   });
 
-  const autoGradeItem = (itemId: string) => {
+  const autoGradeItem = async (itemId: string) => {
+    const targetItem = items.find((i) => i.id === itemId);
+    if (!targetItem) return;
+
+    const result = await scoreSubjectiveAnswer(targetItem);
+
     setItems((prev) =>
       prev.map((item) =>
         item.id === itemId
           ? {
               ...item,
-              autoScore: Math.round(item.marks * Math.random() * 0.8 + item.marks * 0.2),
+              autoScore: result.score,
+              confidence: result.confidence,
+              aiReasoning: result.reasoning,
               status: "auto_graded",
             }
           : item
       )
     );
-    toast.success("Auto-Graded", { description: "Item graded using AI engine" });
+
+    toast.success("Auto-Grading Complete", {
+      description: `Awarded ${result.score}/${targetItem.marks} (Confidence: ${Math.round(result.confidence * 100)}%)`,
+    });
+  };
+
+  const autoGradeAllPending = async () => {
+    const pending = items.filter((i) => i.status === "pending");
+    if (pending.length === 0) {
+      toast.info("No pending items to grade.");
+      return;
+    }
+
+    for (const item of pending) {
+      await autoGradeItem(item.id);
+    }
+
+    toast.success("Batch Auto-Grading Complete", {
+      description: `Evaluated ${pending.length} submissions against CDACC marking criteria.`,
+    });
   };
 
   const submitManualReview = () => {
@@ -162,7 +253,7 @@ export default function AutoGrading() {
   const reviewedCount = items.filter((i) => i.status === "reviewed").length;
 
   return (
-    <DashboardLayout title="Auto Grading" subtitle="AI-powered grading with manual review queue">
+    <TrainerLayout title="Auto Grading" subtitle="AI-powered grading with manual review queue">
       <div className="space-y-4">
         {/* Stats Row */}
         <div className="grid grid-cols-4 gap-3">
@@ -209,21 +300,36 @@ export default function AutoGrading() {
           </div>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex gap-2">
-          {["all", "pending", "flagged"].map((status) => (
+        {/* Filter Tabs & Batch Actions */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex gap-2">
+            {["all", "pending", "flagged"].map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(status as any)}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                style={{
+                  background: filterStatus === status ? "oklch(0.72 0.18 160)" : "oklch(1 0 0 / 0.06)",
+                  color: filterStatus === status ? "white" : "oklch(0.58 0.012 240)",
+                }}
+              >
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </button>
+            ))}
+          </div>
+          {pendingCount > 0 && (
             <button
-              key={status}
-              onClick={() => setFilterStatus(status as any)}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+              onClick={autoGradeAllPending}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-md hover:opacity-90"
               style={{
-                background: filterStatus === status ? "oklch(0.72 0.18 160)" : "oklch(1 0 0 / 0.06)",
-                color: filterStatus === status ? "white" : "oklch(0.58 0.012 240)",
+                background: "#c48820",
+                color: "#ffffff",
               }}
             >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
+              <Zap className="w-4 h-4" />
+              Auto-Grade All Pending ({pendingCount})
             </button>
-          ))}
+          )}
         </div>
 
         {/* Grading Items */}
@@ -413,6 +519,7 @@ export default function AutoGrading() {
           </motion.div>
         )}
       </div>
-    </DashboardLayout>
+    </TrainerLayout>
   );
 }
+

@@ -17,7 +17,7 @@ import {
   User,
   Zap,
 } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+import TrainerLayout from "@/components/TrainerLayout";
 import { toast } from "sonner";
 
 interface StudentSession {
@@ -158,7 +158,7 @@ export default function Proctoring() {
   const flaggedCount = sessions.filter((s) => s.status === "flagged").length;
 
   return (
-    <DashboardLayout title="Exam Proctoring" subtitle="Real-time monitoring and behavior detection">
+    <TrainerLayout title="Exam Proctoring" subtitle="Real-time monitoring and behavior detection">
       <div className="space-y-4">
         {/* Stats Row */}
         <div className="grid grid-cols-4 gap-3">
@@ -416,6 +416,6 @@ export default function Proctoring() {
           </motion.div>
         )}
       </div>
-    </DashboardLayout>
+    </TrainerLayout>
   );
 }

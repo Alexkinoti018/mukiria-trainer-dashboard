@@ -21,26 +21,43 @@ interface AuthUser {
   id: string;
   email: string;
   name: string;
-  role: "trainer" | "admin";
+  role: "trainer" | "admin" | "hod" | "trainee";
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (pin: string) => Promise<{ success: boolean; error?: string }>;
+  login: (pin: string) => Promise<{ success: boolean; error?: string; role?: string }>;
   logout: () => Promise<void>;
 }
 
 // ─── Demo PIN Credentials ─────────────────────────────────────
 // In production, use Supabase Auth with email/password.
-// For demo mode, PIN "1234" maps to trainer@mtti.ac.ke
-const DEMO_PIN = "1234";
-const DEMO_USER: AuthUser = {
-  id: "demo-trainer-001",
-  email: "trainer@mtti.ac.ke",
-  name: "Dr. J. Muriithi",
-  role: "trainer",
+// For demo mode, PINs map to different roles:
+const DEMO_TRAINER_PIN = "1234";
+const DEMO_HOD_PIN = "5678";
+const DEMO_TRAINEE_PIN = "9012";
+
+const DEMO_USERS: Record<string, AuthUser> = {
+  [DEMO_TRAINER_PIN]: {
+    id: "demo-trainer-001",
+    email: "trainer@mtti.ac.ke",
+    name: "Dr. J. Muriithi",
+    role: "trainer",
+  },
+  [DEMO_HOD_PIN]: {
+    id: "demo-hod-001",
+    email: "hod@mtti.ac.ke",
+    name: "Prof. S. Njoroge",
+    role: "hod",
+  },
+  [DEMO_TRAINEE_PIN]: {
+    id: "demo-trainee-001",
+    email: "student@mtti.ac.ke",
+    name: "Alex Kinoti",
+    role: "trainee",
+  }
 };
 
 // ─── Context ─────────────────────────────────────────────────
@@ -62,8 +79,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser({
               id: session.user.id,
               email: session.user.email ?? "",
-              name: session.user.user_metadata?.name ?? "Trainer",
-              role: "trainer",
+              name: session.user.user_metadata?.name ?? "User",
+              role: session.user.user_metadata?.role ?? "trainer",
             });
             console.log(
               "✅ [MTTI Auth] Session restored for:",
@@ -95,8 +112,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser({
             id: session.user.id,
             email: session.user.email ?? "",
-            name: session.user.user_metadata?.name ?? "Trainer",
-            role: "trainer",
+            name: session.user.user_metadata?.name ?? "User",
+            role: session.user.user_metadata?.role ?? "trainer",
           });
         } else {
           setUser(null);
@@ -108,28 +125,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ── Login ─────────────────────────────────────────────────
   const login = useCallback(
-    async (pin: string): Promise<{ success: boolean; error?: string }> => {
+    async (pin: string): Promise<{ success: boolean; error?: string; role?: string }> => {
       setIsLoading(true);
       try {
         // DEMO MODE: Bypass Supabase for testing - always use demo mode
-        // Demo mode: validate against hardcoded PIN or full password
-        if (pin === DEMO_PIN || pin === "@Race5778") {
-          setUser(DEMO_USER);
+        const demoUser = DEMO_USERS[pin] || (pin === "@Race5778" ? DEMO_USERS[DEMO_TRAINER_PIN] : null);
+        
+        if (demoUser) {
+          setUser(demoUser);
           localStorage.setItem(
             "mtti_demo_session",
-            JSON.stringify(DEMO_USER)
+            JSON.stringify(demoUser)
           );
-          console.log("✅ [MTTI Auth] Demo login successful");
-          return { success: true };
+          console.log(`✅ [MTTI Auth] Demo login successful for role: ${demoUser.role}`);
+          return { success: true, role: demoUser.role };
         } else {
           console.warn("⚠️ [MTTI Auth] Invalid PIN attempt");
           return {
             success: false,
-            error: "Invalid PIN. Try 1234 or @Race5778.",
+            error: "Invalid PIN. Try 1234 (Trainer), 5678 (HOD), or 9012 (Trainee).",
           };
         }
-
-        return { success: false, error: "Authentication failed." };
       } catch (err) {
         console.error("❌ [MTTI Auth] Unexpected error:", err);
         return { success: false, error: "An unexpected error occurred." };

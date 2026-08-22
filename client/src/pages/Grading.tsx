@@ -25,16 +25,26 @@ import {
   MessageSquare,
   BarChart3,
 } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+import TrainerLayout from "@/components/TrainerLayout";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { MOCK_EXAMS, MOCK_SUBMISSIONS } from "@/lib/mockData";
+import { useExam } from "@/contexts/ExamContext";
 import type { Exam, Submission, StudentAnswer, ExamQuestion } from "@/lib/supabase";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
+const getLevelFromUnitCode = (code: string): number => {
+  const match = code.match(/\/(\d)\//);
+  if (match) return parseInt(match[1], 10);
+  const parts = code.split("/");
+  for (const part of parts) {
+    const num = parseInt(part, 10);
+    if (!isNaN(num) && num >= 3 && num <= 8) return num;
+  }
+  return 6; // default Level 6
+};
+
 export default function Grading() {
-  const [exams, setExams] = useState<Exam[]>([]);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const { exams, submissions, gradeSubmission } = useExam();
   const [loading, setLoading] = useState(true);
   const [selectedUnit, setSelectedUnit] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -50,39 +60,13 @@ export default function Grading() {
   const [exporting, setExporting] = useState(false);
   const [showDistribution, setShowDistribution] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      if (isSupabaseConfigured()) {
-        const [{ data: examsData }, { data: subsData }] = await Promise.all([
-          supabase.from("exams").select("*"),
-          supabase.from("submissions").select("*").order("created_at", { ascending: false }),
-        ]);
-        setExams(examsData ?? []);
-        setSubmissions(subsData ?? []);
-        console.log("✅ [MTTI Grading] Loaded", subsData?.length, "submissions");
-      } else {
-        setExams(MOCK_EXAMS);
-        setSubmissions(MOCK_SUBMISSIONS);
-      }
-    } catch (err) {
-      console.error("❌ [MTTI Grading] Load error:", err);
-      setExams(MOCK_EXAMS);
-      setSubmissions(MOCK_SUBMISSIONS);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // ── Auto-grade MCQ answers ────────────────────────────────
   const autoGradeMCQ = useCallback(
     (sub: Submission, exam: Exam): StudentAnswer[] => {
       return sub.section_a.map((ans) => {
-        const question = exam.payload.section_a.questions.find((q) => q.id === ans.question_id);
+        const question = exam.payload?.section_a?.questions?.find((q) => q.id === ans.question_id);
         if (!question) return ans;
         const isCorrect = ans.answer === question.correct_answer;
         return { ...ans, marks_awarded: isCorrect ? question.marks : 0 };
@@ -97,7 +81,41 @@ export default function Grading() {
   const calculateTotal = (sub: Submission, gradedA?: StudentAnswer[]): number => {
     const aAnswers = gradedA ?? sub.section_a;
     const aScore = aAnswers.reduce((s, a) => s + (a.marks_awarded ?? 0), 0);
-    const bScore = sub.section_b.reduce((s, a) => s + (a.marks_awarded ?? 0), 0);
+    
+    const level = getLevelFromUnitCode(sub.unit_code);
+    
+    // Section B Scoring: Handle Level 5 & 6 "Choose 3 of 4"
+    let bScore = 0;
+    if ((level === 5 || level === 6) && sub.section_b.length > 3) {
+      // Sort awarded marks in descending order and sum the top 3
+      const awardedMarks = sub.section_b
+        .map((a) => a.marks_awarded ?? 0)
+        .sort((x, y) => y - x);
+      bScore = awardedMarks.slice(0, 3).reduce((sum, mark) => sum + mark, 0);
+    } else {
+      bScore = sub.section_b.reduce((s, a) => s + (a.marks_awarded ?? 0), 0);
+    }
+
+    // KNQF Level-specific continuous theory (CT) and practical (CP) weights
+    const weights: Record<number, { ct: number; cp: number }> = {
+      6: { ct: 50, cp: 50 },
+      5: { ct: 40, cp: 60 },
+      4: { ct: 30, cp: 70 },
+      3: { ct: 20, cp: 80 },
+    };
+
+    const weight = weights[level];
+    if (weight) {
+      const exam = getExamForSub(sub);
+      const sectionAMax = exam?.payload?.section_a?.total_marks ?? (level <= 4 ? (level === 4 ? 10 : 20) : 40);
+      const sectionBMax = 60; // Standardized Section B contribution
+
+      const ctPercentage = sectionAMax > 0 ? (aScore / sectionAMax) * weight.ct : 0;
+      const cpPercentage = sectionBMax > 0 ? (bScore / sectionBMax) * weight.cp : 0;
+
+      return Math.min(100, Math.round(ctPercentage + cpPercentage));
+    }
+
     return aScore + bScore;
   };
 
@@ -120,27 +138,13 @@ export default function Grading() {
 
     setSaving(sub.id);
     try {
-      if (isSupabaseConfigured()) {
-        const { error } = await (supabase as any)
-          .from("submissions")
-          .update({
-            section_a: gradedA,
-            section_b: gradedB,
-            total_score: total,
-            status: "graded",
-          })
-          .eq("id", sub.id);
-        if (error) throw error;
-        await loadData();
-      } else {
-        setSubmissions((prev) =>
-          prev.map((s) =>
-            s.id === sub.id
-              ? { ...s, section_a: gradedA, section_b: gradedB, total_score: total, status: "graded" }
-              : s
-          )
-        );
-      }
+      gradeSubmission(sub.id, {
+        section_a: gradedA,
+        section_b: gradedB,
+        total_score: total,
+        status: "graded"
+      });
+
       toast.success("Auto-graded!", {
         description: `${sub.student_name}: ${total}/100 (${Math.round(total)}%)`,
       });
@@ -160,76 +164,22 @@ export default function Grading() {
 
       setAutoSaveStatus((prev) => ({ ...prev, [questionId]: "saving" }));
       try {
-        if (isSupabaseConfigured()) {
-          // Update the specific answer in section_b
-          const updatedB = sub.section_b.map((ans) =>
-            ans.question_id === questionId ? { ...ans, marks_awarded: newScore } : ans
-          );
-          const total = calculateTotal({ ...sub, section_b: updatedB });
+        const updatedB = sub.section_b.map((ans) =>
+          ans.question_id === questionId ? { ...ans, marks_awarded: newScore } : ans
+        );
+        const total = calculateTotal({ ...sub, section_b: updatedB });
 
-          // Save submission
-          const { error: updateError } = await (supabase as any)
-            .from("submissions")
-            .update({
-              section_b: updatedB,
-              total_score: total,
-              status: "graded",
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", sub.id);
-          if (updateError) throw updateError;
+        gradeSubmission(sub.id, {
+          section_b: updatedB,
+          total_score: total,
+          status: "graded"
+        });
 
-          // Log audit trail
-          const reason = overrideReasons[`${sub.id}-${questionId}`] || "Auto-saved score override";
-          const { error: auditError } = await (supabase as any)
-            .from("score_audit_trail")
-            .insert([
-              {
-                submission_id: sub.id,
-                question_id: questionId,
-                section: "B",
-                original_score: oldScore,
-                new_score: newScore,
-                override_reason: reason,
-                changed_by: "System Administrator",
-                changed_at: new Date().toISOString(),
-              },
-            ]);
-          if (auditError) console.warn("Audit logging warning:", auditError);
-
-          setAutoSaveStatus((prev) => ({ ...prev, [questionId]: "saved" }));
-          setTimeout(
-            () => setAutoSaveStatus((prev) => ({ ...prev, [questionId]: "idle" })),
-            2000
-          );
-          console.log("✅ [MTTI Grading] Auto-saved score override for:", sub.student_name);
-        } else {
-          // Demo mode: just update local state
-          setSubmissions((prev) =>
-            prev.map((s) =>
-              s.id === sub.id
-                ? {
-                    ...s,
-                    section_b: s.section_b.map((ans) =>
-                      ans.question_id === questionId ? { ...ans, marks_awarded: newScore } : ans
-                    ),
-                    total_score: calculateTotal({
-                      ...s,
-                      section_b: s.section_b.map((ans) =>
-                        ans.question_id === questionId ? { ...ans, marks_awarded: newScore } : ans
-                      ),
-                    }),
-                    status: "graded",
-                  }
-                : s
-            )
-          );
-          setAutoSaveStatus((prev) => ({ ...prev, [questionId]: "saved" }));
-          setTimeout(
-            () => setAutoSaveStatus((prev) => ({ ...prev, [questionId]: "idle" })),
-            1500
-          );
-        }
+        setAutoSaveStatus((prev) => ({ ...prev, [questionId]: "saved" }));
+        setTimeout(
+          () => setAutoSaveStatus((prev) => ({ ...prev, [questionId]: "idle" })),
+          1500
+        );
       } catch (err: any) {
         console.error("❌ [MTTI Grading] Auto-save failed:", err);
         setAutoSaveStatus((prev) => ({ ...prev, [questionId]: "idle" }));
@@ -237,6 +187,13 @@ export default function Grading() {
     },
     [overrideReasons]
   );
+
+  const handleScoreBlur = (sub: Submission, questionId: string, value: number) => {
+    const oldScore = sub.section_b.find((a) => a.question_id === questionId)?.marks_awarded ?? 0;
+    if (value !== oldScore) {
+      autoSaveOverride(sub, questionId, value);
+    }
+  };
 
   const handleSaveSectionB = async (sub: Submission) => {
     const subEdits = editedScores[sub.id] ?? {};
@@ -248,54 +205,12 @@ export default function Grading() {
 
     setSaving(sub.id);
     try {
-      if (isSupabaseConfigured()) {
-        // Save submission
-        const { error: updateError } = await (supabase as any)
-          .from("submissions")
-          .update({
-            section_b: updatedB,
-            total_score: total,
-            status: "graded",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", sub.id);
-        if (updateError) throw updateError;
+      gradeSubmission(sub.id, {
+        section_b: updatedB,
+        total_score: total,
+        status: "graded"
+      });
 
-        // Log audit trail for each changed score
-        const auditEntries = [];
-        for (const ans of sub.section_b) {
-          const newScore = subEdits[ans.question_id];
-          if (newScore !== undefined && newScore !== (ans.marks_awarded ?? 0)) {
-            auditEntries.push({
-              submission_id: sub.id,
-              question_id: ans.question_id,
-              section: "B",
-              original_score: ans.marks_awarded ?? 0,
-              new_score: newScore,
-              override_reason: overrideReasons[`${sub.id}-${ans.question_id}`] || "Manual adjustment",
-              changed_by: "System Administrator",
-              changed_at: new Date().toISOString(),
-            });
-          }
-        }
-
-        if (auditEntries.length > 0) {
-          const { error: auditError } = await (supabase as any)
-            .from("score_audit_trail")
-            .insert(auditEntries);
-          if (auditError) console.warn("Audit logging warning:", auditError);
-        }
-
-        await loadData();
-      } else {
-        setSubmissions((prev) =>
-          prev.map((s) =>
-            s.id === sub.id
-              ? { ...s, section_b: updatedB, total_score: total, status: "graded" }
-              : s
-          )
-        );
-      }
       setEditedScores((prev) => {
         const next = { ...prev };
         delete next[sub.id];
@@ -315,18 +230,7 @@ export default function Grading() {
   const handleMarkReviewed = async (sub: Submission) => {
     setSaving(sub.id);
     try {
-      if (isSupabaseConfigured()) {
-        const { error } = await (supabase as any)
-          .from("submissions")
-          .update({ status: "reviewed" })
-          .eq("id", sub.id);
-        if (error) throw error;
-        await loadData();
-      } else {
-        setSubmissions((prev) =>
-          prev.map((s) => (s.id === sub.id ? { ...s, status: "reviewed" } : s))
-        );
-      }
+      gradeSubmission(sub.id, { status: "reviewed" });
       toast.success("Marked as Reviewed");
     } catch (err: any) {
       toast.error("Update Failed", { description: err.message });
@@ -427,7 +331,7 @@ export default function Grading() {
   };
 
   return (
-    <DashboardLayout title="Grading Interface" subtitle="Review and grade student submissions">
+    <TrainerLayout title="Grading Interface" subtitle="Review and grade student submissions">
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-5">
         <div
@@ -492,7 +396,7 @@ export default function Grading() {
         </select>
 
         <button
-          onClick={loadData}
+          onClick={() => window.location.reload()}
           className="px-3 py-2 rounded-xl flex items-center gap-2 text-sm"
           style={{
             background: "oklch(1 0 0 / 0.05)",
@@ -689,10 +593,13 @@ export default function Grading() {
                           <span className="text-xs font-normal opacity-60">/100</span>
                         </div>
                         <div
-                          className="text-xs font-bold"
+                          className="text-xs font-bold flex items-center justify-end gap-1.5 mt-1"
                           style={{ color: getScoreColor(sub.total_score) }}
                         >
                           Grade {getGrade(sub.total_score)}
+                          <span className="px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider" style={{ background: sub.total_score >= 50 ? "oklch(0.65 0.15 160 / 0.15)" : "oklch(0.65 0.22 25 / 0.15)", color: sub.total_score >= 50 ? "oklch(0.65 0.15 160)" : "oklch(0.65 0.22 25)" }}>
+                            {sub.total_score >= 50 ? "PASS" : "FAIL"}
+                          </span>
                         </div>
                       </div>
                     )}
@@ -777,12 +684,12 @@ export default function Grading() {
                               Section A — Multiple Choice
                               <span className="font-mono ml-2 font-normal" style={{ color: "oklch(0.50 0.010 240)" }}>
                                 {sub.section_a.reduce((s, a) => s + (a.marks_awarded ?? 0), 0)} /{" "}
-                                {exam.payload.section_a.total_marks} marks
+                                {exam.payload?.section_a?.total_marks ?? 0} marks
                               </span>
                             </h4>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                               {sub.section_a.map((ans, qi) => {
-                                const question = exam.payload.section_a.questions.find(
+                                const question = exam.payload?.section_a?.questions?.find(
                                   (q) => q.id === ans.question_id
                                 );
                                 const isCorrect = ans.marks_awarded === question?.marks;
@@ -828,7 +735,7 @@ export default function Grading() {
                               >
                                 Section B — Structured Questions
                                 <span className="font-mono ml-2 font-normal" style={{ color: "oklch(0.50 0.010 240)" }}>
-                                  {sub.section_b.reduce((s, a) => s + (a.marks_awarded ?? 0), 0)} /{exam.payload.section_b.total_marks} marks
+                                  {sub.section_b.reduce((s, a) => s + (a.marks_awarded ?? 0), 0)} /{exam.payload?.section_b?.total_marks ?? 0} marks
                                 </span>
                               </h4>
                               {Object.keys(editedScores[sub.id] ?? {}).length > 0 && (
@@ -848,7 +755,7 @@ export default function Grading() {
                             </div>
                             <div className="space-y-3">
                               {sub.section_b.map((ans, qi) => {
-                                const question = exam.payload.section_b.questions.find(
+                                const question = exam.payload?.section_b?.questions?.find(
                                   (q) => q.id === ans.question_id
                                 );
                                 const currentMarks = subEdits[ans.question_id] ?? ans.marks_awarded ?? 0;
@@ -888,10 +795,18 @@ export default function Grading() {
                                               ...prev,
                                               [sub.id]: { ...prev[sub.id], [ans.question_id]: val },
                                             }));
-                                            // Trigger auto-save after a short delay
-                                            setTimeout(() => {
+                                            
+                                            // Debounce the save
+                                            clearTimeout((window as any)[`debounce_${ans.question_id}`]);
+                                            (window as any)[`debounce_${ans.question_id}`] = setTimeout(() => {
                                               autoSaveOverride(sub, ans.question_id, val);
-                                            }, 800);
+                                            }, 1000);
+                                          }}
+                                          onBlur={() => handleScoreBlur(sub, ans.question_id, currentMarks)}
+                                          onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                              handleScoreBlur(sub, ans.question_id, currentMarks);
+                                            }
                                           }}
                                           className="w-16 text-center px-2 py-1.5 rounded-lg text-sm font-mono transition-all"
                                           style={{
@@ -1016,6 +931,7 @@ export default function Grading() {
           })
         )}
       </div>
-    </DashboardLayout>
+    </TrainerLayout>
   );
 }
+

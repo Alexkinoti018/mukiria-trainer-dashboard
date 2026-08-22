@@ -19,6 +19,7 @@ import {
   Eye,
   Zap,
   TrendingUp,
+  BookOpen,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -30,28 +31,23 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { icon: LayoutDashboard, label: "Overview", path: "/dashboard" },
-  { icon: FileText, label: "Exam Builder", path: "/exam-builder" },
-  { icon: ClipboardCheck, label: "Grading", path: "/grading" },
-  { icon: Eye, label: "Proctoring", path: "/proctoring" },
-  { icon: Zap, label: "Auto Grading", path: "/auto-grading" },
-  { icon: TrendingUp, label: "Performance", path: "/performance-insights" },
-  { icon: BarChart3, label: "Analytics", path: "/analytics" },
-  { icon: Download, label: "Reports", path: "/reports" },
-  { icon: Settings, label: "DB Setup", path: "/setup" },
+  { icon: LayoutDashboard, label: "My Dashboard", path: "/trainee/dashboard" },
+  { icon: FileText, label: "Upcoming Exams", path: "/trainee/exam" },
+  { icon: ClipboardCheck, label: "Assignments & Evidence", path: "/trainee/assignments" },
+  { icon: BarChart3, label: "My Results", path: "/trainee/results" },
 ];
 
-interface DashboardLayoutProps {
+interface TraineeLayoutProps {
   children: React.ReactNode;
   title?: string;
   subtitle?: string;
 }
 
-export default function DashboardLayout({
+export default function TraineeLayout({
   children,
   title,
   subtitle,
-}: DashboardLayoutProps) {
+}: TraineeLayoutProps) {
   const [location, navigate] = useLocation();
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -63,24 +59,20 @@ export default function DashboardLayout({
   };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
+    <div className="flex flex-col h-full bg-sidebar/80 backdrop-blur-xl text-sidebar-foreground">
       {/* Header */}
-      <div className="px-6 py-6 border-b border-sidebar-border">
+      <div className="px-6 py-6 border-b border-border bg-transparent">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-sidebar-primary/10 flex items-center justify-center shrink-0">
-            <svg
-              className="w-5 h-5 text-sidebar-primary"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
+          <div className="w-10 h-10 overflow-hidden shrink-0 bg-white flex items-center justify-center rounded-md shadow-sm">
+            <img
+              src="/mtti-logo.jpg"
+              alt="Mukiria TTI Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-semibold">MTTI</div>
-            <div className="text-xs text-sidebar-foreground/60">Dashboard</div>
+            <div className="text-sm font-bold text-primary">Mukiria TTI</div>
+            <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Trainee Portal</div>
           </div>
         </div>
       </div>
@@ -99,7 +91,7 @@ export default function DashboardLayout({
               }}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
                   : "text-sidebar-foreground hover:bg-sidebar-accent"
               }`}
             >
@@ -118,7 +110,7 @@ export default function DashboardLayout({
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-200"
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-200 shadow-sm border border-transparent hover:border-sidebar-border"
         >
           <LogOut className="w-4 h-4 shrink-0" />
           <span>Logout</span>
@@ -130,20 +122,20 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex w-64 flex-col border-r border-border">
+      <div className="hidden md:flex w-64 flex-col border-r border-border shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-20">
         <SidebarContent />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Top Bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/80 backdrop-blur-xl sticky top-0 z-10 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
           <div className="flex-1">
             {title && (
               <>
-                <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
+                <h1 className="text-2xl font-bold text-foreground font-display tracking-tight">{title}</h1>
                 {subtitle && (
-                  <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
+                  <p className="text-sm text-muted-foreground mt-1 font-medium">{subtitle}</p>
                 )}
               </>
             )}

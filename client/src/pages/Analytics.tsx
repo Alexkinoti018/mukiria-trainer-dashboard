@@ -28,10 +28,11 @@ import {
   Award,
   Target,
   BarChart3,
+  Download,
 } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+import TrainerLayout from "@/components/TrainerLayout";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { MOCK_EXAMS, MOCK_SUBMISSIONS } from "@/lib/mockData";
+import { useExam } from "@/contexts/ExamContext";
 import type { Exam, Submission } from "@/lib/supabase";
 
 const CHART_COLORS = {
@@ -67,35 +68,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function Analytics() {
-  const [exams, setExams] = useState<Exam[]>([]);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      if (isSupabaseConfigured()) {
-        const [{ data: examsData }, { data: subsData }] = await Promise.all([
-          supabase.from("exams").select("*"),
-          supabase.from("submissions").select("*"),
-        ]);
-        setExams(examsData ?? []);
-        setSubmissions(subsData ?? []);
-      } else {
-        setExams(MOCK_EXAMS);
-        setSubmissions(MOCK_SUBMISSIONS);
-      }
-    } catch {
-      setExams(MOCK_EXAMS);
-      setSubmissions(MOCK_SUBMISSIONS);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { exams, submissions } = useExam();
+  const [loading, setLoading] = useState(false);
 
   // ── Compute analytics ─────────────────────────────────────
   const gradedSubs = submissions.filter((s) => s.total_score !== null);
@@ -148,7 +122,7 @@ export default function Analytics() {
   const topScore = gradedSubs.length > 0 ? Math.max(...gradedSubs.map((s) => s.total_score ?? 0)) : 0;
 
   return (
-    <DashboardLayout title="Analytics" subtitle="Performance insights and trends">
+    <TrainerLayout title="Analytics" subtitle="Performance insights and trends">
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
@@ -438,6 +412,6 @@ export default function Analytics() {
           </div>
         </motion.div>
       </div>
-    </DashboardLayout>
+    </TrainerLayout>
   );
 }

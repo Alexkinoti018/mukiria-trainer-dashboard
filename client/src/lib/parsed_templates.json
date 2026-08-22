@@ -1,0 +1,704 @@
+[
+  {
+    "unit_code": "HBS/OS/COS/BC/01/5/MA",
+    "unit_name": "APPLY DIGITAL LITERACY",
+    "department": "COMPUTING AND INFORMATICS",
+    "class_code": "EE6/M/S/24, LS6/M/24,CE6/M/S/24",
+    "level": "6",
+    "trainees_count": 15,
+    "weeks": [
+      {
+        "week": 1,
+        "title": "REPORTING AND ADMISSION",
+        "outcomes": [
+          "REPORTING AND ADMISSION"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 2,
+        "title": "Introduction to Digital Literacy & Hardware Components",
+        "outcomes": [
+          "By the end of the lesson the learner should be able to:\nDefine digital literacy and state 3 workplace benefits within 15 min.\n Differentiate 5 ICT tools and their uses in group activity.\nExplain how digital literacy supports employability in 5 min presentation.",
+          "Identify 5 internal and 5 external components in 15 min.\n Explain functions of CPU, RAM, and storage.\n Classify 12 devices as input/output/storage in 10 min."
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 3,
+        "title": "Input & Output Devices & Basic Computer Operation",
+        "outcomes": [
+          "Identify 5 input and 5 output devices in 15 min.\nExplain one real-world use of each.\n Connect and use an external device in 10 min.",
+          "Demonstrate startup and shutdown twice in 10 min.\nApply 5 keyboard shortcuts.\nCustomize wallpaper/screensaver in 15 min."
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 4,
+        "title": "Introduction to Word Processing",
+        "outcomes": [
+          "Create and save a new document in 10 min.\nOpen, close, rename 2 docs in 15 min.\n Switch between 2 docs in 5 min."
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      }
+    ]
+  },
+  {
+    "unit_code": "ICT/OS/CS/CR/11/6/A",
+    "unit_name": "Perform Graphic Design",
+    "department": "COMPUTING AND INFORMATICS",
+    "class_code": "ITECH6/J/24",
+    "level": "6",
+    "trainees_count": 15,
+    "weeks": [
+      {
+        "week": 1,
+        "title": "OPENING AND ADMISSION",
+        "outcomes": [
+          "OPENING AND ADMISSION"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 2,
+        "title": "Fundamentals of Graphic Design",
+        "outcomes": [
+          "Understand Graphic Design"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 3,
+        "title": "Elements of Design",
+        "outcomes": [
+          "Understanding Elements & Principles"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 4,
+        "title": "Principles of Design",
+        "outcomes": [
+          "Understanding Elements & Principles"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 5,
+        "title": "Typography Basics",
+        "outcomes": [
+          "Apply Typography Techniques"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 6,
+        "title": "Formative Assessment (CAT)",
+        "outcomes": [
+          "Review of LO 1\u20133"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 7,
+        "title": "Typography Continued",
+        "outcomes": [
+          "Applying Typography Techniques"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 8,
+        "title": "Image Editing Basics",
+        "outcomes": [
+          "Create & Edit Images"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 9,
+        "title": "Advanced Image Editing",
+        "outcomes": [
+          "Create & Edit Images"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 10,
+        "title": "Layout Design",
+        "outcomes": [
+          "Perform Layout Design"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 11,
+        "title": "Printing Techniques",
+        "outcomes": [
+          "Print Design"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 12,
+        "title": "Summative Assessment",
+        "outcomes": [
+          "All Learning Outcomes"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      }
+    ]
+  },
+  {
+    "unit_code": "ICT/OS/CS/CR/11/6/A",
+    "unit_name": "Perform Graphic Design",
+    "department": "COMPUTING AND INFORMATICS",
+    "class_code": "ITECH6/M/24",
+    "level": "6",
+    "trainees_count": 15,
+    "weeks": [
+      {
+        "week": 1,
+        "title": "OPENING AND ADMISSION",
+        "outcomes": [
+          "OPENING AND ADMISSION"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 2,
+        "title": "Fundamentals of Graphic Design",
+        "outcomes": [
+          "Understand Graphic Design"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 3,
+        "title": "Elements of Design",
+        "outcomes": [
+          "Understanding Elements & Principles"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 4,
+        "title": "Principles of Design",
+        "outcomes": [
+          "Understanding Elements & Principles"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 5,
+        "title": "Typography Basics",
+        "outcomes": [
+          "Apply Typography Techniques"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 6,
+        "title": "Formative Assessment (CAT)",
+        "outcomes": [
+          "Review of LO 1\u20133"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 7,
+        "title": "Typography Continued",
+        "outcomes": [
+          "Applying Typography Techniques"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 8,
+        "title": "Image Editing Basics",
+        "outcomes": [
+          "Create & Edit Images"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 9,
+        "title": "Advanced Image Editing",
+        "outcomes": [
+          "Create & Edit Images"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 10,
+        "title": "Layout Design",
+        "outcomes": [
+          "Perform Layout Design"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 11,
+        "title": "Printing Techniques",
+        "outcomes": [
+          "Print Design"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 12,
+        "title": "Summative Assessment",
+        "outcomes": [
+          "All Learning Outcomes"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      }
+    ]
+  },
+  {
+    "unit_code": "IT/CU/ICTA/CR/01/5/MA",
+    "unit_name": "INSTALL COMPUTER SOFTWARE",
+    "department": "COMPUTING AND INFORMATICS",
+    "class_code": "ITECH6/S/24",
+    "level": "6",
+    "trainees_count": 15,
+    "weeks": [
+      {
+        "week": 1,
+        "title": "REPORTING AND ADMISSION WEEK",
+        "outcomes": [
+          "REPORTING AND ADMISSION WEEK"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 2,
+        "title": "Software Classification & OS Fundamentals & User Needs Analysis & Requirement Documentation & Software Licensing & Legal Compliance & Pre-Installation Planning & Data Backup",
+        "outcomes": [
+          "By the end of the session, the trainee should be able to; \n1. Classify software as system or application\n2. Identify OS types from descriptions\n3. Match OS functions to definitions\n4. Create a software categorization chart",
+          "By the end of the session, the trainee should be able to; \n1. Conduct a mock client interview\n2. Document functional requirements\n3. Identify resource requirements\n4. Prepare a needs assessment report",
+          "By the end of the session, the trainee should be able to; \n1. Evaluate software against a checklist\n2. Compare single-user vs. multi-user licenses\n3. Analyze a sample EULA\n4. Justify software selection with reasoning",
+          "By the end of the session, the trainee should be able to; \n1.Develop a pre-installation checklist\n2. Perform a data backup on external drive\n3. Verify backup integrity\n4. Create a backup verification report"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 3,
+        "title": "Bootable Media Creation & Verification & Attended OS Installation & Configuration & Clean vs Upgrade Installation Performance Analysis & Unattended Installation & Automation Scripting",
+        "outcomes": [
+          "By the end of the session, the trainee should be able to; \n1. Create a bootable USB for Windows\n2. Create a bootable USB for Linux\n3. Verify USB integrity using checksum\n4. Test boot on a lab machine",
+          "By the end of the session, the trainee should be able to; \n1. Install Windows 10 step-by-step\n2. Configure regional settings and user accounts\n3. Troubleshoot a simulated installation error\n4. Document the installation process",
+          "By the end of the session, the trainee should be able to; \n1. Perform a clean OS installation\n2. Perform an in-place upgrade\n3. Compare performance before/after\n4. Recommend installation type for a scenario",
+          "By the end of the session, the trainee should be able to; \n1. Create an unattended installation answer file\n2. Test the script in a VM\n3. Modify script for a different hardware profile\n4. Document the automation process"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 4,
+        "title": "Productivity Software Installation & Configuration & Security Software Implementation & Management & Network-Based Software Deployment & Software License Management & Activation",
+        "outcomes": [
+          "By the end of the session, the trainee should be able to; \n1. Install a productivity software suite\n2. Configure application settings\n3. Activate software with a license key\n4. Create desktop shortcuts and start menu entries",
+          "By the end of the session, the trainee should be able to; \n1. Install antivirus software\n2. Configure real-time scanning\n3. Schedule a weekly full scan\n4. Update virus definitions",
+          "By the end of the session, the trainee should be able to; \n1. Set up a network installation share\n2. Deploy software to 2 workstations\n3. Monitor deployment progress\n4. Verify installation on target machines",
+          "By the end of the session, the trainee should be able to; \n1. Register a trial software online\n2. Apply an activation key\n3. Troubleshoot activation failure\n4. Maintain a license inventory"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 5,
+        "title": "User Account Management & Security Policies & Software Customization & Template Development & Configuration Control & Version Management & Installation Practical Assessment",
+        "outcomes": [
+          "By the end of the session, the trainee should be able to; \n1. Create local user accounts (admin, standard, guest)\n2. Configure password policies\n3. Assign user groups and permissions\n4. Test account access controls",
+          "By the end of the session, the trainee should be able to; \n1. Customize software interface settings\n2. Create a configuration template\n3. Export and import settings\n4. Document configuration changes",
+          "By the end of the session, the trainee should be able to; \n1. Implement simple version control for confit files\n2. Track changes to configurations\n3. Roll back to a previous configuration\n4. Document version history",
+          "By the end of the session, the trainee should be able to; \n1. Complete end-to-end software installation\n2. Configure software as per specification\n3. Document entire process\n4. Demonstrate safety and compliance"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 6,
+        "title": "Test Planning & Requirement Analysis & Installation Verification & Validation & Functional Testing & Defect Management & Usability & Accessibility Compliance Testing",
+        "outcomes": [
+          "By the end of the session, the trainee should be able to;\n 1. Analyze software requirements for testability\n2. Develop a test plan\n3. Create 5 test cases\n4. Identify test data needs",
+          "By the end of the session, the trainee should be able to; \n1. Verify software installation completeness\n2. Test installation on different hardware\n3. Document verification results\n4. Identify any missing components",
+          "By the end of the session, the trainee should be able to; \n1. Execute functional test cases\n2. Document pass/fail results\n3. Identify and classify defects\n4. Prioritize defects for fixing",
+          "By the end of the session, the trainee should be able to; \n1. Conduct a usability test with a peer\n2. Check software against accessibility guidelines\n3. Document usability issues\n4. Suggest improvements"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 7,
+        "title": "Error Handling & Resilience Testing & Cross-Platform Compatibility Testing & Performance Testing & Resource Monitoring & Basic Security Testing & Vulnerability Assessment",
+        "outcomes": [
+          "By the end of the session, the trainee should be able to; \n1. Test software with invalid inputs\n2. Verify error messages are helpful\n3. Document error handling behavior\n4. Suggest error message improvements",
+          "By the end of the session, the trainee should be able to; \n1. Test software on different OS versions\n2. Test with different screen resolutions\n3. Document compatibility results\n4. Create a compatibility matrix",
+          "By the end of the session, the trainee should be able to; \n1. Measure software startup time\n2. Test under multi-tasking load\n3. Monitor CPU and memory usage\n4. Document performance metrics",
+          "By the end of the session, the trainee should be able to; \n1. Test password strength enforcement\n2. Verify data encryption in transit\n3. Check user permission boundaries\n4. Document security findings"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 8,
+        "title": "Introduction to Test Automation & Defect Reporting & Lifecycle Management & Test Reporting & Stakeholder Communication & Testing Practical Assessment",
+        "outcomes": [
+          "By the end of the session, the trainee should be able to; \n1. Record a simple automated test\n2. Playback the recorded test\n3. Modify the test script\n4. Analyze automation results",
+          "By the end of the session, the trainee should be able to; \n1. Document a defect with reproduction steps\n2. Assign severity and priority\n3. Track defect status\n4. Create a defect resolution report",
+          "By the end of the session, the trainee should be able to; \n1. Compile all test results\n2. Analyze test coverage\n3. Create an executive test summary\n4. Make a release recommendation",
+          "By the end of the session, the trainee should be able to; \n1. Design a test strategy for given software\n2. Execute comprehensive testing\n3. Document all findings\n4. Present test conclusions"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 9,
+        "title": "Maintenance Planning & Scheduling & Patch Management & Security Updates & Version Upgrade Planning & Execution & Driver Management & Hardware Troubleshooting",
+        "outcomes": [
+          "By the end of the session, the trainee should be able to; \n1. Categorize maintenance tasks\n2. Develop a 1-month maintenance schedule\n3. Prioritize tasks based on urgency\n4. Allocate time and resources",
+          "By the end of the session, the trainee should be able to; \n1. Identify available OS and software patches\n2. Evaluate patch criticality\n3. Apply a security patch\n4. Verify patch installation",
+          "By the end of the session, the trainee should be able to; \n1. Plan a software version upgrade\n2. Backup before upgrade\n3. Execute the upgrade\n4. Validate post-upgrade functionality",
+          "By the end of the session, the trainee should be able to; \n1. Identify outdated drivers\n2. Source correct driver versions\n3. Update a device driver\n4. Troubleshoot a driver conflict"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 10,
+        "title": "Performance Monitoring & Baseline Establishment & Software Optimization & System Tuning & Event Log Analysis & Problem Diagnosis & Preventive Maintenance & Automation",
+        "outcomes": [
+          "By the end of the session, the trainee should be able to; \n1. Configure performance monitoring tools\n2. Establish a performance baseline\n3. Monitor CPU, memory, disk usage\n4. Identify performance degradation",
+          "By the end of the session, the trainee should be able to; \n1. Clean temporary files and cache\n2. Optimize startup programs\n3. Defragment disk (if HDD)\n4. Document optimization results",
+          "By the end of the session, the trainee should be able to; \n1. Access and filter system event logs\n2. Identify critical errors and warnings\n3. Correlate events with user-reported issues\n4. Document analysis findings",
+          "By the end of the session, the trainee should be able to; \n1. Schedule weekly and monthly maintenance tasks\n2. Create a preventive maintenance checklist\n3. Automate a routine maintenance task\n4. Document preventive measures"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 11,
+        "title": "Structured Troubleshooting Methodology & User Support & Knowledge Management & Maintenance Documentation & Reporting & Disaster Recovery Planning & Testing",
+        "outcomes": [
+          "By the end of the session, the trainee should be able to; \n1. Apply a structured troubleshooting approach\n2. Isolate software vs. hardware issues\n3. Use diagnostic tools effectively\n4. Document troubleshooting steps",
+          "By the end of the session, the trainee should be able to; \n1. Handle a user-reported issue ticket\n2. Create a support knowledge base article\n3. Deliver basic user training on a feature\n4. Gather user feedback",
+          "By the end of the session, the trainee should be able to; \n1. Create a maintenance record for all work done\n2. Update configuration documentation\n3. Prepare a monthly maintenance report\n4. Peer-review maintenance documentation",
+          "By the end of the session, the trainee should be able to; \n1. Develop a software recovery plan\n2. Create a system restore point\n3. Test recovery from backup\n4. Document recovery steps"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 12,
+        "title": "Integrated Maintenance Project & Maintenance Practical Assessment & Final Theory Assessment & Portfolio Submission",
+        "outcomes": [
+          "By the end of the session, the trainee should be able to; \n1. Plan a full maintenance cycle for a given system\n2. Execute installation, testing, and maintenance tasks\n3. Document the entire process\n4. Present outcomes to peers",
+          "By the end of the session, the trainee should be able to; \n1. Demonstrate competency in maintenance tasks\n2. Handle a simulated real-world scenario\n3. Apply safety and procedural standards\n4. Complete tasks within time limit",
+          "By the end of the session, the trainee should be able to; \n1. Recall key concepts from all modules\n2. Apply knowledge to scenario-based questions\n3. Demonstrate understanding of best practices\n4. Complete written exam within time",
+          "By the end of the session, the trainee should be able to; \n1. Compile complete competency portfolio\n2. Present evidence for all learning outcomes\n3. Receive final feedback\n4. Develop a continuous improvement plan"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      }
+    ]
+  },
+  {
+    "unit_code": "IT/CU/ICT/CR/3/6",
+    "unit_name": "MANAGEMENT INFORMATION SYSTEM",
+    "department": "COMPUTING AND INFORMATICS",
+    "class_code": "ITECH/6/S/23",
+    "level": "6",
+    "trainees_count": 15,
+    "weeks": [
+      {
+        "week": 1,
+        "title": "Identify information system concepts & Classification of Information systems",
+        "outcomes": [
+          "By the end of the lesson, trainees should be able to:\n- Demonstrate understanding of the key components of an information system\n- Apply the concept of data, information, and knowledge in the context of an information system\n- Demonstrate the role of information systems in supporting organizational functions and decision-making\n- Design a simple information system to address a specific organizational need",
+          "By the end of the lesson, trainees should be able to:\n- Demonstrate the ability to classify information systems based on their purpose and functionality\n- Apply the principles of information system classification to analyze the components and capabilities of a given information system\n- Design a conceptual model for a new information system based on its intended purpose and target users\n- Troubleshoot common issues related to the classification and implementation of information systems"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 2,
+        "title": "Information systems processing requirements & functional areas of Management information system",
+        "outcomes": [
+          "By the end of the lesson, trainees should be able to:\n- Demonstrate the ability to identify the key components of an information system and their functions\n- Apply the principles of data processing to analyze and interpret information system data\n- Design a simple information system to meet specific processing requirements\n- Troubleshoot common issues in information system processing and suggest appropriate solutions",
+          "By the end of the lesson, trainees should be able to:\n- Demonstrate the role of Management Information Systems (MIS) in supporting business operations and decision-making\n- Apply the principles of data management to ensure the integrity, security, and accessibility of information within an MIS\n- Analyze the role of information systems in supporting organizational decision-making and problem-solving\n- Design a basic MIS solution to address a specific business need"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 3,
+        "title": "Information resource management concepts & Information systems resources",
+        "outcomes": [
+          "By the end of the lesson, trainees should be able to:\n- Demonstrate the ability to identify and classify different types of information resources\n- Apply effective search strategies to locate relevant information resources\n- Design a system for organizing and managing information resources\n- Implement strategies for evaluating the reliability and credibility of information resources",
+          "By the end of the lesson, trainees should be able to:\n- Demonstrate the use of common productivity software for information management\n- Apply basic database management principles to store and retrieve information\n- Configure network devices and services to enable information sharing and communication\n- Design and implement a simple information system to address a specific organizational need"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 4,
+        "title": "Importance of managing information resources & Definition and importance of information systems planning",
+        "outcomes": [
+          "By the end of the lesson, trainees should be able to:\n- Demonstrate the ability to identify and classify different types of information resources\n- Apply strategies for effectively searching and retrieving relevant information from various sources\n- Implement best practices for organizing and managing personal information resources\n- Design a plan for maintaining the security and integrity of information resources",
+          "By the end of the lesson, trainees should be able to:\n- Define the concept of information systems planning and its key components\n- Demonstrate the importance of effective information systems planning for organizational success\n- Apply the principles of information systems planning to develop a basic plan for a given scenario\n- Analyze the potential challenges and barriers to effective information systems planning"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 5,
+        "title": "Information systems planning process and techniques & Types of Information systems Acquisition methods",
+        "outcomes": [
+          "By the end of the lesson, trainees should be able to:\n- Demonstrate the process of information systems planning, including needs assessment, goal setting, and strategy development\n- Apply techniques for gathering and analyzing information systems requirements, including stakeholder interviews, process mapping, and data flow diagramming\n- Design an information systems architecture that aligns with organizational goals and constraints, incorporating hardware, software, and network components\n- Implement a project management plan for an information systems implementation, including resource allocation, timeline management, and risk mitigation",
+          "By the end of the lesson, trainees should be able to:\n- Demonstrate the process of in-house development of an information system\n- Apply the principles of commercial off-the-shelf (COTS) software acquisition to select an appropriate information system\n- Demonstrate the process of customizing a COTS information system to meet specific organizational requirements\n- Design a plan for outsourcing the development of an information system"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 6,
+        "title": "Trends of Information systems & Ethical and legal issues in information systems",
+        "outcomes": [
+          "By the end of the lesson, trainees should be able to:\n- Demonstrate understanding of emerging trends in information systems and their impact on organizations\n- Apply design principles to develop a prototype of a mobile application that addresses a business need\n- Implement a basic data analytics solution to support decision-making in a business scenario\n- Troubleshoot and resolve common issues in a cloud-based information system",
+          "By the end of the lesson, trainees should be able to:\n- Demonstrate understanding of key ethical principles in information systems management\n- Apply legal and regulatory requirements for data privacy and protection in information systems\n- Implement security measures to prevent cybercrime and unethical use of information systems\n- Design an ethical code of conduct for IT professionals in an organization"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      },
+      {
+        "week": 7,
+        "title": "Information systems maintenance",
+        "outcomes": [
+          "By the end of the lesson, trainees should be able to:\n- Demonstrate the process of performing routine hardware and software maintenance on a computer system\n- Apply appropriate software update and patch management techniques to maintain the security and stability of an information system\n- Troubleshoot and resolve common network connectivity issues in an information system\n- Design and implement a preventive maintenance plan for an information system"
+        ],
+        "resources": [
+          "Projector",
+          "lab workstations",
+          "reference materials"
+        ],
+        "safety": "Ergonomic guidelines, electrical safety protocols."
+      }
+    ]
+  }
+]

@@ -17,22 +17,21 @@ import {
   CheckCircle2,
   BookOpen,
   User,
-  Hash,
   Loader2,
   Shield,
   Timer,
   AlertCircle,
   Award,
 } from "lucide-react";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { MOCK_EXAMS } from "@/lib/mockData";
-import type { Exam, StudentAnswer } from "@/lib/supabase";
+import { useExam } from "@/contexts/ExamContext";
+import type { Exam } from "@/lib/supabase";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
 
 type PortalState =
   | "loading"
   | "not_found"
+  | "practical"
   | "registration"
   | "instructions"
   | "exam"
@@ -101,10 +100,13 @@ function useExamTimer(durationMinutes: number, onExpire: () => void) {
   return { secondsLeft, minutes, seconds, isWarning, isCritical, startTimer, resetTimer };
 }
 
+
+
 export default function CandidatePortal() {
   const search = useSearch();
   const params = new URLSearchParams(search);
   const unitCode = params.get("unitCode") ?? params.get("unit") ?? "";
+  const { exams, submitExam } = useExam();
 
   const [state, setState] = useState<PortalState>("loading");
   const [exam, setExam] = useState<Exam | null>(null);
@@ -121,7 +123,7 @@ export default function CandidatePortal() {
     handleSubmit(true);
   }, []);
 
-  const { minutes, seconds, isWarning, isCritical, startTimer, resetTimer } = useExamTimer(
+  const { secondsLeft, minutes, seconds, isWarning, isCritical, startTimer, resetTimer } = useExamTimer(
     exam?.payload.duration_minutes ?? 90,
     handleTimerExpire
   );
@@ -138,32 +140,21 @@ export default function CandidatePortal() {
   const loadExam = async () => {
     setState("loading");
     try {
-      if (isSupabaseConfigured()) {
-        const { data, error } = await (supabase as any)
-          .from("exams")
-          .select("*")
-          .eq("unit_code", unitCode.toUpperCase())
-          .single();
-
-        if (error || !data) {
-          console.warn("⚠️ [MTTI Portal] Exam not found:", unitCode);
-          setState("not_found");
-          return;
-        }
-        setExam(data as Exam);
-        console.log("✅ [MTTI Portal] Exam loaded:", data.unit_code, data.course_name);
-      } else {
-        // Demo mode
-        const mockExam = MOCK_EXAMS.find(
-          (e) => e.unit_code.toUpperCase() === unitCode.toUpperCase()
-        );
-        if (!mockExam) {
-          setState("not_found");
-          return;
-        }
-        setExam(mockExam);
-        console.log("ℹ️ [MTTI Portal] Demo exam loaded:", mockExam.unit_code);
+      const foundExam = exams.find((e) => e.unit_code.toUpperCase() === unitCode.toUpperCase());
+      
+      if (!foundExam) {
+        setState("not_found");
+        return;
       }
+      
+      if (foundExam.payload.type === "practical") {
+        setExam(foundExam);
+        setState("practical");
+        return;
+      }
+      
+      setExam(foundExam);
+      console.log("✅ [MTTI Portal] Exam loaded:", foundExam.unit_code);
       setState("registration");
     } catch (err) {
       console.error("❌ [MTTI Portal] Load error:", err);
@@ -177,17 +168,69 @@ export default function CandidatePortal() {
       if (!exam || submitting) return;
       setSubmitting(true);
 
-      const sectionAPayload: StudentAnswer[] = exam.payload.section_a.questions.map((q) => ({
-        question_id: q.id,
-        answer: sectionAAnswers[q.id] ?? "",
-        marks_awarded: undefined,
-      }));
+      const gradeQuestion = async (q: any, answer: string) => {
+        // Deterministic MCQ grading
+        if (q.type === "mcq") {
+          // answer is stored as "0", "1", etc.
+          const isCorrect = answer === String(q.correct_answer);
+          return {
+            question_id: q.id,
+            answer,
+            marks_awarded: isCorrect ? q.marks : 0,
+            ai_reasoning: isCorrect ? "Correct answer selected." : "Incorrect answer selected.",
+          };
+        }
+        
+        // Subjective auto-grading via NLP engine
+        if (!answer.trim()) {
+          return {
+            question_id: q.id,
+            answer,
+            marks_awarded: 0,
+            ai_reasoning: "No answer provided.",
+          };
+        }
+        
+        try {
+          const res = await fetch("http://localhost:8000/api/auto-grade", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              student_answer: answer,
+              correct_answer: q.correct_answer || "",
+              marks: q.marks,
+              question_type: q.type
+            })
+          });
+          const data = await res.json();
+          return {
+            question_id: q.id,
+            answer,
+            marks_awarded: data.score ?? null,
+            ai_reasoning: data.reasoning ?? "Auto-grading completed.",
+          };
+        } catch (e) {
+          console.error("Auto-grading failed for", q.id, e);
+          return {
+            question_id: q.id,
+            answer,
+            marks_awarded: null,
+            ai_reasoning: "Auto-grading service unavailable. Pending manual review.",
+          };
+        }
+      };
 
-      const sectionBPayload: StudentAnswer[] = exam.payload.section_b.questions.map((q) => ({
-        question_id: q.id,
-        answer: sectionBAnswers[q.id] ?? "",
-        marks_awarded: undefined,
-      }));
+      const sectionAPayload = await Promise.all(
+        (exam.payload?.section_a?.questions || []).map((q: any) => gradeQuestion(q, String(sectionAAnswers[q.id] ?? "")))
+      );
+
+      const sectionBPayload = await Promise.all(
+        (exam.payload?.section_b?.questions || []).map((q: any) => gradeQuestion(q, String(sectionBAnswers[q.id] ?? "")))
+      );
+
+      // Determine overall status based on whether auto-grading fully succeeded
+      const needsReview = [...sectionAPayload, ...sectionBPayload].some(a => a.marks_awarded === null);
+      const totalScore = needsReview ? null : [...sectionAPayload, ...sectionBPayload].reduce((sum, a) => sum + (a.marks_awarded || 0), 0);
 
       const payload = {
         unit_code: exam.unit_code,
@@ -196,26 +239,17 @@ export default function CandidatePortal() {
         student_email: student.email.trim().toLowerCase(),
         section_a: sectionAPayload,
         section_b: sectionBPayload,
-        status: "pending" as const,
-        total_score: null,
+        status: (needsReview ? "pending" : "graded") as "pending" | "graded" | "reviewed",
+        total_score: totalScore,
       };
 
       try {
-        if (isSupabaseConfigured()) {
-          const { data, error } = await (supabase as any)
-            .from("submissions")
-            .insert(payload)
-            .select("id")
-            .single();
-
-          if (error) throw error;
-          setSubmissionId(data?.id ?? nanoid());
-          console.log("✅ [MTTI Portal] Submission saved:", data?.id);
-        } else {
-          const id = nanoid();
-          setSubmissionId(id);
-          console.log("ℹ️ [MTTI Portal] Demo submission (not saved to DB):", id);
-        }
+        const id = nanoid();
+        setSubmissionId(id);
+        
+        submitExam(payload);
+        
+        console.log("✅ [MTTI Portal] Submission saved to global state:", id);
 
         resetTimer();
         localStorage.removeItem(`mtti_exam_answers_${exam.unit_code}`);
@@ -262,8 +296,8 @@ export default function CandidatePortal() {
     (k) => sectionBAnswers[k]?.trim()
   ).length;
   const totalQuestions =
-    (exam?.payload.section_a.questions.length ?? 0) +
-    (exam?.payload.section_b.questions.length ?? 0);
+    (exam?.payload?.section_a?.questions?.length ?? 0) +
+    (exam?.payload?.section_b?.questions?.length ?? 0);
   const totalAnswered = answeredA + answeredB;
   const progress = totalQuestions > 0 ? (totalAnswered / totalQuestions) * 100 : 0;
 
@@ -334,13 +368,20 @@ export default function CandidatePortal() {
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center justify-center py-16 gap-6 text-center"
         >
-          <div
-            className="w-20 h-20 rounded-full flex items-center justify-center emerald-pulse"
-            style={{ background: "oklch(0.72 0.18 160 / 0.15)", border: "2px solid oklch(0.72 0.18 160 / 0.5)" }}
+          <motion.div
+            className="w-20 h-20 rounded-full flex items-center justify-center"
+            style={{ background: "rgba(196, 136, 32, 0.15)", border: "2px solid #c48820" }}
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 15 }}
           >
-            <CheckCircle2 className="w-10 h-10" style={{ color: "oklch(0.72 0.18 160)" }} />
-          </div>
-          <div>
+            <CheckCircle2 className="w-10 h-10" style={{ color: "#c48820" }} />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
             <h2
               className="text-2xl font-bold mb-2"
               style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
@@ -353,7 +394,7 @@ export default function CandidatePortal() {
             <p className="text-sm" style={{ color: "oklch(0.58 0.012 240)" }}>
               Your answers for <strong>{exam?.unit_code}</strong> have been recorded.
             </p>
-          </div>
+          </motion.div>
           {submissionId && (
             <div
               className="px-4 py-3 rounded-xl text-xs font-mono"
@@ -369,6 +410,101 @@ export default function CandidatePortal() {
           <p className="text-xs max-w-sm" style={{ color: "oklch(0.45 0.010 240)" }}>
             Your trainer will grade your submission and results will be communicated through official channels.
           </p>
+        </motion.div>
+      </PortalShell>
+    );
+  }
+
+    if (state === "practical" && exam) {
+    const checklist = exam.payload.checklist_items || [];
+    return (
+      <PortalShell>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-4xl mx-auto py-8 space-y-6"
+        >
+          <div className="glass-card p-6">
+            <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+              <div>
+                <span className="text-xs font-bold font-mono px-2.5 py-1 rounded-full" style={{ background: "rgba(196, 136, 32, 0.15)", color: "#c48820" }}>
+                  FORMATIVE PRACTICAL ASSESSMENT
+                </span>
+                <h2 className="text-xl font-bold mt-2" style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}>
+                  {exam.payload.title}
+                </h2>
+                <p className="text-xs mt-1" style={{ color: "oklch(0.58 0.012 240)" }}>
+                  {exam.unit_code} — {exam.course_name} | Class: ADMIN5/6/J/26
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>Duration</div>
+                  <div className="text-sm font-bold font-mono" style={{ color: "oklch(0.94 0.005 240)" }}>{exam.payload.duration_minutes} Mins</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>Total Marks</div>
+                  <div className="text-sm font-bold font-mono" style={{ color: "oklch(0.72 0.18 160)" }}>{exam.payload.total_marks} Marks</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl mb-6 text-sm leading-relaxed" style={{ background: "rgba(0, 9, 83, 0.5)", border: "1px solid rgba(255, 255, 255, 0.08)", color: "oklch(0.80 0.008 240)" }}>
+              <p className="font-bold mb-1" style={{ color: "#c48820" }}>Project Brief & Candidate Instructions:</p>
+              {exam.payload.instructions}
+            </div>
+
+            {/* Observation Checklist */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold" style={{ color: "oklch(0.94 0.005 240)" }}>
+                  Observation Checklist ({checklist.length} Evaluation Items)
+                </h3>
+                <span className="text-xs font-mono" style={{ color: "oklch(0.50 0.010 240)" }}>
+                  CDACC Compliant (10–25 Bounds)
+                </span>
+              </div>
+
+              <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid oklch(1 0 0 / 0.08)" }}>
+                <table className="w-full text-xs text-left">
+                  <thead style={{ background: "oklch(1 0 0 / 0.06)", color: "oklch(0.72 0.18 160)" }}>
+                    <tr>
+                      <th className="p-3">#</th>
+                      <th className="p-3">Task / Performance Criteria</th>
+                      <th className="p-3">Critical Aspect Mapping</th>
+                      <th className="p-3 text-right">Max Marks</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {checklist.map((item: any, idx: number) => (
+                      <tr key={item.id || idx} style={{ background: idx % 2 === 0 ? "transparent" : "oklch(1 0 0 / 0.02)" }}>
+                        <td className="p-3 font-mono font-bold" style={{ color: "oklch(0.50 0.010 240)" }}>{idx + 1}</td>
+                        <td className="p-3">
+                          <div className="font-semibold" style={{ color: "oklch(0.94 0.005 240)" }}>{item.task}</div>
+                          <div className="text-[11px] mt-0.5" style={{ color: "oklch(0.70 0.008 240)" }}>{item.criteria}</div>
+                        </td>
+                        <td className="p-3 font-mono text-[11px]" style={{ color: "oklch(0.65 0.15 200)" }}>{item.critical_aspect}</td>
+                        <td className="p-3 text-right font-mono font-bold" style={{ color: "oklch(0.72 0.18 160)" }}>{item.marks}m</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="mt-8 flex items-center justify-between pt-4 border-t border-white/10 flex-wrap gap-4">
+              <p className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+                Practical evidence and printouts are collected and graded by the certified trainer.
+              </p>
+              <button
+                onClick={() => window.print()}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover:opacity-90 flex items-center gap-2"
+                style={{ background: "#c48820", color: "#ffffff" }}
+              >
+                Print Assessment Tool / Checklist
+              </button>
+            </div>
+          </div>
         </motion.div>
       </PortalShell>
     );
@@ -467,7 +603,8 @@ export default function CandidatePortal() {
                 }
                 setState("instructions");
               }}
-              className="btn-emerald w-full mt-6 py-3 rounded-xl text-sm flex items-center justify-center gap-2"
+              className="w-full mt-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90"
+              style={{ background: "#c48820", color: "#fff" }}
             >
               Continue to Instructions
               <ChevronRight className="w-4 h-4" />
@@ -532,8 +669,8 @@ export default function CandidatePortal() {
             </div>
 
             <div className="space-y-2 mb-6 text-xs" style={{ color: "oklch(0.58 0.012 240)" }}>
-              <p>• <strong>Section A:</strong> {exam?.payload.section_a.instructions}</p>
-              <p>• <strong>Section B:</strong> {exam?.payload.section_b.instructions}</p>
+              {exam?.payload.section_a && <p>• <strong>Section A:</strong> {exam?.payload.section_a.instructions}</p>}
+              {exam?.payload.section_b && <p>• <strong>Section B:</strong> {exam?.payload.section_b.instructions}</p>}
               <p>• Your answers are saved automatically as you type.</p>
               <p>• The timer starts when you click "Start Exam" and cannot be paused.</p>
             </div>
@@ -555,7 +692,8 @@ export default function CandidatePortal() {
                 setState("exam");
                 startTimer();
               }}
-              className="btn-emerald w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90"
+              style={{ background: "#c48820", color: "#fff" }}
             >
               <Timer className="w-4 h-4" />
               Start Exam — Timer Begins Now
@@ -570,22 +708,22 @@ export default function CandidatePortal() {
   if (state === "exam" && exam) {
     const isInSectionA = currentSection === "a";
     const questions = isInSectionA
-      ? exam.payload.section_a.questions
-      : exam.payload.section_b.questions;
+      ? (exam.payload?.section_a?.questions || [])
+      : (exam.payload?.section_b?.questions || []);
     const currentQ = questions[currentQIndex];
 
     return (
       <div
         className="min-h-screen"
-        style={{ background: "oklch(0.13 0.015 240)" }}
+        style={{ background: "#000953" }}
       >
         {/* Top bar */}
         <header
           className="sticky top-0 z-20 px-4 py-3 flex items-center gap-4"
           style={{
-            background: "oklch(0.11 0.015 240 / 0.95)",
+            background: "#000953ee",
             backdropFilter: "blur(12px)",
-            borderBottom: "1px solid oklch(1 0 0 / 0.08)",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
           }}
         >
           <div className="flex-1 min-w-0">
@@ -628,13 +766,24 @@ export default function CandidatePortal() {
           </div>
         </header>
 
-        {/* Progress bar */}
-        <div className="h-1" style={{ background: "oklch(1 0 0 / 0.06)" }}>
+        {/* Timer Progress bar */}
+        <div className="h-1.5 w-full" style={{ background: "rgba(0, 0, 0, 0.3)" }}>
+          <div
+            className="h-full transition-all duration-1000 ease-linear"
+            style={{
+              width: `${(secondsLeft / ((exam.payload?.duration_minutes ?? 90) * 60)) * 100}%`,
+              background: isCritical ? "#ef4444" : isWarning ? "#f59e0b" : "#c48820",
+            }}
+          />
+        </div>
+
+        {/* Form Progress bar */}
+        <div className="h-0.5" style={{ background: "oklch(1 0 0 / 0.06)" }}>
           <div
             className="h-full transition-all duration-300"
             style={{
               width: `${progress}%`,
-              background: "oklch(0.72 0.18 160)",
+              background: "#c48820",
             }}
           />
         </div>
@@ -644,7 +793,7 @@ export default function CandidatePortal() {
           <div className="flex gap-2 mb-5">
             {(["a", "b"] as const).map((sec) => {
               const secLabel = sec === "a" ? "Section A" : "Section B";
-              const secQuestions = sec === "a" ? exam.payload.section_a.questions : exam.payload.section_b.questions;
+              const secQuestions = sec === "a" ? (exam.payload?.section_a?.questions || []) : (exam.payload?.section_b?.questions || []);
               const secAnswered = sec === "a"
                 ? Object.keys(sectionAAnswers).filter((k) => sectionAAnswers[k] !== "").length
                 : Object.keys(sectionBAnswers).filter((k) => sectionBAnswers[k]?.trim()).length;
@@ -780,7 +929,7 @@ export default function CandidatePortal() {
             <button
               onClick={() => {
                 if (currentQIndex > 0) setCurrentQIndex((i) => i - 1);
-                else if (currentSection === "b") { setCurrentSection("a"); setCurrentQIndex(exam.payload.section_a.questions.length - 1); }
+                else if (currentSection === "b") { setCurrentSection("a"); setCurrentQIndex((exam.payload?.section_a?.questions?.length || 1) - 1); }
               }}
               disabled={currentSection === "a" && currentQIndex === 0}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-30 transition-all"
@@ -862,7 +1011,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
   return (
     <div
       className="min-h-screen"
-      style={{ background: "oklch(0.13 0.015 240)" }}
+      style={{ background: "#000953" }}
     >
       <header
         className="px-6 py-4 flex items-center gap-3"
@@ -870,7 +1019,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
       >
         <div
           className="w-8 h-8 rounded-xl flex items-center justify-center"
-          style={{ background: "oklch(0.72 0.18 160 / 0.15)", border: "1px solid oklch(0.72 0.18 160 / 0.4)" }}
+          style={{ background: "#c48820", border: "1px solid #d49830" }}
         >
           <img
             src="/manus-storage/mtti-logo-icon_31c70fcc.png"
@@ -892,5 +1041,6 @@ function PortalShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
 
 

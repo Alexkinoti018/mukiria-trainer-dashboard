@@ -11,6 +11,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-sans: "Inter", "Outfit", system-ui, sans-serif;
+  --font-display: "Outfit", "Inter", system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -50,83 +52,96 @@
 }
 
 :root {
-  /* ── Modern & Minimalist Theme (Light) ── */
-  --radius: 0.5rem;
+  /* ── Modern Premium UI (Light Theme - MTTI Official) ── */
+  --radius: 0.75rem;
 
-  /* Backgrounds — Clean white with subtle grays */
-  --background: oklch(0.98 0 0);
-  --foreground: oklch(0.20 0.01 240);
+  /* Backgrounds */
+  --background: #f8fafc;
+  --foreground: #0f172a;
 
-  /* Cards — Subtle borders, no glass effect */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.20 0.01 240);
+  /* Cards */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
 
   /* Popovers */
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.20 0.01 240);
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
 
-  /* Primary — Professional Blue */
-  --primary: oklch(0.52 0.15 260);
-  --primary-foreground: oklch(1 0 0);
+  /* Primary — MTTI Deep Blue */
+  --primary: #000953;
+  --primary-foreground: #ffffff;
 
-  /* Secondary — Subtle Gray */
-  --secondary: oklch(0.92 0.01 240);
-  --secondary-foreground: oklch(0.40 0.01 240);
+  /* Secondary */
+  --secondary: #f1f5f9;
+  --secondary-foreground: #000953;
 
-  /* Muted — Light Gray */
-  --muted: oklch(0.94 0.01 240);
-  --muted-foreground: oklch(0.55 0.01 240);
+  /* Muted */
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
 
-  /* Accent — Teal (for highlights) */
-  --accent: oklch(0.50 0.12 200);
-  --accent-foreground: oklch(1 0 0);
+  /* Accent — MTTI Gold */
+  --accent: #c48820;
+  --accent-foreground: #ffffff;
 
   /* Destructive */
-  --destructive: oklch(0.60 0.20 25);
-  --destructive-foreground: oklch(1 0 0);
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
 
   /* Borders & Inputs */
-  --border: oklch(0.90 0.01 240);
-  --input: oklch(0.96 0.01 240);
-  --ring: oklch(0.52 0.15 260 / 0.3);
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: rgba(0, 9, 83, 0.2);
 
   /* Charts */
-  --chart-1: oklch(0.52 0.15 260);
-  --chart-2: oklch(0.50 0.12 200);
-  --chart-3: oklch(0.60 0.12 150);
-  --chart-4: oklch(0.55 0.12 280);
-  --chart-5: oklch(0.65 0.10 120);
+  --chart-1: #000953;
+  --chart-2: #c48820;
+  --chart-3: #1d4ed8;
+  --chart-4: #facc15;
+  --chart-5: #64748b;
 
-  /* Sidebar */
-  --sidebar: oklch(0.99 0 0);
-  --sidebar-foreground: oklch(0.20 0.01 240);
-  --sidebar-primary: oklch(0.52 0.15 260);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.94 0.01 240);
-  --sidebar-accent-foreground: oklch(0.52 0.15 260);
-  --sidebar-border: oklch(0.90 0.01 240);
-  --sidebar-ring: oklch(0.52 0.15 260 / 0.3);
+  /* Sidebar - Light */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #000953;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #000953;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: rgba(0, 9, 83, 0.2);
 }
 
 .dark {
-  /* ── Dark Mode (Optional) ── */
-  --background: oklch(0.12 0.01 240);
-  --foreground: oklch(0.95 0.01 240);
-  --card: oklch(0.18 0.01 240);
-  --card-foreground: oklch(0.95 0.01 240);
-  --popover: oklch(0.18 0.01 240);
-  --popover-foreground: oklch(0.95 0.01 240);
-  --secondary: oklch(0.25 0.01 240);
-  --secondary-foreground: oklch(0.75 0.01 240);
-  --muted: oklch(0.30 0.01 240);
-  --muted-foreground: oklch(0.65 0.01 240);
-  --border: oklch(1 0 0 / 0.12);
-  --input: oklch(1 0 0 / 0.08);
-  --sidebar: oklch(0.16 0.01 240);
-  --sidebar-foreground: oklch(0.95 0.01 240);
-  --sidebar-accent: oklch(0.25 0.01 240);
-  --sidebar-accent-foreground: oklch(0.52 0.15 260);
-  --sidebar-border: oklch(1 0 0 / 0.12);
+  /* ── Modern Premium UI (Dark Theme - MTTI Official) ── */
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #121214;
+  --card-foreground: #fafafa;
+  --popover: #121214;
+  --popover-foreground: #fafafa;
+  
+  --primary: #1e3a8a; /* Lighter blue for dark mode visibility */
+  --primary-foreground: #ffffff;
+  
+  --secondary: #1f2937;
+  --secondary-foreground: #fafafa;
+  
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  
+  --accent: #c48820;
+  --accent-foreground: #000000;
+  
+  --border: #27272a;
+  --input: #27272a;
+  --ring: rgba(30, 58, 138, 0.2);
+
+  --sidebar: #121214;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #1e3a8a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #27272a;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #27272a;
 }
 
 @layer base {
@@ -135,6 +150,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "Inter", "Outfit", system-ui, -apple-system, sans-serif;
+    font-size: 14px;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -150,7 +167,7 @@
 
   /* Typography */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-sans font-semibold;
+    @apply font-display font-semibold tracking-tight;
   }
 
   h1 {
