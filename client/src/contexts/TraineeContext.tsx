@@ -1,4 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { 
+  generateSamplePracticalEvidencePDF, 
+  generateSampleObservationImage, 
+  calculateAverages, 
+  calculateWeightedMark 
+} from "@/lib/evidenceStorage";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { toast } from "sonner";
 
 export interface Trainee {
   id: string;
@@ -19,9 +27,20 @@ export interface Upload {
   filename: string;
   uploadType: string;
   submitted_at: string;
-  status: "pending" | "graded";
+  status: "pending" | "verified" | "graded";
   grade: number | null;
   comments: string;
+  file_url?: string;
+  file_data?: string;
+  mime_type?: string;
+  file_size?: number;
+  task_code?: string; // "CP1", "CP2", "CP3", "CT1", "CT2", "CT3"
+  unit_offering_id?: string;
+  unit_code?: string;
+  unit_title?: string;
+  verified_by_trainer?: boolean;
+  verified_at?: string | null;
+  verified_by_name?: string | null;
 }
 
 interface TraineeContextType {
@@ -31,9 +50,11 @@ interface TraineeContextType {
   addTrainee: (trainee: Omit<Trainee, "id">) => Trainee;
   updateTrainee: (id: string, updates: Partial<Trainee>) => void;
   deleteTrainee: (id: string) => void;
-  recordUpload: (upload: Omit<Upload, "id" | "submitted_at" | "status" | "grade" | "comments">) => void;
+  recordUpload: (upload: Partial<Upload> & Pick<Upload, "traineeId" | "student_name" | "filename" | "uploadType">) => void;
   updateUploadGrade: (uploadId: string, grade: number, comments: string) => void;
-  deleteUpload: (uploadId: string) => void;
+  verifyUpload: (uploadId: string, trainerName?: string) => void;
+  awardUploadMark: (uploadId: string, params: { grade: number; comments: string; taskCode: string; unitOfferingId?: string; trainerName?: string }) => void;
+  deleteUpload: (uploadId: string, callerRole?: string) => boolean;
   resetToOfficialRoster: () => void;
 }
 
@@ -100,30 +121,131 @@ export const OFFICIAL_MTTI_TRAINEES: Trainee[] = [
   { id: "tr_fbs5_20", regCode: "FBS 5 MOD/13583/J2026", admNo: "13583", name: "Terry Mwendwa", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
 ];
 
-const INITIAL_UPLOADS: Upload[] = [
-  {
-    id: "up_1",
-    traineeId: "tr_it6_01",
-    student_name: "Nthiga Gakii Doris",
-    filename: "Computer_Essentials_Practical_1.pdf",
-    uploadType: "Practical 1",
-    submitted_at: new Date(Date.now() - 86400000).toISOString(),
-    status: "pending",
-    grade: null,
-    comments: "",
-  },
-  {
-    id: "up_2",
-    traineeId: "tr_it4_01",
-    student_name: "Wanjau Alvin Gatere",
-    filename: "Computer_Hardware_Assignment.docx",
-    uploadType: "Assignment",
-    submitted_at: new Date(Date.now() - 172800000).toISOString(),
-    status: "graded",
-    grade: 85,
-    comments: "Excellent hardware identification.",
-  },
-];
+function getInitialUploads(): Upload[] {
+  let pdf1Base64 = "";
+  let pdf1Size = 145000;
+  try {
+    const gen = generateSamplePracticalEvidencePDF({
+      studentName: "Nthiga Gakii Doris",
+      admNo: "14179/S2026",
+      taskTitle: "Computer Hardware Diagnostics & Disassembly",
+      taskCode: "CP1",
+      unitCode: "IT/CU/ICTA/CR/01/6/MA",
+      unitTitle: "Perform Computer Essentials",
+    });
+    pdf1Base64 = gen.base64;
+    pdf1Size = gen.size;
+  } catch (e) {
+    console.warn("Failed to generate PDF 1:", e);
+  }
+
+  let img2Data = "";
+  try {
+    img2Data = generateSampleObservationImage();
+  } catch (e) {
+    console.warn("Failed to generate image 2:", e);
+  }
+
+  let pdf3Base64 = "";
+  let pdf3Size = 142000;
+  try {
+    const gen = generateSamplePracticalEvidencePDF({
+      studentName: "Ltumwa Lesoipa",
+      admNo: "14022/S2026",
+      taskTitle: "Network Cable Termination & LAN Verification",
+      taskCode: "CP1",
+      unitCode: "IT/CU/ICTA/CR/01/6/MA",
+      unitTitle: "Perform Computer Essentials",
+    });
+    pdf3Base64 = gen.base64;
+    pdf3Size = gen.size;
+  } catch (e) {
+    console.warn("Failed to generate PDF 3:", e);
+  }
+
+  return [
+    {
+      id: "up_1",
+      traineeId: "tr_it6_01",
+      student_name: "Nthiga Gakii Doris",
+      filename: "Computer_Essentials_Practical_1.pdf",
+      uploadType: "Practical 1",
+      task_code: "CP1",
+      unit_offering_id: "uo_1",
+      unit_code: "IT/CU/ICTA/CR/01/6/MA",
+      unit_title: "Perform Computer Essentials",
+      file_data: pdf1Base64,
+      mime_type: "application/pdf",
+      file_size: pdf1Size,
+      submitted_at: new Date(Date.now() - 86400000).toISOString(),
+      status: "graded",
+      grade: 88,
+      comments: "Superb execution of hardware diagnostics, ESD precautions, and BIOS verification.",
+      verified_by_trainer: true,
+      verified_at: new Date(Date.now() - 3600000).toISOString(),
+      verified_by_name: "Alexander Kinoti",
+    },
+    {
+      id: "up_2",
+      traineeId: "tr_it6_02",
+      student_name: "Kaumbuthu Belinda Mukiri",
+      filename: "Hardware_Diagnostics_Observation.png",
+      uploadType: "Practical 2",
+      task_code: "CP2",
+      unit_offering_id: "uo_1",
+      unit_code: "IT/CU/ICTA/CR/01/6/MA",
+      unit_title: "Perform Computer Essentials",
+      file_data: img2Data,
+      mime_type: "image/svg+xml",
+      file_size: 42100,
+      submitted_at: new Date(Date.now() - 43200000).toISOString(),
+      status: "pending",
+      grade: null,
+      comments: "",
+      verified_by_trainer: false,
+    },
+    {
+      id: "up_3",
+      traineeId: "tr_it4_01",
+      student_name: "Wanjau Alvin Gatere",
+      filename: "Computer_Hardware_Assignment.docx",
+      uploadType: "Assignment",
+      task_code: "CT1",
+      unit_offering_id: "uo_1",
+      unit_code: "IT/CU/ICT/CC/01/4/MA",
+      unit_title: "Perform Computer Essentials",
+      file_data: "UEsDBBQABgAIAAAAIQAAAAAAAAA=", // Lightweight DOCX base64 header
+      mime_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      file_size: 64200,
+      submitted_at: new Date(Date.now() - 172800000).toISOString(),
+      status: "graded",
+      grade: 85,
+      comments: "Excellent hardware identification.",
+      verified_by_trainer: true,
+      verified_at: new Date(Date.now() - 86400000).toISOString(),
+      verified_by_name: "Alexander Kinoti",
+    },
+    {
+      id: "up_4",
+      traineeId: "tr_it6_03",
+      student_name: "Ltumwa Lesoipa",
+      filename: "Network_Configuration_Evidence.pdf",
+      uploadType: "Practical 1",
+      task_code: "CP1",
+      unit_offering_id: "uo_1",
+      unit_code: "IT/CU/ICTA/CR/01/6/MA",
+      unit_title: "Perform Computer Essentials",
+      file_data: pdf3Base64,
+      mime_type: "application/pdf",
+      file_size: pdf3Size,
+      submitted_at: new Date(Date.now() - 12000000).toISOString(),
+      status: "pending",
+      grade: null,
+      comments: "",
+      verified_by_trainer: false,
+    },
+  ];
+}
 
 const TraineeContext = createContext<TraineeContextType | undefined>(undefined);
 
@@ -146,8 +268,28 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
   });
 
   const [uploads, setUploads] = useState<Upload[]>(() => {
+    const initial = getInitialUploads();
     const saved = localStorage.getItem("mtti_uploads");
-    return saved ? JSON.parse(saved) : INITIAL_UPLOADS;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Enrich with generated binary data if previously empty
+          return parsed.map((item: Upload) => {
+            const match = initial.find((i) => i.id === item.id);
+            return {
+              ...item,
+              file_data: item.file_data || match?.file_data,
+              mime_type: item.mime_type || match?.mime_type,
+              task_code: item.task_code || match?.task_code || "CP1",
+              unit_offering_id: item.unit_offering_id || match?.unit_offering_id || "uo_1",
+              verified_by_trainer: item.verified_by_trainer ?? match?.verified_by_trainer ?? false,
+            };
+          });
+        }
+      } catch {}
+    }
+    return initial;
   });
 
   // Persist to localStorage whenever state changes
@@ -195,28 +337,157 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
     setTrainees(prev => prev.filter(t => t.id !== id));
   };
 
-  const recordUpload = (upload: Omit<Upload, "id" | "submitted_at" | "status" | "grade" | "comments">) => {
+  const recordUpload = (
+    upload: Partial<Upload> & Pick<Upload, "traineeId" | "student_name" | "filename" | "uploadType">
+  ) => {
     const newUpload: Upload = {
-      ...upload,
       id: `up_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       submitted_at: new Date().toISOString(),
       status: "pending",
       grade: null,
       comments: "",
+      task_code: upload.task_code || "CP1",
+      unit_offering_id: upload.unit_offering_id || "uo_1",
+      verified_by_trainer: false,
+      ...upload,
     };
     setUploads(prev => [newUpload, ...prev]);
   };
 
-  const updateUploadGrade = (uploadId: string, grade: number, comments: string) => {
+  const verifyUpload = (uploadId: string, trainerName: string = "Alexander Kinoti") => {
+    const now = new Date().toISOString();
     setUploads(prev =>
       prev.map(up =>
-        up.id === uploadId ? { ...up, status: "graded", grade, comments } : up
+        up.id === uploadId
+          ? {
+              ...up,
+              verified_by_trainer: true,
+              verified_at: now,
+              verified_by_name: trainerName,
+              status: up.status === "graded" ? "graded" : "verified",
+            }
+          : up
       )
     );
+    toast.success("Assessment evidence verified by trainer.");
   };
 
-  const deleteUpload = (uploadId: string) => {
+  const awardUploadMark = (
+    uploadId: string,
+    params: {
+      grade: number;
+      comments: string;
+      taskCode: string;
+      unitOfferingId?: string;
+      trainerName?: string;
+    }
+  ) => {
+    const targetUpload = uploads.find(u => u.id === uploadId);
+    const now = new Date().toISOString();
+    const trainer = params.trainerName || "Alexander Kinoti";
+
+    setUploads(prev =>
+      prev.map(up =>
+        up.id === uploadId
+          ? {
+              ...up,
+              status: "graded",
+              grade: params.grade,
+              comments: params.comments,
+              task_code: params.taskCode,
+              verified_by_trainer: true,
+              verified_at: now,
+              verified_by_name: trainer,
+            }
+          : up
+      )
+    );
+
+    // Synchronize with continuous assessment marks sheet
+    const unitOfferingId = params.unitOfferingId || targetUpload?.unit_offering_id || "uo_1";
+    const traineeId = targetUpload?.traineeId;
+    if (!traineeId) return;
+
+    try {
+      const marksStorageKey = `mtti_marks_${unitOfferingId}`;
+      const saved = localStorage.getItem(marksStorageKey);
+      let marksData: any[] = saved ? JSON.parse(saved) : [];
+
+      let entry = marksData.find((m: any) => m.trainee_id === traineeId);
+      if (!entry) {
+        entry = {
+          unit_offering_id: unitOfferingId,
+          trainee_id: traineeId,
+          ct_scores: [],
+          computed_average_theory: 0,
+          cp_scores: [],
+          computed_average_practical: 0,
+          weighted_mark: 0,
+          is_locked: false,
+        };
+        marksData.push(entry);
+      }
+
+      const task = (params.taskCode || "CP1").toUpperCase();
+      if (task.startsWith("CP")) {
+        const match = task.match(/\d+/);
+        const idx = match ? Math.max(0, parseInt(match[0], 10) - 1) : 0;
+        while (entry.cp_scores.length <= idx) {
+          entry.cp_scores.push(0);
+        }
+        entry.cp_scores[idx] = params.grade;
+        entry.computed_average_practical = calculateAverages(entry.cp_scores);
+      } else {
+        const match = task.match(/\d+/);
+        const idx = match ? Math.max(0, parseInt(match[0], 10) - 1) : 0;
+        while (entry.ct_scores.length <= idx) {
+          entry.ct_scores.push(0);
+        }
+        entry.ct_scores[idx] = params.grade;
+        entry.computed_average_theory = calculateAverages(entry.ct_scores);
+      }
+
+      entry.weighted_mark = calculateWeightedMark(
+        entry.computed_average_theory,
+        entry.computed_average_practical,
+        6
+      );
+
+      localStorage.setItem(marksStorageKey, JSON.stringify(marksData));
+
+      if (isSupabaseConfigured()) {
+        supabase
+          .from("assessment_marks")
+          .upsert([entry] as any, { onConflict: "unit_offering_id, trainee_id" })
+          .then(({ error }) => {
+            if (error) console.warn("Supabase mark sync error:", error);
+          });
+      }
+      toast.success(`Mark (${params.grade}%) awarded and synced to ${params.taskCode} marksheet!`);
+    } catch (err) {
+      console.error("Failed to sync mark with marksheet:", err);
+    }
+  };
+
+  const updateUploadGrade = (uploadId: string, grade: number, comments: string) => {
+    const up = uploads.find(u => u.id === uploadId);
+    awardUploadMark(uploadId, {
+      grade,
+      comments,
+      taskCode: up?.task_code || "CP1",
+      unitOfferingId: up?.unit_offering_id || "uo_1",
+    });
+  };
+
+  const deleteUpload = (uploadId: string, callerRole: string = "trainer"): boolean => {
+    const target = uploads.find(u => u.id === uploadId);
+    if (!target) return false;
+    if (callerRole === "trainee" && (target.verified_by_trainer || target.status === "graded")) {
+      toast.error("Trainees cannot delete verified or graded assessment evidence.");
+      return false;
+    }
     setUploads(prev => prev.filter(up => up.id !== uploadId));
+    return true;
   };
 
   return (
@@ -229,6 +500,8 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
       deleteTrainee, 
       recordUpload, 
       updateUploadGrade, 
+      verifyUpload,
+      awardUploadMark,
       deleteUpload,
       resetToOfficialRoster 
     }}>

@@ -160,8 +160,66 @@ export const DB = {
       trainee_id: "trainee-002",
       ct_avg: 65,
       cp_avg: 70,
+      cp_scores: [70],
+      ct_scores: [65],
       weighted_mark: 68,
       is_locked: false // DRAFT (Unpublished - Trainees must NOT see this!)
+    }
+  ],
+  assessment_evidence: [
+    {
+      id: "ev-001",
+      unit_offering_id: "uo-1",
+      trainee_id: "trainee-001",
+      task_code: "CP1",
+      title: "Computer Hardware Diagnostics & Disassembly",
+      filename: "Computer_Essentials_Practical_1.pdf",
+      file_url: "/api/evidence/ev-001/file",
+      mime_type: "application/pdf",
+      file_size: 145020,
+      file_data: "JVBERi0xLjQKJSDi48cKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL1BhcmVudCAyIDAgUi9NZWRpYUJveFswIDAgNjEyIDc5Ml0+PmVuZG9iagp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTUgMDAwMDAgbiAKMDAwMDAwMDA2MCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCnRyYWlsZXIKPDwvU2l6ZSA0L1Jvb3QgMSAwIFI+PgpzdGFydHhyZWYKMTc0CiUlRU9G",
+      verified_by_trainer: true,
+      verified_at: "2026-09-16T10:00:00Z",
+      verified_by: "Dr. J. Muriithi",
+      grade: 88,
+      feedback: "Exemplary hardware inspection and BIOS configuration.",
+      submitted_at: "2026-09-15T09:30:00Z"
+    },
+    {
+      id: "ev-002",
+      unit_offering_id: "uo-1",
+      trainee_id: "trainee-002",
+      task_code: "CP2",
+      title: "Motherboard Diagnostics Observation Photo",
+      filename: "Hardware_Setup_Evidence.png",
+      file_url: "/api/evidence/ev-002/file",
+      mime_type: "image/png",
+      file_size: 42100,
+      file_data: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      verified_by_trainer: false,
+      verified_at: null,
+      verified_by: null,
+      grade: null,
+      feedback: "",
+      submitted_at: "2026-09-15T10:00:00Z"
+    },
+    {
+      id: "ev-003",
+      unit_offering_id: "uo-3", // trainer-002's unit (Networking)
+      trainee_id: "trainee-001",
+      task_code: "CP1",
+      title: "Network Cable Termination & LAN Verification",
+      filename: "Network_Configuration_Evidence.pdf",
+      file_url: "/api/evidence/ev-003/file",
+      mime_type: "application/pdf",
+      file_size: 128000,
+      file_data: "JVBERi0xLjQKJSDi48cKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL1BhcmVudCAyIDAgUi9NZWRpYUJveFswIDAgNjEyIDc5Ml0+PmVuZG9iagp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTUgMDAwMDAgbiAKMDAwMDAwMDA2MCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCnRyYWlsZXIKPDwvU2l6ZSA0L1Jvb3QgMSAwIFI+PgpzdGFydHhyZWYKMTc0CiUlRU9G",
+      verified_by_trainer: false,
+      verified_at: null,
+      verified_by: null,
+      grade: null,
+      feedback: "",
+      submitted_at: "2026-09-15T11:00:00Z"
     }
   ]
 };
@@ -616,3 +674,357 @@ apiRouter.post("/admin/users", requireRoles("admin"), (req: Request, res: Respon
   const { name, email, role } = req.body;
   res.status(201).json({ success: true, user: { id: `user-${Date.now()}`, name, email, role } });
 });
+
+// ─── ASSESSMENT EVIDENCE ACCESS CONTROL & HELPERS ────────────────────────────
+export function verifyEvidenceAccess(
+  user: AuthenticatedUser, 
+  evidence: any
+): { allowed: boolean; status_code?: number; error?: string } {
+  // Trainee: Only allowed to access their own evidence
+  if (user.role === "trainee") {
+    if (evidence.trainee_id !== user.id) {
+      return { 
+        allowed: false, 
+        status_code: 403, 
+        error: "Forbidden (BOLA): Trainees can only access their own assessment evidence" 
+      };
+    }
+    return { allowed: true };
+  }
+
+  const offering = DB.unit_offerings.find(uo => uo.id === evidence.unit_offering_id);
+  if (!offering) {
+    return { allowed: false, status_code: 404, error: "Unit offering not found for this evidence" };
+  }
+
+  // Trainer: Must be assigned to this offering
+  if (user.role === "trainer") {
+    if (offering.trainer_id !== user.id) {
+      return { 
+        allowed: false, 
+        status_code: 403, 
+        error: "Forbidden (Cross-Trainer): You cannot access or evaluate evidence for units assigned to another trainer" 
+      };
+    }
+    return { allowed: true };
+  }
+
+  // HOD: Offering must be in their department
+  if (user.role === "hod") {
+    if (offering.department_id !== user.department_id) {
+      return { allowed: false, status_code: 403, error: "Forbidden: Offering outside your department" };
+    }
+    return { allowed: true };
+  }
+
+  // Admin: full access
+  return { allowed: true };
+}
+
+export function calculateServerWeightedMark(ctAvg: number, cpAvg: number, level: number = 6): number {
+  let raw = 0;
+  switch (level) {
+    case 6: raw = ctAvg * 0.5 + cpAvg * 0.5; break;
+    case 5: raw = ctAvg * 0.4 + cpAvg * 0.6; break;
+    case 4: raw = ctAvg * 0.3 + cpAvg * 0.7; break;
+    case 3: raw = ctAvg * 0.2 + cpAvg * 0.8; break;
+    default: raw = ctAvg * 0.5 + cpAvg * 0.5; break;
+  }
+  return Math.round(raw);
+}
+
+// ─── ENDPOINTS: /api/evidence (Assessment Evidence Pipeline) ──────────────────
+
+// GET /api/evidence: List evidence scoped by role
+apiRouter.get("/evidence", (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user;
+  if (!user) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
+  if (user.role === "trainee") {
+    const items = DB.assessment_evidence.filter(e => e.trainee_id === user.id);
+    res.json({ evidence: items });
+    return;
+  }
+
+  if (user.role === "trainer") {
+    const myOfferings = DB.unit_offerings.filter(uo => uo.trainer_id === user.id).map(uo => uo.id);
+    const items = DB.assessment_evidence.filter(e => myOfferings.includes(e.unit_offering_id));
+    res.json({ evidence: items });
+    return;
+  }
+
+  if (user.role === "hod") {
+    const deptOfferings = DB.unit_offerings.filter(uo => uo.department_id === user.department_id).map(uo => uo.id);
+    const items = DB.assessment_evidence.filter(e => deptOfferings.includes(e.unit_offering_id));
+    res.json({ evidence: items });
+    return;
+  }
+
+  // Admin
+  res.json({ evidence: DB.assessment_evidence });
+});
+
+// GET /api/evidence/:id: Get metadata
+apiRouter.get("/evidence/:id", (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user;
+  if (!user) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
+  const item = DB.assessment_evidence.find(e => e.id === req.params.id);
+  if (!item) {
+    res.status(404).json({ error: "Assessment evidence not found" });
+    return;
+  }
+
+  const access = verifyEvidenceAccess(user, item);
+  if (!access.allowed) {
+    res.status(access.status_code || 403).json({ error: access.error });
+    return;
+  }
+
+  res.json({ evidence: item });
+});
+
+// GET /api/evidence/:id/file: Clean binary streaming of genuine file with MIME and disposition
+apiRouter.get("/evidence/:id/file", (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user;
+  if (!user) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
+  const item = DB.assessment_evidence.find(e => e.id === req.params.id);
+  if (!item) {
+    res.status(404).json({ error: "Assessment evidence not found" });
+    return;
+  }
+
+  const access = verifyEvidenceAccess(user, item);
+  if (!access.allowed) {
+    res.status(access.status_code || 403).json({ error: access.error });
+    return;
+  }
+
+  const cleanB64 = (item.file_data || "").replace(/^data:[^;]+;base64,/, "");
+  const fileBuffer = Buffer.from(cleanB64, "base64");
+  const dispositionType = req.query.download === "true" ? "attachment" : "inline";
+
+  res.setHeader("Content-Type", item.mime_type || "application/octet-stream");
+  res.setHeader("Content-Disposition", `${dispositionType}; filename="${item.filename}"`);
+  res.setHeader("Content-Length", fileBuffer.length);
+  res.send(fileBuffer);
+});
+
+// GET /api/evidence/:id/download: Binary file download with attachment Content-Disposition
+apiRouter.get("/evidence/:id/download", (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user;
+  if (!user) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
+  const item = DB.assessment_evidence.find(e => e.id === req.params.id);
+  if (!item) {
+    res.status(404).json({ error: "Assessment evidence not found" });
+    return;
+  }
+
+  const access = verifyEvidenceAccess(user, item);
+  if (!access.allowed) {
+    res.status(access.status_code || 403).json({ error: access.error });
+    return;
+  }
+
+  const cleanB64 = (item.file_data || "").replace(/^data:[^;]+;base64,/, "");
+  const fileBuffer = Buffer.from(cleanB64, "base64");
+
+  res.setHeader("Content-Type", item.mime_type || "application/octet-stream");
+  res.setHeader("Content-Disposition", `attachment; filename="${item.filename}"`);
+  res.setHeader("Content-Length", fileBuffer.length);
+  res.send(fileBuffer);
+});
+
+// POST /api/evidence: Upload assessment evidence
+apiRouter.post("/evidence", requireRoles("trainee", "admin"), (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user!;
+  const { unit_offering_id, task_code, title, filename, file_data, mime_type, file_size } = req.body;
+
+  if (!filename || !file_data) {
+    res.status(400).json({ error: "filename and file_data are required" });
+    return;
+  }
+
+  const id = `ev-${Date.now()}`;
+  const newEvidence = {
+    id,
+    unit_offering_id: unit_offering_id || "uo-1",
+    trainee_id: user.role === "trainee" ? user.id : req.body.trainee_id || "trainee-001",
+    task_code: task_code || "CP1",
+    title: title || filename,
+    filename,
+    file_url: `/api/evidence/${id}/file`,
+    mime_type: mime_type || "application/pdf",
+    file_size: file_size || file_data.length,
+    file_data,
+    verified_by_trainer: false,
+    verified_at: null,
+    verified_by: null,
+    grade: null,
+    feedback: "",
+    submitted_at: new Date().toISOString(),
+  };
+
+  DB.assessment_evidence.push(newEvidence);
+  res.status(201).json({ success: true, evidence: newEvidence });
+});
+
+// PUT /api/evidence/:id/verify: Verify evidence
+apiRouter.put("/evidence/:id/verify", requireRoles("trainer", "hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user!;
+  const item = DB.assessment_evidence.find(e => e.id === req.params.id);
+  if (!item) {
+    res.status(404).json({ error: "Assessment evidence not found" });
+    return;
+  }
+
+  const access = verifyEvidenceAccess(user, item);
+  if (!access.allowed) {
+    res.status(access.status_code || 403).json({ error: access.error });
+    return;
+  }
+
+  item.verified_by_trainer = true;
+  item.verified_at = new Date().toISOString();
+  item.verified_by = user.name;
+
+  res.json({ success: true, evidence: item });
+});
+
+// PUT /api/evidence/:id/grade: Award mark and synchronize with assessment_marks
+apiRouter.put("/evidence/:id/grade", requireRoles("trainer", "hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user!;
+  const item = DB.assessment_evidence.find(e => e.id === req.params.id);
+  if (!item) {
+    res.status(404).json({ error: "Assessment evidence not found" });
+    return;
+  }
+
+  const access = verifyEvidenceAccess(user, item);
+  if (!access.allowed) {
+    res.status(access.status_code || 403).json({ error: access.error });
+    return;
+  }
+
+  // Check whether Assessment_Marks is locked for this unit offering & trainee
+  const existingMark = DB.assessment_marks.find(
+    m => m.unit_offering_id === item.unit_offering_id && m.trainee_id === item.trainee_id
+  );
+  if (existingMark && existingMark.is_locked) {
+    res.status(400).json({ error: "Marks locked: Assessment marksheet is finalized and locked" });
+    return;
+  }
+
+  const { grade, feedback, task_code } = req.body;
+  const numGrade = Number(grade);
+  if (isNaN(numGrade) || numGrade < 0 || numGrade > 100) {
+    res.status(400).json({ error: "Grade must be a valid number between 0 and 100" });
+    return;
+  }
+
+  item.grade = numGrade;
+  item.feedback = feedback !== undefined ? feedback : item.feedback;
+  item.task_code = task_code || item.task_code;
+  item.verified_by_trainer = true;
+  item.verified_at = new Date().toISOString();
+  item.verified_by = user.name;
+
+  // Synchronize with continuous assessment marksheet
+  let markEntry = existingMark;
+
+  if (!markEntry) {
+    markEntry = {
+      id: `mark-${Date.now()}`,
+      unit_offering_id: item.unit_offering_id,
+      trainee_id: item.trainee_id,
+      ct_avg: 0,
+      cp_avg: 0,
+      cp_scores: [],
+      ct_scores: [],
+      weighted_mark: 0,
+      is_locked: false,
+    };
+    DB.assessment_marks.push(markEntry);
+  }
+
+  if (!Array.isArray((markEntry as any).cp_scores)) {
+    (markEntry as any).cp_scores = markEntry.cp_avg ? [markEntry.cp_avg] : [];
+  }
+  if (!Array.isArray((markEntry as any).ct_scores)) {
+    (markEntry as any).ct_scores = markEntry.ct_avg ? [markEntry.ct_avg] : [];
+  }
+
+  const task = (item.task_code || "CP1").toUpperCase();
+  if (task.startsWith("CP")) {
+    const match = task.match(/\d+/);
+    const idx = match ? Math.max(0, parseInt(match[0], 10) - 1) : 0;
+    while ((markEntry as any).cp_scores.length <= idx) (markEntry as any).cp_scores.push(0);
+    (markEntry as any).cp_scores[idx] = numGrade;
+    const sum = (markEntry as any).cp_scores.reduce((a: number, b: number) => a + b, 0);
+    markEntry.cp_avg = Math.round(sum / (markEntry as any).cp_scores.length);
+    (markEntry as any).computed_average_practical = markEntry.cp_avg;
+  } else {
+    const match = task.match(/\d+/);
+    const idx = match ? Math.max(0, parseInt(match[0], 10) - 1) : 0;
+    while ((markEntry as any).ct_scores.length <= idx) (markEntry as any).ct_scores.push(0);
+    (markEntry as any).ct_scores[idx] = numGrade;
+    const sum = (markEntry as any).ct_scores.reduce((a: number, b: number) => a + b, 0);
+    markEntry.ct_avg = Math.round(sum / (markEntry as any).ct_scores.length);
+    (markEntry as any).computed_average_theory = markEntry.ct_avg;
+  }
+
+  markEntry.weighted_mark = calculateServerWeightedMark(markEntry.ct_avg, markEntry.cp_avg, 6);
+
+  res.json({ success: true, evidence: item, marks: markEntry });
+});
+
+// DELETE /api/evidence/:id: Delete evidence (candidate cannot delete if verified or graded)
+apiRouter.delete("/evidence/:id", (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user;
+  if (!user) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
+  const item = DB.assessment_evidence.find(e => e.id === req.params.id);
+  if (!item) {
+    res.status(404).json({ error: "Assessment evidence not found" });
+    return;
+  }
+
+  const access = verifyEvidenceAccess(user, item);
+  if (!access.allowed) {
+    res.status(access.status_code || 403).json({ error: access.error });
+    return;
+  }
+
+  // Trainee cannot delete if verified or graded
+  if (user.role === "trainee" && (item.verified_by_trainer || item.grade !== null)) {
+    res.status(403).json({ 
+      error: "Forbidden: Candidates cannot delete verified or graded assessment evidence" 
+    });
+    return;
+  }
+
+  const idx = DB.assessment_evidence.findIndex(e => e.id === req.params.id);
+  if (idx !== -1) {
+    DB.assessment_evidence.splice(idx, 1);
+  }
+
+  res.json({ success: true, deleted_id: req.params.id });
+});
+

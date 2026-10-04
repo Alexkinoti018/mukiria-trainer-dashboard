@@ -52,22 +52,54 @@ export function AssessmentMarksSheet() {
       ? trainees 
       : trainees.filter(t => t.classCode === selectedClass);
 
+    let savedMarks: any[] = [];
+    try {
+      const raw = localStorage.getItem(`mtti_marks_${unitOfferingId}`);
+      if (raw) savedMarks = JSON.parse(raw);
+    } catch {}
+
     setRows((currentRows) => {
       return classTrainees.map((t, idx) => {
         const existingRow = currentRows.find(r => r.id === t.id);
         const cleanAdm = t.admNo?.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD)\//i, "") || t.admNo;
-        
-        return existingRow ? { ...existingRow, sn: idx + 1 } : {
+        const savedEntry = savedMarks.find(m => m.trainee_id === t.id);
+
+        if (existingRow) {
+          return { ...existingRow, sn: idx + 1 };
+        }
+
+        // Initialize scores with saved values if present
+        const initCtScores = Array(ctCount).fill("");
+        const initCpScores = Array(cpCount).fill("");
+
+        if (savedEntry) {
+          if (Array.isArray(savedEntry.ct_scores)) {
+            savedEntry.ct_scores.forEach((s: any, sIdx: number) => {
+              if (sIdx < ctCount) initCtScores[sIdx] = String(s);
+            });
+          }
+          if (Array.isArray(savedEntry.cp_scores)) {
+            savedEntry.cp_scores.forEach((s: any, sIdx: number) => {
+              if (sIdx < cpCount) initCpScores[sIdx] = String(s);
+            });
+          }
+        }
+
+        const ctAvg = calculateAverages(initCtScores);
+        const cpAvg = calculateAverages(initCpScores);
+        const weightedMark = calculateWeighted(ctAvg, cpAvg, level);
+
+        return {
           id: t.id,
           sn: idx + 1,
           regCode: t.regCode,
           admNo: cleanAdm,
           name: t.name,
-          ctScores: Array(ctCount).fill(""),
-          cpScores: Array(cpCount).fill(""),
-          ctAvg: 0,
-          cpAvg: 0,
-          weightedMark: 0,
+          ctScores: initCtScores,
+          cpScores: initCpScores,
+          ctAvg,
+          cpAvg,
+          weightedMark,
         };
       });
     });
