@@ -28,10 +28,19 @@
       };
     </script>
     <script type="module" src="/src/main.tsx"></script>
-    <script
-      defer
-      src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
+    <script>
+      (function() {
+        var ep = window.VITE_ANALYTICS_ENDPOINT;
+        var wid = window.VITE_ANALYTICS_WEBSITE_ID;
+        if (ep && wid) {
+          var s = document.createElement("script");
+          s.defer = true;
+          s.src = ep + "/umami";
+          s.setAttribute("data-website-id", wid);
+          document.head.appendChild(s);
+        }
+      })();
+    </script>
   </body>
 
 </html>
