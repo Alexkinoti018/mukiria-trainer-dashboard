@@ -248,8 +248,12 @@ export function downloadEvidenceFile(evidence: {
       }
 
       // Remote or API URL
+      const downloadTarget = evidence.file_url.includes("/api/evidence/")
+        ? evidence.file_url.replace(/\/file(\?.*)?$/, "/download")
+        : evidence.file_url;
+
       const link = document.createElement("a");
-      link.href = evidence.file_url;
+      link.href = downloadTarget;
       link.download = evidence.filename;
       link.target = "_blank";
       document.body.appendChild(link);

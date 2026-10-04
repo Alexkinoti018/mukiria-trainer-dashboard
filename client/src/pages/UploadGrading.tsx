@@ -325,7 +325,7 @@ export default function UploadGrading() {
                     </div>
 
                     {(() => {
-                      const viewUrl = getEvidenceViewUrl(viewingUpload);
+                      const viewUrl = getEvidenceViewUrl(viewingUpload) || `/api/evidence/${viewingUpload.id}/file`;
                       const mime = viewingUpload.mime_type || getMimeType(viewingUpload.filename);
                       const isPdf = mime === "application/pdf" || viewingUpload.filename.toLowerCase().endsWith(".pdf");
                       const isImage = mime.startsWith("image/") || /\.(png|jpe?g|webp|svg|gif)$/i.test(viewingUpload.filename);
