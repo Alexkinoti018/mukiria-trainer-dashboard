@@ -12,6 +12,36 @@ interface ExamContextType {
   gradeSubmission: (id: string, updates: Partial<Submission>) => void;
 }
 
+export function sanitizeExamForStudent(exam: Exam): Exam {
+  const sanitizeQuestions = (questions: any[]) => {
+    return (questions || []).map((q: any) => {
+      const { correct_answer, rubric, critical_aspect, keywords, ...cleanQuestion } = q;
+      return cleanQuestion;
+    });
+  };
+
+  const payload = { ...exam.payload };
+  if (payload.section_a?.questions) {
+    payload.section_a = {
+      ...payload.section_a,
+      questions: sanitizeQuestions(payload.section_a.questions),
+    };
+  }
+  if (payload.section_b?.questions) {
+    payload.section_b = {
+      ...payload.section_b,
+      questions: sanitizeQuestions(payload.section_b.questions),
+    };
+  }
+  delete (payload as any).answer_key;
+  delete (payload as any).rubric;
+
+  return {
+    ...exam,
+    payload,
+  };
+}
+
 const ExamContext = createContext<ExamContextType | undefined>(undefined);
 
 export function ExamProvider({ children }: { children: ReactNode }) {
@@ -86,6 +116,17 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     return allSubmissions;
   }, [allSubmissions, user]);
 
+  // Column Shielding: Trainees receive sanitized exams stripped of answer keys, rubrics, and critical aspects
+  const scopedExams = useMemo(() => {
+    if (!user) return exams;
+    if (user.role === "trainee") {
+      return exams
+        .filter((e) => !user.enrolled_units || user.enrolled_units.includes(e.unit_code))
+        .map((e) => sanitizeExamForStudent(e));
+    }
+    return exams;
+  }, [exams, user]);
+
   const addExam = (examPayload: Omit<Exam, "id" | "created_at">) => {
     const newExam: Exam = {
       ...examPayload,
@@ -99,6 +140,17 @@ export function ExamProvider({ children }: { children: ReactNode }) {
   };
 
   const submitExam = (submissionPayload: Omit<Submission, "id" | "created_at" | "updated_at">) => {
+    // Enforce submission immutability (400 Bad Request: Locked)
+    const existing = allSubmissions.find(
+      (s) =>
+        (s.unit_code === submissionPayload.unit_code || s.exam_id === (submissionPayload as any).exam_id) &&
+        (s.reg_number === submissionPayload.reg_number ||
+          (submissionPayload.trainee_id && s.trainee_id === submissionPayload.trainee_id))
+    );
+    if (existing && (existing.status === "submitted" || existing.status === "graded")) {
+      throw new Error("400 Bad Request: Locked: Submission has already been completed and cannot be modified");
+    }
+
     const newSubmission: Submission = {
       ...submissionPayload,
       id: `sub-${nanoid(8)}`,
@@ -119,7 +171,7 @@ export function ExamProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ExamContext.Provider value={{ exams, submissions: scopedSubmissions, addExam, submitExam, gradeSubmission }}>
+    <ExamContext.Provider value={{ exams: scopedExams, submissions: scopedSubmissions, addExam, submitExam, gradeSubmission }}>
       {children}
     </ExamContext.Provider>
   );

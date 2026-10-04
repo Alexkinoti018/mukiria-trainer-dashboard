@@ -414,6 +414,11 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
       let marksData: any[] = saved ? JSON.parse(saved) : [];
 
       let entry = marksData.find((m: any) => m.trainee_id === traineeId);
+      if (entry && entry.is_locked) {
+        toast.error("Marks locked: Assessment marksheet is finalized and locked");
+        return;
+      }
+
       if (!entry) {
         entry = {
           unit_offering_id: unitOfferingId,

@@ -23,6 +23,8 @@ export interface AuthUser {
   role: "trainer" | "admin" | "hod" | "trainee";
   reg_number?: string;
   department_id?: string;
+  enrolled_units?: string[];
+  assigned_units?: string[];
 }
 
 interface AuthContextValue {
@@ -163,21 +165,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (isSupabaseConfigured()) {
         await supabase.auth.signOut();
       }
-      // Security: Purge all session, exam, and marks storage from browser
+      // Security: Purge all session, exam, timer, and marks storage from browser
       const sensitiveKeys = [
         "mtti_demo_session",
         "student_demo_session",
         "mukiria_submissions",
-        "mukiria_exams"
+        "mukiria_exams",
+        "mtti_attendance_all"
       ];
       sensitiveKeys.forEach(k => localStorage.removeItem(k));
       Object.keys(localStorage).forEach(k => {
-        if (k.startsWith("mtti_marks_") || k.startsWith("mtti_timer_")) {
+        if (
+          k.startsWith("mtti_marks_") || 
+          k.startsWith("mtti_timer_") || 
+          k.startsWith("mtti_exam_answers_") ||
+          k.startsWith("mtti_attendance_") ||
+          k.startsWith("mtti_class_register_")
+        ) {
           localStorage.removeItem(k);
         }
       });
       setUser(null);
-      console.log("✅ [MTTI Auth] Logged out and sanitized client storage");
+      console.log("✅ [MTTI Auth] Logged out and sanitized all client storage");
     } catch (err) {
       console.error("❌ [MTTI Auth] Logout error:", err);
     }

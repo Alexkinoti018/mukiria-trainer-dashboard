@@ -107,6 +107,7 @@ const MTTI_CLASSES: ClassConfig[] = [
 export default function ClassRegister() {
   const { trainees, addTrainee, updateTrainee, deleteTrainee, resetToOfficialRoster } = useTrainees();
   const { user } = useAuth();
+  const canEditRegister = user?.role === "trainer" || user?.role === "admin" || user?.role === "hod";
 
   // Mode: "CUR/02" (General Class Register) or "CUR/03" (Assessment Attendance Register)
   const [formMode, setFormMode] = useState<"CUR/02" | "CUR/03">("CUR/02");
@@ -172,6 +173,10 @@ export default function ClassRegister() {
 
   // Student CRUD Handlers
   const handleOpenAddStudent = () => {
+    if (!canEditRegister) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can modify class registers.");
+      return;
+    }
     const prefix = selectedClassCode.split(" ")[0].replace(/[^a-zA-Z0-9]/g, "");
     setStudentForm({
       name: "",
@@ -185,6 +190,10 @@ export default function ClassRegister() {
 
   const handleSaveNewStudent = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEditRegister) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can modify class registers.");
+      return;
+    }
     if (!studentForm.name.trim() || !studentForm.admNo.trim()) {
       toast.error("Please provide both student name and admission number.");
       return;
@@ -216,6 +225,10 @@ export default function ClassRegister() {
   };
 
   const handleOpenEditStudent = (trainee: any) => {
+    if (!canEditRegister) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can modify class registers.");
+      return;
+    }
     setEditingStudent(trainee);
     setStudentForm({
       name: trainee.name,
@@ -228,6 +241,10 @@ export default function ClassRegister() {
 
   const handleSaveEditStudent = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEditRegister) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can modify class registers.");
+      return;
+    }
     if (!editingStudent) return;
     if (!studentForm.name.trim() || !studentForm.admNo.trim()) {
       toast.error("Please provide both student name and admission number.");
@@ -246,6 +263,10 @@ export default function ClassRegister() {
   };
 
   const handleDeleteStudent = (id: string, name: string) => {
+    if (!canEditRegister) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can modify class registers.");
+      return;
+    }
     if (confirm(`Remove trainee "${name}" from this class register?`)) {
       deleteTrainee(id);
       setAttendanceData(prev => {
@@ -282,6 +303,10 @@ export default function ClassRegister() {
 
   // Toggle Attendance Cell in CUR/02
   const toggleAttendance = (studentId: string, week: number, session: number) => {
+    if (!canEditRegister) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can mark attendance.");
+      return;
+    }
     setAttendanceData((prev) => {
       const studentRecord = prev[studentId] || { attendance: {} };
       const key = `W${week}_S${session}`;
@@ -305,6 +330,10 @@ export default function ClassRegister() {
 
   // Mark entire session column present or toggle
   const markWholeSessionColumn = (week: number, session: number) => {
+    if (!canEditRegister) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can mark attendance.");
+      return;
+    }
     setAttendanceData(prev => {
       const updated = { ...prev };
       const key = `W${week}_S${session}`;
@@ -325,6 +354,10 @@ export default function ClassRegister() {
 
   // Mark all 3 sessions of a week present
   const markWholeWeek = (week: number) => {
+    if (!canEditRegister) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can mark attendance.");
+      return;
+    }
     setAttendanceData(prev => {
       const updated = { ...prev };
       classTrainees.forEach(t => {
@@ -345,6 +378,10 @@ export default function ClassRegister() {
 
   // Toggle Signature in CUR/03
   const toggleSignature = (studentId: string) => {
+    if (!canEditRegister) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can record attendance signatures.");
+      return;
+    }
     setAttendanceData(prev => {
       const rec = prev[studentId] || { attendance: {} };
       return {
@@ -453,6 +490,10 @@ export default function ClassRegister() {
   };
 
   const handleSave = async () => {
+    if (!canEditRegister) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can save class registers.");
+      return;
+    }
     setIsSaving(true);
     try {
       localStorage.setItem(`mtti_class_register_${selectedClassCode}`, JSON.stringify(attendanceData));
@@ -493,6 +534,10 @@ export default function ClassRegister() {
 
   // Sync to Record of Work
   const handleSaveAndSyncRoW = () => {
+    if (!canEditRegister) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can sync records of work.");
+      return;
+    }
     setIsSaving(true);
     let presentCount = 0;
     classTrainees.forEach(t => {
@@ -538,6 +583,10 @@ export default function ClassRegister() {
   };
 
   const handleReset = () => {
+    if (!canEditRegister) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can reset roster.");
+      return;
+    }
     if (confirm("Reset roster to the official MTTI transcribed students?")) {
       resetToOfficialRoster();
       toast.info("Roster reset to official MTTI scanned registers.");

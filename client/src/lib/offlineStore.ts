@@ -24,7 +24,7 @@ export interface OfflineSubmission {
   section_a: any[];
   section_b: any[];
   status: "draft" | "submitted" | "pending" | "graded" | "reviewed";
-  total_score?: number;
+  total_score?: number | null;
   created_at: number;
   updated_at: number;
   synced: boolean;

@@ -79,31 +79,31 @@ function Router() {
         <ProtectedRoute allowedRoles={["trainer", "admin"]}><Grading /></ProtectedRoute>
       </Route>
       <Route path="/trainer/grading/uploads">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><UploadGrading /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><UploadGrading /></ProtectedRoute>
       </Route>
       <Route path="/trainer/session-plans">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><SessionPlans /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><SessionPlans /></ProtectedRoute>
       </Route>
       <Route path="/trainer/class-register">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><ClassRegister /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><ClassRegister /></ProtectedRoute>
       </Route>
       <Route path="/trainer/documents/learning-plan">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><LearningPlan /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><LearningPlan /></ProtectedRoute>
       </Route>
       <Route path="/trainer/documents/records-of-work">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><RecordsOfWork /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><RecordsOfWork /></ProtectedRoute>
       </Route>
       <Route path="/trainer/documents/assessment-plan">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><AssessmentPlan /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><AssessmentPlan /></ProtectedRoute>
       </Route>
       <Route path="/trainer/workspace">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><AcademicWorkspaceShell /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><AcademicWorkspaceShell /></ProtectedRoute>
       </Route>
       <Route path="/trainer/curriculum-parsing">
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><CurriculumParsingHub /></ProtectedRoute>
       </Route>
       <Route path="/trainer/assessment-marks">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><AssessmentMarks /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><AssessmentMarks /></ProtectedRoute>
       </Route>
       <Route path="/trainer/analytics">
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Analytics /></ProtectedRoute>

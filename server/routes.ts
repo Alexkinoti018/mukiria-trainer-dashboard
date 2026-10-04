@@ -231,6 +231,7 @@ export function authenticateUser(req: AuthenticatedRequest, res: Response, next:
   const idHeader = (req.headers["x-user-id"] as string) || "";
   const regHeader = (req.headers["x-user-reg"] as string) || "";
   const deptHeader = (req.headers["x-user-dept"] as string) || "";
+  const unitsHeader = (req.headers["x-user-enrolled-units"] as string) || (req.headers["x-user-units"] as string) || "";
 
   // Mock / Demo authentication extraction (with JWT simulation)
   let user: AuthenticatedUser | undefined;
@@ -245,6 +246,8 @@ export function authenticateUser(req: AuthenticatedRequest, res: Response, next:
       user = { id: "trainee-001", email: "student@mtti.ac.ke", name: "Alex Kinoti", role: "trainee", reg_number: "10525", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] };
     } else if (token === "token-trainee-002") {
       user = { id: "trainee-002", email: "harriet@mtti.ac.ke", name: "Harriet Mwendwa", role: "trainee", reg_number: "10526", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] };
+    } else if (token === "token-trainee-003") {
+      user = { id: "trainee-003", email: "ee_trainee@mtti.ac.ke", name: "EE Trainee", role: "trainee", reg_number: "99999", department_id: "dept-ee", enrolled_units: ["EE/CU/PO/CR/1/6"] };
     } else if (token === "token-hod-ci") {
       user = { id: "hod-001", email: "hod.ci@mtti.ac.ke", name: "Prof. S. Njoroge", role: "hod", department_id: "dept-ci" };
     } else if (token === "token-hod-ee") {
@@ -256,6 +259,10 @@ export function authenticateUser(req: AuthenticatedRequest, res: Response, next:
 
   // Header-based resolution fallback for API callers
   if (!user && roleHeader) {
+    const enrolledUnits = unitsHeader 
+      ? unitsHeader.split(",").map(u => u.trim()) 
+      : (deptHeader === "dept-ee" || idHeader === "trainee-003" ? ["EE/CU/PO/CR/1/6"] : ["ICT/CU/IT/CR/6/6", "061155101A-WA1"]);
+
     user = {
       id: idHeader || `user-${roleHeader}`,
       email: `${roleHeader}@mtti.ac.ke`,
@@ -264,7 +271,7 @@ export function authenticateUser(req: AuthenticatedRequest, res: Response, next:
       reg_number: regHeader,
       department_id: deptHeader,
       assigned_units: roleHeader === "trainer" ? (idHeader === "trainer-002" ? ["ICT/OS/IT/CR/1/6"] : ["ICT/CU/IT/CR/6/6", "061155101A-WA1"]) : undefined,
-      enrolled_units: roleHeader === "trainee" ? ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] : undefined,
+      enrolled_units: roleHeader === "trainee" ? enrolledUnits : undefined,
     };
   }
 

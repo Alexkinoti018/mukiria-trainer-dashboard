@@ -38,12 +38,16 @@ import {
   SessionDeliveryStep,
 } from "@/lib/mockSessionPlans";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import { saveSessionPlanToOffline, getAllOfflineSessionPlans, enqueueSyncItem } from "@/lib/offlineStore";
 import { syncEngine } from "@/lib/syncEngine";
 
 export default function SessionPlans() {
+  const { user } = useAuth();
+  const canEditPedagogical = user?.role === "trainer" || user?.role === "admin" || user?.role === "hod";
+
   const [activeTab, setActiveTab] = useState<"learning" | "session" | "record">("learning");
   const [plans, setPlans] = useState<SessionPlan[]>([]);
   const [learningPlans, setLearningPlans] = useState<LearningPlanWeek[]>([]);
@@ -309,6 +313,10 @@ export default function SessionPlans() {
 
   // ── Save Record of Work & Update Statuses ──
   const handleSaveRecordLog = async () => {
+    if (!canEditPedagogical) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can log records of work.");
+      return;
+    }
     if (!logSessionPlan) return;
 
     const newLog: RecordOfWork = {
@@ -381,6 +389,10 @@ export default function SessionPlans() {
 
   // ── Session Plan Creation / Saving ──
   const handleSaveSessionPlan = async () => {
+    if (!canEditPedagogical) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can save session plans.");
+      return;
+    }
     if (!formSessionTitle.trim()) {
       toast.error("Session Title is required.");
       return;
@@ -513,6 +525,10 @@ export default function SessionPlans() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!canEditPedagogical) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can delete session plans.");
+      return;
+    }
     if (confirm("Are you sure you want to delete this session plan?")) {
       const updated = plans.filter(p => p.id !== id);
       setPlans(updated);

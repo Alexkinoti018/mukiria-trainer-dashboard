@@ -45,9 +45,11 @@ export interface ExamPayload {
   duration_minutes: number;
   total_marks: number;
   instructions: string;
+  series?: string;
   type?: "written" | "practical";
   class?: string;
-  series?: string;
+  start_time?: string;
+  end_time?: string;
   section_a?: ExamSection;
   section_b?: ExamSection;
   project_brief?: string;

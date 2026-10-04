@@ -24,7 +24,8 @@ import {
   Award,
   Info,
 } from "lucide-react";
-import { useExam } from "@/contexts/ExamContext";
+import { useExam, sanitizeExamForStudent } from "@/contexts/ExamContext";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Exam } from "@/lib/supabase";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
@@ -54,14 +55,18 @@ interface StudentInfo {
 }
 
 // ─── Offline-resilient Timer Hook ────────────────────────────
-function useExamTimer(durationMinutes: number, onExpire: () => void) {
-  const STORAGE_KEY = `mtti_timer_${durationMinutes}`;
+function useExamTimer(unitCode: string, durationMinutes: number, onExpire: () => void) {
+  const STORAGE_KEY = `mtti_timer_${unitCode || durationMinutes}`;
   const [secondsLeft, setSecondsLeft] = useState<number>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      const { endTime } = JSON.parse(stored);
-      const remaining = Math.floor((endTime - Date.now()) / 1000);
-      return remaining > 0 ? remaining : 0;
+      try {
+        const { endTime } = JSON.parse(stored);
+        const remaining = Math.floor((endTime - Date.now()) / 1000);
+        return remaining > 0 ? remaining : 0;
+      } catch {
+        return durationMinutes * 60;
+      }
     }
     return durationMinutes * 60;
   });
@@ -69,14 +74,32 @@ function useExamTimer(durationMinutes: number, onExpire: () => void) {
   const expiredRef = useRef(false);
 
   const startTimer = useCallback(() => {
-    const endTime = Date.now() + secondsLeft * 1000;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ endTime }));
+    let targetEndTime: number;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed.endTime && parsed.endTime > Date.now()) {
+          targetEndTime = parsed.endTime;
+        } else {
+          targetEndTime = Date.now() + secondsLeft * 1000;
+        }
+      } catch {
+        targetEndTime = Date.now() + secondsLeft * 1000;
+      }
+    } else {
+      targetEndTime = Date.now() + secondsLeft * 1000;
+    }
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ endTime: targetEndTime }));
+
+    if (intervalRef.current) clearInterval(intervalRef.current);
 
     intervalRef.current = setInterval(() => {
-      const remaining = Math.floor((endTime - Date.now()) / 1000);
+      const remaining = Math.floor((targetEndTime - Date.now()) / 1000);
       if (remaining <= 0) {
         setSecondsLeft(0);
-        clearInterval(intervalRef.current!);
+        if (intervalRef.current) clearInterval(intervalRef.current);
         localStorage.removeItem(STORAGE_KEY);
         if (!expiredRef.current) {
           expiredRef.current = true;
@@ -115,7 +138,8 @@ export default function CandidatePortal() {
   const search = useSearch();
   const params = new URLSearchParams(search);
   const unitCode = params.get("unitCode") ?? params.get("unit") ?? "";
-  const { exams, submitExam } = useExam();
+  const { exams, submissions, submitExam } = useExam();
+  const { user } = useAuth();
 
   const [state, setState] = useState<PortalState>("loading");
   const [exam, setExam] = useState<Exam | null>(null);
@@ -133,6 +157,7 @@ export default function CandidatePortal() {
   }, []);
 
   const { secondsLeft, minutes, seconds, isWarning, isCritical, startTimer, resetTimer } = useExamTimer(
+    exam?.unit_code || unitCode,
     exam?.payload.duration_minutes ?? 90,
     handleTimerExpire
   );
@@ -169,6 +194,11 @@ export default function CandidatePortal() {
         return;
       }
       
+      if (foundExam) {
+        // Enforce Column Shielding: completely shield correct answers and rubrics from candidate state
+        foundExam = sanitizeExamForStudent(foundExam);
+      }
+      
       // Cache loaded exam into IndexedDB for offline resilience
       await saveExamToOffline(foundExam);
       
@@ -179,7 +209,7 @@ export default function CandidatePortal() {
       }
       
       setExam(foundExam);
-      console.log("✅ [MTTI Portal] Exam loaded:", foundExam.unit_code);
+      console.log("✅ [MTTI Portal] Exam loaded with Column Shielding:", foundExam.unit_code);
       setState("registration");
     } catch (err) {
       console.error("❌ [MTTI Portal] Load error:", err);
@@ -193,112 +223,111 @@ export default function CandidatePortal() {
       if (!exam || submitting) return;
       setSubmitting(true);
 
-      const gradeQuestion = async (q: any, answer: string) => {
-        // Deterministic MCQ / True-False grading
-        if (q.type === "mcq" || q.type === "true_false") {
-          let isCorrect = false;
-          if (answer !== undefined && answer !== "") {
-            const rawAns = String(answer).trim().toLowerCase();
-            const correctRaw = String(q.correct_answer ?? "").trim().toLowerCase();
-            if (rawAns === correctRaw) {
-              isCorrect = true;
-            } else if (q.options && !isNaN(Number(rawAns))) {
-              const optIndex = Number(rawAns);
-              const optLetter = String.fromCharCode(65 + optIndex).toLowerCase();
-              const optText = (q.options[optIndex] || "").trim().toLowerCase();
-              if (correctRaw === optLetter || correctRaw === optText || correctRaw === String(optIndex)) {
-                isCorrect = true;
-              }
-            } else if (q.type === "true_false") {
-              const boolStr = rawAns === "0" ? "true" : rawAns === "1" ? "false" : rawAns;
-              if (boolStr === correctRaw) isCorrect = true;
-            }
-          }
-          return {
-            question_id: q.id,
-            answer,
-            marks_awarded: isCorrect ? q.marks : 0,
-            ai_reasoning: isCorrect ? "Correct objective answer selected." : "Incorrect choice selected.",
-            flagged_for_review: false,
-          };
-        }
-        
-        // Subjective auto-grading via NLP engine
-        if (!answer.trim()) {
-          return {
-            question_id: q.id,
-            answer,
-            marks_awarded: 0,
-            ai_reasoning: "No response provided by candidate.",
-            flagged_for_review: false,
-          };
-        }
-        
-        try {
-          const res = await fetch("http://localhost:8000/api/auto-grade", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              student_answer: answer,
-              correct_answer: q.correct_answer || "",
-              marks: q.marks,
-              question_type: q.type,
-              regex_pattern: q.regex_pattern || "",
-              keywords: q.keywords || [],
-              evaluation_mode: q.evaluation_mode || "semi_objective",
-              requires_trainer_review: Boolean(q.requires_trainer_review),
-            })
+      // 1. Mandatory Mod 5: Valid Exam Window Verification
+      if (exam.payload?.end_time) {
+        const now = new Date();
+        const endTime = new Date(exam.payload.end_time);
+        if (now > endTime) {
+          toast.error("Submission Window Expired", {
+            description: "403 Forbidden: Exam submission window has expired and submissions are locked.",
           });
-          const data = await res.json();
-          return {
-            question_id: q.id,
-            answer,
-            marks_awarded: data.score ?? null,
-            ai_reasoning: data.reasoning ?? "Auto-grading completed.",
-            flagged_for_review: Boolean(data.flagged_for_review),
-          };
-        } catch (e) {
-          console.error("Auto-grading failed for", q.id, e);
-          return {
-            question_id: q.id,
-            answer,
-            marks_awarded: null,
-            ai_reasoning: "Auto-grading service unavailable. Pending manual review.",
-            flagged_for_review: true,
-          };
+          setSubmitting(false);
+          return;
         }
-      };
+      }
 
-      const sectionAPayload = await Promise.all(
-        (exam.payload?.section_a?.questions || []).map((q: any) => gradeQuestion(q, String(sectionAAnswers[q.id] ?? "")))
+      // 2. Mandatory Mod 5: Submission Locking (Cannot re-submit once committed)
+      const regNo = student.regNumber.trim().toUpperCase();
+      const existingSub = (submissions || []).find(
+        (s) =>
+          (s.unit_code?.toUpperCase() === exam.unit_code?.toUpperCase() || s.exam_id === exam.id) &&
+          (s.reg_number?.toUpperCase() === regNo ||
+            s.student_email?.toLowerCase() === student.email.trim().toLowerCase())
       );
+      if (existingSub && (existingSub.status === "submitted" || existingSub.status === "graded")) {
+        toast.error("Submission Locked", {
+          description: "400 Bad Request: Locked: Submission has already been completed and cannot be modified.",
+        });
+        setSubmitting(false);
+        return;
+      }
 
-      const sectionBPayload = await Promise.all(
-        (exam.payload?.section_b?.questions || []).map((q: any) => gradeQuestion(q, String(sectionBAnswers[q.id] ?? "")))
-      );
+      // 3. Format Candidate Answers (Shielded from client-side answer key inspection)
+      const sectionAPayload = (exam.payload?.section_a?.questions || []).map((q: any) => ({
+        question_id: q.id,
+        answer: String(sectionAAnswers[q.id] ?? ""),
+        marks_awarded: undefined,
+        ai_reasoning: "Answer committed for secure institutional evaluation.",
+        flagged_for_review: false,
+      }));
 
-      // Determine overall status based on whether auto-grading fully succeeded and review flags
-      const needsReview = [...sectionAPayload, ...sectionBPayload].some(a => a.marks_awarded === null || a.flagged_for_review);
-      const totalScore = [...sectionAPayload, ...sectionBPayload].reduce((sum, a) => sum + (a.marks_awarded || 0), 0);
-
-      const payload = {
-        unit_code: exam.unit_code,
-        student_name: student.name.trim(),
-        reg_number: student.regNumber.trim().toUpperCase(),
-        student_email: student.email.trim().toLowerCase(),
-        section_a: sectionAPayload,
-        section_b: sectionBPayload,
-        status: (needsReview ? "pending" : "graded") as "pending" | "graded" | "reviewed",
-        total_score: totalScore,
-      };
+      const sectionBPayload = (exam.payload?.section_b?.questions || []).map((q: any) => ({
+        question_id: q.id,
+        answer: String(sectionBAnswers[q.id] ?? ""),
+        marks_awarded: undefined,
+        ai_reasoning: "Answer committed for secure institutional evaluation.",
+        flagged_for_review: false,
+      }));
 
       try {
+        const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+        let serverScore: number | null = null;
+
+        // Secure Server-side Evaluation & Immutability Verification via API
+        if (isOnline) {
+          try {
+            const apiRes = await fetch("/api/submissions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-user-role": "trainee",
+                "x-user-id": user?.id || `trainee-${regNo.replace(/[^a-zA-Z0-9]/g, "")}`,
+                "x-user-reg": regNo,
+              },
+              body: JSON.stringify({
+                exam_id: exam.id,
+                section_a: sectionAPayload,
+                section_b: sectionBPayload,
+              }),
+            });
+
+            if (!apiRes.ok) {
+              const errData = await apiRes.json().catch(() => ({}));
+              if (apiRes.status === 400) {
+                throw new Error(errData.error || "400 Bad Request: Locked: Submission has already been completed and cannot be modified");
+              } else if (apiRes.status === 403) {
+                throw new Error(errData.error || "403 Forbidden: Exam submission window has expired");
+              }
+            } else {
+              const apiData = await apiRes.json();
+              if (typeof apiData.score === "number") {
+                serverScore = apiData.score;
+              }
+            }
+          } catch (apiErr: any) {
+            if (apiErr.message?.includes("Locked") || apiErr.message?.includes("expired")) {
+              throw apiErr;
+            }
+            console.warn("Express submission endpoint fallback:", apiErr);
+          }
+        }
+
+        const payload = {
+          exam_id: exam.id,
+          unit_code: exam.unit_code,
+          student_name: student.name.trim(),
+          reg_number: regNo,
+          student_email: student.email.trim().toLowerCase(),
+          section_a: sectionAPayload,
+          section_b: sectionBPayload,
+          status: "submitted" as const,
+          total_score: serverScore,
+        };
+
         const id = nanoid();
         setSubmissionId(id);
         
         submitExam(payload);
-        
-        const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
 
         // 1. Buffer submission in IndexedDB offline store
         await saveSubmissionToOffline({
@@ -310,7 +339,7 @@ export default function CandidatePortal() {
           section_a: payload.section_a,
           section_b: payload.section_b,
           status: payload.status,
-          total_score: payload.total_score,
+          total_score: payload.total_score ?? undefined,
           created_at: Date.now(),
           updated_at: Date.now(),
           synced: isOnline,
