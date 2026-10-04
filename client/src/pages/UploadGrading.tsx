@@ -16,7 +16,8 @@ import {
   Award, 
   ShieldCheck, 
   FileArchive,
-  RefreshCw
+  RefreshCw,
+  BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTrainees, Upload } from "@/contexts/TraineeContext";
@@ -26,6 +27,7 @@ import {
   getMimeType 
 } from "@/lib/evidenceStorage";
 import { motion, AnimatePresence } from "framer-motion";
+import { OFFICIAL_EXAM_PAPERS } from "./TraineeAssignments";
 
 export default function UploadGrading() {
   const { uploads, updateUploadGrade, verifyUpload, awardUploadMark, deleteUpload } = useTrainees();
@@ -540,6 +542,7 @@ export default function UploadGrading() {
                         <option value="CT1">CT1 — Continuous Theory Assessment 1</option>
                         <option value="CT2">CT2 — Continuous Theory Assessment 2</option>
                         <option value="CT3">CT3 — Continuous Theory Assessment 3</option>
+                        <option value="Project">Project — Course Project / Practical Checklist (40%)</option>
                       </select>
                     </div>
 
@@ -622,6 +625,57 @@ export default function UploadGrading() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Official Assessment Question Papers & Checklists Section */}
+      <div id="official-papers" className="mt-8 bg-card border border-border p-6 rounded-2xl shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-4">
+          <div>
+            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-primary" />
+              Official TVET CDACC Assessment Question Papers & Checklists
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Mukiria Technical Training Institute — Verified curriculum assessment materials by Trainer Alexander Kinoti
+            </p>
+          </div>
+          <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 self-start sm:self-auto">
+            11 Documents Available
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {OFFICIAL_EXAM_PAPERS.map((paper, idx) => (
+            <div
+              key={idx}
+              className="p-3.5 border border-border rounded-xl bg-background hover:border-primary/40 transition flex flex-col justify-between gap-3 shadow-2xs"
+            >
+              <div className="space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase ${paper.badgeClass}`}>
+                    {paper.typeBadge}
+                  </span>
+                  <span className="text-[10px] font-mono text-muted-foreground">{paper.code}</span>
+                </div>
+                <h4 className="font-bold text-xs text-foreground leading-snug pt-1">{paper.title}</h4>
+                <p className="text-[11px] text-muted-foreground">{paper.classInfo}</p>
+              </div>
+
+              <div className="pt-2 border-t border-border/60 flex items-center justify-between">
+                <span className="text-[10px] font-medium text-muted-foreground">{paper.pages} • PDF</span>
+                <a
+                  href={`/assessment-papers/${encodeURIComponent(paper.filename)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Download / View
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </TrainerLayout>
   );
 }

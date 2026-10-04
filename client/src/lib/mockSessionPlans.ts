@@ -33,6 +33,11 @@ export interface SessionPlan {
   signature_date: string;
   session_number?: number;
   status?: "planned" | "delivered"; // Linking field
+  approval_status?: "draft" | "pending" | "approved" | "rejected" | "revision_requested";
+  hod_reviewed_by?: string | null;
+  hod_reviewer_name?: string | null;
+  hod_review_date?: string | null;
+  hod_remarks?: string | null;
 }
 
 export interface LearningPlanWeek {
@@ -63,6 +68,16 @@ export interface RecordOfWork {
   status: "delivered" | "partial" | "postponed";
   signature: string;
   signature_date: string;
+  approval_status?: "draft" | "pending" | "approved" | "rejected" | "revision_requested";
+  hod_reviewed_by?: string | null;
+  hod_reviewer_name?: string | null;
+  hod_review_date?: string | null;
+  hod_remarks?: string | null;
+}
+
+export function canEditPedagogical(record?: { approval_status?: string } | null): boolean {
+  if (!record) return true;
+  return record.approval_status !== "approved";
 }
 
 const DEFAULT_STEPS_REGULAR: SessionDeliveryStep[] = [

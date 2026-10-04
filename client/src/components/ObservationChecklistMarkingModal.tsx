@@ -227,7 +227,90 @@ export const NETWORKING_PRESET: PracticalRubricPreset = {
   ]
 };
 
+// ─────────────────────────────────────────────────────────────
+// PRESET 3: Newly Attached 7-Page Practical Exam (Mukiria TTI / TVET CDACC)
+// Unit: PERFORM COMPUTER ESSENTIALS (IT/CU/ICTA/CR/01/4/MA)
+// Qualification: 06104ICTMA - ICT 4 / ICT TECHNICIAN LEVEL 5 & 6
+// Cohort: ICT4/ITECH6/S/26 MOD 1 | Date: 15/10/2026 | Assessor: Alexander Kinoti
+// ─────────────────────────────────────────────────────────────
+export const COMPUTER_ESSENTIALS_PRESET: PracticalRubricPreset = {
+  id: "computer_essentials",
+  name: "Computer Essentials (3 Practical Sessions + Orals, 100 Mks) [ICT Lab]",
+  qualificationCode: "06104ICTMA - ICT 4 / ICT TECHNICIAN LEVEL 5 & 6",
+  unitCode: "IT/CU/ICTA/CR/01/4/MA",
+  unitTitle: "PERFORM COMPUTER ESSENTIALS",
+  series: "SEPTEMBER-DECEMBER 2026 SERIES",
+  classCode: "ICT4/ITECH6/S/26 MOD 1",
+  venue: "ICT LAB",
+  date: "15/10/2026",
+  defaultCandidate: "Wanjau Alvin Gatere",
+  defaultRegNo: "14076/S2026",
+  assessorName: "Alexander Kinoti",
+  assessorSignature: "A. Kinoti",
+  defaultFeedback: "Competent. Excellent hardware identification, desktop environment customization, and software installation.",
+  paperPages: 7,
+  items: [
+    {
+      id: 1,
+      task: "Practical 1 (a-c): Manage Computer Devices — Correctly identified five external ports, opened system unit & located CMOS battery, verified driver installation.",
+      scoringGuide: "Award 21 marks: 5 external ports (10), CMOS battery location (5), Driver verification (6)",
+      marksAvailable: 21,
+      marksObtained: 20,
+      comments: "Accurately identified external ports, opened system chassis safely, and verified input drivers."
+    },
+    {
+      id: 2,
+      task: "Practical 1 (d-f): Device Management & Safety — Opened Device Manager & saved screenshot, safely disconnected/reconnected monitor, performed menu restart.",
+      scoringGuide: "Award 14 marks: Device Manager screenshot (5), Monitor disconnect/reconnect (6), Start restart (3)",
+      marksAvailable: 14,
+      marksObtained: 13,
+      comments: "Captured Device Manager hierarchy screenshot and demonstrated safe hotplug/restart."
+    },
+    {
+      id: 3,
+      task: "Oral Assessment 1: Computer Hardware & Diagnostics (POST, Motherboard, UPS, RAM vs ROM, SSD vs HDD, HDMI vs VGA).",
+      scoringGuide: "Award 20 marks: 10 oral questions @ 2 marks each",
+      marksAvailable: 20,
+      marksObtained: 18,
+      comments: "Articulated differences between volatile/non-volatile memory and modern SSD vs mechanical HDD architecture."
+    },
+    {
+      id: 4,
+      task: "Practical 2 (a-d): Manage Desktop Settings — Created/renamed desktop shortcut, customized Recycle Bin, launched Notepad via Run dialog, searched & opened file.",
+      scoringGuide: "Award 16 marks: Shortcut (4), Recycle Bin settings (4), Run dialog (4), Search navigation (4)",
+      marksAvailable: 16,
+      marksObtained: 15,
+      comments: "Navigated Windows shortcut creation and system utilities smoothly."
+    },
+    {
+      id: 5,
+      task: "Practical 2 (e-i): Perform File Management — Built correct folder structure, moved files & compressed using 7-Zip, enabled dark mode, activated Sticky Keys, saved properties screenshot.",
+      scoringGuide: "Award 24 marks: Folder structure (8), 7-Zip compression (4), Dark mode (4), Sticky Keys (4), Properties screenshot (4)",
+      marksAvailable: 24,
+      marksObtained: 23,
+      comments: "Demonstrated complete file hierarchy creation and archive encryption."
+    },
+    {
+      id: 6,
+      task: "Practical 3 (a-e): Manage Software — Uninstalled software via Control Panel, installed Foxit PDF Reader & set default, disabled Teams startup, restarted Explorer in Task Manager.",
+      scoringGuide: "Award 22 marks: Control Panel uninstall (5), Foxit install (5), Default viewer (4), Startup disable (4), Explorer restart (4)",
+      marksAvailable: 22,
+      marksObtained: 21,
+      comments: "Clean software lifecycle demonstration and Windows process recycling."
+    },
+    {
+      id: 7,
+      task: "Practical 3 (f-g): Perform Online Jobs & Communication — Sent email with attachment to assessor, simulated CV platform upload and updated profile photo.",
+      scoringGuide: "Award 18 marks: Email composition & attachment (8), CV upload simulation (5), Profile update (5)",
+      marksAvailable: 18,
+      marksObtained: 17,
+      comments: "Composed formal email, attached required assessment artifacts, and verified web upload."
+    }
+  ]
+};
+
 export const PRESET_OPTIONS: PracticalRubricPreset[] = [
+  COMPUTER_ESSENTIALS_PRESET,
   REPAIR_MAINTENANCE_PRESET,
   NETWORKING_PRESET
 ];

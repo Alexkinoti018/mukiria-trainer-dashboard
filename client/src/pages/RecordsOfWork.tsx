@@ -16,7 +16,8 @@ import {
   Trash2,
   Check,
   BookOpen,
-  Search
+  Search,
+  Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -25,6 +26,7 @@ import {
   getStoredRecordsOfWork, 
   saveStoredRecordsOfWork, 
   getStoredSessionPlans,
+  canEditPedagogical,
   type RecordOfWork,
   type SessionPlan 
 } from "@/lib/mockSessionPlans";
@@ -217,6 +219,10 @@ export default function RecordsOfWork() {
   };
 
   const handleEdit = (record: RecordOfWork) => {
+    if (!canEditPedagogical(record)) {
+      toast.error("This Record of Work has been approved by HOD and is locked against modifications.");
+      return;
+    }
     setEditingRecord(record);
     setFormData({
       unit_code: record.unit_code,
@@ -234,6 +240,11 @@ export default function RecordsOfWork() {
   };
 
   const handleDelete = (id: string) => {
+    const target = records.find(r => r.id === id);
+    if (target && !canEditPedagogical(target)) {
+      toast.error("Approved Record of Work is locked and cannot be deleted.");
+      return;
+    }
     const updated = records.filter(r => r.id !== id);
     setRecords(updated);
     saveStoredRecordsOfWork(updated);
@@ -244,6 +255,11 @@ export default function RecordsOfWork() {
     e.preventDefault();
     if (!formData.work_actually_covered.trim()) {
       toast.error("Please enter the work actually covered.");
+      return;
+    }
+
+    if (editingRecord && !canEditPedagogical(editingRecord)) {
+      toast.error("Approved Record of Work is locked against modifications.");
       return;
     }
 
@@ -515,20 +531,32 @@ export default function RecordsOfWork() {
                       </td>
                       <td className="border border-black p-2 text-center print:hidden">
                         <div className="flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => handleEdit(r)}
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                            title="Edit entry"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(r.id)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                            title="Delete entry"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          {r.approval_status === "approved" ? (
+                            <span
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300"
+                              title="Digitally signed and approved by HOD — record locked"
+                            >
+                              <Lock className="w-3 h-3 text-emerald-700" />
+                              Approved
+                            </span>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => handleEdit(r)}
+                                className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                title="Edit entry"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(r.id)}
+                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                title="Delete entry"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

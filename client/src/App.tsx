@@ -2,15 +2,18 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import OfflineStatusBar from "@/components/OfflineStatusBar";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { TraineeProvider } from "./contexts/TraineeContext";
 import { ExamProvider } from "./contexts/ExamContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { useIdleTimer } from "./hooks/useIdleTimer";
+import { IdleTimeoutModal } from "./components/IdleTimeoutModal";
+import { toast } from "sonner";
 
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 
 function PageFallback() {
@@ -66,6 +69,7 @@ function Router() {
       {/* Public routes */}
       <Route path="/" component={Login} />
       <Route path="/exam" component={CandidatePortal} />
+      <Route path="/trainee/exam" component={CandidatePortal} />
       <Route path="/session/:id" component={StudentSessionView} />
 
       {/* Trainer Routes */}
@@ -128,9 +132,6 @@ function Router() {
       <Route path="/trainee/dashboard">
         <ProtectedRoute allowedRoles={["trainee"]}><TraineeDashboard /></ProtectedRoute>
       </Route>
-      <Route path="/trainee/exam">
-        <ProtectedRoute allowedRoles={["trainee", "admin"]}><CandidatePortal /></ProtectedRoute>
-      </Route>
       <Route path="/trainee/assignments">
         <ProtectedRoute allowedRoles={["trainee", "admin"]}><TraineeAssignments /></ProtectedRoute>
       </Route>
@@ -180,6 +181,45 @@ function Router() {
   );
 }
 
+function IdleSessionWatcher() {
+  const { isAuthenticated, logout } = useAuth();
+  const [, setLocation] = useLocation();
+
+  const handleIdle = useCallback(async () => {
+    await logout();
+    toast.warning("Institutional Session Expired", {
+      description: "You were logged out due to inactivity on this shared terminal.",
+    });
+    setLocation("/");
+  }, [logout, setLocation]);
+
+  const { isPrompted, remainingSeconds, reset } = useIdleTimer({
+    timeoutMs: 15 * 60 * 1000, // 15 minutes total inactivity
+    promptBeforeMs: 60 * 1000,  // 60-second advance warning dialog
+    enabled: isAuthenticated,
+    onIdle: handleIdle,
+  });
+
+  const handleLogoutNow = useCallback(async () => {
+    await logout();
+    toast.info("Logged Out", {
+      description: "Session securely terminated.",
+    });
+    setLocation("/");
+  }, [logout, setLocation]);
+
+  if (!isAuthenticated) return null;
+
+  return (
+    <IdleTimeoutModal
+      isOpen={isPrompted}
+      remainingSeconds={remainingSeconds}
+      onStayLoggedIn={reset}
+      onLogoutNow={handleLogoutNow}
+    />
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -190,6 +230,7 @@ function App() {
               <TooltipProvider>
                 <Toaster richColors position="top-right" />
                 <OfflineStatusBar />
+                <IdleSessionWatcher />
                 <Router />
               </TooltipProvider>
             </ExamProvider>

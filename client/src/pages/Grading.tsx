@@ -33,6 +33,7 @@ import {
 import TrainerLayout from "@/components/TrainerLayout";
 import MarkedExamScriptModal from "@/components/MarkedExamScriptModal";
 import ObservationChecklistMarkingModal from "@/components/ObservationChecklistMarkingModal";
+import { AssessmentMarksSheet } from "@/components/AssessmentMarksSheet";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { useExam } from "@/contexts/ExamContext";
 import type { Exam, Submission, StudentAnswer, ExamQuestion } from "@/lib/supabase";
@@ -73,6 +74,7 @@ export default function Grading() {
     regCode: string;
     unitCode?: string;
   } | null>(null);
+  const [viewMode, setViewMode] = useState<"submissions" | "batch_marksheet">("submissions");
 
   // Set loading to false once context submissions are ready
   useEffect(() => {
@@ -481,7 +483,37 @@ export default function Grading() {
 
   return (
     <TrainerLayout title="Grading Interface" subtitle="Review and grade student submissions">
-      {/* Filters */}
+      {/* Top View Mode Switcher */}
+      <div className="flex items-center gap-3 mb-6 border-b border-border pb-3">
+        <button
+          onClick={() => setViewMode("submissions")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+            viewMode === "submissions"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "bg-muted text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          Exam Submissions
+        </button>
+        <button
+          onClick={() => setViewMode("batch_marksheet")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+            viewMode === "batch_marksheet"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "bg-muted text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Award className="w-4 h-4" />
+          Continuous Assessment Marks Sheet (Batch Matrix)
+        </button>
+      </div>
+
+      {viewMode === "batch_marksheet" ? (
+        <AssessmentMarksSheet />
+      ) : (
+        <>
+          {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-5">
         <div
           className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-48"
@@ -1175,6 +1207,8 @@ export default function Grading() {
           })
         )}
       </div>
+        </>
+      )}
 
       {/* Visual Marked Script Modal (Simulated Red Pen Annotations) */}
       <MarkedExamScriptModal

@@ -119,6 +119,37 @@ export const OFFICIAL_MTTI_TRAINEES: Trainee[] = [
   { id: "tr_fbs5_18", regCode: "FBS 5 MOD/13559/J2026", admNo: "13559", name: "Kinya Weddy", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
   { id: "tr_fbs5_19", regCode: "FBS 5 MOD/13571/J2026", admNo: "13571", name: "Gakuhi Jackline Nyambura", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
   { id: "tr_fbs5_20", regCode: "FBS 5 MOD/13583/J2026", admNo: "13583", name: "Terry Mwendwa", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
+
+  // 5. FBS6 MOD/J/2026 (Apply Digital Literacy - Level 6, 6 Trainees)
+  { id: "tr_fbs6_01", regCode: "FBP6 MOD/13251/12026", admNo: "13251", name: "Mbithi Faith Wavinya", classCode: "FBS6 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs6_02", regCode: "FBS6 MOD/13314/12026", admNo: "13314", name: "Emmanuel Njoroge", classCode: "FBS6 MOD/J/2026", department: "FBS Hospitality", gender: "M" },
+  { id: "tr_fbs6_03", regCode: "FBS6 MOD/13403/12026", admNo: "13403", name: "Brenda Ntinyari", classCode: "FBS6 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs6_04", regCode: "FBS6 MOD/13430/12026", admNo: "13430", name: "Omedo Lilian Atieno", classCode: "FBS6 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs6_05", regCode: "FBS6 MOD/13487/12026", admNo: "13487", name: "Waguama Donatus Wachira", classCode: "FBS6 MOD/J/2026", department: "FBS Hospitality", gender: "M" },
+  { id: "tr_fbs6_06", regCode: "FBS6 MOD/13495/12026", admNo: "13495", name: "Nyamai Caroline Mutheu", classCode: "FBS6 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
+
+  // 6. LS5 MOD/S/2026 (Apply Digital Literacy - Level 5 Land Survey, 9 Trainees)
+  { id: "tr_ls5_01", regCode: "LS5 MOD/14009/52026", admNo: "14009", name: "Vick Mutembei", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls5_02", regCode: "LS5 MOD/14024/52026", admNo: "14024", name: "Kajuju Jackline Kathera", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls5_03", regCode: "LS5 MOD/14032/52026", admNo: "14032", name: "Muthike Bredah Nyawira", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls5_04", regCode: "LS5 MOD/14092/S2026", admNo: "14092", name: "Murithi Brian Munene", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls5_05", regCode: "LS5 MOD/14120/52026", admNo: "14120", name: "Glory Makena", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls5_06", regCode: "LS5 MOD/14348/S2026", admNo: "14348", name: "Okello Janet Auma", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls5_07", regCode: "LS5 MOD/14403/52026", admNo: "14403", name: "Mutegi Kagendo Emma", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls5_08", regCode: "LS5 MOD/14428/52026", admNo: "14428", name: "Risper Mwendwa", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls5_09", regCode: "LS5 MOD/14502/52026", admNo: "14502", name: "Mutegi Hyprith Gatwiri", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
+
+  // 7. LS6 MOD/S/2026 (Apply Digital Literacy - Level 6 Land Survey, 10 Trainees)
+  { id: "tr_ls6_01", regCode: "LS6 MOD/14001/S2026", admNo: "14001", name: "Njeru Salim Mutemi", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls6_02", regCode: "LS6 MOD/14011/S2026", admNo: "14011", name: "Jedida Karwitha", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls6_03", regCode: "LS6 MOD/14066/52026", admNo: "14066", name: "Nyaga Caroline Mukami", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls6_04", regCode: "LS6 MOD/14183/S2026", admNo: "14183", name: "Gideon Mucheria Kithendu", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls6_05", regCode: "LS6 MOD/14256/52026", admNo: "14256", name: "Linus Murerwa", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls6_06", regCode: "LS6 MOD/14283/52026", admNo: "14283", name: "Caroline Mwendwa", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls6_07", regCode: "LS6 MOD/14331/S2026", admNo: "14331", name: "Brian Mutembei", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls6_08", regCode: "LS6 MOD/14332/52026", admNo: "14332", name: "Kipngetich Cornelius", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls6_09", regCode: "LS6 MOD/14351/52026", admNo: "14351", name: "Otieno Jecinter Trizer", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls6_10", regCode: "LS6 MOD/14451/S2026", admNo: "14451", name: "Caroline Kanana Mwirigi", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
 ];
 
 function getInitialUploads(): Upload[] {

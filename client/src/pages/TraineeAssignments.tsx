@@ -19,10 +19,113 @@ import {
   AlertCircle, 
   ExternalLink,
   X,
-  Lock
+  Lock,
+  BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+
+export const OFFICIAL_EXAM_PAPERS = [
+  {
+    title: "Written Assessment 1 (Exam 1)",
+    filename: "DIGITAL LITERACY EXAM 1 ( 54 copies).pdf",
+    typeBadge: "CT1 • Theory",
+    badgeClass: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200 border-blue-200",
+    code: "061155101A",
+    classInfo: "Apply Digital Literacy — FBS 5 & Land Survey 5/6",
+    pages: "3 Pages",
+  },
+  {
+    title: "Written Assessment 2 (Exam 2)",
+    filename: "DIGITAL LITERACY EXAM 2  (54 copies).pdf",
+    typeBadge: "CT2 • Theory",
+    badgeClass: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200 border-blue-200",
+    code: "061155101A",
+    classInfo: "Apply Digital Literacy — FBS 5 & Land Survey 5/6",
+    pages: "4 Pages",
+  },
+  {
+    title: "Written Assessment 3 (Exam 3)",
+    filename: "DIGITAL LITERACY EXAM 3- (54 copies).pdf",
+    typeBadge: "CT3 • Theory",
+    badgeClass: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200 border-blue-200",
+    code: "061155101A",
+    classInfo: "Apply Digital Literacy — FBS 5 & Land Survey 5/6",
+    pages: "4 Pages",
+  },
+  {
+    title: "Written Assessment 1 (Exam 1)",
+    filename: "55 Copies ADMIN5_6_J_26_1.pdf",
+    typeBadge: "CT1 • Theory",
+    badgeClass: "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200 border-purple-200",
+    code: "0415 451 21A",
+    classInfo: "Apply ICT Skills — Admin 5/6/J/26",
+    pages: "4 Pages",
+  },
+  {
+    title: "Written Assessment 2 (Exam 2)",
+    filename: "55 Copies ADMIN5_6_J_26 2.pdf",
+    typeBadge: "CT2 • Theory",
+    badgeClass: "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200 border-purple-200",
+    code: "0415 451 21A",
+    classInfo: "Apply ICT Skills — Admin 5/6/J/26",
+    pages: "3 Pages",
+  },
+  {
+    title: "Written Assessment 3 (Exam 3)",
+    filename: "55 Copies ADMIN5_6_J_26_3.pdf",
+    typeBadge: "CT3 • Theory",
+    badgeClass: "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200 border-purple-200",
+    code: "0415 451 21A",
+    classInfo: "Apply ICT Skills — Admin 5/6/J/26",
+    pages: "3 Pages",
+  },
+  {
+    title: "Formative Practical Assessment 1 (Prac 1)",
+    filename: "ICT SKILLS Prac 1.pdf",
+    typeBadge: "CP1 • Practical",
+    badgeClass: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200 border-emerald-200",
+    code: "0415 451 21A",
+    classInfo: "Apply ICT Skills — Word Processing & Lab Setup",
+    pages: "4 Pages",
+  },
+  {
+    title: "Formative Practical Assessment 2 (Prac 2)",
+    filename: "ICT SKILLS Prac 2.pdf",
+    typeBadge: "CP2 • Practical",
+    badgeClass: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200 border-emerald-200",
+    code: "0415 451 21A",
+    classInfo: "Apply ICT Skills — Spreadsheet Manipulation",
+    pages: "5 Pages",
+  },
+  {
+    title: "Formative Practical Assessment 3 (Prac 3)",
+    filename: "ICT SKILLS Prac 3.pdf",
+    typeBadge: "CP3 • Practical",
+    badgeClass: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200 border-emerald-200",
+    code: "0415 451 21A",
+    classInfo: "Apply ICT Skills — Database Software (MS Access)",
+    pages: "4 Pages",
+  },
+  {
+    title: "Formative Observation Checklist (Prac 1–3)",
+    filename: "ICT SKILLS CHECKLIST.pdf",
+    typeBadge: "Checklist",
+    badgeClass: "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200 border-amber-200",
+    code: "0415 451 21A",
+    classInfo: "Apply ICT Skills — Assessor Practical Rubric",
+    pages: "8 Pages",
+  },
+  {
+    title: "Computer Essentials Practical Checklist",
+    filename: "Computer essential Checklist.pdf",
+    typeBadge: "Checklist",
+    badgeClass: "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200 border-amber-200",
+    code: "IT/CU/ICTA/CR/01/4/MA",
+    classInfo: "Perform Computer Essentials — Practical 1–3",
+    pages: "7 Pages",
+  },
+];
 
 export default function TraineeAssignments() {
   const { uploads, recordUpload, deleteUpload } = useTrainees();
@@ -33,7 +136,7 @@ export default function TraineeAssignments() {
   const currentTraineeId = user?.id || "tr_it6_01";
   const currentTraineeName = user?.name || "Nthiga Gakii Doris";
 
-  const [selectedUploadType, setSelectedUploadType] = useState<string>("Exam 1");
+  const [selectedUploadType, setSelectedUploadType] = useState<string>("Practical 1");
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [viewingUpload, setViewingUpload] = useState<Upload | null>(null);
@@ -48,12 +151,10 @@ export default function TraineeAssignments() {
 
   const getTaskCode = (type: string): string => {
     switch (type) {
-      case "Exam 1": return "CT1";
-      case "Exam 2": return "CT2";
-      case "Exam 3": return "CT3";
       case "Practical 1": return "CP1";
       case "Practical 2": return "CP2";
       case "Practical 3": return "CP3";
+      case "Observation Checklist": return "CP1";
       case "Assignment": return "CT1";
       case "Assignments": return "CT1";
       case "Assignment 1": return "CT1";
@@ -62,6 +163,10 @@ export default function TraineeAssignments() {
       case "CAT 1": return "CT1";
       case "CAT 2": return "CT2";
       case "CATs": return "CT2";
+      case "Exam 1": return "CT1";
+      case "Exam 2": return "CT2";
+      case "Exam 3": return "CT3";
+      case "Project": return "Project";
       case "Other": return "CP1";
       default: return "CP1";
     }
@@ -148,17 +253,18 @@ export default function TraineeAssignments() {
               onChange={(e) => setSelectedUploadType(e.target.value)}
               className="w-full p-2.5 border border-border rounded-xl bg-background text-foreground text-xs font-semibold focus:ring-1 focus:ring-primary outline-none"
             >
-              <option value="Exam 1">Exam 1</option>
-              <option value="Exam 2">Exam 2</option>
-              <option value="Exam 3">Exam 3</option>
-              <option value="Practical 1">Practical 1</option>
-              <option value="Practical 2">Practical 2</option>
-              <option value="Practical 3">Practical 3</option>
-              <option value="Assignment">Assignment</option>
-              <option value="Assignments">Assignments</option>
+              <option value="Practical 1">Practical 1 (CP1 — Laboratory / Workshop Task)</option>
+              <option value="Practical 2">Practical 2 (CP2 — Practical Skills Task)</option>
+              <option value="Practical 3">Practical 3 (CP3 — Technical Application)</option>
+              <option value="Observation Checklist">Observation Checklist (Formative Practical)</option>
+              <option value="Assignment">Assignment (CT1)</option>
+              <option value="Assignments">Assignments (CT)</option>
               <option value="CAT">CAT (Continuous Assessment Test)</option>
               <option value="CAT 1">CAT 1</option>
               <option value="CAT 2">CAT 2</option>
+              <option value="Exam 1">Exam 1 (CT1 — Written Assessment 1)</option>
+              <option value="Exam 2">Exam 2 (CT2 — Written Assessment 2)</option>
+              <option value="Exam 3">Exam 3 (CT3 — Written Assessment 3)</option>
               <option value="Other">Other Technical Evidence</option>
             </select>
             <p className="text-[11px] text-muted-foreground mt-1">
@@ -326,6 +432,57 @@ export default function TraineeAssignments() {
               ))
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Official Assessment Papers & Checklists Section */}
+      <div className="bg-card border border-border p-6 rounded-2xl shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-4">
+          <div>
+            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-primary" />
+              Official TVET CDACC Assessment Question Papers & Checklists
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Mukiria Technical Training Institute — Verified curriculum assessment materials by Trainer Alexander Kinoti
+            </p>
+          </div>
+          <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 self-start sm:self-auto">
+            11 Documents Available
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {OFFICIAL_EXAM_PAPERS.map((paper, idx) => (
+            <div
+              key={idx}
+              className="p-3.5 border border-border rounded-xl bg-background hover:border-primary/40 transition flex flex-col justify-between gap-3 shadow-2xs"
+            >
+              <div className="space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase ${paper.badgeClass}`}>
+                    {paper.typeBadge}
+                  </span>
+                  <span className="text-[10px] font-mono text-muted-foreground">{paper.code}</span>
+                </div>
+                <h4 className="font-bold text-xs text-foreground leading-snug pt-1">{paper.title}</h4>
+                <p className="text-[11px] text-muted-foreground">{paper.classInfo}</p>
+              </div>
+
+              <div className="pt-2 border-t border-border/60 flex items-center justify-between">
+                <span className="text-[10px] font-medium text-muted-foreground">{paper.pages} • PDF</span>
+                <a
+                  href={`/assessment-papers/${encodeURIComponent(paper.filename)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Download / View
+                </a>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

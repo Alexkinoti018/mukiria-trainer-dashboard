@@ -53,6 +53,26 @@ interface ClassConfig {
 
 const MTTI_CLASSES: ClassConfig[] = [
   {
+    code: "ICT4/ITECH6/S/2026 MOD 1",
+    name: "ICT4/ITECH6/S/2026 MOD 1",
+    subject: "Perform Computer Essentials",
+    department: "Computing & Informatics",
+    level: "Level 4 & 6",
+    duration: "Term 3 2026",
+    assessmentType: "Practical Assessment 1",
+    docCode: "MTTI/REG/CUR/02"
+  },
+  {
+    code: "ICT4/ITECH6/S/26 MOD 1",
+    name: "ICT4/ITECH6/S/26 MOD 1",
+    subject: "Perform Computer Essentials",
+    department: "Computing & Informatics",
+    level: "Level 4 & 6",
+    duration: "Term 3 2026",
+    assessmentType: "Practical Assessment 1",
+    docCode: "MTTI/REG/CUR/02"
+  },
+  {
     code: "ITECH 6 MODULAR/S/2026",
     name: "ITECH 6 MODULAR/S/2026",
     subject: "Perform Computer Essentials",
@@ -163,11 +183,16 @@ export default function ClassRegister() {
 
   // Filter trainees by selected class
   const classTrainees = useMemo(() => {
-    const list = trainees.filter(t => 
-      t.classCode === selectedClassCode ||
-      (selectedClassCode === "FBS 5 MOD/J/2026" && (t.classCode === "FBS" || t.classCode === "FBS 5 MOD/J/2026")) ||
-      (selectedClassCode === "FBS" && (t.classCode === "FBS" || t.classCode === "FBS 5 MOD/J/2026"))
-    );
+    const list = trainees.filter(t => {
+      if (t.classCode === selectedClassCode) return true;
+      if (
+        (selectedClassCode === "ICT4/ITECH6/S/2026 MOD 1" || selectedClassCode === "ICT4/ITECH6/S/26 MOD 1" || selectedClassCode === "ICT4/ITECH6/S/26") &&
+        (t.classCode.includes("ITECH") || t.classCode.includes("ICT4") || t.classCode.includes("MOD 1"))
+      ) return true;
+      if (selectedClassCode === "FBS 5 MOD/J/2026" && (t.classCode === "FBS" || t.classCode === "FBS 5 MOD/J/2026")) return true;
+      if (selectedClassCode === "FBS" && (t.classCode === "FBS" || t.classCode === "FBS 5 MOD/J/2026")) return true;
+      return false;
+    });
     return list.length > 0 ? list : trainees.slice(0, 11);
   }, [trainees, selectedClassCode]);
 

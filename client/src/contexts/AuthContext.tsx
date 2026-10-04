@@ -63,6 +63,59 @@ const DEMO_USERS: Record<string, AuthUser> = {
   }
 };
 
+/**
+ * Security: Purge all session, exam, timer, attendance, and marks storage from browser
+ * Systematically wipes both localStorage and sessionStorage on terminal logout.
+ */
+export function purgeMTTISessionCache(): void {
+  try {
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.clear();
+    }
+
+    if (typeof localStorage === "undefined") return;
+
+    const sensitiveKeys = [
+      "mtti_demo_session",
+      "student_demo_session",
+      "mukiria_submissions",
+      "mukiria_exams",
+      "mtti_attendance_all",
+    ];
+    sensitiveKeys.forEach((k) => localStorage.removeItem(k));
+
+    const prefixKeys = [
+      "mtti_marks_",
+      "mtti_timer_",
+      "mtti_exam_answers_",
+      "mtti_attendance_",
+      "mtti_class_register_",
+      "mukiria_exams",
+      "mukiria_submissions",
+    ];
+
+    const keysToRemove: string[] = [];
+    const len = typeof localStorage.length === "number" ? localStorage.length : 0;
+    for (let i = 0; i < len; i++) {
+      const k = localStorage.key(i);
+      if (k && prefixKeys.some((prefix) => k.startsWith(prefix))) {
+        keysToRemove.push(k);
+      }
+    }
+    Object.keys(localStorage).forEach((k) => {
+      if (prefixKeys.some((prefix) => k.startsWith(prefix)) && !keysToRemove.includes(k)) {
+        keysToRemove.push(k);
+      }
+    });
+
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+  } catch (err) {
+    console.error("❌ [MTTI Auth] Cache purge error:", err);
+  }
+}
+
+export const purgeMttiCache = purgeMTTISessionCache;
+
 // ─── Context ─────────────────────────────────────────────────
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -159,36 +212,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  // ── Logout ────────────────────────────────────────────────
+  // ── Cache Sanitization Invariant ──────────────────────────
   const logout = useCallback(async () => {
     try {
       if (isSupabaseConfigured()) {
         await supabase.auth.signOut();
       }
-      // Security: Purge all session, exam, timer, and marks storage from browser
-      const sensitiveKeys = [
-        "mtti_demo_session",
-        "student_demo_session",
-        "mukiria_submissions",
-        "mukiria_exams",
-        "mtti_attendance_all"
-      ];
-      sensitiveKeys.forEach(k => localStorage.removeItem(k));
-      Object.keys(localStorage).forEach(k => {
-        if (
-          k.startsWith("mtti_marks_") || 
-          k.startsWith("mtti_timer_") || 
-          k.startsWith("mtti_exam_answers_") ||
-          k.startsWith("mtti_attendance_") ||
-          k.startsWith("mtti_class_register_")
-        ) {
-          localStorage.removeItem(k);
-        }
-      });
+    } catch (err) {
+      console.error("❌ [MTTI Auth] Supabase signOut error:", err);
+    } finally {
+      // Security: Purge all session, exam, timer, attendance, and marks storage
+      purgeMTTISessionCache();
       setUser(null);
       console.log("✅ [MTTI Auth] Logged out and sanitized all client storage");
-    } catch (err) {
-      console.error("❌ [MTTI Auth] Logout error:", err);
     }
   }, []);
 

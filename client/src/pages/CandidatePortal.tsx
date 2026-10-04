@@ -23,9 +23,11 @@ import {
   AlertCircle,
   Award,
   Info,
+  Search,
 } from "lucide-react";
 import { useExam, sanitizeExamForStudent } from "@/contexts/ExamContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
 import type { Exam } from "@/lib/supabase";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
@@ -37,6 +39,7 @@ import {
   enqueueSyncItem,
 } from "@/lib/offlineStore";
 import { syncEngine } from "@/lib/syncEngine";
+import { useAutoDraft } from "@/hooks/useAutoDraft";
 
 type PortalState =
   | "loading"
@@ -51,7 +54,7 @@ type PortalState =
 interface StudentInfo {
   name: string;
   regNumber: string;
-  email: string;
+  cohortCode?: string;
 }
 
 // ─── Offline-resilient Timer Hook ────────────────────────────
@@ -134,6 +137,89 @@ function useExamTimer(unitCode: string, durationMinutes: number, onExpire: () =>
 
 
 
+interface ExamAnswersDraft {
+  sectionAAnswers: Record<string, number | string>;
+  sectionBAnswers: Record<string, string>;
+}
+
+// ─── Unobtrusive Draft Status Badge Component ────────────────
+function DraftStatusBadge({
+  isSaving,
+  lastSaved,
+  isOnline,
+}: {
+  isSaving: boolean;
+  lastSaved: Date | null;
+  isOnline: boolean;
+}) {
+  const [now, setNow] = useState<number>(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!isOnline) {
+    return (
+      <div
+        className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold"
+        style={{
+          background: "rgba(245, 158, 11, 0.15)",
+          border: "1px solid rgba(245, 158, 11, 0.3)",
+          color: "#fbbf24",
+        }}
+        title="Offline Mode: Your answers are safely cached on this device"
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+        <span>Offline - draft cached locally</span>
+      </div>
+    );
+  }
+
+  if (isSaving) {
+    return (
+      <div
+        className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold animate-pulse"
+        style={{
+          background: "rgba(59, 130, 246, 0.15)",
+          border: "1px solid rgba(59, 130, 246, 0.3)",
+          color: "#93c5fd",
+        }}
+      >
+        <Loader2 className="w-3 h-3 animate-spin text-blue-400" />
+        <span>Saving draft...</span>
+      </div>
+    );
+  }
+
+  if (lastSaved) {
+    const diffSec = Math.max(0, Math.floor((now - lastSaved.getTime()) / 1000));
+    const timeLabel =
+      diffSec < 3
+        ? "just now"
+        : diffSec < 60
+        ? `${diffSec}s ago`
+        : lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    return (
+      <div
+        className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold"
+        style={{
+          background: "rgba(16, 185, 129, 0.12)",
+          border: "1px solid rgba(16, 185, 129, 0.25)",
+          color: "#6ee7b7",
+        }}
+        title={`Draft auto-saved at ${lastSaved.toLocaleTimeString()}`}
+      >
+        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+        <span>Draft saved ({timeLabel})</span>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 export default function CandidatePortal() {
   const search = useSearch();
   const params = new URLSearchParams(search);
@@ -143,13 +229,82 @@ export default function CandidatePortal() {
 
   const [state, setState] = useState<PortalState>("loading");
   const [exam, setExam] = useState<Exam | null>(null);
-  const [student, setStudent] = useState<StudentInfo>({ name: "", regNumber: "", email: "" });
-  const [sectionAAnswers, setSectionAAnswers] = useState<Record<string, number | string>>({});
-  const [sectionBAnswers, setSectionBAnswers] = useState<Record<string, string>>({});
+  const [student, setStudent] = useState<StudentInfo>({ name: "", regNumber: "" });
+  const [isVerified, setIsVerified] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [verifiedCohort, setVerifiedCohort] = useState<string | null>(null);
   const [currentSection, setCurrentSection] = useState<"a" | "b">("a");
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
+
+  // Scoped key format: mtti_exam_answers_${exam.id}_${traineeId || 'anonymous'}
+  const traineeId = user?.id || student.regNumber.trim().toUpperCase() || "anonymous";
+  const draftStorageKey = exam ? `mtti_exam_answers_${exam.id}_${traineeId}` : "";
+  const isWindowExpired = Boolean(
+    exam?.payload?.end_time && new Date() > new Date(exam.payload.end_time)
+  );
+
+  const {
+    data: answersDraft,
+    setData: setAnswersDraft,
+    isSaving: isDraftSaving,
+    lastSaved: draftLastSaved,
+    clearDraft,
+  } = useAutoDraft<ExamAnswersDraft>(
+    draftStorageKey,
+    { sectionAAnswers: {}, sectionBAnswers: {} },
+    1000,
+    {
+      enabled: state === "exam" && !submitting && !isWindowExpired,
+      onSave: (savedDraft) => {
+        if (exam && state === "exam") {
+          saveSubmissionToOffline({
+            id: `draft_${exam.unit_code}_${student.regNumber.trim().toUpperCase() || "anon"}`,
+            unit_code: exam.unit_code,
+            student_name: student.name,
+            reg_number: student.regNumber.trim().toUpperCase(),
+            section_a: Object.entries(savedDraft.sectionAAnswers).map(([k, v]) => ({ question_id: k, answer: String(v) })),
+            section_b: Object.entries(savedDraft.sectionBAnswers).map(([k, v]) => ({ question_id: k, answer: String(v) })),
+            status: "draft",
+            created_at: Date.now(),
+            updated_at: Date.now(),
+            synced: false,
+          }).catch((err) => console.warn("Failed to buffer draft in IndexedDB:", err));
+        }
+      },
+    }
+  );
+
+  const sectionAAnswers = answersDraft.sectionAAnswers;
+  const sectionBAnswers = answersDraft.sectionBAnswers;
+
+  const setSectionAAnswers = useCallback(
+    (action: React.SetStateAction<Record<string, number | string>>) => {
+      setAnswersDraft((prev) => {
+        const nextA = typeof action === "function" ? action(prev.sectionAAnswers) : action;
+        return {
+          ...prev,
+          sectionAAnswers: nextA,
+        };
+      });
+    },
+    [setAnswersDraft]
+  );
+
+  const setSectionBAnswers = useCallback(
+    (action: React.SetStateAction<Record<string, string>>) => {
+      setAnswersDraft((prev) => {
+        const nextB = typeof action === "function" ? action(prev.sectionBAnswers) : action;
+        return {
+          ...prev,
+          sectionBAnswers: nextB,
+        };
+      });
+    },
+    [setAnswersDraft]
+  );
 
   const handleTimerExpire = useCallback(() => {
     toast.warning("Time's Up!", { description: "Your exam is being submitted automatically." });
@@ -241,8 +396,7 @@ export default function CandidatePortal() {
       const existingSub = (submissions || []).find(
         (s) =>
           (s.unit_code?.toUpperCase() === exam.unit_code?.toUpperCase() || s.exam_id === exam.id) &&
-          (s.reg_number?.toUpperCase() === regNo ||
-            s.student_email?.toLowerCase() === student.email.trim().toLowerCase())
+          s.reg_number?.toUpperCase() === regNo
       );
       if (existingSub && (existingSub.status === "submitted" || existingSub.status === "graded")) {
         toast.error("Submission Locked", {
@@ -317,7 +471,6 @@ export default function CandidatePortal() {
           unit_code: exam.unit_code,
           student_name: student.name.trim(),
           reg_number: regNo,
-          student_email: student.email.trim().toLowerCase(),
           section_a: sectionAPayload,
           section_b: sectionBPayload,
           status: "submitted" as const,
@@ -335,7 +488,6 @@ export default function CandidatePortal() {
           unit_code: payload.unit_code,
           student_name: payload.student_name,
           reg_number: payload.reg_number,
-          student_email: payload.student_email,
           section_a: payload.section_a,
           section_b: payload.section_b,
           status: payload.status,
@@ -357,7 +509,11 @@ export default function CandidatePortal() {
         console.log("✅ [MTTI Portal] Submission buffered & queued:", id);
 
         resetTimer();
+        clearDraft();
         localStorage.removeItem(`mtti_exam_answers_${exam.unit_code}`);
+        if (draftStorageKey) {
+          localStorage.removeItem(draftStorageKey);
+        }
         setState("submitted");
         if (!autoSubmit) {
           if (isOnline) {
@@ -375,44 +531,32 @@ export default function CandidatePortal() {
         setSubmitting(false);
       }
     },
-    [exam, student, sectionAAnswers, sectionBAnswers, submitting, resetTimer]
+    [exam, student, sectionAAnswers, sectionBAnswers, submitting, resetTimer, clearDraft, draftStorageKey]
   );
 
-  // ── Save answers to localStorage & IndexedDB (offline resilience) ────
+  // ── Restore answers from legacy localStorage or IndexedDB if not already in draft ────
   useEffect(() => {
     if (exam && state === "exam") {
-      localStorage.setItem(
-        `mtti_exam_answers_${exam.unit_code}`,
-        JSON.stringify({ sectionAAnswers, sectionBAnswers })
-      );
+      // If answersDraft is already populated from useAutoDraft, skip legacy restore
+      if (
+        Object.keys(answersDraft.sectionAAnswers).length > 0 ||
+        Object.keys(answersDraft.sectionBAnswers).length > 0
+      ) {
+        return;
+      }
 
-      // Auto-save draft into IndexedDB
-      saveSubmissionToOffline({
-        id: `draft_${exam.unit_code}_${student.regNumber.trim().toUpperCase() || "anon"}`,
-        unit_code: exam.unit_code,
-        student_name: student.name,
-        reg_number: student.regNumber.trim().toUpperCase(),
-        student_email: student.email,
-        section_a: Object.entries(sectionAAnswers).map(([k, v]) => ({ question_id: k, answer: String(v) })),
-        section_b: Object.entries(sectionBAnswers).map(([k, v]) => ({ question_id: k, answer: String(v) })),
-        status: "draft",
-        created_at: Date.now(),
-        updated_at: Date.now(),
-        synced: false,
-      });
-    }
-  }, [sectionAAnswers, sectionBAnswers, exam, state, student]);
-
-  // ── Restore answers from localStorage or IndexedDB ────────────────────
-  useEffect(() => {
-    if (exam && state === "exam") {
-      const stored = localStorage.getItem(`mtti_exam_answers_${exam.unit_code}`);
-      if (stored) {
+      // Check legacy localStorage key for seamless backward compatibility
+      const legacyStored = localStorage.getItem(`mtti_exam_answers_${exam.unit_code}`);
+      if (legacyStored) {
         try {
-          const { sectionAAnswers: a, sectionBAnswers: b } = JSON.parse(stored);
-          if (a) setSectionAAnswers(a);
-          if (b) setSectionBAnswers(b);
-          return;
+          const { sectionAAnswers: a, sectionBAnswers: b } = JSON.parse(legacyStored);
+          if (a || b) {
+            setAnswersDraft({
+              sectionAAnswers: a || {},
+              sectionBAnswers: b || {},
+            });
+            return;
+          }
         } catch (e) {}
       }
 
@@ -427,12 +571,16 @@ export default function CandidatePortal() {
           (draft.section_b || []).forEach((item: any) => {
             if (item.question_id) bMap[item.question_id] = item.answer;
           });
-          if (Object.keys(aMap).length > 0) setSectionAAnswers(aMap);
-          if (Object.keys(bMap).length > 0) setSectionBAnswers(bMap);
+          if (Object.keys(aMap).length > 0 || Object.keys(bMap).length > 0) {
+            setAnswersDraft({
+              sectionAAnswers: aMap,
+              sectionBAnswers: bMap,
+            });
+          }
         }
       });
     }
-  }, [exam, state, student.regNumber]);
+  }, [exam, state, student.regNumber, answersDraft.sectionAAnswers, answersDraft.sectionBAnswers, setAnswersDraft]);
 
   const answeredA = Object.keys(sectionAAnswers).filter(
     (k) => sectionAAnswers[k] !== "" && sectionAAnswers[k] !== undefined
@@ -445,6 +593,179 @@ export default function CandidatePortal() {
     (exam?.payload?.section_b?.questions?.length ?? 0);
   const totalAnswered = answeredA + answeredB;
   const progress = totalQuestions > 0 ? (totalAnswered / totalQuestions) * 100 : 0;
+
+  // ── Roster-Backed Trainee Verification (Dual-Phase: Offline Cache & Online API) ──
+  const handleVerifyRegNo = useCallback(
+    async (rawRegNo: string) => {
+      const regNo = rawRegNo.trim();
+      if (!regNo) {
+        setVerificationError("Please enter a registration number.");
+        setIsVerified(false);
+        return;
+      }
+
+      setIsVerifying(true);
+      setVerificationError(null);
+
+      const normReg = regNo.toUpperCase();
+      const cleanReg = normReg.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD|FBS\s*[56]\s*MOD|FBP\s*6\s*MOD|LS\s*[56]\s*MOD|ADMIN\s*[56]\/?[56]?)\//i, "").trim();
+      const coreMatch = normReg.match(/\b\d{4,6}\b/);
+      const coreReg = coreMatch ? coreMatch[0] : "";
+      const currentUnit = (exam?.unit_code || unitCode || "").trim().toUpperCase();
+      const baseUnit = currentUnit.replace(/-(WA[1-9]|PRAC|PAPER[1-9]).*$/i, "");
+
+      // ── PHASE A: Offline / Local Cache Resolution ──
+      let offlineMatch: { name: string; classCode: string; id?: string } | null = null;
+
+      try {
+        const checkKeys = [
+          `mtti_class_register_${baseUnit}`,
+          `mtti_class_register_${currentUnit}`,
+          "mtti_trainees",
+        ];
+
+        if (typeof localStorage !== "undefined") {
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith("mtti_class_register_") && !checkKeys.includes(key)) {
+              checkKeys.push(key);
+            }
+          }
+
+          for (const key of checkKeys) {
+            const raw = localStorage.getItem(key);
+            if (!raw) continue;
+            try {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) {
+                const found = parsed.find((t: any) => {
+                  const adm = (t.admNo || t.admissionNumber || t.reg_number || t.regCode || "").trim().toUpperCase();
+                  const cleanAdm = adm.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD|FBS\s*[56]\s*MOD|FBP\s*6\s*MOD|LS\s*[56]\s*MOD|ADMIN\s*[56]\/?[56]?)\//i, "").trim();
+                  const admCore = (adm + " " + (t.regCode || "")).match(/\b\d{4,6}\b/)?.[0] || "";
+                  const matchesCore = coreReg && admCore && coreReg === admCore;
+                  return adm === normReg || cleanAdm === cleanReg || cleanAdm === normReg || adm === cleanReg || matchesCore;
+                });
+                if (found) {
+                  offlineMatch = {
+                    name: found.name || found.fullName,
+                    classCode: found.classCode || found.cohortCode || "Active Register",
+                    id: found.id,
+                  };
+                  break;
+                }
+              }
+            } catch {
+              // ignore json parse error
+            }
+          }
+        }
+
+        // Fallback to in-memory official roster
+        if (!offlineMatch && OFFICIAL_MTTI_TRAINEES) {
+          const found = OFFICIAL_MTTI_TRAINEES.find((t) => {
+            const adm = (t.admNo || t.regCode || "").trim().toUpperCase();
+            const cleanAdm = adm.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD|FBS\s*[56]\s*MOD|FBP\s*6\s*MOD|LS\s*[56]\s*MOD|ADMIN\s*[56]\/?[56]?)\//i, "").trim();
+            const admCore = (adm + " " + t.regCode).match(/\b\d{4,6}\b/)?.[0] || "";
+            const matchesCore = coreReg && admCore && coreReg === admCore;
+            return adm === normReg || cleanAdm === cleanReg || cleanAdm === normReg || adm === cleanReg || matchesCore;
+          });
+          if (found) {
+            offlineMatch = {
+              name: found.name,
+              classCode: found.classCode,
+              id: found.id,
+            };
+          }
+        }
+      } catch (err) {
+        console.warn("Offline roster lookup error:", err);
+      }
+
+      // ── PHASE B: Online API Lookup ──
+      const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+
+      if (isOnline) {
+        try {
+          const res = await fetch(
+            `/api/trainees/lookup?regNo=${encodeURIComponent(regNo)}&unitCode=${encodeURIComponent(currentUnit)}`
+          );
+
+          if (res.ok) {
+            const data = await res.json();
+            setStudent((prev) => ({
+              ...prev,
+              name: data.fullName,
+              regNumber: regNo,
+              cohortCode: data.cohortCode,
+            }));
+            setIsVerified(true);
+            setVerifiedCohort(data.cohortCode);
+            setVerificationError(null);
+            toast.success(`Verified: ${data.fullName}`, {
+              description: `Verified in class register (${data.cohortCode})`,
+            });
+            setIsVerifying(false);
+            return;
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            const errMsg =
+              errData.error ||
+              "Registration number not found in this unit class register.";
+
+            // If offline match exists for digital literacy or active unit, allow fallback
+            if (offlineMatch) {
+              setStudent((prev) => ({
+                ...prev,
+                name: offlineMatch!.name,
+                regNumber: regNo,
+                cohortCode: offlineMatch!.classCode,
+              }));
+              setIsVerified(true);
+              setVerifiedCohort(offlineMatch.classCode);
+              setVerificationError(null);
+              toast.success(`Verified: ${offlineMatch.name}`, {
+                description: `Verified in class register (${offlineMatch.classCode})`,
+              });
+              setIsVerifying(false);
+              return;
+            }
+
+            setIsVerified(false);
+            setVerificationError(errMsg);
+            toast.error("Verification Failed", { description: errMsg });
+            setIsVerifying(false);
+            return;
+          }
+        } catch (apiErr) {
+          console.warn("Online verification request error, falling back to offline match:", apiErr);
+        }
+      }
+
+      // If offline or network request failed, use offlineMatch if available
+      if (offlineMatch) {
+        setStudent((prev) => ({
+          ...prev,
+          name: offlineMatch!.name,
+          regNumber: regNo,
+          cohortCode: offlineMatch!.classCode,
+        }));
+        setIsVerified(true);
+        setVerifiedCohort(offlineMatch.classCode);
+        setVerificationError(null);
+        toast.success(`Verified (Offline): ${offlineMatch.name}`, {
+          description: `Verified in class register (${offlineMatch.classCode})`,
+        });
+      } else {
+        const errMsg = "Registration number not found in this class register. Please check with your trainer.";
+        setIsVerified(false);
+        setVerificationError(errMsg);
+        toast.error("Verification Failed", { description: errMsg });
+      }
+
+      setIsVerifying(false);
+    },
+    [exam, unitCode]
+  );
 
   // ─────────────────────────────────────────────────────────
   // RENDER STATES
@@ -726,69 +1047,125 @@ export default function CandidatePortal() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
+                  Registration Number *
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    value={student.regNumber}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setStudent((s) => ({ ...s, regNumber: val, name: isVerified ? "" : s.name }));
+                      if (isVerified) setIsVerified(false);
+                      if (verificationError) setVerificationError(null);
+                    }}
+                    onBlur={() => {
+                      if (student.regNumber.trim() && !isVerified) {
+                        handleVerifyRegNo(student.regNumber);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && student.regNumber.trim()) {
+                        e.preventDefault();
+                        handleVerifyRegNo(student.regNumber);
+                      }
+                    }}
+                    placeholder="e.g. 10525 or 14179/S2026"
+                    className="flex-1 px-3 py-2.5 rounded-xl text-sm font-mono"
+                    style={{
+                      background: "oklch(1 0 0 / 0.06)",
+                      border: isVerified 
+                        ? "1px solid rgba(16, 185, 129, 0.4)" 
+                        : verificationError 
+                        ? "1px solid rgba(239, 68, 68, 0.4)" 
+                        : "oklch(1 0 0 / 0.10)",
+                      color: "oklch(0.94 0.005 240)",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={isVerifying || !student.regNumber.trim()}
+                    onClick={() => handleVerifyRegNo(student.regNumber)}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                    style={{
+                      background: isVerified ? "rgba(16, 185, 129, 0.2)" : "oklch(1 0 0 / 0.10)",
+                      border: isVerified ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid oklch(1 0 0 / 0.15)",
+                      color: isVerified ? "#34d399" : "oklch(0.94 0.005 240)",
+                    }}
+                  >
+                    {isVerifying ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : isVerified ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <Search className="w-3.5 h-3.5" />
+                    )}
+                    {isVerified ? "Verified" : "Verify"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Status Badge: Verified in Class Register */}
+              {isVerified && (
+                <div
+                  className="p-3 rounded-xl flex items-center gap-2.5 text-xs font-semibold"
+                  style={{
+                    background: "rgba(16, 185, 129, 0.12)",
+                    border: "1px solid rgba(16, 185, 129, 0.25)",
+                    color: "#34d399",
+                  }}
+                >
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                  <span>Verified in class register ({student.cohortCode || verifiedCohort || "Active Cohort"})</span>
+                </div>
+              )}
+
+              {/* Status Alert: Not Found */}
+              {verificationError && (
+                <div
+                  className="p-3 rounded-xl flex items-center gap-2.5 text-xs font-medium"
+                  style={{
+                    background: "rgba(239, 68, 68, 0.12)",
+                    border: "1px solid rgba(239, 68, 68, 0.25)",
+                    color: "#f87171",
+                  }}
+                >
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                  <span>{verificationError}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
                   Full Name *
                 </label>
                 <input
+                  readOnly
                   value={student.name}
-                  onChange={(e) => setStudent((s) => ({ ...s, name: e.target.value }))}
-                  placeholder="e.g. Alice Wanjiku Kamau"
-                  className="w-full px-3 py-2.5 rounded-xl text-sm"
+                  placeholder="Will auto-fill upon verification"
+                  className="w-full px-3 py-2.5 rounded-xl text-sm cursor-not-allowed opacity-90"
                   style={{
-                    background: "oklch(1 0 0 / 0.06)",
-                    border: "1px solid oklch(1 0 0 / 0.10)",
-                    color: "oklch(0.94 0.005 240)",
-                  }}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
-                  Registration Number *
-                </label>
-                <input
-                  value={student.regNumber}
-                  onChange={(e) => setStudent((s) => ({ ...s, regNumber: e.target.value }))}
-                  placeholder="e.g. MTTI/2024/001"
-                  className="w-full px-3 py-2.5 rounded-xl text-sm font-mono"
-                  style={{
-                    background: "oklch(1 0 0 / 0.06)",
-                    border: "1px solid oklch(1 0 0 / 0.10)",
-                    color: "oklch(0.94 0.005 240)",
-                  }}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  value={student.email}
-                  onChange={(e) => setStudent((s) => ({ ...s, email: e.target.value }))}
-                  placeholder="e.g. alice.kamau@example.com"
-                  className="w-full px-3 py-2.5 rounded-xl text-sm"
-                  style={{
-                    background: "oklch(1 0 0 / 0.06)",
-                    border: "1px solid oklch(1 0 0 / 0.10)",
-                    color: "oklch(0.94 0.005 240)",
+                    background: "oklch(1 0 0 / 0.03)",
+                    border: "1px solid oklch(1 0 0 / 0.08)",
+                    color: student.name ? "oklch(0.94 0.005 240)" : "oklch(0.45 0.010 240)",
                   }}
                 />
               </div>
             </div>
 
             <button
+              disabled={!isVerified || !student.name.trim()}
               onClick={() => {
-                if (!student.name.trim() || !student.regNumber.trim() || !student.email.trim()) {
-                  toast.error("Please fill in all fields");
-                  return;
-                }
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email)) {
-                  toast.error("Please enter a valid email address");
+                if (!isVerified || !student.name.trim()) {
+                  toast.error("Please verify your registration number first");
                   return;
                 }
                 setState("instructions");
               }}
-              className="w-full mt-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90"
-              style={{ background: "#c48820", color: "#fff" }}
+              className="w-full mt-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: isVerified ? "#c48820" : "oklch(1 0 0 / 0.10)",
+                color: isVerified ? "#fff" : "oklch(0.50 0.010 240)",
+              }}
             >
               Continue to Instructions
               <ChevronRight className="w-4 h-4" />
@@ -918,6 +1295,13 @@ export default function CandidatePortal() {
               {student.name} · {student.regNumber}
             </div>
           </div>
+
+          {/* Draft Status Indicator */}
+          <DraftStatusBadge
+            isSaving={isDraftSaving}
+            lastSaved={draftLastSaved}
+            isOnline={typeof navigator !== "undefined" ? navigator.onLine : true}
+          />
 
           {/* Timer */}
           <div

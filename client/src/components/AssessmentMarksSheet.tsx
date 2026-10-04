@@ -13,6 +13,7 @@ interface AssessmentRow {
   name: string;
   ctScores: (number | string)[];
   cpScores: (number | string)[];
+  projectScore?: number | string;
   ctAvg: number;
   cpAvg: number;
   weightedMark: number;
@@ -144,17 +145,20 @@ export function AssessmentMarksSheet() {
     return Math.round(sum / validScores.length);
   };
 
-  // Round weighted marks to whole number according to CDACC level ratios
-  const calculateWeighted = (ctAvg: number, cpAvg: number, currentLevel: number): number => {
+  // CDACC assessment weight standard: CP 40%, CT 20%, Project 40%
+  const calculateWeighted = (ctAvg: number, cpAvg: number, currentLevel: number, projectScore: number = 0): number => {
+    if (projectScore > 0 || currentLevel === 6) {
+      const score = (cpAvg * 0.4) + (ctAvg * 0.2) + (projectScore * 0.4);
+      return Math.round(score * 10) / 10;
+    }
     let raw = 0;
     switch (currentLevel) {
-      case 6: raw = (ctAvg * 0.5) + (cpAvg * 0.5); break;
       case 5: raw = (ctAvg * 0.4) + (cpAvg * 0.6); break;
       case 4: raw = (ctAvg * 0.3) + (cpAvg * 0.7); break;
       case 3: raw = (ctAvg * 0.2) + (cpAvg * 0.8); break;
-      default: raw = (ctAvg * 0.5) + (cpAvg * 0.5); break;
+      default: raw = (cpAvg * 0.4) + (ctAvg * 0.2) + (projectScore * 0.4); break;
     }
-    return Math.round(raw);
+    return Math.round(raw * 10) / 10;
   };
 
   // Recalculate everything when scores or level change
@@ -163,7 +167,8 @@ export function AssessmentMarksSheet() {
       prev.map((row) => {
         const ctAvg = calculateAverages(row.ctScores);
         const cpAvg = calculateAverages(row.cpScores);
-        const weightedMark = calculateWeighted(ctAvg, cpAvg, level);
+        const projVal = parseFloat(String(row.projectScore || 0)) || 0;
+        const weightedMark = calculateWeighted(ctAvg, cpAvg, level, projVal);
         return { ...row, ctAvg, cpAvg, weightedMark };
       })
     );
@@ -190,10 +195,73 @@ export function AssessmentMarksSheet() {
           newRow.cpAvg = calculateAverages(newRow.cpScores);
         }
         
-        newRow.weightedMark = calculateWeighted(newRow.ctAvg, newRow.cpAvg, level);
+        const projVal = parseFloat(String(newRow.projectScore || 0)) || 0;
+        newRow.weightedMark = calculateWeighted(newRow.ctAvg, newRow.cpAvg, level, projVal);
         return newRow;
       })
     );
+  };
+
+  const handleProjectScoreChange = (rowId: string, value: string) => {
+    if (isLocked) {
+      toast.warning("Assessment sheet is locked. Unlock first to edit marks.");
+      return;
+    }
+    setRows((prev) =>
+      prev.map((row) => {
+        if (row.id !== rowId) return row;
+        const newRow = { ...row, projectScore: value };
+        const projVal = parseFloat(value) || 0;
+        newRow.weightedMark = calculateWeighted(newRow.ctAvg, newRow.cpAvg, level, projVal);
+        return newRow;
+      })
+    );
+  };
+
+  const handleMatrixKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    rowIndex: number,
+    colKey: string
+  ) => {
+    const columns: string[] = [];
+    for (let i = 0; i < ctCount; i++) columns.push(`ct-${i}`);
+    for (let i = 0; i < cpCount; i++) columns.push(`cp-${i}`);
+    columns.push("project");
+
+    const currentColIdx = columns.indexOf(colKey);
+    let targetRow = rowIndex;
+    let targetCol = currentColIdx;
+
+    if (e.key === "ArrowDown" || e.key === "Enter") {
+      e.preventDefault();
+      targetRow = Math.min(rows.length - 1, rowIndex + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      targetRow = Math.max(0, rowIndex - 1);
+    } else if (e.key === "ArrowLeft") {
+      const input = e.currentTarget;
+      if (input.selectionStart === 0 && input.selectionEnd === 0 && currentColIdx > 0) {
+        e.preventDefault();
+        targetCol = currentColIdx - 1;
+      }
+    } else if (e.key === "ArrowRight") {
+      const input = e.currentTarget;
+      if (input.selectionStart === input.value.length && currentColIdx < columns.length - 1) {
+        e.preventDefault();
+        targetCol = currentColIdx + 1;
+      }
+    } else {
+      return;
+    }
+
+    const nextId = `cell-${targetRow}-${columns[targetCol]}`;
+    const nextElem = document.getElementById(nextId);
+    if (nextElem) {
+      nextElem.focus();
+      if (nextElem instanceof HTMLInputElement) {
+        nextElem.select();
+      }
+    }
   };
 
   const handleRowChange = (rowId: string, field: keyof AssessmentRow, value: string) => {
@@ -252,15 +320,45 @@ export function AssessmentMarksSheet() {
 
   const submitData = async () => {
     try {
+      const batchPayload = {
+        unitOfferingId,
+        marks: rows.map(r => ({
+          traineeId: r.id,
+          cpScore: r.cpAvg,
+          ctScore: r.ctAvg,
+          projectScore: typeof r.projectScore === "number" ? r.projectScore : (parseFloat(String(r.projectScore || 0)) || 0),
+        })),
+      };
+
+      try {
+        const res = await fetch("/api/marks/batch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(batchPayload),
+        });
+
+        if (res.status === 400) {
+          const errData = await res.json().catch(() => ({}));
+          if (errData.error?.includes("locked") || errData.error?.includes("finalized")) {
+            setIsLocked(true);
+            toast.error("Assessment marksheet is finalized and locked");
+            return;
+          }
+        }
+      } catch (apiErr) {
+        console.warn("Backend API /api/marks/batch call:", apiErr);
+      }
+
       const payload = rows.map(r => ({
-           unit_offering_id: unitOfferingId,
-           trainee_id: r.id,
-           ct_scores: r.ctScores.map(score => parseFloat(score as any)).filter(score => !isNaN(score)),
-           computed_average_theory: Math.round(r.ctAvg),
-           cp_scores: r.cpScores.map(score => parseFloat(score as any)).filter(score => !isNaN(score)),
-           computed_average_practical: Math.round(r.cpAvg),
-           weighted_mark: Math.round(r.weightedMark),
-           is_locked: isLocked
+        unit_offering_id: unitOfferingId,
+        trainee_id: r.id,
+        ct_scores: r.ctScores.map(score => parseFloat(score as any)).filter(score => !isNaN(score)),
+        computed_average_theory: Math.round(r.ctAvg),
+        cp_scores: r.cpScores.map(score => parseFloat(score as any)).filter(score => !isNaN(score)),
+        computed_average_practical: Math.round(r.cpAvg),
+        project_score: typeof r.projectScore === "number" ? r.projectScore : (parseFloat(String(r.projectScore || 0)) || 0),
+        weighted_mark: Math.round(r.weightedMark),
+        is_locked: isLocked
       }));
 
       let savedToSupabase = false;
@@ -278,7 +376,7 @@ export function AssessmentMarksSheet() {
       
       if (!savedToSupabase) {
         localStorage.setItem(`mtti_marks_${unitOfferingId}`, JSON.stringify(payload));
-        toast.success("Assessment marks saved successfully (Whole-number scores stored).");
+        toast.success("Assessment marks saved successfully.");
       }
     } catch (err: any) {
       console.error(err);
@@ -487,6 +585,7 @@ export function AssessmentMarksSheet() {
                   Continuous Practical (CP) MARKS (100%)
                   <button onClick={() => addColumn('cp')} className="ml-2 font-bold hover:underline print:hidden text-blue-600" title="Add Practical Assessment Column">[+]</button>
                 </th>
+                <th className="w-20 min-w-[70px] p-2.5 border border-black font-bold text-center" rowSpan={2}>PROJECT<br/>(40%)</th>
                 <th className="w-24 min-w-[85px] p-2.5 border border-black font-bold text-center" rowSpan={2}>WEIGHTED<br/>MARKS</th>
                 <th className="w-10 min-w-[36px] p-2 border-none font-bold text-center print:hidden" rowSpan={2}></th>
               </tr>
@@ -503,7 +602,7 @@ export function AssessmentMarksSheet() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {rows.map((row, rowIdx) => (
                 <tr key={row.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="p-2.5 border border-black text-center text-black font-bold">{row.sn}</td>
                   
@@ -515,6 +614,7 @@ export function AssessmentMarksSheet() {
                       value={row.regCode}
                       onChange={(e) => handleRowChange(row.id, 'regCode', e.target.value)}
                       title={row.regCode}
+                      readOnly={isLocked}
                     />
                   </td>
 
@@ -526,6 +626,7 @@ export function AssessmentMarksSheet() {
                       value={row.admNo}
                       onChange={(e) => handleRowChange(row.id, 'admNo', e.target.value)}
                       title={row.admNo}
+                      readOnly={isLocked}
                     />
                   </td>
 
@@ -537,6 +638,7 @@ export function AssessmentMarksSheet() {
                       value={row.name}
                       onChange={(e) => handleRowChange(row.id, 'name', e.target.value)}
                       title={row.name}
+                      readOnly={isLocked}
                     />
                   </td>
                   
@@ -544,14 +646,17 @@ export function AssessmentMarksSheet() {
                   {row.ctScores.map((score, i) => (
                     <td key={`ct-${i}`} className="p-1 border border-black text-center">
                       <input 
+                        id={`cell-${rowIdx}-ct-${i}`}
                         type="number"
                         min="0"
                         max="100"
                         step="1"
                         placeholder="-"
-                        className="w-full h-8 outline-none text-center bg-transparent font-bold text-xs text-black focus:bg-amber-50 focus:ring-1 focus:ring-amber-500 rounded" 
+                        readOnly={isLocked}
+                        className="w-full h-8 outline-none text-center bg-transparent font-bold text-xs text-black focus:bg-amber-50 focus:ring-1 focus:ring-amber-500 rounded disabled:opacity-50" 
                         value={score} 
                         onChange={(e) => handleScoreChange(row.id, 'ct', i, e.target.value)}
+                        onKeyDown={(e) => handleMatrixKeyDown(e, rowIdx, `ct-${i}`)}
                       />
                     </td>
                   ))}
@@ -563,25 +668,45 @@ export function AssessmentMarksSheet() {
                   {row.cpScores.map((score, i) => (
                     <td key={`cp-${i}`} className="p-1 border border-black text-center">
                       <input 
+                        id={`cell-${rowIdx}-cp-${i}`}
                         type="number"
                         min="0"
                         max="100"
                         step="1"
                         placeholder="-"
-                        className="w-full h-8 outline-none text-center bg-transparent font-bold text-xs text-black focus:bg-amber-50 focus:ring-1 focus:ring-amber-500 rounded" 
+                        readOnly={isLocked}
+                        className="w-full h-8 outline-none text-center bg-transparent font-bold text-xs text-black focus:bg-amber-50 focus:ring-1 focus:ring-amber-500 rounded disabled:opacity-50" 
                         value={score} 
                         onChange={(e) => handleScoreChange(row.id, 'cp', i, e.target.value)}
+                        onKeyDown={(e) => handleMatrixKeyDown(e, rowIdx, `cp-${i}`)}
                       />
                     </td>
                   ))}
                   <td className="p-2 border border-black text-center font-bold bg-[#e5e5e5] text-black text-xs">
                     {row.cpScores.some(s => s !== "" && !isNaN(Number(s))) ? Math.round(row.cpAvg) : "-"}
                   </td>
+
+                  {/* Project Score (40%) */}
+                  <td className="p-1 border border-black text-center">
+                    <input 
+                      id={`cell-${rowIdx}-project`}
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      placeholder="-"
+                      readOnly={isLocked}
+                      className="w-full h-8 outline-none text-center bg-transparent font-bold text-xs text-black focus:bg-amber-50 focus:ring-1 focus:ring-amber-500 rounded disabled:opacity-50" 
+                      value={row.projectScore !== undefined ? row.projectScore : ""} 
+                      onChange={(e) => handleProjectScoreChange(row.id, e.target.value)}
+                      onKeyDown={(e) => handleMatrixKeyDown(e, rowIdx, "project")}
+                    />
+                  </td>
                   
-                  {/* Weighted Marks (Whole Number) */}
+                  {/* Weighted Marks (CDACC Score) */}
                   <td className="p-2 border border-black text-center font-bold bg-[#e5e5e5] text-black text-xs">
-                    {(row.ctScores.some(s => s !== "" && !isNaN(Number(s))) || row.cpScores.some(s => s !== "" && !isNaN(Number(s)))) 
-                      ? Math.round(row.weightedMark) 
+                    {(row.ctScores.some(s => s !== "" && !isNaN(Number(s))) || row.cpScores.some(s => s !== "" && !isNaN(Number(s))) || row.projectScore) 
+                      ? row.weightedMark 
                       : "-"}
                   </td>
                   
