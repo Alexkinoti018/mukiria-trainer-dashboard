@@ -49,12 +49,17 @@ export default function UploadGrading() {
     setViewingUploadId(upload.id);
     setModalScore(upload.grade !== null ? String(upload.grade) : "");
     setModalComments(upload.comments || "");
-    setModalTaskCode(
-      upload.task_code || 
-      (upload.uploadType?.includes("Practical 2") ? "CP2" : 
-       upload.uploadType?.includes("Practical 3") ? "CP3" : 
-       upload.uploadType?.includes("Practical") ? "CP1" : "CT1")
-    );
+    const derivedTaskCode = upload.task_code || (() => {
+      const type = upload.uploadType || "";
+      if (type.includes("Practical 2")) return "CP2";
+      if (type.includes("Practical 3")) return "CP3";
+      if (type.includes("Practical")) return "CP1";
+      if (type.includes("Exam 2") || type.includes("CAT 2") || type.includes("Assignment 2")) return "CT2";
+      if (type.includes("Exam 3")) return "CT3";
+      if (type.includes("Exam") || type.includes("CAT") || type.includes("Assignment")) return "CT1";
+      return "CP1";
+    })();
+    setModalTaskCode(derivedTaskCode);
     setImageZoom(1);
   };
 

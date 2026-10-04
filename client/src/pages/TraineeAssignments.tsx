@@ -33,7 +33,7 @@ export default function TraineeAssignments() {
   const currentTraineeId = user?.id || "tr_it6_01";
   const currentTraineeName = user?.name || "Nthiga Gakii Doris";
 
-  const [selectedUploadType, setSelectedUploadType] = useState<string>("Practical 1");
+  const [selectedUploadType, setSelectedUploadType] = useState<string>("Exam 1");
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [viewingUpload, setViewingUpload] = useState<Upload | null>(null);
@@ -48,14 +48,21 @@ export default function TraineeAssignments() {
 
   const getTaskCode = (type: string): string => {
     switch (type) {
+      case "Exam 1": return "CT1";
+      case "Exam 2": return "CT2";
+      case "Exam 3": return "CT3";
       case "Practical 1": return "CP1";
       case "Practical 2": return "CP2";
       case "Practical 3": return "CP3";
       case "Assignment": return "CT1";
+      case "Assignments": return "CT1";
+      case "Assignment 1": return "CT1";
+      case "Assignment 2": return "CT2";
       case "CAT": return "CT2";
-      case "Exam 1": return "CT1";
-      case "Exam 2": return "CT2";
-      case "Exam 3": return "CT3";
+      case "CAT 1": return "CT1";
+      case "CAT 2": return "CT2";
+      case "CATs": return "CT2";
+      case "Other": return "CP1";
       default: return "CP1";
     }
   };
@@ -141,12 +148,17 @@ export default function TraineeAssignments() {
               onChange={(e) => setSelectedUploadType(e.target.value)}
               className="w-full p-2.5 border border-border rounded-xl bg-background text-foreground text-xs font-semibold focus:ring-1 focus:ring-primary outline-none"
             >
-              <option value="Practical 1">Practical 1 (CP1 — Laboratory Observation)</option>
-              <option value="Practical 2">Practical 2 (CP2 — System Hardware Diagnostics)</option>
-              <option value="Practical 3">Practical 3 (CP3 — Network Infrastructure Setup)</option>
-              <option value="Assignment">Assignment (CT1 — Written Theory Assignment)</option>
-              <option value="CAT">CAT (CT2 — Continuous Assessment Test)</option>
-              <option value="Exam 1">Exam 1 (CT1 — Modular Exam Draft)</option>
+              <option value="Exam 1">Exam 1</option>
+              <option value="Exam 2">Exam 2</option>
+              <option value="Exam 3">Exam 3</option>
+              <option value="Practical 1">Practical 1</option>
+              <option value="Practical 2">Practical 2</option>
+              <option value="Practical 3">Practical 3</option>
+              <option value="Assignment">Assignment</option>
+              <option value="Assignments">Assignments</option>
+              <option value="CAT">CAT (Continuous Assessment Test)</option>
+              <option value="CAT 1">CAT 1</option>
+              <option value="CAT 2">CAT 2</option>
               <option value="Other">Other Technical Evidence</option>
             </select>
             <p className="text-[11px] text-muted-foreground mt-1">
