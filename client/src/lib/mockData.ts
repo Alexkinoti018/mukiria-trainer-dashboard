@@ -5,8 +5,10 @@
  */
 
 import type { Exam, Submission } from "./supabase";
+import { DIGITAL_LITERACY_EXAMS } from "./digitalLiteracyExams";
 
 export const MOCK_EXAMS: any = [
+  ...DIGITAL_LITERACY_EXAMS,
   {
     "id": "exam-wa1-0415",
     "unit_code": "0415-451-21A-WA1",
@@ -557,6 +559,34 @@ export const MOCK_EXAMS: any = [
 
 export const MOCK_SUBMISSIONS: Submission[] = [
   {
+    id: "sub-harriet-061155101A",
+    unit_code: "061155101A-WA1",
+    student_name: "Harriet mwendwa",
+    reg_number: "D/UPNUT/25042/069",
+    section_a: [
+      { question_id: "dl1_a1", answer: "Define digital literacy and state its importance in a modern workplace.", marks_awarded: 2, ai_reasoning: "Accurately articulates digital technology application and workplace efficiency." },
+      { question_id: "dl1_a2", answer: "1", marks_awarded: 2, ai_reasoning: "Correct option B selected (Keyboard, Optical Scanner, and Mouse)." },
+      { question_id: "dl1_a3", answer: "Input: Keyboard. Output: Monitor.", marks_awarded: 1, ai_reasoning: "Provided 1 input and 1 output device instead of required two each." },
+      { question_id: "dl1_a4", answer: "Click start and power off.", marks_awarded: 0, ai_reasoning: "Omitted crucial safety steps: save files, close apps, and wall socket switch-off." },
+      { question_id: "dl1_a5", answer: "None", marks_awarded: 0, ai_reasoning: "No valid keyboard typing techniques or shortcut keys mentioned." },
+      { question_id: "dl1_a6", answer: "Right click, create folder, save file.", marks_awarded: 2, ai_reasoning: "Captured folder creation and save, but missed document password encryption." },
+      { question_id: "dl1_a7", answer: "Finance and reception.", marks_awarded: 0, ai_reasoning: "Listed two departments without explaining functional roles or completing 4 areas." },
+      { question_id: "dl1_a8", answer: "Connect projector cable.", marks_awarded: 0, ai_reasoning: "Omitted Win+P display projection mode and power sequence." },
+      { question_id: "dl1_a9", answer: "System software runs computer.", marks_awarded: 0, ai_reasoning: "Superficial definition, missing application software distinction and examples." },
+      { question_id: "dl1_a10", answer: "", marks_awarded: 0, ai_reasoning: "No response provided for drag-and-drop mechanism." },
+      { question_id: "dl1_a11", answer: "To ensure computer safety.", marks_awarded: 0, ai_reasoning: "Vague single-phrase response, missing cybersecurity, compliance, and AUP." },
+    ],
+    section_b: [
+      { question_id: "dl1_b1", answer: "a) A word processing application creates and formats text documents. Differentiated by formatting styles and spellcheck.\nb) Bullet points, headings, bold text, and column layout.\nc) Ctrl+Z undoes, Ctrl+X cuts, Ctrl+V pastes.\nd) Computer has storage and is programmable; calculator is only for arithmetic.", marks_awarded: 8, ai_reasoning: "Good core grasp of basic features; missed deep comparison and newsletter structure." },
+      { question_id: "dl1_b2", answer: "a) Insert tab > Table > select 4 columns and 5 rows. Enter data into cells.\nb) File > Save As, choose path. File > Print > Pages 1-2.\nc) =B2*C2, =SUM(D2:D10), =Budget - Total.\nd) Keep liquids away, manage cables, power off before servicing.", marks_awarded: 8, ai_reasoning: "Basic table and printing steps accurate; formula cell references partially incomplete." },
+      { question_id: "dl1_b3", answer: "a) Formula is user written expression, function is preprogrammed Excel routine.\nb) Select data range > Data > Sort A to Z.\nc) Professional headings, clear hierarchy, bullet points, aligned dates.\nd) Hardware specs, licensing cost, and security support.", marks_awarded: 8, ai_reasoning: "Accurate distinction between formula/function; procedural sorting steps brief." },
+    ],
+    status: "graded",
+    total_score: 31,
+    trainer_comments: "The candidate demonstrates competent foundational digital skills with solid adherence to workplace ICT standards.",
+    created_at: "2026-10-04T09:30:00Z",
+  },
+  {
     id: "sub-001",
     unit_code: "COMP-204",
     student_name: "Alice Wanjiku Kamau",
@@ -767,6 +797,40 @@ export const MOCK_SUBMISSIONS: Submission[] = [
     status: "graded",
     total_score: 34,
     created_at: "2024-01-25T09:00:00Z",
+  },
+  {
+    id: "sub-risper-0415",
+    unit_code: "0415-451-21A-WA1",
+    student_name: "RISPER MWENDE",
+    reg_number: "13410",
+    student_email: "risper.mwende@mtti.ac.ke",
+    section_a: [
+      { question_id: "wa1_a1", answer: "System software controlling computer operations. Windows 11, Ubuntu Linux.", marks_awarded: 4, ai_reasoning: "Accurate definition and examples provided." },
+      { question_id: "wa1_a2", answer: "Fetch instructions, decode instructions, execute arithmetic logic operations.", marks_awarded: 6, ai_reasoning: "All three CPU instruction phases captured." },
+      { question_id: "wa1_a3", answer: "RAM", marks_awarded: 2, ai_reasoning: "Correct volatile memory selected." },
+    ],
+    section_b: [
+      { question_id: "wa1_b1", answer: "Click Mailings > Start Mail Merge. Select recipients from Excel sheet. Insert merge fields like <<Name>> and <<RegNo>>. Finish and merge.", marks_awarded: 16, ai_reasoning: "Thorough breakdown of standard Mail Merge workflow." },
+    ],
+    status: "submitted",
+    total_score: 28,
+    trainer_comments: "Excellent procedural understanding of mail merge and operating systems.",
+    submitted_at: "2026-10-04T22:30:00Z",
+    created_at: "2026-10-04T20:30:00Z",
+  },
+  {
+    id: "sub-alex-0415",
+    unit_code: "0415-451-21A-WA1",
+    student_name: "Alex Kinoti",
+    reg_number: "MTTI/DICT/2024/001",
+    student_email: "student@mtti.ac.ke",
+    section_a: [
+      { question_id: "wa1_a1", answer: "An operating system is the core software managing memory and processes.", marks_awarded: 2 },
+    ],
+    section_b: [],
+    status: "in_progress",
+    total_score: null,
+    created_at: "2026-10-04T21:00:00Z",
   },
 ];
 

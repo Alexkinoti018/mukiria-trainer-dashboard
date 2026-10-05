@@ -58,7 +58,14 @@ export default function IntelligentDropzone({
               });
 
               if (!response.ok) {
-                throw new Error("Failed to parse document " + selectedFile.name);
+                let msg = "Failed to parse document " + selectedFile.name;
+                try {
+                  const errJson = await response.json();
+                  if (errJson.error) msg = errJson.error;
+                } catch {
+                  // ignore
+                }
+                throw new Error(msg);
               }
               const data = await response.json();
               resolve(data);
@@ -75,10 +82,10 @@ export default function IntelligentDropzone({
       setIsUploading(false);
       toast.success(`Processed ${results.length} file(s) successfully!`);
       onSuccess(results);
-    } catch (error) {
+    } catch (error: any) {
       setIsUploading(false);
       setFiles([]);
-      toast.error("Error processing file. Ensure backend is running.");
+      toast.error(error?.message || "Error processing file. Please verify file format and backend service.");
       console.error(error);
     }
   };

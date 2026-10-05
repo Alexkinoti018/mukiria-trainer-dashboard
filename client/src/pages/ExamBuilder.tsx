@@ -24,6 +24,7 @@ import TrainerLayout from "@/components/TrainerLayout";
 import { AssessmentMarksSheet } from "@/components/AssessmentMarksSheet";
 import { useExam } from "@/contexts/ExamContext";
 import type { Exam, ExamPayload, ExamQuestion } from "@/lib/supabase";
+import { getCurriculumUnits, CurriculumUnit } from "@/lib/curriculumDatabase";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
 
@@ -171,6 +172,70 @@ export default function ExamBuilder() {
   const [showQuestionBank, setShowQuestionBank] = useState(false);
   const [aiFile, setAiFile] = useState<File | null>(null);
   const [generatingAi, setGeneratingAi] = useState(false);
+  const [repoUnits, setRepoUnits] = useState<CurriculumUnit[]>([]);
+  const [selectedRepoCode, setSelectedRepoCode] = useState("");
+
+  useEffect(() => {
+    getCurriculumUnits().then(units => {
+      setRepoUnits(units);
+      if (units.length > 0 && !selectedRepoCode) {
+        setSelectedRepoCode(units[0].unit_code);
+      }
+    });
+
+    const saved = localStorage.getItem("selected_curriculum_unit");
+    if (saved) {
+      try {
+        const u = JSON.parse(saved);
+        if (u && (u.unit_code || u.unit_title)) {
+          setSelectedRepoCode(u.unit_code);
+          handleCompileFromUnit(u, false);
+          localStorage.removeItem("selected_curriculum_unit");
+        }
+      } catch (e) {}
+    }
+  }, []);
+
+  const handleCompileFromUnit = async (u: CurriculumUnit, isPractical: boolean = false) => {
+    setGeneratingAi(true);
+    try {
+      const topics: string[] = [];
+      for (const lo of u.learning_outcomes || []) {
+        topics.push(...(lo.content || []));
+      }
+      const outcomes = (u.learning_outcomes || []).map((o: any) => o.title);
+
+      const genResp = await fetch("http://localhost:8000/api/generate-exam", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          unit_code: u.unit_code,
+          course_name: u.course || u.unit_title,
+          level: u.level || 6,
+          topics: topics.slice(0, 8),
+          outcomes: outcomes,
+          is_practical: isPractical,
+        }),
+      });
+      const genResult = await genResp.json();
+      if (!genResult.success) {
+        throw new Error(genResult.error || "Failed to generate exam blueprint");
+      }
+
+      setUnitCode(genResult.unit_code);
+      setCourseName(genResult.course_name);
+      setUnitName(u.unit_title || "");
+      setClassCode(u.department?.includes("Civil") ? "CE6/M/S/24" : u.department?.includes("Survey") ? "LS6/M/24" : "ITECH6/M/24");
+      setSeries("MAY-AUG 2026");
+      setPayload(genResult.payload);
+      setIsCreating(true);
+      toast.success(`${isPractical ? "Practical Performance" : "Cognitive Theory"} Draft Compiled for ${u.unit_title}!`);
+    } catch (err: any) {
+      toast.error("Compilation Failed", { description: err.message });
+    } finally {
+      setGeneratingAi(false);
+    }
+  };
 
   const handleAiGenerate = async (isPractical: boolean = false) => {
     if (!aiFile) {
@@ -654,6 +719,45 @@ export default function ExamBuilder() {
                       }}
                     >
                       {generatingAi ? "Parsing..." : "Compile Practical Draft"}
+                    </button>
+                  </div>
+
+                  {/* Institutional CDACC Repository (D:\Curriculum and OS) */}
+                  <div className="pt-3 border-t border-slate-700/60 flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+                      <Library className="w-3.5 h-3.5 text-[#c48820]" />
+                      <span>Institutional CDACC Repository:</span>
+                    </div>
+                    <select
+                      value={selectedRepoCode}
+                      onChange={(e) => setSelectedRepoCode(e.target.value)}
+                      className="text-xs text-slate-200 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 focus:outline-none max-w-sm"
+                    >
+                      {repoUnits.map((u) => (
+                        <option key={u.unit_code} value={u.unit_code}>
+                          {u.unit_title} (L{u.level} - {u.unit_code})
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => {
+                        const target = repoUnits.find(u => u.unit_code === selectedRepoCode);
+                        if (target) handleCompileFromUnit(target, false);
+                      }}
+                      disabled={generatingAi || !selectedRepoCode}
+                      className="px-3 py-1.5 bg-[#000953] hover:bg-[#000953]/80 border border-blue-400/40 text-white rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
+                    >
+                      Draft Theory (CT)
+                    </button>
+                    <button
+                      onClick={() => {
+                        const target = repoUnits.find(u => u.unit_code === selectedRepoCode);
+                        if (target) handleCompileFromUnit(target, true);
+                      }}
+                      disabled={generatingAi || !selectedRepoCode}
+                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
+                    >
+                      Draft Practical (CP)
                     </button>
                   </div>
                 </div>

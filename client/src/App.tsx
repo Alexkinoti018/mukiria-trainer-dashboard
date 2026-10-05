@@ -35,17 +35,23 @@ import UploadGrading from "./pages/UploadGrading";
 
 // HOD pages
 import HODDashboard from "./pages/HODDashboard";
+import HODCompliance from "./pages/HODCompliance";
+import HODAnalytics from "./pages/HODAnalytics";
+import HODReports from "./pages/HODReports";
 
 // Trainee pages
 import TraineeDashboard from "./pages/TraineeDashboard";
 import CandidatePortal from "./pages/CandidatePortal";
 import StudentResults from "./pages/StudentResults";
+import StudentSessionView from "./pages/StudentSessionView";
 
 function Router() {
   return (
     <Switch>
       {/* Public routes */}
       <Route path="/" component={Login} />
+      <Route path="/exam" component={CandidatePortal} />
+      <Route path="/session/:id" component={StudentSessionView} />
 
       {/* Trainer Routes */}
       <Route path="/trainer/dashboard">
@@ -118,8 +124,37 @@ function Router() {
       </Route>
 
       {/* HOD Routes */}
+      <Route path="/hod">
+        <ProtectedRoute allowedRoles={["hod", "admin", "trainer"]}><HODDashboard /></ProtectedRoute>
+      </Route>
       <Route path="/hod/dashboard">
-        <ProtectedRoute allowedRoles={["hod", "admin"]}><HODDashboard /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["hod", "admin", "trainer"]}><HODDashboard /></ProtectedRoute>
+      </Route>
+      <Route path="/hod/compliance">
+        <ProtectedRoute allowedRoles={["hod", "admin", "trainer"]}><HODCompliance /></ProtectedRoute>
+      </Route>
+      <Route path="/hod/analytics">
+        <ProtectedRoute allowedRoles={["hod", "admin", "trainer"]}><HODAnalytics /></ProtectedRoute>
+      </Route>
+      <Route path="/hod/reports">
+        <ProtectedRoute allowedRoles={["hod", "admin", "trainer"]}><HODReports /></ProtectedRoute>
+      </Route>
+
+      {/* Route Aliases for direct un-prefixed URLs */}
+      <Route path="/exam-builder">
+        <ProtectedRoute allowedRoles={["trainer", "admin"]}><ExamBuilder /></ProtectedRoute>
+      </Route>
+      <Route path="/grading">
+        <ProtectedRoute allowedRoles={["trainer", "admin"]}><Grading /></ProtectedRoute>
+      </Route>
+      <Route path="/analytics">
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Analytics /></ProtectedRoute>
+      </Route>
+      <Route path="/reports">
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Reports /></ProtectedRoute>
+      </Route>
+      <Route path="/dashboard">
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Dashboard /></ProtectedRoute>
       </Route>
 
       <Route path="/404" component={NotFound} />

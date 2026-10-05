@@ -16,12 +16,13 @@ import React, {
 } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
-// ─── Types ───────────────────────────────────────────────────
-interface AuthUser {
+export interface AuthUser {
   id: string;
   email: string;
   name: string;
   role: "trainer" | "admin" | "hod" | "trainee";
+  reg_number?: string;
+  department_id?: string;
 }
 
 interface AuthContextValue {
@@ -162,9 +163,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (isSupabaseConfigured()) {
         await supabase.auth.signOut();
       }
-      localStorage.removeItem("mtti_demo_session");
+      // Security: Purge all session, exam, and marks storage from browser
+      const sensitiveKeys = [
+        "mtti_demo_session",
+        "student_demo_session",
+        "mukiria_submissions",
+        "mukiria_exams"
+      ];
+      sensitiveKeys.forEach(k => localStorage.removeItem(k));
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith("mtti_marks_") || k.startsWith("mtti_timer_")) {
+          localStorage.removeItem(k);
+        }
+      });
       setUser(null);
-      console.log("✅ [MTTI Auth] Logged out successfully");
+      console.log("✅ [MTTI Auth] Logged out and sanitized client storage");
     } catch (err) {
       console.error("❌ [MTTI Auth] Logout error:", err);
     }

@@ -22,11 +22,15 @@ const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || (typeof windo
 export interface ExamQuestion {
   id: string;
   text: string;
-  type: "mcq" | "short_answer" | "true_false";
+  type: "mcq" | "short_answer" | "true_false" | "practical" | "essay";
   options?: string[];
-  correct_answer: string | number;
+  correct_answer?: string | number;
   marks: number;
   critical_aspect?: string;
+  regex_pattern?: string;
+  keywords?: string[];
+  evaluation_mode?: "objective" | "semi_objective" | "subjective";
+  requires_trainer_review?: boolean;
 }
 
 export interface ExamSection {
@@ -42,12 +46,15 @@ export interface ExamPayload {
   total_marks: number;
   instructions: string;
   type?: "written" | "practical";
+  class?: string;
+  series?: string;
   section_a?: ExamSection;
   section_b?: ExamSection;
   project_brief?: string;
   elements_covered?: string[];
   tasks?: Array<{ id: string; title: string; marks: number; details: string[] }>;
   rubric?: Array<{ category: string; max_marks: number; criteria: Array<{ description: string; marks: number }> }>;
+  checklist_items?: Array<{ id: string; task: string; criteria: string; marks: number; critical_aspect?: string }>;
 }
 
 export interface Exam {
@@ -62,18 +69,25 @@ export interface StudentAnswer {
   question_id: string;
   answer: string | number;
   marks_awarded?: number;
+  ai_reasoning?: string;
+  flagged_for_review?: boolean;
 }
 
 export interface Submission {
   id: string;
+  exam_id?: string;
+  trainee_id?: string;
   unit_code: string;
   student_name: string;
   reg_number: string;
   student_email?: string;
   section_a: StudentAnswer[];
   section_b: StudentAnswer[];
-  status: "pending" | "graded" | "reviewed";
+  status: "pending" | "graded" | "reviewed" | "submitted" | "in_progress";
   total_score: number | null;
+  trainer_comments?: string;
+  submitted_at?: string;
+  payload?: any;
   created_at: string;
   updated_at?: string;
 }

@@ -22,6 +22,7 @@ import {
   Timer,
   AlertCircle,
   Award,
+  Info,
 } from "lucide-react";
 import { useExam } from "@/contexts/ExamContext";
 import type { Exam } from "@/lib/supabase";
@@ -169,15 +170,32 @@ export default function CandidatePortal() {
       setSubmitting(true);
 
       const gradeQuestion = async (q: any, answer: string) => {
-        // Deterministic MCQ grading
-        if (q.type === "mcq") {
-          // answer is stored as "0", "1", etc.
-          const isCorrect = answer === String(q.correct_answer);
+        // Deterministic MCQ / True-False grading
+        if (q.type === "mcq" || q.type === "true_false") {
+          let isCorrect = false;
+          if (answer !== undefined && answer !== "") {
+            const rawAns = String(answer).trim().toLowerCase();
+            const correctRaw = String(q.correct_answer ?? "").trim().toLowerCase();
+            if (rawAns === correctRaw) {
+              isCorrect = true;
+            } else if (q.options && !isNaN(Number(rawAns))) {
+              const optIndex = Number(rawAns);
+              const optLetter = String.fromCharCode(65 + optIndex).toLowerCase();
+              const optText = (q.options[optIndex] || "").trim().toLowerCase();
+              if (correctRaw === optLetter || correctRaw === optText || correctRaw === String(optIndex)) {
+                isCorrect = true;
+              }
+            } else if (q.type === "true_false") {
+              const boolStr = rawAns === "0" ? "true" : rawAns === "1" ? "false" : rawAns;
+              if (boolStr === correctRaw) isCorrect = true;
+            }
+          }
           return {
             question_id: q.id,
             answer,
             marks_awarded: isCorrect ? q.marks : 0,
-            ai_reasoning: isCorrect ? "Correct answer selected." : "Incorrect answer selected.",
+            ai_reasoning: isCorrect ? "Correct objective answer selected." : "Incorrect choice selected.",
+            flagged_for_review: false,
           };
         }
         
@@ -187,7 +205,8 @@ export default function CandidatePortal() {
             question_id: q.id,
             answer,
             marks_awarded: 0,
-            ai_reasoning: "No answer provided.",
+            ai_reasoning: "No response provided by candidate.",
+            flagged_for_review: false,
           };
         }
         
@@ -199,7 +218,11 @@ export default function CandidatePortal() {
               student_answer: answer,
               correct_answer: q.correct_answer || "",
               marks: q.marks,
-              question_type: q.type
+              question_type: q.type,
+              regex_pattern: q.regex_pattern || "",
+              keywords: q.keywords || [],
+              evaluation_mode: q.evaluation_mode || "semi_objective",
+              requires_trainer_review: Boolean(q.requires_trainer_review),
             })
           });
           const data = await res.json();
@@ -208,6 +231,7 @@ export default function CandidatePortal() {
             answer,
             marks_awarded: data.score ?? null,
             ai_reasoning: data.reasoning ?? "Auto-grading completed.",
+            flagged_for_review: Boolean(data.flagged_for_review),
           };
         } catch (e) {
           console.error("Auto-grading failed for", q.id, e);
@@ -216,6 +240,7 @@ export default function CandidatePortal() {
             answer,
             marks_awarded: null,
             ai_reasoning: "Auto-grading service unavailable. Pending manual review.",
+            flagged_for_review: true,
           };
         }
       };
@@ -228,9 +253,9 @@ export default function CandidatePortal() {
         (exam.payload?.section_b?.questions || []).map((q: any) => gradeQuestion(q, String(sectionBAnswers[q.id] ?? "")))
       );
 
-      // Determine overall status based on whether auto-grading fully succeeded
-      const needsReview = [...sectionAPayload, ...sectionBPayload].some(a => a.marks_awarded === null);
-      const totalScore = needsReview ? null : [...sectionAPayload, ...sectionBPayload].reduce((sum, a) => sum + (a.marks_awarded || 0), 0);
+      // Determine overall status based on whether auto-grading fully succeeded and review flags
+      const needsReview = [...sectionAPayload, ...sectionBPayload].some(a => a.marks_awarded === null || a.flagged_for_review);
+      const totalScore = [...sectionAPayload, ...sectionBPayload].reduce((sum, a) => sum + (a.marks_awarded || 0), 0);
 
       const payload = {
         unit_code: exam.unit_code,
@@ -321,21 +346,60 @@ export default function CandidatePortal() {
   if (state === "not_found") {
     return (
       <PortalShell>
-        <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-          <AlertTriangle className="w-12 h-12" style={{ color: "oklch(0.75 0.14 80)" }} />
-          <h2
-            className="text-xl font-bold"
-            style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-          >
-            Exam Not Found
-          </h2>
-          <p className="text-sm max-w-sm" style={{ color: "oklch(0.58 0.012 240)" }}>
-            No exam found for unit code <strong className="font-mono">{unitCode || "(none)"}</strong>.
-            Please check the URL or contact your trainer.
-          </p>
-          <p className="text-xs" style={{ color: "oklch(0.45 0.010 240)" }}>
-            Try: <span className="font-mono">/exam?unitCode=COMP-204</span>
-          </p>
+        <div className="max-w-4xl mx-auto py-8 space-y-6">
+          <div className="text-center space-y-2 mb-6">
+            <span className="px-3 py-1 text-xs font-bold font-mono rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+              OFFICIAL EXAMINATION PORTAL
+            </span>
+            <h2 className="text-2xl font-bold" style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}>
+              Available Online Examinations
+            </h2>
+            <p className="text-xs" style={{ color: "oklch(0.58 0.012 240)" }}>
+              Select your scheduled assessment paper below to register and launch the test runner.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {exams.map((ex) => (
+              <div
+                key={ex.id || ex.unit_code}
+                className="glass-card p-5 space-y-4 hover:border-amber-500/40 transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                      {ex.unit_code}
+                    </span>
+                    <span className="text-xs text-muted-foreground font-mono">
+                      {ex.payload?.duration_minutes ?? 120} Mins • {ex.payload?.total_marks ?? 70} Marks
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-slate-100 mb-1">
+                    {ex.payload?.title || ex.course_name}
+                  </h3>
+                  <p className="text-xs text-slate-400 line-clamp-2">
+                    {ex.payload?.instructions || "Section A (30 Marks compulsory) and Section B (40 Marks structured questions)."}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-white/5 flex items-center justify-between">
+                  <span className="text-[11px] text-slate-400">
+                    Class: {ex.payload?.class || "L5/6 Combined"}
+                  </span>
+                  <button
+                    onClick={() => {
+                      setExam(ex);
+                      setState(ex.payload?.type === "practical" ? "practical" : "registration");
+                    }}
+                    className="btn-emerald px-4 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5"
+                  >
+                    Select Exam
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </PortalShell>
     );
@@ -790,12 +854,12 @@ export default function CandidatePortal() {
 
         <div className="max-w-3xl mx-auto px-4 py-6">
           {/* Section tabs */}
-          <div className="flex gap-2 mb-5">
+          <div className="flex gap-2 mb-4">
             {(["a", "b"] as const).map((sec) => {
-              const secLabel = sec === "a" ? "Section A" : "Section B";
+              const secLabel = sec === "a" ? "Section A (Theory/Concepts)" : "Section B (Structured Practical)";
               const secQuestions = sec === "a" ? (exam.payload?.section_a?.questions || []) : (exam.payload?.section_b?.questions || []);
               const secAnswered = sec === "a"
-                ? Object.keys(sectionAAnswers).filter((k) => sectionAAnswers[k] !== "").length
+                ? Object.keys(sectionAAnswers).filter((k) => sectionAAnswers[k] !== undefined && sectionAAnswers[k] !== "").length
                 : Object.keys(sectionBAnswers).filter((k) => sectionBAnswers[k]?.trim()).length;
               return (
                 <button
@@ -809,13 +873,23 @@ export default function CandidatePortal() {
                   }}
                 >
                   {secLabel}
-                  <span className="text-xs font-mono">
+                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-black/20">
                     {secAnswered}/{secQuestions.length}
                   </span>
                 </button>
               );
             })}
           </div>
+
+          {/* Section B Notice Banner */}
+          {currentSection === "b" && (
+            <div className="mb-4 p-3 rounded-xl text-xs flex items-center gap-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-300">
+              <Info className="w-4 h-4 shrink-0 text-amber-400" />
+              <span>
+                <strong>Section B Instructions:</strong> Answer <strong>ANY TWO</strong> questions (20 marks each). You can switch between questions below.
+              </span>
+            </div>
+          )}
 
           {/* Question */}
           <AnimatePresence mode="wait">
@@ -839,10 +913,10 @@ export default function CandidatePortal() {
                   {currentSection.toUpperCase()}{currentQIndex + 1}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm leading-relaxed" style={{ color: "oklch(0.94 0.005 240)" }}>
+                  <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "oklch(0.94 0.005 240)" }}>
                     {currentQ?.text}
                   </p>
-                  <p className="text-xs mt-1" style={{ color: "oklch(0.50 0.010 240)" }}>
+                  <p className="text-xs mt-1 font-mono" style={{ color: "oklch(0.50 0.010 240)" }}>
                     {currentQ?.marks} mark{currentQ?.marks !== 1 ? "s" : ""}
                   </p>
                 </div>
@@ -852,7 +926,7 @@ export default function CandidatePortal() {
               {currentQ?.type === "mcq" && (
                 <div className="space-y-2">
                   {currentQ.options?.map((opt, oi) => {
-                    const isSelected = sectionAAnswers[currentQ.id] === oi;
+                    const isSelected = String(sectionAAnswers[currentQ.id]) === String(oi) || sectionAAnswers[currentQ.id] === oi;
                     return (
                       <button
                         key={oi}
@@ -903,23 +977,47 @@ export default function CandidatePortal() {
                 </div>
               )}
 
-              {/* Short Answer */}
-              {currentQ?.type === "short_answer" && (
-                <textarea
-                  value={sectionBAnswers[currentQ.id] ?? ""}
-                  onChange={(e) =>
-                    setSectionBAnswers((prev) => ({ ...prev, [currentQ.id]: e.target.value }))
-                  }
-                  placeholder="Write your answer here..."
-                  rows={8}
-                  className="w-full px-4 py-3 rounded-xl text-sm resize-none"
-                  style={{
-                    background: "oklch(1 0 0 / 0.06)",
-                    border: "1px solid oklch(1 0 0 / 0.10)",
-                    color: "oklch(0.94 0.005 240)",
-                    lineHeight: "1.7",
-                  }}
-                />
+              {/* Short Answer / Practical / Essay / Open-ended text */}
+              {(currentQ?.type === "short_answer" || currentQ?.type === "practical" || currentQ?.type === "essay" || !currentQ?.type) && (
+                <div className="space-y-2">
+                  <textarea
+                    value={
+                      isInSectionA
+                        ? (sectionAAnswers[currentQ?.id] as string ?? "")
+                        : (sectionBAnswers[currentQ?.id] ?? "")
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (isInSectionA) {
+                        setSectionAAnswers((prev) => ({ ...prev, [currentQ.id]: val }));
+                      } else {
+                        setSectionBAnswers((prev) => ({ ...prev, [currentQ.id]: val }));
+                      }
+                    }}
+                    placeholder={
+                      isInSectionA
+                        ? "Write your concise answer, definition, formula, or shortcut key here..."
+                        : "Type your structured response, steps, procedures, or practical explanation here (e.g. Part a, Part b...)..."
+                    }
+                    rows={isInSectionA ? 4 : 8}
+                    className="w-full px-4 py-3 rounded-xl text-sm resize-y"
+                    style={{
+                      background: "oklch(1 0 0 / 0.06)",
+                      border: "1px solid oklch(1 0 0 / 0.10)",
+                      color: "oklch(0.94 0.005 240)",
+                      lineHeight: "1.7",
+                    }}
+                  />
+                  <div className="flex justify-between items-center text-[11px] text-slate-400 px-1">
+                    <span>{isInSectionA ? "Section A (Short Answer)" : "Section B (Practical & Structured)"}</span>
+                    <span>
+                      {(isInSectionA
+                        ? String(sectionAAnswers[currentQ?.id] || "").length
+                        : String(sectionBAnswers[currentQ?.id] || "").length)}{" "}
+                      characters
+                    </span>
+                  </div>
+                </div>
               )}
             </motion.div>
           </AnimatePresence>

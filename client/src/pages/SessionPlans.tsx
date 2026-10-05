@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Download,
@@ -21,8 +21,10 @@ import {
   ClipboardCheck,
   TrendingUp,
   FileSpreadsheet,
+  QrCode,
 } from "lucide-react";
 import TrainerLayout from "@/components/TrainerLayout";
+import WorkshopDoorQRModal from "@/components/WorkshopDoorQRModal";
 import {
   getStoredSessionPlans,
   saveStoredSessionPlans,
@@ -56,6 +58,7 @@ export default function SessionPlans() {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isRecordLogOpen, setIsRecordLogOpen] = useState(false);
+  const [qrModalPlan, setQrModalPlan] = useState<SessionPlan | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -518,6 +521,15 @@ export default function SessionPlans() {
         }
       }
       toast.success("Session plan deleted successfully.");
+    }
+  };
+
+  const handleDeleteRecord = (id: string) => {
+    if (confirm("Are you sure you want to delete this Record of Work log?")) {
+      const updated = recordsOfWork.filter(r => r.id !== id);
+      setRecordsOfWork(updated);
+      saveStoredRecordsOfWork(updated);
+      toast.success("Record of Work log deleted.");
     }
   };
 
@@ -1054,6 +1066,17 @@ export default function SessionPlans() {
   const uniqueUnits = Array.from(new Set(learningPlans.map(p => p.unit_code)));
   const uniqueClasses = Array.from(new Set(learningPlans.map(p => p.class_code)));
 
+  const unitNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    learningPlans.forEach(p => {
+      if (p.unit_code && p.unit_name) map[p.unit_code] = p.unit_name;
+    });
+    plans.forEach(p => {
+      if (p.unit_code && p.unit_name && !map[p.unit_code]) map[p.unit_code] = p.unit_name;
+    });
+    return map;
+  }, [learningPlans, plans]);
+
   // Calculate Metrics for Record of Work
   const totalWeeks = filterUnit !== "all" ? learningPlans.filter(lp => lp.unit_code === filterUnit).length : learningPlans.length;
   const deliveredWeeks = recordsOfWork.filter(r => (filterUnit === "all" ? true : r.unit_code === filterUnit) && (filterClass === "all" ? true : r.class_code === filterClass)).length;
@@ -1115,16 +1138,18 @@ export default function SessionPlans() {
           <select
             value={filterUnit}
             onChange={(e) => setFilterUnit(e.target.value)}
-            className="px-3 py-1.5 rounded-xl text-xs"
+            className="px-3 py-1.5 rounded-xl text-xs max-w-xs truncate cursor-pointer"
             style={{
               background: "oklch(1 0 0 / 0.05)",
               border: "1px solid oklch(1 0 0 / 0.08)",
               color: "oklch(0.80 0.008 240)",
             }}
           >
-            <option value="all">All Units</option>
+            <option value="all">All Units ({uniqueUnits.length})</option>
             {uniqueUnits.map(code => (
-              <option key={code} value={code}>{code}</option>
+              <option key={code} value={code}>
+                {unitNameMap[code] ? `${unitNameMap[code]} (${code})` : code}
+              </option>
             ))}
           </select>
 
@@ -1373,6 +1398,13 @@ export default function SessionPlans() {
                             <Download className="w-3.5 h-3.5" />
                           </button>
                           <button
+                            onClick={() => setQrModalPlan(plan)}
+                            className="p-1.5 rounded-lg hover:bg-[#c48820]/20 transition-all text-[#c48820]"
+                            title="Generate Workshop Door QR Poster"
+                          >
+                            <QrCode className="w-3.5 h-3.5" />
+                          </button>
+                          <button
                             onClick={() => handleDelete(plan.id)}
                             className="p-1.5 rounded-lg hover:bg-white/5 transition-all text-red-400"
                             title="Delete"
@@ -1421,7 +1453,7 @@ export default function SessionPlans() {
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: "1px solid oklch(1 0 0 / 0.08)" }}>
-                  {["Week", "Date Delivered", "Unit Code", "Class", "Work Covered", "Trainees", "Signoff"].map((h) => (
+                  {["Week", "Date Delivered", "Unit / Code", "Class", "Work Covered", "Trainees", "Signoff", "Action"].map((h) => (
                     <th
                       key={h}
                       className="text-left px-4 py-3 text-xs font-semibold"
@@ -1435,7 +1467,7 @@ export default function SessionPlans() {
               <tbody>
                 {filteredRows.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    <td colSpan={8} className="px-4 py-10 text-center text-sm text-muted-foreground">
                       No Records of Work have been logged yet. Mark a Session Plan as Delivered to generate logs.
                     </td>
                   </tr>
@@ -1446,7 +1478,10 @@ export default function SessionPlans() {
                         Week {row.week_number}
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">{row.date_delivered}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{row.unit_code}</td>
+                      <td className="px-4 py-3 text-xs">
+                        <div className="font-semibold text-foreground">{unitNameMap[row.unit_code] || row.unit_code}</div>
+                        <div className="font-mono text-[10px] text-muted-foreground">{row.unit_code}</div>
+                      </td>
                       <td className="px-4 py-3 text-xs">
                         <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 font-semibold">{row.class_code}</span>
                       </td>
@@ -1461,6 +1496,15 @@ export default function SessionPlans() {
                       <td className="px-4 py-3 text-xs">
                         <div className="font-semibold text-foreground">{row.signature}</div>
                         <div className="text-[10px] text-muted-foreground">{row.signature_date}</div>
+                      </td>
+                      <td className="px-4 py-3 text-xs">
+                        <button
+                          onClick={() => handleDeleteRecord(row.id)}
+                          className="p-1.5 rounded-lg hover:bg-white/10 transition-all text-red-400"
+                          title="Delete Record of Work Log"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -2001,6 +2045,26 @@ export default function SessionPlans() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Workshop Door QR Code Poster Modal */}
+      {qrModalPlan && (
+        <WorkshopDoorQRModal
+          isOpen={!!qrModalPlan}
+          onClose={() => setQrModalPlan(null)}
+          sessionData={{
+            id: qrModalPlan.id,
+            unit_code: qrModalPlan.unit_code,
+            unit_name: qrModalPlan.unit_name,
+            class_code: qrModalPlan.class_code,
+            session_title: qrModalPlan.session_title,
+            learning_outcomes: qrModalPlan.learning_outcomes,
+            date: qrModalPlan.date,
+            time_duration: qrModalPlan.time_duration,
+            trainer_name: qrModalPlan.trainer_name,
+            safety_requirements: qrModalPlan.safety_requirements
+          }}
+        />
+      )}
 
     </TrainerLayout>
   );

@@ -40,47 +40,41 @@ const NAV_ITEMS: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/trainer/dashboard" },
   {
     icon: FolderOpen,
-    label: "Professional Document",
+    label: "Professional Documents",
     children: [
       { icon: FileText, label: "Learning Plan", path: "/trainer/documents/learning-plan" },
-      { icon: BookOpen, label: "Session Plan", path: "/trainer/session-plans" },
-      { icon: ClipboardCheck, label: "Records of Work", path: "/trainer/documents/records-of-work" },
+      { icon: BookOpen, label: "Daily Session Plan", path: "/trainer/session-plans" },
       { icon: CheckSquare, label: "Class Register", path: "/trainer/class-register" },
-      { icon: BarChart3, label: "Assessment Plan", path: "/trainer/documents/assessment-plan" },
+      { icon: ClipboardCheck, label: "Record of Work (RoW)", path: "/trainer/documents/records-of-work" },
+      { icon: FileText, label: "Curriculum Ingest", path: "/trainer/curriculum-parsing" },
     ]
   },
   {
     icon: FileText,
-    label: "Exams",
+    label: "Exams & Testing",
     children: [
-      { icon: FileText, label: "Exam 1", path: "/trainer/exam-builder?type=exam-1" },
-      { icon: Eye, label: "Practical 1", path: "/trainer/exam-builder?type=practical-1" },
-      { icon: FileText, label: "Exam 2", path: "/trainer/exam-builder?type=exam-2" },
-      { icon: Eye, label: "Practical 2", path: "/trainer/exam-builder?type=practical-2" },
-      { icon: FileText, label: "Exam 3", path: "/trainer/exam-builder?type=exam-3" },
-      { icon: Eye, label: "Practical 3", path: "/trainer/exam-builder?type=practical-3" },
-      { icon: FileText, label: "CATs", path: "/trainer/exam-builder?type=cats" },
-      { icon: BookOpen, label: "Assignment", path: "/trainer/exam-builder?type=assignment" },
+      { icon: FileText, label: "Exam Builder", path: "/trainer/exam-builder" },
+      { icon: Eye, label: "Live Proctoring", path: "/trainer/proctoring" },
     ]
   },
   {
     icon: ClipboardCheck,
-    label: "Marks Management",
+    label: "Marks & Grading",
     children: [
       { icon: CheckSquare, label: "Exam Grading", path: "/trainer/grading" },
+      { icon: FileText, label: "Assessment Marksheet", path: "/trainer/assessment-marks" },
+      { icon: Zap, label: "Auto Grading Queue", path: "/trainer/auto-grading" },
       { icon: FolderOpen, label: "Uploaded Evidence", path: "/trainer/grading/uploads" },
     ]
   },
   {
-    icon: Wrench,
-    label: "Advanced Tools",
+    icon: BarChart3,
+    label: "Analytics & Reports",
     children: [
-      { icon: BookOpen, label: "Legacy Workspace", path: "/trainer/workspace" },
-      { icon: Eye, label: "Proctoring", path: "/trainer/proctoring" },
-      { icon: Zap, label: "Auto Grading", path: "/trainer/auto-grading" },
-      { icon: TrendingUp, label: "Performance", path: "/trainer/performance-insights" },
-      { icon: Download, label: "Reports", path: "/trainer/reports" },
-      { icon: Settings, label: "DB Setup", path: "/trainer/setup" },
+      { icon: BarChart3, label: "Class Analytics", path: "/trainer/analytics" },
+      { icon: TrendingUp, label: "Performance Insights", path: "/trainer/performance-insights" },
+      { icon: Download, label: "Official Reports", path: "/trainer/reports" },
+      { icon: Settings, label: "System Setup", path: "/trainer/setup" },
     ]
   }
 ];

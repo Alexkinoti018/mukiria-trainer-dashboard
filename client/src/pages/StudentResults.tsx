@@ -18,9 +18,13 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  PenTool,
+  FileCheck,
 } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { useExam } from "@/contexts/ExamContext";
+import MarkedExamScriptModal from "@/components/MarkedExamScriptModal";
+import ObservationChecklistMarkingModal from "@/components/ObservationChecklistMarkingModal";
 import { toast } from "sonner";
 import type { Submission } from "@/lib/supabase";
 
@@ -32,7 +36,9 @@ interface StudentSession {
 
 export default function StudentResults() {
   const [session, setSession] = useState<StudentSession | null>(null);
-  const { submissions: allSubmissions } = useExam();
+  const { submissions: allSubmissions, exams } = useExam();
+  const [selectedSubForScript, setSelectedSubForScript] = useState<Submission | null>(null);
+  const [isPracticalChecklistOpen, setIsPracticalChecklistOpen] = useState(false);
   const submissions = session ? allSubmissions.filter(s => s.reg_number === session.reg_number) : [];
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
@@ -86,10 +92,11 @@ export default function StudentResults() {
         const pin = loginPassword.trim();
         
         const demoStudents: Record<string, { name: string; reg_number: string }> = {
+          "harriet@mtti.ac.ke": { name: "Harriet mwendwa", reg_number: "D/UPNUT/25042/069" },
           "alice@mtti.ac.ke": { name: "Alice Wanjiku Kamau", reg_number: "MTTI/2024/001" },
           "brian@mtti.ac.ke": { name: "Brian Otieno Odhiambo", reg_number: "MTTI/2024/002" },
           "catherine@mtti.ac.ke": { name: "Catherine Muthoni Njoroge", reg_number: "MTTI/2024/003" },
-          "student@mtti.ac.ke": { name: "Alice Wanjiku Kamau", reg_number: "MTTI/2024/001" },
+          "student@mtti.ac.ke": { name: "Harriet mwendwa", reg_number: "D/UPNUT/25042/069" },
         };
         
         if (demoStudents[email] && (pin === "1234" || pin === "student")) {
@@ -494,12 +501,12 @@ export default function StudentResults() {
                       </div>
                       <div className="text-right">
                         <p className="text-3xl font-bold" style={{ color: "oklch(0.72 0.18 160)" }}>
-                          {sub.total_score ?? 0}
+                          {sub.total_score !== null ? Math.round(sub.total_score) : 0}
                         </p>
                         <p style={{ color: "oklch(0.58 0.012 240)" }} className="text-sm">
-                          out of 100
+                          marks scored
                         </p>
-                        {(sub.total_score ?? 0) >= 50 ? (
+                        {(sub.total_score ?? 0) >= 35 ? (
                           <p className="text-xs mt-1" style={{ color: "oklch(0.72 0.18 160)" }}>
                             ✓ Passed
                           </p>
@@ -510,6 +517,29 @@ export default function StudentResults() {
                         )}
                       </div>
                     </div>
+
+                    {/* View Marked Script Button */}
+                    <div className="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs text-slate-400">
+                        Official Simulated Red Pen Examination Script & Checklists
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setSelectedSubForScript(sub)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/40 transition shadow-sm"
+                        >
+                          <PenTool className="w-3.5 h-3.5 text-red-400" />
+                          <span>Theory Paper (Red Pen)</span>
+                        </button>
+                        <button
+                          onClick={() => setIsPracticalChecklistOpen(true)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/40 transition shadow-sm"
+                        >
+                          <FileCheck className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Practical Checklist (Red Pen)</span>
+                        </button>
+                      </div>
+                    </div>
                   </motion.div>
                 ))}
               </AnimatePresence>
@@ -517,6 +547,26 @@ export default function StudentResults() {
           )}
         </div>
       </div>
+
+      {/* Visual Marked Script Modal (Theory) */}
+      <MarkedExamScriptModal
+        isOpen={!!selectedSubForScript}
+        onClose={() => setSelectedSubForScript(null)}
+        submission={selectedSubForScript}
+        exam={selectedSubForScript ? (exams.find(e => e.unit_code === selectedSubForScript.unit_code) || null) : null}
+      />
+
+      {/* Visual Marked Practical Checklist Modal (TVET CDACC Red Pen) */}
+      <ObservationChecklistMarkingModal
+        isOpen={isPracticalChecklistOpen}
+        onClose={() => setIsPracticalChecklistOpen(false)}
+        candidateName={session?.name || "Harriet Mwendwa"}
+        candidateRegCode={session?.reg_number || "10525"}
+        unitCode="ICT/OS/IT/CR/1/6"
+        unitTitle="PERFORM COMPUTER NETWORKING"
+        qualificationCode="061006T4ICT - ICT TECHNICIAN LEVEL 6"
+        assessorName="MR Muthomi"
+      />
     </div>
   );
 }

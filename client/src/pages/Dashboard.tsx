@@ -153,7 +153,7 @@ export default function Dashboard() {
             </p>
           </div>
           <button
-            onClick={() => navigate("/exam-builder")}
+            onClick={() => navigate("/trainer/exam-builder")}
             className="btn-emerald flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
           >
             <Plus className="w-4 h-4" />
@@ -217,7 +217,7 @@ export default function Dashboard() {
               Recent Submissions
             </h3>
             <button
-              onClick={() => navigate("/grading")}
+              onClick={() => navigate("/trainer/grading")}
               className="flex items-center gap-1 text-xs font-medium transition-colors hover:opacity-80"
               style={{ color: "oklch(0.72 0.18 160)" }}
             >
@@ -298,7 +298,7 @@ export default function Dashboard() {
               Active Exams
             </h3>
             <button
-              onClick={() => navigate("/exam-builder")}
+              onClick={() => navigate("/trainer/exam-builder")}
               className="flex items-center gap-1 text-xs font-medium"
               style={{ color: "oklch(0.72 0.18 160)" }}
             >
@@ -325,7 +325,7 @@ export default function Dashboard() {
                       background: "oklch(1 0 0 / 0.04)",
                       border: "1px solid oklch(1 0 0 / 0.06)",
                     }}
-                    onClick={() => navigate("/grading")}
+                    onClick={() => navigate("/trainer/grading")}
                   >
                     <div className="flex items-start gap-2">
                       <div
@@ -367,10 +367,10 @@ export default function Dashboard() {
         className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3"
       >
         {[
-          { label: "Build Exam", icon: FileText, path: "/exam-builder", color: "oklch(0.72 0.18 160)" },
-          { label: "Grade Papers", icon: ClipboardCheck, path: "/grading", color: "oklch(0.65 0.15 200)" },
-          { label: "View Analytics", icon: Award, path: "/analytics", color: "oklch(0.75 0.14 80)" },
-          { label: "Export Reports", icon: Download, path: "/reports", color: "oklch(0.70 0.16 250)" },
+          { label: "Build Exam", icon: FileText, path: "/trainer/exam-builder", color: "oklch(0.72 0.18 160)" },
+          { label: "Grade Papers", icon: ClipboardCheck, path: "/trainer/grading", color: "oklch(0.65 0.15 200)" },
+          { label: "View Analytics", icon: Award, path: "/trainer/analytics", color: "oklch(0.75 0.14 80)" },
+          { label: "Export Reports", icon: Download, path: "/trainer/reports", color: "oklch(0.70 0.16 250)" },
         ].map((action) => (
           <button
             key={action.path}

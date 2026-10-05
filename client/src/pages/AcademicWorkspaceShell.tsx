@@ -16,8 +16,10 @@ import { toast } from "sonner";
 import jsPDF from "jspdf";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { getStoredSessionPlans, saveStoredSessionPlans, getStoredLearningPlans, getStoredRecordsOfWork, saveStoredRecordsOfWork, SessionDeliveryStep, SessionPlan } from "@/lib/mockSessionPlans";
-import { Plus, Trash2, Save, Printer, Sparkles, BookOpen, Clock, FileText, CheckCircle, UploadCloud, Edit3, ArrowRight, Check, ChevronDown, ChevronUp, GripVertical } from "lucide-react";
+import { getCurriculumUnits, getUnitDetails, CurriculumUnit } from "@/lib/curriculumDatabase";
+import { Plus, Trash2, Save, Printer, Sparkles, BookOpen, Clock, FileText, CheckCircle, UploadCloud, Edit3, ArrowRight, Check, ChevronDown, ChevronUp, GripVertical, QrCode } from "lucide-react";
 import AttendanceQuickMarkModal from "@/components/AttendanceQuickMarkModal";
+import WorkshopDoorQRModal from "@/components/WorkshopDoorQRModal";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -98,6 +100,7 @@ export default function AcademicWorkspaceShell() {
   const [activeClass, setActiveClass] = useState("ITECH6/M/24");
   const [activeUnit, setActiveUnit] = useState("");
   const [activeWeek, setActiveWeek] = useState(1);
+  const [activeSessionNo, setActiveSessionNo] = useState(1);
   
   // Enrolled trainees and active learning outcomes
   const [trainees, setTrainees] = useState<any[]>([]);
@@ -130,6 +133,7 @@ export default function AcademicWorkspaceShell() {
   // Document preview state
   const [isSigning, setIsSigning] = useState(false);
   const [currentSessionPlanId, setCurrentSessionPlanId] = useState("");
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   
   // AI Ingestion States
   const [isGenerating, setIsGenerating] = useState(false);
@@ -174,20 +178,48 @@ export default function AcademicWorkspaceShell() {
 
   const loadDropdownData = async () => {
     try {
+      // 1. Load official CDACC Units from D:\Curriculum and OS Database
+      const dbUnits = await getCurriculumUnits();
+      const formattedDbUnits = dbUnits.map(u => ({
+        id: u.unit_code,
+        unit_code: u.unit_code,
+        unit_name: `${u.unit_title} (${u.unit_code})`,
+        raw_name: u.unit_title,
+        level: u.level,
+        department: u.department
+      }));
+
+      // Fallback/merge with stored learning plans
       const mockLps = getStoredLearningPlans();
       const uniqueUnitCodes = Array.from(new Set(mockLps.map(l => l.unit_code)));
-      const formattedMockUnits = uniqueUnitCodes.map(code => {
-        const matchingLp = mockLps.find(l => l.unit_code === code);
-        return {
-          id: code,
-          unit_code: code,
-          unit_name: matchingLp?.unit_name || code,
-          level: code.includes("/6/") || code.includes("Level 6") ? 6 : 5
-        };
+      uniqueUnitCodes.forEach(code => {
+        if (!formattedDbUnits.some(u => u.unit_code === code)) {
+          const matchingLp = mockLps.find(l => l.unit_code === code);
+          formattedDbUnits.push({
+            id: code,
+            unit_code: code,
+            unit_name: matchingLp?.unit_name || code,
+            raw_name: matchingLp?.unit_name || code,
+            level: code.includes("/6/") || code.includes("Level 6") ? 6 : 5,
+            department: "Computing and Informatics"
+          });
+        }
       });
-      setUnits(formattedMockUnits);
-      if (formattedMockUnits.length > 0) {
-        setActiveUnit(formattedMockUnits[0].unit_code);
+
+      setUnits(formattedDbUnits);
+
+      // Check if user came from CurriculumParsingHub with pre-selected unit
+      const savedUnitStr = localStorage.getItem("selected_curriculum_unit");
+      if (savedUnitStr) {
+        try {
+          const parsed = JSON.parse(savedUnitStr);
+          if (parsed?.unit_code) {
+            setActiveUnit(parsed.unit_code);
+            localStorage.removeItem("selected_curriculum_unit");
+          }
+        } catch (e) {}
+      } else if (formattedDbUnits.length > 0 && !activeUnit) {
+        setActiveUnit(formattedDbUnits[0].unit_code);
       }
 
       if (isSupabaseConfigured()) {
@@ -199,7 +231,7 @@ export default function AcademicWorkspaceShell() {
         if (classesData && classesData.length > 0) setClasses(classesData);
         if (unitsData && unitsData.length > 0) {
           setUnits(unitsData);
-          setActiveUnit(unitsData[0].unit_code);
+          if (!savedUnitStr) setActiveUnit(unitsData[0].unit_code);
         }
       }
     } catch (err) {
@@ -207,12 +239,12 @@ export default function AcademicWorkspaceShell() {
     }
   };
 
-  // Trigger when context changes (Class, Unit, Week)
+  // Trigger when context changes (Class, Unit, Week, Session)
   useEffect(() => {
     if (activeUnit) {
       loadContextDetails();
     }
-  }, [activeClass, activeUnit, activeWeek]);
+  }, [activeClass, activeUnit, activeWeek, activeSessionNo]);
 
   const loadContextDetails = async () => {
     try {
@@ -227,7 +259,7 @@ export default function AcademicWorkspaceShell() {
         
         const storedPlans = getStoredSessionPlans();
         const existing = storedPlans.find(
-          p => p.unit_code === activeUnit && p.week_number === activeWeek
+          p => p.unit_code === activeUnit && p.week_number === activeWeek && ((p as any).session_number === activeSessionNo || (!((p as any).session_number) && activeSessionNo === 1))
         );
 
         if (existing) {
@@ -243,12 +275,12 @@ export default function AcademicWorkspaceShell() {
           setReflection(existing.reflection);
           setResources(existing.resources?.join(", ") || "");
         } else {
-          setCurrentSessionPlanId(`plan-draft-${Date.now()}`);
-          setSessionTitle(matchingWeekLp.topic || "");
+          setCurrentSessionPlanId(`plan-draft-${Date.now()}-w${activeWeek}-s${activeSessionNo}`);
+          setSessionTitle(activeSessionNo > 1 ? `${matchingWeekLp.topic || ""} (Session ${activeSessionNo})` : (matchingWeekLp.topic || ""));
           setDeliveryTime("10:30-12:30");
           setSelectedOutcomes(matchingWeekLp.learning_outcomes || []);
           setSafety("Standard laboratory guidelines & computer safety.");
-          setIntroduction(`Brief introduction to ${matchingWeekLp.topic}.`);
+          setIntroduction(`Brief introduction to ${matchingWeekLp.topic} - Session ${activeSessionNo}.`);
           setActivities([
             { time_minutes: 40, trainer_activity: "Present concepts on the topic.", learner_activity: "Active listening and note-taking.", assessment: "Oral Questioning" },
             { time_minutes: 60, trainer_activity: "Demonstrate and supervise practical application.", learner_activity: "Execute practical tasks on workstations.", assessment: "Observation" },
@@ -258,6 +290,52 @@ export default function AcademicWorkspaceShell() {
           setAssignment("");
           setReflection("");
           setResources(matchingWeekLp.resources?.join(", ") || "Projector, lab workstations, reference materials");
+        }
+      } else {
+        // Fallback to official CDACC unit database details
+        const cdaccUnit = await getUnitDetails(activeUnit);
+        if (cdaccUnit) {
+          const weekIdx = Math.max(0, Math.min(9, activeWeek - 1));
+          const weekData = cdaccUnit.weeks_breakdown?.[weekIdx];
+          const outList = weekData?.outcomes || cdaccUnit.learning_outcomes?.map(o => o.title) || [];
+          
+          setAvailableOutcomes(cdaccUnit.learning_outcomes?.map(o => o.title) || outList);
+          
+          const storedPlans = getStoredSessionPlans();
+          const existing = storedPlans.find(
+            p => p.unit_code === activeUnit && p.week_number === activeWeek && ((p as any).session_number === activeSessionNo || (!((p as any).session_number) && activeSessionNo === 1))
+          );
+
+          if (existing) {
+            setCurrentSessionPlanId(existing.id);
+            setSessionTitle(existing.session_title);
+            setDeliveryTime(existing.time_duration);
+            setSelectedOutcomes(existing.learning_outcomes || []);
+            setSafety(existing.safety_requirements);
+            setIntroduction(existing.introduction);
+            setActivities(existing.delivery_steps || []);
+            setSessionReview(existing.session_review);
+            setAssignment(existing.assignment);
+            setReflection(existing.reflection);
+            setResources(existing.resources?.join(", ") || "");
+          } else {
+            setCurrentSessionPlanId(`plan-cdacc-${Date.now()}-w${activeWeek}-s${activeSessionNo}`);
+            const baseTitle = weekData?.title || `Week ${activeWeek}: ${cdaccUnit.unit_title}`;
+            setSessionTitle(activeSessionNo > 1 ? `${baseTitle} (Session ${activeSessionNo})` : baseTitle);
+            setDeliveryTime("10:30-12:30");
+            setSelectedOutcomes(outList);
+            setSafety(cdaccUnit.safety_protocols || "Standard workshop safety protocols & ergonomic setup.");
+            setIntroduction(`Introduction to ${baseTitle} - Session ${activeSessionNo} as per CDACC occupational standards.`);
+            setActivities([
+              { time_minutes: 30, trainer_activity: "Exposition of technical principles & demonstration.", learner_activity: "Active observation & taking guided notes.", assessment: "Oral Questioning" },
+              { time_minutes: 60, trainer_activity: "Supervise practical exercises on workstations.", learner_activity: "Execute practical task matching performance criteria.", assessment: "Observation Checklist" },
+              { time_minutes: 30, trainer_activity: "Facilitate debrief and review competency achievements.", learner_activity: "Present task output & store in portfolio.", assessment: "Product Checklist" }
+            ]);
+            setSessionReview("");
+            setAssignment(`Practice practical competencies for ${cdaccUnit.unit_title} and update portfolio.`);
+            setReflection("Trainees demonstrated acceptable competency standard.");
+            setResources(weekData?.resources?.join(", ") || cdaccUnit.suggested_resources?.join(", ") || "Projector, lab workstations, CDACC standard guide");
+          }
         }
       }
 
@@ -341,6 +419,7 @@ export default function AcademicWorkspaceShell() {
       date: new Date().toLocaleDateString("en-GB"),
       time_duration: deliveryTime,
       week_number: activeWeek,
+      session_number: activeSessionNo,
       session_title: sessionTitle,
       learning_outcomes: selectedOutcomes,
       resources: resources.split(",").map(r => r.trim()),
@@ -462,7 +541,7 @@ export default function AcademicWorkspaceShell() {
 
       drawCell(0, 0, "Date:", new Date().toLocaleDateString("en-GB"));
       drawCell(1, 0, "Time:", deliveryTime);
-      drawCell(2, 0, "Week:", `Week ${activeWeek}`);
+      drawCell(2, 0, "Week / Session:", `Week ${activeWeek} (Sess ${activeSessionNo})`);
       drawCell(3, 0, "Trainer:", "Alexander Kinoti");
 
       drawCell(0, 1, "Department:", "Computing");
@@ -597,6 +676,7 @@ export default function AcademicWorkspaceShell() {
         date: new Date().toLocaleDateString("en-GB"),
         time_duration: deliveryTime,
         week_number: activeWeek,
+        session_no: activeSessionNo,
         trainer_name: "Alexander Kinoti",
         department: "Computing & Informatics",
         unit_name: activeUnitData?.unit_name || activeUnit,
@@ -797,6 +877,27 @@ export default function AcademicWorkspaceShell() {
               onChange={e => setActiveWeek(Math.max(1, Math.min(12, Number(e.target.value))))}
               className="w-16 px-3 py-1.5 rounded-lg border border-border bg-background text-xs font-semibold text-center focus:outline-none"
             />
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Session</span>
+            <div className="flex items-center gap-1 bg-secondary/40 p-0.5 rounded-lg border border-border">
+              {[1, 2, 3].map(sNo => (
+                <button
+                  key={sNo}
+                  type="button"
+                  onClick={() => setActiveSessionNo(sNo)}
+                  className={`px-2 py-1 rounded text-xs font-bold transition-all ${
+                    activeSessionNo === sNo
+                      ? "bg-[#000953] text-white shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title={`Switch to Session ${sNo} of Week ${activeWeek}`}
+                >
+                  S{sNo}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -1270,6 +1371,15 @@ export default function AcademicWorkspaceShell() {
               </button>
               <button
                 type="button"
+                onClick={() => setIsQRModalOpen(true)}
+                className="px-3 py-1.5 bg-[#c48820]/15 hover:bg-[#c48820]/25 text-[#000953] dark:text-[#f8fafc] border border-[#c48820]/40 text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-sm"
+                title="Generate Workshop Door QR Code Poster (MTTI/F/CUR/05)"
+              >
+                <QrCode className="w-3.5 h-3.5 text-[#c48820]" />
+                Workshop Door QR
+              </button>
+              <button
+                type="button"
                 onClick={handleApproveAndSign}
                 disabled={!(sessionTitle.trim() !== "" && selectedOutcomes.length > 0)}
                 className={`px-4 py-1.5 text-white text-xs font-bold rounded-lg shadow flex items-center gap-1 transition-all duration-300 ${!(sessionTitle.trim() !== "" && selectedOutcomes.length > 0) ? "opacity-50 cursor-not-allowed bg-gray-400" : "bg-[#000953] hover:bg-[#000953]/90"}`}
@@ -1473,6 +1583,25 @@ export default function AcademicWorkspaceShell() {
         classCode={activeClass}
         sessionPlanId={currentSessionPlanId}
         onSaveComplete={handleAttendanceComplete}
+      />
+
+      {/* Workshop Door QR Code Poster Modal */}
+      <WorkshopDoorQRModal
+        isOpen={isQRModalOpen}
+        onClose={() => setIsQRModalOpen(false)}
+        sessionData={{
+          id: currentSessionPlanId || `sp-w${activeWeek}-${(activeUnit || "unit").replace(/\//g, "-")}`,
+          unit_code: activeUnit,
+          unit_name: units.find(u => u.unit_code === activeUnit)?.unit_name || activeUnit,
+          class_code: activeClass,
+          session_title: sessionTitle || `Session on ${activeUnit}`,
+          learning_outcomes: selectedOutcomes,
+          date: new Date().toLocaleDateString("en-GB"),
+          time_duration: deliveryTime,
+          trainer_name: "Alexander Kinoti",
+          venue: "Computer Lab 1 / Workshop",
+          safety_requirements: safety
+        }}
       />
     </TrainerLayout>
   );

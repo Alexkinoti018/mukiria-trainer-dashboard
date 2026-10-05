@@ -31,6 +31,7 @@ export interface SessionPlan {
   reflection: string;
   signature: string;
   signature_date: string;
+  session_number?: number;
   status?: "planned" | "delivered"; // Linking field
 }
 

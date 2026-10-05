@@ -9,6 +9,9 @@
     "start": "NODE_ENV=production node dist/index.js",
     "preview": "vite preview --host",
     "check": "tsc --noEmit",
+    "test": "vitest run --root .",
+    "db:migrate": "node database/apply_migration.mjs",
+    "db:seed": "node database/apply_migration.mjs --seed",
     "format": "prettier --write ."
   },
   "dependencies": {
@@ -57,6 +60,7 @@
     "lucide-react": "^0.453.0",
     "nanoid": "^5.1.5",
     "next-themes": "^0.4.6",
+    "pg": "^8.23.1",
     "react": "^19.2.1",
     "react-day-picker": "^9.11.1",
     "react-dom": "^19.2.1",
