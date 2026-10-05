@@ -15,13 +15,17 @@ import {
   Plus,
   Edit2,
   Trash2,
-  X
+  X,
+  QrCode,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTrainees, OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { getStoredRecordsOfWork, saveStoredRecordsOfWork } from "@/lib/mockSessionPlans";
+import WorkshopDoorQRModal from "@/components/WorkshopDoorQRModal";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 // --- Types ---
 type AttendanceStatus = "X" | "0" | "";
@@ -100,6 +104,7 @@ export default function ClassRegister() {
   const [attendanceData, setAttendanceData] = useState<Record<string, StudentAttendanceRecord>>({});
   const [hoursPerSession, setHoursPerSession] = useState<number>(2);
   const [isSaving, setIsSaving] = useState(false);
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
 
   // Student Add / Edit Modal State
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
@@ -357,14 +362,98 @@ export default function ClassRegister() {
     return { actualHrs, possibleHrs, percentage, totalMarkedSessions };
   };
 
-  const handleSave = () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      toast.success("Class Register Saved", {
-        description: `Attendance data for ${selectedClassCode} stored in database.`,
+  // Sync QR door scans from StudentSessionView into current session
+  const handleSyncQRCheckIns = () => {
+    let totalSynced = 0;
+    const allScans: Array<{ adm: string; name: string; date: string; time: string }> = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith("mtti_attendance_") || key === "mtti_attendance_all")) {
+        try {
+          const val = JSON.parse(localStorage.getItem(key) || "[]");
+          if (Array.isArray(val)) {
+            allScans.push(...val);
+          }
+        } catch (e) {}
+      }
+    }
+
+    if (allScans.length === 0) {
+      toast.info("No door QR check-ins found yet. Generate a Door Poster and have trainees scan it!");
+      return;
+    }
+
+    const scannedAdms = new Set(allScans.map(s => (s.adm || "").trim().toUpperCase()));
+    const scannedNames = new Set(allScans.map(s => (s.name || "").trim().toLowerCase()));
+
+    // Target current active session (e.g. Week 1 Session 1)
+    const targetKey = "W1_S1";
+    setAttendanceData(prev => {
+      const updated = { ...prev };
+      classTrainees.forEach(t => {
+        const cleanAdm = (t.admNo || "").replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD)\//i, "").trim().toUpperCase();
+        const fullAdm = (t.admNo || "").trim().toUpperCase();
+        const regCode = (t.regCode || "").trim().toUpperCase();
+        const tName = (t.name || "").trim().toLowerCase();
+
+        const isMatch = scannedAdms.has(cleanAdm) || 
+                        scannedAdms.has(fullAdm) || 
+                        scannedAdms.has(regCode) ||
+                        scannedNames.has(tName);
+
+        if (isMatch) {
+          const rec = updated[t.id] || { attendance: {} };
+          updated[t.id] = {
+            ...rec,
+            attendance: {
+              ...rec.attendance,
+              [targetKey]: "X"
+            },
+            signed: true
+          };
+          totalSynced++;
+        }
       });
-    }, 800);
+      return updated;
+    });
+
+    if (totalSynced > 0) {
+      toast.success(`Synced ${totalSynced} trainee door check-ins into Session 1!`, {
+        description: "Verified presence from mobile workshop door QR scans."
+      });
+    } else {
+      toast.info(`Found ${allScans.length} scan records, but none matched trainees enrolled in ${selectedClassCode}.`);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      localStorage.setItem(`mtti_class_register_${selectedClassCode}`, JSON.stringify(attendanceData));
+
+      if (isSupabaseConfigured()) {
+        try {
+          const rows = classTrainees.map(t => {
+            const rec = attendanceData[t.id];
+            const isPresent = rec ? Object.values(rec.attendance).some(v => v === "X") : false;
+            return {
+              trainee_id: t.id,
+              status: isPresent ? "Present" : "Absent"
+            };
+          });
+          await (supabase.from("attendance_register" as any) as any).upsert(rows as any);
+        } catch (supaErr) {
+          console.warn("Supabase attendance sync warning:", supaErr);
+        }
+      }
+
+      toast.success("Class Register Saved", {
+        description: `Attendance data for ${selectedClassCode} stored in offline database.`,
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Sync to Record of Work
@@ -464,6 +553,20 @@ export default function ClassRegister() {
                 title="Reset to official MTTI 58 trainees"
               >
                 <RotateCcw className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => setIsQRModalOpen(true)}
+                className="h-9 px-3.5 flex items-center gap-1.5 bg-[#000953] hover:bg-[#000953]/90 text-white rounded-lg text-xs font-bold transition shadow-sm border border-[#c48820]/50"
+                title="Generate and print official QR Door Poster for workshop / laboratory entry"
+              >
+                <QrCode className="w-4 h-4 text-[#c48820]" /> Door QR Poster
+              </button>
+              <button 
+                onClick={handleSyncQRCheckIns}
+                className="h-9 px-3.5 flex items-center gap-1.5 bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border rounded-lg text-xs font-bold transition shadow-sm"
+                title="Sync trainees who scanned the door QR code into this session register"
+              >
+                <RefreshCw className="w-4 h-4 text-emerald-500" /> Sync Door Check-Ins
               </button>
               <button 
                 onClick={() => window.print()} 
@@ -1061,6 +1164,29 @@ export default function ClassRegister() {
             </div>
           )}
         </AnimatePresence>
+
+        {/* Workshop Door QR Code Poster Modal */}
+        <WorkshopDoorQRModal
+          isOpen={isQRModalOpen}
+          onClose={() => setIsQRModalOpen(false)}
+          sessionData={{
+            id: `sp-${selectedClassCode.replace(/[^a-zA-Z0-9]/g, "-")}-w1`,
+            unit_code: activeClassConfig.code,
+            unit_name: activeClassConfig.subject,
+            class_code: selectedClassCode,
+            session_title: `${activeClassConfig.subject} — Laboratory Session`,
+            learning_outcomes: [
+              `Demonstrate practical competence in ${activeClassConfig.subject}`,
+              "Apply occupational health and safety standards in the workshop",
+              "Execute assigned laboratory hands-on exercises according to CDACC curricula"
+            ],
+            date: new Date().toLocaleDateString("en-GB"),
+            time_duration: "08:30 - 10:30",
+            venue: "Workshop 3 / Computer Lab",
+            trainer_name: user?.name || "Dr. J. Muriithi",
+            safety_requirements: "Strictly observe workstation ergonomics, equipment handling protocols, and protective gear."
+          }}
+        />
 
       </div>
     </TrainerLayout>

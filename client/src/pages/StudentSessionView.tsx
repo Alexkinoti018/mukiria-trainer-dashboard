@@ -20,6 +20,7 @@ import {
   SessionPlan 
 } from "@/lib/mockSessionPlans";
 import { toast } from "sonner";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 export default function StudentSessionView() {
   const [, params] = useRoute("/session/:id");
@@ -95,16 +96,33 @@ export default function StudentSessionView() {
       return;
     }
 
-    // Save attendance locally
+    // Save attendance locally with session and class metadata
     const storageKey = `mtti_attendance_${session?.id || "default"}`;
     const existing = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    existing.push({
+    const newEntry = {
       adm: traineeAdm.trim().toUpperCase(),
       name: traineeName.trim(),
       time: new Date().toLocaleTimeString("en-GB"),
-      date: new Date().toLocaleDateString("en-GB")
-    });
+      date: new Date().toLocaleDateString("en-GB"),
+      session_id: session?.id || "default",
+      class_code: session?.class_code
+    };
+    existing.push(newEntry);
     localStorage.setItem(storageKey, JSON.stringify(existing));
+
+    // Also push to centralized mtti_attendance_all for easy cross-component sync
+    const globalExisting = JSON.parse(localStorage.getItem("mtti_attendance_all") || "[]");
+    globalExisting.push(newEntry);
+    localStorage.setItem("mtti_attendance_all", JSON.stringify(globalExisting));
+
+    // Optional Supabase background sync
+    if (isSupabaseConfigured()) {
+      try {
+        supabase.from("attendance_register" as any).insert({
+          status: "Present"
+        } as any).then(() => {});
+      } catch (err) {}
+    }
 
     setCheckedIn(true);
     toast.success(`Check-in confirmed for ${traineeName}!`);
