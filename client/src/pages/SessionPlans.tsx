@@ -174,14 +174,14 @@ export default function SessionPlans() {
     setSelectedPlan(null);
     setFormTrainerName("MR. ALEXANDER KINOTI");
     setFormDepartment("COMPUTING AND INFORMATICS");
-    setFormUnitName("PERFORM GRAPHIC DESIGN");
-    setFormUnitCode("ICT/OS/CS/CR/11/6/A");
-    setFormClassCode("ITECH6/M/J/24");
-    setFormLevel("6");
-    setFormTraineesCount(15);
-    setFormDate(new Date().toLocaleDateString("en-GB"));
+    setFormUnitName("PERFORM COMPUTER ESSENTIALS");
+    setFormUnitCode("IT/CU/ICTA/CR/01/4/MA");
+    setFormClassCode("ICT4/ITECH6/S/26 MOD 1");
+    setFormLevel("4 & 6");
+    setFormTraineesCount(19);
+    setFormDate("07/10/2026");
     setFormTimeDuration("10:30-12:30");
-    setFormWeekNumber(plans.length > 0 ? Math.max(...plans.map(p => p.week_number)) + 1 : 1);
+    setFormWeekNumber(6);
     setFormSessionTitle("");
     setFormLearningOutcomes("");
     setFormResources("Projector, lab workstations, reference materials");
@@ -196,7 +196,7 @@ export default function SessionPlans() {
     setFormAssignment("");
     setFormReflection("Pending review of trainee engagement and comprehension.");
     setFormSignature("Alexander Kinoti");
-    setFormSignatureDate(new Date().toLocaleDateString("en-GB"));
+    setFormSignatureDate("07/10/2026");
 
     setIsEditorOpen(true);
   };

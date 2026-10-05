@@ -60,96 +60,89 @@ interface TraineeContextType {
 
 // Official Trainees Transcribed from MTTI Institutional Registers (MTTI/REG/CUR/02 & CUR/03)
 export const OFFICIAL_MTTI_TRAINEES: Trainee[] = [
-  // 1. ITECH 6 MODULAR/S/2026 (Perform Computer Essentials - Level 6)
-  { id: "tr_it6_01", regCode: "ITECH 6 MOD/14179/S2026", admNo: "14179/S2026", name: "Nthiga Gakii Doris", classCode: "ITECH 6 MODULAR/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it6_02", regCode: "ITECH 6 MOD/14255/S2026", admNo: "14255/S2026", name: "Kaumbuthu Belinda Mukiri", classCode: "ITECH 6 MODULAR/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it6_03", regCode: "ITECH 6 MOD/14022/S2026", admNo: "14022/S2026", name: "Ltumwa Lesoipa", classCode: "ITECH 6 MODULAR/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it6_04", regCode: "ITECH 6 MOD/14077/S2026", admNo: "14077/S2026", name: "Kitheka Emmanuel Kioko", classCode: "ITECH 6 MODULAR/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it6_05", regCode: "ITECH 6 MOD/14102/S2026", admNo: "14102/S2026", name: "Felix Mugendi", classCode: "ITECH 6 MODULAR/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it6_06", regCode: "ITECH 6 MOD/14119/S2026", admNo: "14119/S2026", name: "Mwangi Clinton Njiru", classCode: "ITECH 6 MODULAR/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it6_07", regCode: "ITECH 6 MOD/14149/S2026", admNo: "14149/S2026", name: "Abigael Mukiri", classCode: "ITECH 6 MODULAR/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it6_08", regCode: "ITECH 6 MOD/14172/S2026", admNo: "14172/S2026", name: "Fiona Kadogo Mwika", classCode: "ITECH 6 MODULAR/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it6_09", regCode: "ITECH 6 MOD/14207/S2026", admNo: "14207/S2026", name: "Ann Mary Makena", classCode: "ITECH 6 MODULAR/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it6_10", regCode: "ITECH 6 MOD/14254/S2026", admNo: "14254/S2026", name: "Brenda Ngugi", classCode: "ITECH 6 MODULAR/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it6_11", regCode: "ITECH 6 MOD/14267/S2026", admNo: "14267/S2026", name: "Ingashia Favour Wawira", classCode: "ITECH 6 MODULAR/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it6_12", regCode: "10525", admNo: "10525", name: "LUCKYSUSAN KIANJIRU MUGO", classCode: "ITECH6/S/24", department: "Computing & Informatics" },
-  { id: "tr_it6_13", regCode: "10525-H", admNo: "10525", name: "Harriet Mwendwa", classCode: "ITECH6/S/24", department: "Computing & Informatics" },
+  // 1. Single Combined Cohort: ICT4/ITECH6/S/26 MOD 1 (Perform Computer Essentials - Level 4 & 6, 19 Trainees)
+  { id: "tr_it6_01", regCode: "ITECH 6 MOD/14179/S2026", admNo: "14179/S2026", name: "Nthiga Gakii Doris", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it6_02", regCode: "ITECH 6 MOD/14255/S2026", admNo: "14255/S2026", name: "Kaumbuthu Belinda Mukiri", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it6_03", regCode: "ITECH 6 MOD/14022/S2026", admNo: "14022/S2026", name: "Ltumwa Lesoipa", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it6_04", regCode: "ITECH 6 MOD/14077/S2026", admNo: "14077/S2026", name: "Kitheka Emmanuel Kioko", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it6_05", regCode: "ITECH 6 MOD/14102/S2026", admNo: "14102/S2026", name: "Felix Mugendi", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it6_06", regCode: "ITECH 6 MOD/14119/S2026", admNo: "14119/S2026", name: "Mwangi Clinton Njiru", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it6_07", regCode: "ITECH 6 MOD/14149/S2026", admNo: "14149/S2026", name: "Abigael Mukiri", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it6_08", regCode: "ITECH 6 MOD/14172/S2026", admNo: "14172/S2026", name: "Fiona Kadogo Mwika", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it6_09", regCode: "ITECH 6 MOD/14207/S2026", admNo: "14207/S2026", name: "Ann Mary Makena", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it6_10", regCode: "ITECH 6 MOD/14254/S2026", admNo: "14254/S2026", name: "Brenda Ngugi", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it6_11", regCode: "ITECH 6 MOD/14267/S2026", admNo: "14267/S2026", name: "Ingashia Favour Wawira", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it4_01", regCode: "ICT4 MOD/14076/S2026", admNo: "14076/S2026", name: "Wanjau Alvin Gatere", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it4_02", regCode: "ICT4 MOD/14107/S2026", admNo: "14107/S2026", name: "Ann Mukiri Matheta", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it4_03", regCode: "ICT4 MOD/14124/S2026", admNo: "14124/S2026", name: "Kimanthi Dennis Mwenda", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it4_04", regCode: "ICT4 MOD/14128/S2026", admNo: "14128/S2026", name: "Kimanthi Dennis Mwenda (II)", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it4_05", regCode: "ICT4 MOD/14211/S2026", admNo: "14211/S2026", name: "Guantai Brandon Mutua", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it4_06", regCode: "ICT4 MOD/14218/S2026", admNo: "14218/S2026", name: "Mwithia Mutharimi Nathan", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it4_07", regCode: "ICT4 MOD/14248/S2026", admNo: "14248/S2026", name: "Mbaabu Sarah Nkatha", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
+  { id: "tr_it4_08", regCode: "ICT4 MOD/14341/S2026", admNo: "14341/S2026", name: "Mutiria Hesborn Muriuki", classCode: "ICT4/ITECH6/S/26 MOD 1", department: "Computing & Informatics" },
 
-  // 2. ICT4 MOD/S/2026 (Perform Computer Essentials - Level 4)
-  { id: "tr_it4_01", regCode: "ICT4 MOD/14076/S2026", admNo: "14076/S2026", name: "Wanjau Alvin Gatere", classCode: "ICT4 MOD/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it4_02", regCode: "ICT4 MOD/14107/S2026", admNo: "14107/S2026", name: "Ann Mukiri Matheta", classCode: "ICT4 MOD/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it4_03", regCode: "ICT4 MOD/14124/S2026", admNo: "14124/S2026", name: "Kimanthi Dennis Mwenda", classCode: "ICT4 MOD/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it4_04", regCode: "ICT4 MOD/14128/S2026", admNo: "14128/S2026", name: "Kimanthi Dennis Mwenda (II)", classCode: "ICT4 MOD/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it4_05", regCode: "ICT4 MOD/14211/S2026", admNo: "14211/S2026", name: "Guantai Brandon Mutua", classCode: "ICT4 MOD/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it4_06", regCode: "ICT4 MOD/14218/S2026", admNo: "14218/S2026", name: "Mwithia Mutharimi Nathan", classCode: "ICT4 MOD/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it4_07", regCode: "ICT4 MOD/14248/S2026", admNo: "14248/S2026", name: "Mbaabu Sarah Nkatha", classCode: "ICT4 MOD/S/2026", department: "Computing & Informatics" },
-  { id: "tr_it4_08", regCode: "ICT4 MOD/14341/S2026", admNo: "14341/S2026", name: "Mutiria Hesborn Muriuki", classCode: "ICT4 MOD/S/2026", department: "Computing & Informatics" },
+  // 2. ADMIN5/6/J/26 MOD 3 (Apply ICT Skills - Business Department, 11 Trainees)
+  { id: "tr_adm_01", regCode: "13410", admNo: "13410", name: "RISPER MWENDE", classCode: "ADMIN5/6/J/26 MOD 3", department: "Business" },
+  { id: "tr_adm_02", regCode: "13527", admNo: "13527", name: "Banta Micheni", classCode: "ADMIN5/6/J/26 MOD 3", department: "Business" },
+  { id: "tr_adm_03", regCode: "12218", admNo: "12218", name: "Christine Gitonga", classCode: "ADMIN5/6/J/26 MOD 3", department: "Business" },
+  { id: "tr_adm_04", regCode: "13252", admNo: "13252", name: "Cynthia Nkatha", classCode: "ADMIN5/6/J/26 MOD 3", department: "Business" },
+  { id: "tr_adm_05", regCode: "13284", admNo: "13284", name: "Linet Ntinyari", classCode: "ADMIN5/6/J/26 MOD 3", department: "Business" },
+  { id: "tr_adm_06", regCode: "13424", admNo: "13424", name: "Nanis Ngugi", classCode: "ADMIN5/6/J/26 MOD 3", department: "Business" },
+  { id: "tr_adm_07", regCode: "13276", admNo: "13276", name: "Sharon Minoo", classCode: "ADMIN5/6/J/26 MOD 3", department: "Business" },
+  { id: "tr_adm_08", regCode: "10203", admNo: "10203", name: "Frida Kianjira", classCode: "ADMIN5/6/J/26 MOD 3", department: "Business" },
+  { id: "tr_adm_09", regCode: "12254", admNo: "12254", name: "Mercy Kiende", classCode: "ADMIN5/6/J/26 MOD 3", department: "Business" },
+  { id: "tr_adm_10", regCode: "12665", admNo: "12665", name: "Ruth Kathure", classCode: "ADMIN5/6/J/26 MOD 3", department: "Business" },
+  { id: "tr_adm_11", regCode: "13580", admNo: "13580", name: "MERCY KATHUURE", classCode: "ADMIN5/6/J/26 MOD 3", department: "Business" },
 
-  // 3. Admin 5/6/J/2026 (Apply ICT Skills - Business Department)
-  { id: "tr_adm_01", regCode: "13410", admNo: "13410", name: "RISPER MWENDE", classCode: "Admin 5/6/J/2026", department: "Business" },
-  { id: "tr_adm_02", regCode: "13527", admNo: "13527", name: "Banta Micheni", classCode: "Admin 5/6/J/2026", department: "Business" },
-  { id: "tr_adm_03", regCode: "12218", admNo: "12218", name: "Christine Gitonga", classCode: "Admin 5/6/J/2026", department: "Business" },
-  { id: "tr_adm_04", regCode: "13252", admNo: "13252", name: "Cynthia Nkatha", classCode: "Admin 5/6/J/2026", department: "Business" },
-  { id: "tr_adm_05", regCode: "13284", admNo: "13284", name: "Linet Ntinyari", classCode: "Admin 5/6/J/2026", department: "Business" },
-  { id: "tr_adm_06", regCode: "13424", admNo: "13424", name: "Nanis Ngugi", classCode: "Admin 5/6/J/2026", department: "Business" },
-  { id: "tr_adm_07", regCode: "13276", admNo: "13276", name: "Sharon Minoo", classCode: "Admin 5/6/J/2026", department: "Business" },
-  { id: "tr_adm_08", regCode: "10203", admNo: "10203", name: "Frida Kianjira", classCode: "Admin 5/6/J/2026", department: "Business" },
-  { id: "tr_adm_09", regCode: "12254", admNo: "12254", name: "Mercy Kiende", classCode: "Admin 5/6/J/2026", department: "Business" },
-  { id: "tr_adm_10", regCode: "12665", admNo: "12665", name: "Ruth Kathure", classCode: "Admin 5/6/J/2026", department: "Business" },
-  { id: "tr_adm_11", regCode: "13580", admNo: "13580", name: "MERCY KATHUURE", classCode: "Admin 5/6/J/2026", department: "Business" },
+  // 3. FBS5/6/J/26 (Apply Digital Literacy - Hospitality Department, 26 Trainees)
+  { id: "tr_fbs5_01", regCode: "FBS 5 MOD/13254/J2026", admNo: "13254", name: "Yvonne Mwende", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_02", regCode: "FBS 5 MOD/13263/J2026", admNo: "13263", name: "Muoki Muthoki", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_03", regCode: "FBS 5 MOD/13281/J2026", admNo: "13281", name: "Kibaara Peninah Gaichuiri", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_04", regCode: "FBS 5 MOD/13297/J2026", admNo: "13297", name: "Hilda Mwede Njagi", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_05", regCode: "FBS 5 MOD/13304/J2026", admNo: "13304", name: "Ndolo Shalom Mbithe", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_06", regCode: "FBS 5 MOD/13313/J2026", admNo: "13313", name: "Mirriam Nzula", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_07", regCode: "FBS 5 MOD/13343/J2026", admNo: "13343", name: "Waweru Hope Marion Makena", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_08", regCode: "FBS 5 MOD/13355/J2026", admNo: "13355", name: "Ann Joy Makena", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_09", regCode: "FBS 5 MOD/13378/J2026", admNo: "13378", name: "Martha Mwende Kyalo", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_10", regCode: "FBS 5 MOD/13396/J2026", admNo: "13396", name: "John Opiyo Omondi", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "M" },
+  { id: "tr_fbs5_11", regCode: "FBS 5 MOD/13445/J2026", admNo: "13445", name: "Eunice Kendi Nyaga", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_12", regCode: "FBS 5 MOD/13446/J2026", admNo: "13446", name: "Miriko Rita", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_13", regCode: "FBS 5 MOD/13463/J2026", admNo: "13463", name: "Valentine Lesoito", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_14", regCode: "FBS 5 MOD/13482/J2026", admNo: "13482", name: "Kinyua Christine Mutito", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_15", regCode: "FBS 5 MOD/13488/J2026", admNo: "13488", name: "Gichukia Bridgit Nyakio", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_16", regCode: "FBS 5 MOD/13546/J2026", admNo: "13546", name: "Karwitha Silvia", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_17", regCode: "FBS 5 MOD/13551/J2026", admNo: "13551", name: "Lavint Aliviza", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_18", regCode: "FBS 5 MOD/13559/J2026", admNo: "13559", name: "Kinya Weddy", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_19", regCode: "FBS 5 MOD/13571/J2026", admNo: "13571", name: "Gakuhi Jackline Nyambura", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_20", regCode: "FBS 5 MOD/13583/J2026", admNo: "13583", name: "Terry Mwendwa", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs6_01", regCode: "FBP6 MOD/13251/12026", admNo: "13251", name: "Mbithi Faith Wavinya", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs6_02", regCode: "FBS6 MOD/13314/12026", admNo: "13314", name: "Emmanuel Njoroge", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "M" },
+  { id: "tr_fbs6_03", regCode: "FBS6 MOD/13403/12026", admNo: "13403", name: "Brenda Ntinyari", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs6_04", regCode: "FBS6 MOD/13430/12026", admNo: "13430", name: "Omedo Lilian Atieno", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs6_05", regCode: "FBS6 MOD/13487/12026", admNo: "13487", name: "Waguama Donatus Wachira", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "M" },
+  { id: "tr_fbs6_06", regCode: "FBS6 MOD/13495/12026", admNo: "13495", name: "Nyamai Caroline Mutheu", classCode: "FBS5/6/J/26", department: "FBS Hospitality", gender: "F" },
 
-  // 4. FBS 5 MOD/J/2026 (Apply Digital Literacy - Level 5, MTTI/REG/CUR/02)
-  { id: "tr_fbs5_01", regCode: "FBS 5 MOD/13254/J2026", admNo: "13254", name: "Yvonne Mwende", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_02", regCode: "FBS 5 MOD/13263/J2026", admNo: "13263", name: "Muoki Muthoki", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_03", regCode: "FBS 5 MOD/13281/J2026", admNo: "13281", name: "Kibaara Peninah Gaichuiri", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_04", regCode: "FBS 5 MOD/13297/J2026", admNo: "13297", name: "Hilda Mwede Njagi", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_05", regCode: "FBS 5 MOD/13304/J2026", admNo: "13304", name: "Ndolo Shalom Mbithe", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_06", regCode: "FBS 5 MOD/13313/J2026", admNo: "13313", name: "Mirriam Nzula", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_07", regCode: "FBS 5 MOD/13343/J2026", admNo: "13343", name: "Waweru Hope Marion Makena", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_08", regCode: "FBS 5 MOD/13355/J2026", admNo: "13355", name: "Ann Joy Makena", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_09", regCode: "FBS 5 MOD/13378/J2026", admNo: "13378", name: "Martha Mwende Kyalo", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_10", regCode: "FBS 5 MOD/13396/J2026", admNo: "13396", name: "John Opiyo Omondi", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "M" },
-  { id: "tr_fbs5_11", regCode: "FBS 5 MOD/13445/J2026", admNo: "13445", name: "Eunice Kendi Nyaga", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_12", regCode: "FBS 5 MOD/13446/J2026", admNo: "13446", name: "Miriko Rita", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_13", regCode: "FBS 5 MOD/13463/J2026", admNo: "13463", name: "Valentine Lesoito", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_14", regCode: "FBS 5 MOD/13482/J2026", admNo: "13482", name: "Kinyua Christine Mutito", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_15", regCode: "FBS 5 MOD/13488/J2026", admNo: "13488", name: "Gichukia Bridgit Nyakio", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_16", regCode: "FBS 5 MOD/13546/J2026", admNo: "13546", name: "Karwitha Silvia", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_17", regCode: "FBS 5 MOD/13551/J2026", admNo: "13551", name: "Lavint Aliviza", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_18", regCode: "FBS 5 MOD/13559/J2026", admNo: "13559", name: "Kinya Weddy", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_19", regCode: "FBS 5 MOD/13571/J2026", admNo: "13571", name: "Gakuhi Jackline Nyambura", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs5_20", regCode: "FBS 5 MOD/13583/J2026", admNo: "13583", name: "Terry Mwendwa", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-
-  // 5. FBS6 MOD/J/2026 (Apply Digital Literacy - Level 6, 6 Trainees)
-  { id: "tr_fbs6_01", regCode: "FBP6 MOD/13251/12026", admNo: "13251", name: "Mbithi Faith Wavinya", classCode: "FBS6 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs6_02", regCode: "FBS6 MOD/13314/12026", admNo: "13314", name: "Emmanuel Njoroge", classCode: "FBS6 MOD/J/2026", department: "FBS Hospitality", gender: "M" },
-  { id: "tr_fbs6_03", regCode: "FBS6 MOD/13403/12026", admNo: "13403", name: "Brenda Ntinyari", classCode: "FBS6 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs6_04", regCode: "FBS6 MOD/13430/12026", admNo: "13430", name: "Omedo Lilian Atieno", classCode: "FBS6 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs6_05", regCode: "FBS6 MOD/13487/12026", admNo: "13487", name: "Waguama Donatus Wachira", classCode: "FBS6 MOD/J/2026", department: "FBS Hospitality", gender: "M" },
-  { id: "tr_fbs6_06", regCode: "FBS6 MOD/13495/12026", admNo: "13495", name: "Nyamai Caroline Mutheu", classCode: "FBS6 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-
-  // 6. LS5 MOD/S/2026 (Apply Digital Literacy - Level 5 Land Survey, 9 Trainees)
-  { id: "tr_ls5_01", regCode: "LS5 MOD/14009/52026", admNo: "14009", name: "Vick Mutembei", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
-  { id: "tr_ls5_02", regCode: "LS5 MOD/14024/52026", admNo: "14024", name: "Kajuju Jackline Kathera", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
-  { id: "tr_ls5_03", regCode: "LS5 MOD/14032/52026", admNo: "14032", name: "Muthike Bredah Nyawira", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
-  { id: "tr_ls5_04", regCode: "LS5 MOD/14092/S2026", admNo: "14092", name: "Murithi Brian Munene", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
-  { id: "tr_ls5_05", regCode: "LS5 MOD/14120/52026", admNo: "14120", name: "Glory Makena", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
-  { id: "tr_ls5_06", regCode: "LS5 MOD/14348/S2026", admNo: "14348", name: "Okello Janet Auma", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
-  { id: "tr_ls5_07", regCode: "LS5 MOD/14403/52026", admNo: "14403", name: "Mutegi Kagendo Emma", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
-  { id: "tr_ls5_08", regCode: "LS5 MOD/14428/52026", admNo: "14428", name: "Risper Mwendwa", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
-  { id: "tr_ls5_09", regCode: "LS5 MOD/14502/52026", admNo: "14502", name: "Mutegi Hyprith Gatwiri", classCode: "LS5 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
-
-  // 7. LS6 MOD/S/2026 (Apply Digital Literacy - Level 6 Land Survey, 10 Trainees)
-  { id: "tr_ls6_01", regCode: "LS6 MOD/14001/S2026", admNo: "14001", name: "Njeru Salim Mutemi", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
-  { id: "tr_ls6_02", regCode: "LS6 MOD/14011/S2026", admNo: "14011", name: "Jedida Karwitha", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
-  { id: "tr_ls6_03", regCode: "LS6 MOD/14066/52026", admNo: "14066", name: "Nyaga Caroline Mukami", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
-  { id: "tr_ls6_04", regCode: "LS6 MOD/14183/S2026", admNo: "14183", name: "Gideon Mucheria Kithendu", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
-  { id: "tr_ls6_05", regCode: "LS6 MOD/14256/52026", admNo: "14256", name: "Linus Murerwa", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
-  { id: "tr_ls6_06", regCode: "LS6 MOD/14283/52026", admNo: "14283", name: "Caroline Mwendwa", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
-  { id: "tr_ls6_07", regCode: "LS6 MOD/14331/S2026", admNo: "14331", name: "Brian Mutembei", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
-  { id: "tr_ls6_08", regCode: "LS6 MOD/14332/52026", admNo: "14332", name: "Kipngetich Cornelius", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "M" },
-  { id: "tr_ls6_09", regCode: "LS6 MOD/14351/52026", admNo: "14351", name: "Otieno Jecinter Trizer", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
-  { id: "tr_ls6_10", regCode: "LS6 MOD/14451/S2026", admNo: "14451", name: "Caroline Kanana Mwirigi", classCode: "LS6 MOD/S/2026", department: "Building & Civil Engineering", gender: "F" },
+  // 4. LS5/6/S/26 (Apply Digital Literacy - Land Survey, 19 Trainees + Harriet Mwendwa)
+  { id: "tr_ls5_01", regCode: "LS5 MOD/14009/52026", admNo: "14009", name: "Vick Mutembei", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls5_02", regCode: "LS5 MOD/14024/52026", admNo: "14024", name: "Kajuju Jackline Kathera", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls5_03", regCode: "LS5 MOD/14032/52026", admNo: "14032", name: "Muthike Bredah Nyawira", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls5_04", regCode: "LS5 MOD/14092/S2026", admNo: "14092", name: "Murithi Brian Munene", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls5_05", regCode: "LS5 MOD/14120/52026", admNo: "14120", name: "Glory Makena", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls5_06", regCode: "LS5 MOD/14348/S2026", admNo: "14348", name: "Okello Janet Auma", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls5_07", regCode: "LS5 MOD/14403/52026", admNo: "14403", name: "Mutegi Kagendo Emma", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls5_08", regCode: "LS5 MOD/14428/52026", admNo: "14428", name: "Risper Mwendwa", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls5_09", regCode: "LS5 MOD/14502/52026", admNo: "14502", name: "Mutegi Hyprith Gatwiri", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls6_01", regCode: "LS6 MOD/14001/S2026", admNo: "14001", name: "Njeru Salim Mutemi", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls6_02", regCode: "LS6 MOD/14011/S2026", admNo: "14011", name: "Jedida Karwitha", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls6_03", regCode: "LS6 MOD/14066/52026", admNo: "14066", name: "Nyaga Caroline Mukami", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls6_04", regCode: "LS6 MOD/14183/S2026", admNo: "14183", name: "Gideon Mucheria Kithendu", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls6_05", regCode: "LS6 MOD/14256/52026", admNo: "14256", name: "Linus Murerwa", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls6_06", regCode: "LS6 MOD/14283/52026", admNo: "14283", name: "Caroline Mwendwa", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls6_07", regCode: "LS6 MOD/14331/S2026", admNo: "14331", name: "Brian Mutembei", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls6_08", regCode: "LS6 MOD/14332/52026", admNo: "14332", name: "Kipngetich Cornelius", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "M" },
+  { id: "tr_ls6_09", regCode: "LS6 MOD/14351/52026", admNo: "14351", name: "Otieno Jecinter Trizer", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls6_10", regCode: "LS6 MOD/14451/S2026", admNo: "14451", name: "Caroline Kanana Mwirigi", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "F" },
+  { id: "tr_ls_harriet", regCode: "D/UPNUT/25042/069", admNo: "D/UPNUT/25042/069", name: "Harriet Mwendwa", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "F" },
 ];
 
 function getInitialUploads(): Upload[] {
@@ -281,20 +274,54 @@ function getInitialUploads(): Upload[] {
 const TraineeContext = createContext<TraineeContextType | undefined>(undefined);
 
 export function TraineeProvider({ children }: { children: ReactNode }) {
-  // Initialize from localStorage or fallback to official roster
+  // Initialize from localStorage or fallback to official roster (with automatic cleanup of phantom candidates)
   const [trainees, setTrainees] = useState<Trainee[]>(() => {
+    const versionKey = "mtti_roster_version_v6";
+    const currentVersion = localStorage.getItem(versionKey);
     const saved = localStorage.getItem("mtti_trainees");
-    if (saved) {
+
+    if (currentVersion === "v6" && saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 10) {
-          return parsed.map((t: Trainee) => ({
-            ...t,
-            admNo: t.admNo?.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD)\//i, "") || t.admNo
-          }));
+          // Strictly filter out phantom candidates
+          const filtered = parsed.filter((t: Trainee) => {
+            if (t.id === "tr_it6_12" || t.id === "tr_it6_13") return false;
+            if (t.name === "LUCKYSUSAN KIANJIRU MUGO") return false;
+            if (t.admNo === "10525" && t.classCode === "ICT4/ITECH6/S/26 MOD 1") return false;
+            if (t.name === "Harriet Mwendwa" && t.classCode === "ICT4/ITECH6/S/26 MOD 1") return false;
+            return true;
+          });
+
+          return filtered.map((t: Trainee) => {
+            let classCode = t.classCode;
+            if (
+              classCode === "ITECH 6 MODULAR/S/2026" || 
+              classCode === "ICT4 MOD/S/2026" || 
+              classCode === "ICT4/ITECH6/S/2026 MOD 1" ||
+              classCode === "ICT4/ITECH6/S/26 MOD 1"
+            ) {
+              classCode = "ICT4/ITECH6/S/26 MOD 1";
+            } else if (classCode === "Admin 5/6/J/2026" || classCode === "ADMIN5/6/J/26") {
+              classCode = "ADMIN5/6/J/26 MOD 3";
+            } else if (classCode === "FBS 5 MOD/J/2026" || classCode === "FBS" || classCode === "FBS6 MOD/J/2026") {
+              classCode = "FBS5/6/J/26";
+            } else if (classCode === "LS5 MOD/S/2026" || classCode === "LS6 MOD/S/2026") {
+              classCode = "LS5/6/S/26";
+            }
+            return {
+              ...t,
+              classCode,
+              admNo: t.admNo?.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD)\//i, "") || t.admNo
+            };
+          });
         }
       } catch {}
     }
+
+    // Default to clean official roster and mark version
+    localStorage.setItem(versionKey, "v6");
+    localStorage.setItem("mtti_trainees", JSON.stringify(OFFICIAL_MTTI_TRAINEES));
     return OFFICIAL_MTTI_TRAINEES;
   });
 
@@ -328,6 +355,38 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("mtti_trainees", JSON.stringify(trainees));
   }, [trainees]);
 
+  // Rehydrate from backend API / PostgreSQL on mount
+  useEffect(() => {
+    fetch("/api/trainees")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          setTrainees(prev => {
+            const existingMap = new Map<string, Trainee>();
+            prev.forEach(t => existingMap.set(t.id, t));
+            data.data.forEach((incoming: any) => {
+              const mapped: Trainee = {
+                id: incoming.id,
+                name: incoming.name,
+                regCode: incoming.reg_code || incoming.adm_no || incoming.reg_number,
+                admNo: incoming.adm_no || incoming.reg_number,
+                classCode: incoming.class_code || incoming.class_id || "ICT4/ITECH6/S/26 MOD 1",
+                department: incoming.department,
+                gender: incoming.gender,
+                phone: incoming.phone,
+                remarks: incoming.remarks,
+              };
+              existingMap.set(mapped.id, mapped);
+            });
+            const merged = Array.from(existingMap.values());
+            localStorage.setItem("mtti_trainees", JSON.stringify(merged));
+            return merged;
+          });
+        }
+      })
+      .catch(e => console.warn("Could not fetch remote trainees:", e));
+  }, []);
+
   useEffect(() => {
     localStorage.setItem("mtti_uploads", JSON.stringify(uploads));
   }, [uploads]);
@@ -346,6 +405,14 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
       id: `tr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
     setTrainees(prev => [...prev, trainee]);
+
+    // Persist to backend API & PostgreSQL
+    fetch("/api/trainees", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(trainee),
+    }).catch(err => console.warn("Backend trainee persist warning:", err));
+
     return trainee;
   };
 
@@ -355,6 +422,14 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
       id: `tr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
     setTrainees(prev => [trainee, ...prev]);
+
+    // Persist to backend API & PostgreSQL
+    fetch("/api/trainees", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(trainee),
+    }).catch(err => console.warn("Backend trainee persist warning:", err));
+
     return trainee;
   };
 

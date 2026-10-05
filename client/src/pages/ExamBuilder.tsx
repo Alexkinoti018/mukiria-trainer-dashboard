@@ -518,7 +518,7 @@ export default function ExamBuilder() {
     <TrainerLayout title="Exam Builder & Assessment" subtitle="Create and manage standardized assessment payloads and marks">
       
       {/* Tab Navigation */}
-      <div className="flex gap-2 border-b border-border mb-6 px-1">
+      <div className="flex gap-2 border-b border-border mb-6 px-1 print:hidden">
         <button
           onClick={() => setActiveTab("builder")}
           className={`px-4 py-2 text-sm font-bold border-b-2 transition-all ${

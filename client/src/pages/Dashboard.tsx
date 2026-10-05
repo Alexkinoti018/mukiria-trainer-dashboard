@@ -4,7 +4,7 @@
  * Shows key metrics, recent submissions, and quick actions
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import {
@@ -19,12 +19,16 @@ import {
   GraduationCap,
   ClipboardCheck,
   Download,
+  Calendar,
+  MapPin,
+  Radio,
 } from "lucide-react";
 import TrainerLayout from "@/components/TrainerLayout";
 import { supabase, isSupabaseConfigured, verifyDatabaseState } from "@/lib/supabase";
 import { useExam } from "@/contexts/ExamContext";
 import type { Exam, Submission } from "@/lib/supabase";
 import { format } from "date-fns";
+import { getTrainerLiveStatus } from "@/lib/academicCalendar";
 
 interface StatCard {
   label: string;
@@ -39,10 +43,16 @@ export default function Dashboard() {
   const [, navigate] = useLocation();
   const { exams, submissions } = useExam();
   const [loading, setLoading] = useState(false);
+  const [now, setNow] = useState(new Date());
 
   useEffect(() => {
     verifyDatabaseState();
+    const interval = setInterval(() => setNow(new Date()), 10000);
+    return () => clearInterval(interval);
   }, []);
+
+  const liveStatus = useMemo(() => getTrainerLiveStatus("Alexander Kinoti", now), [now]);
+  const { context } = liveStatus;
 
   const totalSubs = submissions.length;
   const gradedSubs = submissions.filter((s) => s.status === "graded").length;
@@ -134,12 +144,15 @@ export default function Dashboard() {
             backgroundSize: "cover",
           }}
         />
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <GraduationCap className="w-5 h-5" style={{ color: "oklch(0.72 0.18 160)" }} />
-              <span className="text-sm font-medium" style={{ color: "oklch(0.72 0.18 160)" }}>
-                Academic Year 2024
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Academic Year {context.academicYear} • {context.term} • Week {context.currentWeek}
+              </span>
+              <span className="text-xs font-mono text-slate-300 px-2.5 py-1 rounded bg-slate-800/80 border border-slate-700">
+                {context.formattedDate} · {context.timeFormatted}
               </span>
             </div>
             <h2
@@ -149,16 +162,88 @@ export default function Dashboard() {
               Grade with Confidence.
             </h2>
             <p className="text-sm" style={{ color: "oklch(0.58 0.012 240)" }}>
-              {gradedSubs} assessments graded · {pendingSubs} awaiting review
+              {gradedSubs} assessments graded · {pendingSubs} awaiting review · Current Status: <strong className="text-emerald-400">{context.statusText}</strong>
             </p>
           </div>
-          <button
-            onClick={() => navigate("/trainer/exam-builder")}
-            className="btn-emerald flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
-          >
-            <Plus className="w-4 h-4" />
-            New Exam
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate("/trainer/timetable")}
+              className="px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 bg-[#000953] border border-[#c48820]/40 text-[#c48820] hover:bg-[#000953]/80 transition shadow-sm"
+            >
+              <Calendar className="w-4 h-4" />
+              Master Timetable
+            </button>
+            <button
+              onClick={() => navigate("/trainer/exam-builder")}
+              className="btn-emerald flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
+            >
+              <Plus className="w-4 h-4" />
+              New Exam
+            </button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Live Trainer Timetable Status Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
+        className="glass-card p-5 mb-6 border border-emerald-500/20 bg-gradient-to-r from-[#000953]/50 via-slate-900/50 to-[#000953]/40"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+              <Radio className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#c48820]">
+                  Live Class Schedule • Alexander Kinoti
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-300 border border-slate-700">
+                  {context.dayName}
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-white mt-0.5">
+                {liveStatus.currentSession ? (
+                  <span className="text-emerald-300">
+                    In Session Now: {liveStatus.currentSession.unitTitle} ({liveStatus.currentSession.classCode})
+                  </span>
+                ) : liveStatus.nextSession ? (
+                  <span className="text-amber-300">
+                    Next Class: {liveStatus.nextSession.unitTitle} ({liveStatus.nextSession.classCode}) at {liveStatus.nextSession.startTime}
+                  </span>
+                ) : (
+                  <span className="text-slate-300">{liveStatus.summary}</span>
+                )}
+              </h3>
+              <div className="text-xs text-slate-400 mt-1 flex items-center gap-3 flex-wrap">
+                {(liveStatus.currentSession || liveStatus.nextSession) && (
+                  <span className="flex items-center gap-1 font-mono text-emerald-400">
+                    <MapPin className="w-3.5 h-3.5" />
+                    Venue: <strong>{(liveStatus.currentSession || liveStatus.nextSession)?.venue}</strong>
+                  </span>
+                )}
+                <span className="flex items-center gap-1 font-mono text-slate-300">
+                  <Clock className="w-3.5 h-3.5" />
+                  Time: {(liveStatus.currentSession || liveStatus.nextSession)?.timeRange || context.statusText}
+                </span>
+                <span className="text-slate-400">
+                  · {liveStatus.todaySessions?.length || 0} session(s) on {context.dayName}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
+            <button
+              onClick={() => navigate("/trainer/timetable")}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 transition"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              View Timetable
+            </button>
+          </div>
         </div>
       </motion.div>
 
@@ -364,18 +449,20 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35, duration: 0.3 }}
-        className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3"
+        className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"
       >
         {[
-          { label: "Build Exam", icon: FileText, path: "/trainer/exam-builder", color: "oklch(0.72 0.18 160)" },
-          { label: "Grade Papers", icon: ClipboardCheck, path: "/trainer/grading", color: "oklch(0.65 0.15 200)" },
-          { label: "View Analytics", icon: Award, path: "/trainer/analytics", color: "oklch(0.75 0.14 80)" },
-          { label: "Export Reports", icon: Download, path: "/trainer/reports", color: "oklch(0.70 0.16 250)" },
+          { label: "Master Timetable", icon: Calendar, path: "/trainer/timetable", color: "oklch(0.72 0.18 160)" },
+          { label: "Class Register", icon: ClipboardCheck, path: "/trainer/class-register", color: "oklch(0.65 0.15 200)" },
+          { label: "Build Exam", icon: FileText, path: "/trainer/exam-builder", color: "oklch(0.75 0.14 80)" },
+          { label: "Grade Papers", icon: Award, path: "/trainer/grading", color: "oklch(0.70 0.16 250)" },
+          { label: "View Analytics", icon: TrendingUp, path: "/trainer/analytics", color: "oklch(0.72 0.18 160)" },
+          { label: "Export Reports", icon: Download, path: "/trainer/reports", color: "oklch(0.65 0.22 25)" },
         ].map((action) => (
           <button
             key={action.path}
             onClick={() => navigate(action.path)}
-            className="glass-card p-4 flex flex-col items-center gap-2 text-center transition-all"
+            className="glass-card p-4 flex flex-col items-center gap-2 text-center transition-all hover:scale-[1.02]"
           >
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center"

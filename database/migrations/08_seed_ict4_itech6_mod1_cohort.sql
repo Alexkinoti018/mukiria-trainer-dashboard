@@ -76,10 +76,10 @@ ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
   payload = EXCLUDED.payload;
 
--- 5. Upsert 21 Official Trainees into Institutional Class Register (Zero Email Addresses)
+-- 5. Upsert 19 Official Trainees into Institutional Class Register (Zero Email Addresses)
 INSERT INTO public.trainees (id, reg_code, adm_no, name, class_code, department)
 VALUES
-  -- ── Section A: ITECH 6 Cohort Members (13 Trainees) ──
+  -- ── Section A: ITECH 6 Cohort Members (11 Trainees) ──
   ('tr_it6_01', 'ITECH 6 MOD/14179/S2026', '14179', 'Nthiga Gakii Doris', 'ICT4/ITECH6/S/26 MOD 1', 'Computing & Informatics'),
   ('tr_it6_02', 'ITECH 6 MOD/14255/S2026', '14255', 'Kaumbuthu Belinda Mukiri', 'ICT4/ITECH6/S/26 MOD 1', 'Computing & Informatics'),
   ('tr_it6_03', 'ITECH 6 MOD/14022/S2026', '14022', 'Ltumwa Lesoipa', 'ICT4/ITECH6/S/26 MOD 1', 'Computing & Informatics'),
@@ -91,8 +91,6 @@ VALUES
   ('tr_it6_09', 'ITECH 6 MOD/14207/S2026', '14207', 'Ann Mary Makena', 'ICT4/ITECH6/S/26 MOD 1', 'Computing & Informatics'),
   ('tr_it6_10', 'ITECH 6 MOD/14254/S2026', '14254', 'Brenda Ngugi', 'ICT4/ITECH6/S/26 MOD 1', 'Computing & Informatics'),
   ('tr_it6_11', 'ITECH 6 MOD/14267/S2026', '14267', 'Ingashia Favour Wawira', 'ICT4/ITECH6/S/26 MOD 1', 'Computing & Informatics'),
-  ('tr_it6_12', '10525', '10525', 'LUCKYSUSAN KIANJIRU MUGO', 'ICT4/ITECH6/S/26 MOD 1', 'Computing & Informatics'),
-  ('tr_it6_13', '10526', '10526', 'Harriet Mwendwa', 'ICT4/ITECH6/S/26 MOD 1', 'Computing & Informatics'),
 
   -- ── Section B: ICT 4 Cohort Members (8 Trainees) ──
   ('tr_it4_01', 'ICT4 MOD/14076/S2026', '14076', 'Wanjau Alvin Gatere', 'ICT4/ITECH6/S/26 MOD 1', 'Computing & Informatics'),

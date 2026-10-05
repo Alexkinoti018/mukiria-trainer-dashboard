@@ -133,11 +133,11 @@ const generateInitialPlans = (): LearningPlanDocument[] => {
       unitTitle: unitTitle,
       trainerName: "Alexander Kinoti",
       department: u.department || "Computing and Informatics",
-      duration: "MAY-AUG 2026",
+      duration: "31 AUG – 20 NOV 2026",
       level: unitLevel,
-      traineesCount: 25,
-      classCode: u.department?.includes("Civil") ? "CE6/M/S/24" : u.department?.includes("Survey") ? "LS6/M/24" : u.department?.includes("Business") ? "BUS/L5/25" : "ITECH6/M/24",
-      datePrepared: new Date().toLocaleDateString("en-GB"),
+      traineesCount: 19,
+      classCode: u.department?.includes("Business") ? "ADMIN5/6/J/26 MOD 3" : u.department?.includes("Survey") ? "LS5/6/S/26" : u.department?.includes("Hospitality") ? "FBS5/6/J/26" : "ICT4/ITECH6/S/26 MOD 1",
+      datePrepared: "31/08/2026",
       skillOrJobTask: u.description || `Operate computer hardware and software, manage data systems, and utilize productivity applications according to CDACC occupational guidelines.`,
       elements: elements.length > 0 ? elements : [
         {

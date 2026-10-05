@@ -33,6 +33,8 @@ import {
 import curriculumDatabaseRaw from "@/lib/curriculum_database.json";
 import parsedTemplates from "@/lib/parsed_templates.json";
 
+import { getAcademicContext } from "@/lib/academicCalendar";
+
 // Comprehensive Unit Name Lookup
 export const getUnitNameByCode = (code: string): string => {
   if (!code) return "General Competency";
@@ -61,7 +63,7 @@ export const getUnitNameByCode = (code: string): string => {
     "0612 451 07A": "Perform Computer Networking",
     "061006T4ICT": "Perform Computer Networking",
     "ICT/OS/IT/CR/1/6": "Perform Computer Networking",
-    "IT/CU/ICTA/CR/01/4/MA": "Computer Essentials",
+    "IT/CU/ICTA/CR/01/4/MA": "Perform Computer Essentials",
     "IT/CU/ICTA/CR/02/4/MA": "Computer Operations",
     "IT/CU/ICTA/CR/03/4/MA": "Computer Network Setup",
     "IT/CU/ICTA/CR/04/4/MA": "Computer Repair and Maintenance",
@@ -80,6 +82,7 @@ export const getUnitNameByCode = (code: string): string => {
 
 export default function RecordsOfWork() {
   const { user } = useAuth();
+  const academicContext = useMemo(() => getAcademicContext(), []);
   const [records, setRecords] = useState<RecordOfWork[]>([]);
   const [sessionPlans, setSessionPlans] = useState<SessionPlan[]>([]);
   const [selectedUnit, setSelectedUnit] = useState<string>("all");
@@ -90,12 +93,12 @@ export default function RecordsOfWork() {
 
   // Form State for Manual / Edit
   const [formData, setFormData] = useState({
-    unit_code: "HBS/OS/COS/BC/01/5/MA",
-    class_code: "EE6/M/S/24",
-    week_number: 1,
-    date_delivered: new Date().toLocaleDateString("en-GB"),
+    unit_code: "IT/CU/ICTA/CR/01/4/MA",
+    class_code: "ICT4/ITECH6/S/26 MOD 1",
+    week_number: academicContext.currentWeek,
+    date_delivered: academicContext.shortDate,
     hours_covered: 2,
-    trainees_present: 28,
+    trainees_present: 19,
     work_actually_covered: "",
     reflection: "",
     status: "delivered" as "delivered" | "partial" | "postponed",
@@ -449,7 +452,7 @@ export default function RecordsOfWork() {
               <div className="border border-black px-3 py-1 font-mono text-xs font-bold bg-gray-50">
                 MTTI/F/CUR/02
               </div>
-              <p className="text-[11px] mt-1 text-gray-600">Term: <strong>Term 2, 2026</strong></p>
+              <p className="text-[11px] mt-1 text-gray-600">Term: <strong>{academicContext.term} (Week {academicContext.currentWeek})</strong></p>
               <p className="text-[11px] text-gray-600">Trainer: <strong>{user?.email?.split('@')[0].toUpperCase() || "ALEXANDER KINOTI"}</strong></p>
             </div>
           </div>
@@ -466,11 +469,11 @@ export default function RecordsOfWork() {
             </div>
             <div>
               <span className="font-bold">Class: </span>
-              <span>{filteredRecords[0]?.class_code || "EE6/M/S/24"}</span>
+              <span>{filteredRecords[0]?.class_code || "ICT4/ITECH6/S/26 MOD 1"}</span>
             </div>
             <div>
               <span className="font-bold">KNQF Level: </span>
-              <span>Level 6</span>
+              <span>Level 4 & 6</span>
             </div>
           </div>
 

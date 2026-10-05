@@ -1076,7 +1076,7 @@ export default function CandidatePortal() {
                         handleVerifyRegNo(student.regNumber);
                       }
                     }}
-                    placeholder="e.g. 10525 or 14179/S2026"
+                    placeholder="e.g. 14179/S2026 or 13254"
                     className="flex-1 px-3 py-2.5 rounded-xl text-sm font-mono"
                     style={{
                       background: "oklch(1 0 0 / 0.06)",

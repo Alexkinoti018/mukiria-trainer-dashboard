@@ -24,7 +24,8 @@ import {
   ChevronDown,
   ChevronRight,
   CheckSquare,
-  Wrench
+  Wrench,
+  Calendar
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -38,10 +39,12 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/trainer/dashboard" },
+  { icon: Calendar, label: "Master Timetable", path: "/trainer/timetable" },
   {
     icon: FolderOpen,
     label: "Professional Documents",
     children: [
+      { icon: Calendar, label: "Timetable Schedule", path: "/trainer/timetable" },
       { icon: FileText, label: "Learning Plan", path: "/trainer/documents/learning-plan" },
       { icon: BookOpen, label: "Daily Session Plan", path: "/trainer/session-plans" },
       { icon: CheckSquare, label: "Class Register", path: "/trainer/class-register" },

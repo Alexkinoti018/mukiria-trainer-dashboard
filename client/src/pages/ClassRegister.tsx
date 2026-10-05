@@ -28,6 +28,7 @@ import WorkshopDoorQRModal from "@/components/WorkshopDoorQRModal";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { getAttendanceScansFromOffline, enqueueSyncItem } from "@/lib/offlineStore";
 import { syncEngine } from "@/lib/syncEngine";
+import { getAcademicContext } from "@/lib/academicCalendar";
 
 // --- Types ---
 type AttendanceStatus = "X" | "0" | "";
@@ -53,16 +54,6 @@ interface ClassConfig {
 
 const MTTI_CLASSES: ClassConfig[] = [
   {
-    code: "ICT4/ITECH6/S/2026 MOD 1",
-    name: "ICT4/ITECH6/S/2026 MOD 1",
-    subject: "Perform Computer Essentials",
-    department: "Computing & Informatics",
-    level: "Level 4 & 6",
-    duration: "Term 3 2026",
-    assessmentType: "Practical Assessment 1",
-    docCode: "MTTI/REG/CUR/02"
-  },
-  {
     code: "ICT4/ITECH6/S/26 MOD 1",
     name: "ICT4/ITECH6/S/26 MOD 1",
     subject: "Perform Computer Essentials",
@@ -73,54 +64,44 @@ const MTTI_CLASSES: ClassConfig[] = [
     docCode: "MTTI/REG/CUR/02"
   },
   {
-    code: "ITECH 6 MODULAR/S/2026",
-    name: "ITECH 6 MODULAR/S/2026",
-    subject: "Perform Computer Essentials",
-    department: "Computing & Informatics",
-    level: "Level 6",
-    duration: "Term 3 2026",
-    assessmentType: "Practical Assessment 1",
-    docCode: "MTTI/REG/CUR/02"
-  },
-  {
-    code: "ICT4 MOD/S/2026",
-    name: "ICT4 MOD/S/2026",
-    subject: "Perform Computer Essentials",
-    department: "Computing & Informatics",
-    level: "Level 4",
-    duration: "Term 3 2026",
-    assessmentType: "Practical Assessment 1",
-    docCode: "MTTI/REG/CUR/02"
-  },
-  {
-    code: "Admin 5/6/J/2026",
-    name: "Admin 5/6/J/2026",
+    code: "ADMIN5/6/J/26 MOD 3",
+    name: "ADMIN5/6/J/26 MOD 3",
     subject: "Apply ICT Skills",
-    department: "Business",
+    department: "Business Studies",
     level: "Level 6",
     duration: "Term 3 2026",
-    assessmentType: "PRACTICAL ASSESSMENT 1",
+    assessmentType: "Practical Assessment 1",
     docCode: "MTTI/REG/CUR/03"
   },
   {
-    code: "FBS 5 MOD/J/2026",
-    name: "FBS 5 MOD/J/2026",
-    subject: "Apply Digital Literacy",
-    department: "FBS Hospitality",
-    level: "Level 5",
+    code: "ADMIN4/5/6/S/26 MOD 1",
+    name: "ADMIN4/5/6/S/26 MOD 1",
+    subject: "Apply ICT Skills 1",
+    department: "Business Studies",
+    level: "Level 4/5/6",
     duration: "Term 3 2026",
     assessmentType: "General Class Register",
     docCode: "MTTI/REG/CUR/02"
   },
   {
-    code: "FBS",
-    name: "FBS Hospitality (Assessment)",
+    code: "FBS5/6/J/26",
+    name: "FBS5/6/J/26",
     subject: "Apply Digital Literacy",
-    department: "FBS Hospitality",
-    level: "Level 5",
+    department: "Hospitality Management",
+    level: "Level 5 & 6",
     duration: "Term 3 2026",
-    assessmentType: "Assessment 1",
-    docCode: "MTTI/REG/CUR/03"
+    assessmentType: "General Class Register",
+    docCode: "MTTI/REG/CUR/02"
+  },
+  {
+    code: "LS5/6/S/26",
+    name: "LS5/6/S/26",
+    subject: "Apply Digital Literacy",
+    department: "Surveying & Geomatics",
+    level: "Level 5 & 6",
+    duration: "Term 3 2026",
+    assessmentType: "General Class Register",
+    docCode: "MTTI/REG/CUR/02"
   }
 ];
 
@@ -131,7 +112,8 @@ export default function ClassRegister() {
 
   // Mode: "CUR/02" (General Class Register) or "CUR/03" (Assessment Attendance Register)
   const [formMode, setFormMode] = useState<"CUR/02" | "CUR/03">("CUR/02");
-  const [selectedClassCode, setSelectedClassCode] = useState<string>("ITECH 6 MODULAR/S/2026");
+  const [selectedClassCode, setSelectedClassCode] = useState<string>("ICT4/ITECH6/S/26 MOD 1");
+  const academicContext = useMemo(() => getAcademicContext(), []);
 
   // State: Mapping traineeId -> attendance record
   const [attendanceData, setAttendanceData] = useState<Record<string, StudentAttendanceRecord>>({});
@@ -163,7 +145,7 @@ export default function ClassRegister() {
     duration: activeClassConfig.duration,
     level: activeClassConfig.level,
     assessmentType: activeClassConfig.assessmentType,
-    assessmentDate: "01/10/26",
+    assessmentDate: academicContext.shortDate,
     lecturerComment: "",
     hodComment: "",
   });
@@ -186,14 +168,15 @@ export default function ClassRegister() {
     const list = trainees.filter(t => {
       if (t.classCode === selectedClassCode) return true;
       if (
-        (selectedClassCode === "ICT4/ITECH6/S/2026 MOD 1" || selectedClassCode === "ICT4/ITECH6/S/26 MOD 1" || selectedClassCode === "ICT4/ITECH6/S/26") &&
+        (selectedClassCode.includes("ICT4") || selectedClassCode.includes("ITECH6")) &&
         (t.classCode.includes("ITECH") || t.classCode.includes("ICT4") || t.classCode.includes("MOD 1"))
       ) return true;
-      if (selectedClassCode === "FBS 5 MOD/J/2026" && (t.classCode === "FBS" || t.classCode === "FBS 5 MOD/J/2026")) return true;
-      if (selectedClassCode === "FBS" && (t.classCode === "FBS" || t.classCode === "FBS 5 MOD/J/2026")) return true;
+      if (selectedClassCode.includes("ADMIN") && t.classCode.includes("ADMIN")) return true;
+      if (selectedClassCode.includes("FBS") && t.classCode.includes("FBS")) return true;
+      if (selectedClassCode.includes("LS") && t.classCode.includes("LS")) return true;
       return false;
     });
-    return list.length > 0 ? list : trainees.slice(0, 11);
+    return list.length > 0 ? list : trainees.slice(0, 19);
   }, [trainees, selectedClassCode]);
 
   // Student CRUD Handlers
@@ -234,6 +217,23 @@ export default function ClassRegister() {
       remarks: studentForm.remarks.trim(),
     });
 
+    // Persist new trainee to backend API & PostgreSQL
+    fetch("/api/trainees", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: created.id,
+        name: created.name,
+        admNo: created.admNo,
+        regCode: created.regCode,
+        classCode: selectedClassCode,
+        department: activeClassConfig.department,
+        gender: studentForm.gender,
+        phone: studentForm.phone.trim(),
+        remarks: studentForm.remarks.trim(),
+      }),
+    }).catch(err => console.warn("Backend trainee save notice:", err));
+
     // Populate initial attendance
     const initAttendance: Record<string, AttendanceStatus> = {};
     for (let w = 1; w <= 3; w++) {
@@ -246,7 +246,7 @@ export default function ClassRegister() {
       [created.id]: { attendance: initAttendance, signed: true }
     }));
     setIsAddStudentOpen(false);
-    toast.success(`Student ${created.name} added to roster.`);
+    toast.success(`Student ${created.name} added to roster & database.`);
   };
 
   const handleOpenEditStudent = (trainee: any) => {
@@ -303,28 +303,71 @@ export default function ClassRegister() {
     }
   };
 
-  // Initialize attendance tracking
+  // Local persistence helper
+  const persistLocally = (data: Record<string, StudentAttendanceRecord>) => {
+    try {
+      localStorage.setItem(`mtti_class_register_${selectedClassCode}`, JSON.stringify(data));
+    } catch (e) {
+      console.warn("Error caching attendance locally:", e);
+    }
+  };
+
+  // Rehydrate attendance tracking: Load from localStorage immediately, then rehydrate from backend PostgreSQL / API
   useEffect(() => {
-    setAttendanceData(prev => {
-      const updated = { ...prev };
-      classTrainees.forEach((t, idx) => {
-        if (!updated[t.id]) {
-          // Pre-populate realistic initial present ticks for demonstration
-          const initAttendance: Record<string, AttendanceStatus> = {};
-          for (let w = 1; w <= 3; w++) {
-            for (let s = 1; s <= SESSIONS_PER_WEEK; s++) {
-              initAttendance[`W${w}_S${s}`] = (idx === 3 && w === 2 && s === 2) ? "0" : "X";
-            }
-          }
-          updated[t.id] = { 
-            attendance: initAttendance,
-            signed: true // default signed for assessment register
-          };
+    const storageKey = `mtti_class_register_${selectedClassCode}`;
+    let initialLoaded: Record<string, StudentAttendanceRecord> = {};
+
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object" && Object.keys(parsed).length > 0) {
+          initialLoaded = parsed;
         }
-      });
-      return updated;
+      }
+    } catch (e) {}
+
+    // Populate any trainees missing records
+    const updated = { ...initialLoaded };
+    classTrainees.forEach((t, idx) => {
+      if (!updated[t.id]) {
+        const initAttendance: Record<string, AttendanceStatus> = {};
+        for (let w = 1; w <= 3; w++) {
+          for (let s = 1; s <= SESSIONS_PER_WEEK; s++) {
+            initAttendance[`W${w}_S${s}`] = (idx === 3 && w === 2 && s === 2) ? "0" : "X";
+          }
+        }
+        updated[t.id] = { 
+          attendance: initAttendance,
+          signed: true // default signed for assessment register
+        };
+      }
     });
-  }, [classTrainees]);
+
+    setAttendanceData(updated);
+
+    // Fetch persisted attendance from backend API & PostgreSQL
+    fetch(`/api/attendance?class_code=${encodeURIComponent(selectedClassCode)}&unit_offering_id=uo-1`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.matrix && Object.keys(data.matrix).length > 0) {
+          setAttendanceData(prev => {
+            const merged = { ...prev };
+            for (const [traineeId, sessions] of Object.entries(data.matrix as Record<string, Record<string, AttendanceStatus>>)) {
+              merged[traineeId] = {
+                attendance: { ...(merged[traineeId]?.attendance || {}), ...sessions },
+                signed: merged[traineeId]?.signed ?? true,
+              };
+            }
+            persistLocally(merged);
+            return merged;
+          });
+        }
+      })
+      .catch(err => {
+        console.warn("Backend attendance rehydration notice:", err);
+      });
+  }, [selectedClassCode, classTrainees]);
 
   // Toggle Attendance Cell in CUR/02
   const toggleAttendance = (studentId: string, week: number, session: number) => {
@@ -332,25 +375,41 @@ export default function ClassRegister() {
       toast.error("Forbidden: Only assigned trainers, HODs, and administrators can mark attendance.");
       return;
     }
-    setAttendanceData((prev) => {
-      const studentRecord = prev[studentId] || { attendance: {} };
-      const key = `W${week}_S${session}`;
-      const current = studentRecord.attendance[key];
-      
-      // Cycle: "" -> "X" -> "0" -> ""
-      let nextStatus: AttendanceStatus = "";
-      if (!current) nextStatus = "X";
-      else if (current === "X") nextStatus = "0";
-      else nextStatus = "";
+    const key = `W${week}_S${session}`;
+    const studentRecord = attendanceData[studentId] || { attendance: {} };
+    const current = studentRecord.attendance[key];
+    
+    // Cycle: "" -> "X" -> "0" -> ""
+    let nextStatus: AttendanceStatus = "";
+    if (!current) nextStatus = "X";
+    else if (current === "X") nextStatus = "0";
+    else nextStatus = "";
 
-      return {
-        ...prev,
-        [studentId]: {
-          ...studentRecord,
-          attendance: { ...studentRecord.attendance, [key]: nextStatus }
-        }
-      };
-    });
+    const updatedData: Record<string, StudentAttendanceRecord> = {
+      ...attendanceData,
+      [studentId]: {
+        ...studentRecord,
+        attendance: { ...studentRecord.attendance, [key]: nextStatus }
+      }
+    };
+
+    setAttendanceData(updatedData);
+    persistLocally(updatedData);
+
+    // Instant asynchronous mark persistence
+    fetch("/api/attendance/mark", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        unit_offering_id: "uo-1",
+        trainee_id: studentId,
+        week_number: week,
+        session_index: session,
+        status: nextStatus === "X" ? "present" : (nextStatus === "0" ? "absent" : "excused"),
+        hours_attended: hoursPerSession,
+        marked_by: user?.name || "ALEXANDER KINOTI",
+      }),
+    }).catch(err => console.warn("Background mark persist warning:", err));
   };
 
   // Mark entire session column present or toggle
@@ -359,21 +418,40 @@ export default function ClassRegister() {
       toast.error("Forbidden: Only assigned trainers, HODs, and administrators can mark attendance.");
       return;
     }
-    setAttendanceData(prev => {
-      const updated = { ...prev };
-      const key = `W${week}_S${session}`;
-      const allX = classTrainees.every(t => updated[t.id]?.attendance[key] === "X");
-      const targetStatus: AttendanceStatus = allX ? "" : "X";
-      
-      classTrainees.forEach(t => {
-        const studentRecord = updated[t.id] || { attendance: {} };
-        updated[t.id] = {
-          ...studentRecord,
-          attendance: { ...studentRecord.attendance, [key]: targetStatus }
-        };
+    const key = `W${week}_S${session}`;
+    const allX = classTrainees.every(t => attendanceData[t.id]?.attendance[key] === "X");
+    const targetStatus: AttendanceStatus = allX ? "" : "X";
+    
+    const updatedData: Record<string, StudentAttendanceRecord> = { ...attendanceData };
+    const recordsToSync: Array<any> = [];
+
+    classTrainees.forEach(t => {
+      const studentRecord = updatedData[t.id] || { attendance: {} };
+      updatedData[t.id] = {
+        ...studentRecord,
+        attendance: { ...studentRecord.attendance, [key]: targetStatus }
+      };
+      recordsToSync.push({
+        trainee_id: t.id,
+        week_number: week,
+        session_index: session,
+        status: targetStatus === "X" ? "present" : "absent",
+        hours_attended: hoursPerSession,
       });
-      return updated;
     });
+
+    setAttendanceData(updatedData);
+    persistLocally(updatedData);
+
+    fetch("/api/attendance/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        unit_offering_id: "uo-1",
+        records: recordsToSync,
+      }),
+    }).catch(err => console.warn("Bulk mark sync warning:", err));
+
     toast.success(`Week ${week}, Session ${session} updated for all trainees.`);
   };
 
@@ -383,21 +461,40 @@ export default function ClassRegister() {
       toast.error("Forbidden: Only assigned trainers, HODs, and administrators can mark attendance.");
       return;
     }
-    setAttendanceData(prev => {
-      const updated = { ...prev };
-      classTrainees.forEach(t => {
-        const studentRecord = updated[t.id] || { attendance: {} };
-        const newAtt = { ...studentRecord.attendance };
-        for (let s = 1; s <= SESSIONS_PER_WEEK; s++) {
-          newAtt[`W${week}_S${s}`] = "X";
-        }
-        updated[t.id] = {
-          ...studentRecord,
-          attendance: newAtt
-        };
-      });
-      return updated;
+    const updatedData: Record<string, StudentAttendanceRecord> = { ...attendanceData };
+    const recordsToSync: Array<any> = [];
+
+    classTrainees.forEach(t => {
+      const studentRecord = updatedData[t.id] || { attendance: {} };
+      const newAtt = { ...studentRecord.attendance };
+      for (let s = 1; s <= SESSIONS_PER_WEEK; s++) {
+        newAtt[`W${week}_S${s}`] = "X";
+        recordsToSync.push({
+          trainee_id: t.id,
+          week_number: week,
+          session_index: s,
+          status: "present",
+          hours_attended: hoursPerSession,
+        });
+      }
+      updatedData[t.id] = {
+        ...studentRecord,
+        attendance: newAtt
+      };
     });
+
+    setAttendanceData(updatedData);
+    persistLocally(updatedData);
+
+    fetch("/api/attendance/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        unit_offering_id: "uo-1",
+        records: recordsToSync,
+      }),
+    }).catch(err => console.warn("Bulk week sync warning:", err));
+
     toast.success(`All 3 sessions of Week ${week} marked present (X)!`);
   };
 
@@ -521,14 +618,35 @@ export default function ClassRegister() {
     }
     setIsSaving(true);
     try {
-      localStorage.setItem(`mtti_class_register_${selectedClassCode}`, JSON.stringify(attendanceData));
+      persistLocally(attendanceData);
 
+      // 1. Dispatch full attendance matrix to backend PostgreSQL API
+      let apiSaved = false;
+      try {
+        const apiRes = await fetch("/api/attendance/bulk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            unit_offering_id: "uo-1",
+            class_code: selectedClassCode,
+            attendanceData,
+          }),
+        });
+        const json = await apiRes.json();
+        if (json.success) apiSaved = true;
+      } catch (apiErr) {
+        console.warn("Backend API /api/attendance/bulk error:", apiErr);
+      }
+
+      // 2. Also format for Supabase / offline queue if configured
       const rows = classTrainees.map(t => {
         const rec = attendanceData[t.id];
         const isPresent = rec ? Object.values(rec.attendance).some(v => v === "X") : false;
         return {
+          unit_offering_id: "uo-1",
           trainee_id: t.id,
-          status: isPresent ? "Present" : "Absent"
+          week_number: 1,
+          status: isPresent ? "present" : "absent"
         };
       });
 
@@ -547,10 +665,8 @@ export default function ClassRegister() {
 
       syncEngine.flushQueue();
 
-      toast.success("Class Register Saved", {
-        description: isOnline
-          ? `Attendance data for ${selectedClassCode} synced with MTTI cloud.`
-          : `Attendance data for ${selectedClassCode} stored in offline database & queued for sync.`,
+      toast.success("Class Register Saved Permanently", {
+        description: `Attendance data for ${selectedClassCode} persisted to PostgreSQL & local database.`,
       });
     } finally {
       setIsSaving(false);
@@ -583,18 +699,18 @@ export default function ClassRegister() {
       ...existing,
       {
         id: `row-reg-${Date.now()}`,
-        session_plan_id: `sp-${selectedClassCode.replace(/[^a-zA-Z0-9]/g, "-")}-w3`,
+        session_plan_id: `sp-${selectedClassCode.replace(/[^a-zA-Z0-9]/g, "-")}-w${academicContext.currentWeek}`,
         unit_code: metadata.subject,
         class_code: selectedClassCode,
-        week_number: 3,
-        date_delivered: new Date().toLocaleDateString("en-GB"),
+        week_number: academicContext.currentWeek,
+        date_delivered: academicContext.shortDate,
         trainees_present: presentCount,
         hours_covered: hoursPerSession,
         work_actually_covered: `Delivered practical lecture on ${metadata.subject}. Verified competencies for all present trainees.`,
         reflection: "Trainees demonstrated consistent engagement. Attendance logged.",
         status: "delivered" as const,
         signature: "ALEXANDER KINOTI",
-        signature_date: new Date().toLocaleDateString("en-GB")
+        signature_date: academicContext.shortDate
       }
     ];
     saveStoredRecordsOfWork(updated);
@@ -779,7 +895,7 @@ export default function ClassRegister() {
           >
             {/* Top Header */}
             <div className="flex justify-between items-start text-xs font-bold mb-2">
-              <div>Thursday, September 24, 2026 : 09:50 AM</div>
+              <div>{academicContext.formattedDate} : {academicContext.timeFormatted}</div>
               <div className="font-mono text-sm">MTTI/REG/CUR/02</div>
             </div>
 

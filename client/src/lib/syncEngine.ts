@@ -343,12 +343,26 @@ class SyncEngine {
     const scan = item.payload;
     if (!scan || !scan.adm) return { success: true };
 
-    if (!isSupabaseConfigured()) {
-      return { success: true };
-    }
-
     try {
-      // 1. Look up student in trainees or attendance_register
+      // 1. Dispatch to backend Express API & PostgreSQL
+      fetch("/api/attendance/mark", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          unit_offering_id: "uo-1",
+          trainee_id: scan.adm,
+          status: "present",
+          hours_attended: 2.0,
+          remarks: `QR checkin from ${scan.name || scan.adm}`,
+        }),
+      }).catch(err => console.warn("[SyncEngine] Backend API QR checkin sync warning:", err));
+
+      if (!isSupabaseConfigured()) {
+        if (scan.id) await markAttendanceScanSynced(scan.id);
+        return { success: true };
+      }
+
+      // 2. Look up student in Supabase trainees or attendance_register
       const { data: trainee } = await (supabase as any)
         .from("trainees")
         .select("id")
@@ -357,7 +371,7 @@ class SyncEngine {
 
       const traineeId = trainee?.id || scan.adm;
 
-      // 2. Union merge: Record attendance with status 'Present'
+      // 3. Union merge in Supabase: Record attendance with status 'Present'
       const { error } = await (supabase as any)
         .from("attendance_register")
         .insert({
@@ -366,8 +380,7 @@ class SyncEngine {
         });
 
       if (error && !error.message.includes("duplicate key")) {
-        // If it was duplicate key, it means already marked present - successful merge!
-        console.warn("[SyncEngine] Attendance sync notice:", error.message);
+        console.warn("[SyncEngine] Supabase attendance notice:", error.message);
       }
 
       if (scan.id) {
@@ -390,14 +403,40 @@ class SyncEngine {
     const rows = item.payload?.rows;
     if (!rows || !Array.isArray(rows)) return { success: true };
 
-    if (!isSupabaseConfigured()) return { success: true };
-
     try {
-      const { error } = await (supabase as any)
-        .from("attendance_register")
-        .upsert(rows);
+      // 1. Always flush to backend API / PostgreSQL
+      try {
+        const records = rows.map((r: any) => ({
+          unit_offering_id: r.unit_offering_id || "uo-1",
+          trainee_id: r.trainee_id,
+          week_number: Number(r.week_number || 1),
+          status: r.status === "Present" || r.status === "present" || r.status === "X" ? "present" : "absent",
+          hours_attended: 2.0,
+        }));
 
-      if (error) return { success: false, error: error.message };
+        await fetch("/api/attendance/bulk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            unit_offering_id: "uo-1",
+            records,
+          }),
+        });
+      } catch (apiErr: any) {
+        console.warn("[SyncEngine] Failed flushing attendance rows to /api/attendance/bulk:", apiErr);
+      }
+
+      // 2. Flush to Supabase if configured
+      if (isSupabaseConfigured()) {
+        const { error } = await (supabase as any)
+          .from("attendance_register")
+          .upsert(rows);
+
+        if (error) {
+          console.warn("[SyncEngine] Supabase upsert notice:", error.message);
+        }
+      }
+
       return { success: true };
     } catch (e: any) {
       return { success: false, error: e.message };

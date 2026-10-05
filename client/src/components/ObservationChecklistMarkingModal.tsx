@@ -24,10 +24,13 @@ import {
   MapPin,
   Clock,
   ShieldCheck,
-  Share2
+  Share2,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTrainees } from "@/contexts/TraineeContext";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export interface ObservationItem {
   id: number;
@@ -72,8 +75,8 @@ export const REPAIR_MAINTENANCE_PRESET: PracticalRubricPreset = {
   classCode: "ITECH6/S/24",
   venue: "JITUME LAB",
   date: "13/11/2024",
-  defaultCandidate: "LUCKYSUSAN KIANJIRU MUGO",
-  defaultRegNo: "10525",
+  defaultCandidate: "Brenda Ngugi",
+  defaultRegNo: "14254/S2026",
   assessorName: "Trainer / Assessor",
   assessorSignature: "For pk",
   defaultFeedback: "V. Good.",
@@ -84,27 +87,55 @@ export const REPAIR_MAINTENANCE_PRESET: PracticalRubricPreset = {
       task: "Task 1: System Monitoring and Troubleshooting\n\ni. Award 10 marks for navigation to Processes and recording real-time resource usage analysis.\nii. Award 10 marks for navigation to Performance and identification of features of CPU, RAM Memory, Ethernet and GPU.",
       scoringGuide: "Award 25 marks: Processes analysis (10), Hardware performance specs (10), Resource troubleshooting (5)",
       marksAvailable: 25,
-      marksObtained: 24,
+      marksObtained: 20,
       comments: "Navigated Task Manager processes and performance metrics accurately. Identified CPU & memory utilization levels."
     },
     {
       id: 2,
-      task: "Task 2: Network Diagnostics and Optimization\n\ni. Award 5 marks for effective use of network diagnostic tools (Network Trouble-shooter).\nii. Award 5 marks for correct configuration of network adapter settings.",
-      scoringGuide: "Award 10 marks: Network troubleshooter diagnosis (5), Adapter IPv4/IPv6 configuration (5)",
-      marksAvailable: 10,
-      marksObtained: 8,
-      comments: "Ran Network Trouble-shooter tool and verified adapter IP configurations correctly."
+      task: "Task 2 (i): Network Diagnostics and Optimization\n\ni. Award 5 marks for effective use of network diagnostic tools (Network Trouble-shooter).",
+      scoringGuide: "Award 5 marks: Network troubleshooter diagnosis (5)",
+      marksAvailable: 5,
+      marksObtained: 4,
+      comments: "Ran Network Trouble-shooter tool and verified IP diagnostic reports."
     },
     {
       id: 3,
+      task: "Task 2 (ii): Network Diagnostics and Optimization\n\nii. Award 5 marks for correct configuration of network adapter settings.",
+      scoringGuide: "Award 5 marks: Adapter IPv4/IPv6 configuration (5)",
+      marksAvailable: 5,
+      marksObtained: 3,
+      comments: "Configured network adapter IPv4/IPv6 settings properly."
+    },
+    {
+      id: 4,
       task: "Task 3: System settings, Configuration and Maintenance\n\n• Defined the function of the commands:\n  Award 1 marks for correct identification of the function of the commands (5 commands)\n• Ran the commands:\n  Award 9 marks for running at least 5 commands successfully (e.g. sfc, chkdsk, ipconfig, netstat, dism).",
       scoringGuide: "Award 15 marks: Command functions defined (6), 5 system maintenance commands executed (9)",
       marksAvailable: 15,
-      marksObtained: 14,
+      marksObtained: 12,
       comments: "Defined commands accurately and executed sfc /scannow, chkdsk, and ipconfig successfully."
     }
   ]
 };
+
+export const REPAIR_MAINTENANCE_CANDIDATES = [
+  {
+    name: "Brenda Ngugi",
+    regNo: "14254/S2026",
+    scores: { 1: 20, 2: 4, 3: 3, 4: 12 }, // Total: 39/50 (78%)
+    feedback: "V. Good.",
+    assessorSig: "For pk",
+    date: "13/11/2024"
+  },
+  {
+    name: "LUCKYSUSAN KIANJIRU MUGO",
+    regNo: "10525",
+    scores: { 1: 24, 2: 4, 3: 4, 4: 14 }, // Total: 46/50 (92%)
+    feedback: "V. Good.",
+    assessorSig: "For pk",
+    date: "13/11/2024"
+  }
+];
+
 
 // ─────────────────────────────────────────────────────────────
 // PRESET 2: Attached 4-Page Practical Exam (TVET CDACC)
@@ -441,6 +472,90 @@ export default function ObservationChecklistMarkingModal({
     });
   };
 
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+
+  // Clean Print Handler: auto-switches to official paper view, isolates paper in DOM, dismisses floating toasts
+  const handlePrint = () => {
+    toast.dismiss();
+    setViewMode("official_paper");
+    document.body.classList.add("printing-cdacc-modal");
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove("printing-cdacc-modal");
+      }, 500);
+    }, 200);
+  };
+
+  // High-Resolution Multi-Page PDF Download Handler
+  const handleDownloadPDF = async () => {
+    try {
+      setIsExportingPDF(true);
+      toast.dismiss();
+      setViewMode("official_paper");
+      
+      // Allow DOM update
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      const pageElements = Array.from(document.querySelectorAll<HTMLElement>(".cdacc-page"));
+
+      if (!pageElements || pageElements.length === 0) {
+        toast.error("Could not find checklist pages to export");
+        setIsExportingPDF(false);
+        return;
+      }
+
+      toast.info(`Generating TVET CDACC Official ${pageElements.length}-Page PDF...`, { duration: 3000 });
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      for (let i = 0; i < pageElements.length; i++) {
+        const pageEl = pageElements[i];
+        const canvas = await html2canvas(pageEl, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: "#ffffff",
+        });
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        if (i > 0) pdf.addPage("a4", "portrait");
+        pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
+      }
+
+      const safeReg = (candidateReg || "CANDIDATE").replace(/[^a-zA-Z0-9]/g, "_");
+      const safeUnit = (currentPreset.unitCode || "UNIT").replace(/[^a-zA-Z0-9]/g, "_");
+      const filename = `CDACC_Marked_Checklist_${safeReg}_${safeUnit}.pdf`;
+      pdf.save(filename);
+      toast.success("Official PDF downloaded successfully!");
+    } catch (err) {
+      console.error("PDF export failed:", err);
+      toast.error("PDF export failed. You can also click Print to Save as PDF.");
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
+  const handleSelectCandidatePreset = (cp: typeof REPAIR_MAINTENANCE_CANDIDATES[0]) => {
+    setCandidate(cp.name);
+    setCandidateReg(cp.regNo);
+    setFeedback(cp.feedback);
+    setAssessmentDate(cp.date);
+    setAssessor("Trainer / Assessor");
+    setItems((prev) =>
+      prev.map((item) => {
+        const targetScore = cp.scores[item.id as keyof typeof cp.scores];
+        return targetScore !== undefined ? { ...item, marksObtained: targetScore } : item;
+      })
+    );
+    toast.success(`Loaded official record: ${cp.name}`);
+  };
+
+
   // Pen styling helper
   const getPenStyle = () => {
     if (penColor === "pen_red") return { color: "#dc2626", stroke: "#dc2626" };
@@ -533,9 +648,24 @@ export default function ObservationChecklistMarkingModal({
               </div>
             )}
 
+            {/* Export PDF Button */}
+            <button
+              onClick={handleDownloadPDF}
+              disabled={isExportingPDF}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition disabled:opacity-50 shadow-sm"
+              title="Download official TVET CDACC PDF"
+            >
+              {isExportingPDF ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Download className="w-3.5 h-3.5" />
+              )}
+              <span>{isExportingPDF ? "Exporting..." : "Export PDF"}</span>
+            </button>
+
             {/* Print Button */}
             <button
-              onClick={() => window.print()}
+              onClick={handlePrint}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
               title="Print official marked assessment checklist"
             >

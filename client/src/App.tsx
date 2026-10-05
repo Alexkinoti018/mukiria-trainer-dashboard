@@ -49,6 +49,7 @@ const AssessmentMarks = lazy(() => import("./pages/AssessmentMarks"));
 const CurriculumParsingHub = lazy(() => import("./pages/CurriculumParsingHub"));
 const TraineeAssignments = lazy(() => import("./pages/TraineeAssignments"));
 const UploadGrading = lazy(() => import("./pages/UploadGrading"));
+const TimetablePage = lazy(() => import("./pages/TimetablePage"));
 
 // HOD pages
 const HODDashboard = lazy(() => import("./pages/HODDashboard"));
@@ -126,6 +127,12 @@ function Router() {
       </Route>
       <Route path="/trainer/performance-insights">
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><PerformanceInsights /></ProtectedRoute>
+      </Route>
+      <Route path="/trainer/timetable">
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><TimetablePage /></ProtectedRoute>
+      </Route>
+      <Route path="/timetable">
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><TimetablePage /></ProtectedRoute>
       </Route>
 
       {/* Trainee / Candidate Routes */}

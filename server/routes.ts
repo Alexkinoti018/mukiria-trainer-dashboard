@@ -1,4 +1,15 @@
 import { Router, Request, Response, NextFunction } from "express";
+import {
+  query,
+  withTransaction,
+  pool,
+  loadPersistentAttendance,
+  savePersistentAttendance,
+  loadPersistentTrainees,
+  savePersistentTrainees,
+  AttendanceRecord,
+  TraineeRecord,
+} from "./db.ts";
 
 export interface AuthenticatedUser {
   id: string;
@@ -29,7 +40,7 @@ export const DB = {
     { id: "trainer-002", name: "Alexander Kinoti", email: "kinoti@mtti.ac.ke", assigned_units: ["ICT/OS/IT/CR/1/6"] },
   ],
   trainees: [
-    { id: "trainee-001", name: "Alex Kinoti", reg_number: "10525", email: "student@mtti.ac.ke", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
+    { id: "trainee-001", name: "Nthiga Gakii Doris", reg_number: "14179/S2026", email: "doris.nthiga@mtti.ac.ke", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
     { id: "trainee-002", name: "Harriet Mwendwa", reg_number: "10526", email: "harriet@mtti.ac.ke", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
     { id: "trainee-003", name: "Other Student", reg_number: "99999", email: "other@mtti.ac.ke", class_id: "class-ee-4", enrolled_units: ["EE/CU/01/4"] },
   ],
@@ -368,7 +379,7 @@ export function authenticateUser(req: AuthenticatedRequest, res: Response, next:
     } else if (token === "token-trainer-002") {
       user = { id: "trainer-002", email: "kinoti@mtti.ac.ke", name: "Alexander Kinoti", role: "trainer", assigned_units: ["ICT/OS/IT/CR/1/6"], department_id: "dept-ci" };
     } else if (token === "token-trainee-001") {
-      user = { id: "trainee-001", email: "student@mtti.ac.ke", name: "Alex Kinoti", role: "trainee", reg_number: "10525", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] };
+      user = { id: "trainee-001", email: "doris.nthiga@mtti.ac.ke", name: "Nthiga Gakii Doris", role: "trainee", reg_number: "14179/S2026", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] };
     } else if (token === "token-trainee-002") {
       user = { id: "trainee-002", email: "harriet@mtti.ac.ke", name: "Harriet Mwendwa", role: "trainee", reg_number: "10526", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] };
     } else if (token === "token-trainee-003") {
@@ -492,99 +503,89 @@ export interface RosterEntry {
 }
 
 export const OFFICIAL_INSTITUTIONAL_ROSTER: RosterEntry[] = [
-  // 1. ITECH 6 MODULAR/S/2026 (Perform Computer Essentials - Level 6 / Digital Literacy)
-  { id: "tr_it6_01", regCode: "ITECH 6 MOD/14179/S2026", admissionNumber: "14179/S2026", fullName: "Nthiga Gakii Doris", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it6_02", regCode: "ITECH 6 MOD/14255/S2026", admissionNumber: "14255/S2026", fullName: "Kaumbuthu Belinda Mukiri", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it6_03", regCode: "ITECH 6 MOD/14022/S2026", admissionNumber: "14022/S2026", fullName: "Ltumwa Lesoipa", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it6_04", regCode: "ITECH 6 MOD/14077/S2026", admissionNumber: "14077/S2026", fullName: "Kitheka Emmanuel Kioko", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it6_05", regCode: "ITECH 6 MOD/14102/S2026", admissionNumber: "14102/S2026", fullName: "Felix Mugendi", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it6_06", regCode: "ITECH 6 MOD/14119/S2026", admissionNumber: "14119/S2026", fullName: "Mwangi Clinton Njiru", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it6_07", regCode: "ITECH 6 MOD/14149/S2026", admissionNumber: "14149/S2026", fullName: "Abigael Mukiri", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it6_08", regCode: "ITECH 6 MOD/14172/S2026", admissionNumber: "14172/S2026", fullName: "Fiona Kadogo Mwika", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it6_09", regCode: "ITECH 6 MOD/14207/S2026", admissionNumber: "14207/S2026", fullName: "Ann Mary Makena", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it6_10", regCode: "ITECH 6 MOD/14254/S2026", admissionNumber: "14254/S2026", fullName: "Brenda Ngugi", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it6_11", regCode: "ITECH 6 MOD/14267/S2026", admissionNumber: "14267/S2026", fullName: "Ingashia Favour Wawira", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "trainee-001", regCode: "10525", admissionNumber: "10525", fullName: "Alex Kinoti", cohortCode: "class-itech-6", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "trainee-002", regCode: "10526", admissionNumber: "10526", fullName: "Harriet Mwendwa", cohortCode: "class-itech-6", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  // 1. Single Combined Cohort: ICT4/ITECH6/S/26 MOD 1 (Perform Computer Essentials - 19 Authentic Trainees)
+  { id: "tr_it6_01", regCode: "ITECH 6 MOD/14179/S2026", admissionNumber: "14179/S2026", fullName: "Nthiga Gakii Doris", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
+  { id: "tr_it6_02", regCode: "ITECH 6 MOD/14255/S2026", admissionNumber: "14255/S2026", fullName: "Kaumbuthu Belinda Mukiri", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
+  { id: "tr_it6_03", regCode: "ITECH 6 MOD/14022/S2026", admissionNumber: "14022/S2026", fullName: "Ltumwa Lesoipa", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
+  { id: "tr_it6_04", regCode: "ITECH 6 MOD/14077/S2026", admissionNumber: "14077/S2026", fullName: "Kitheka Emmanuel Kioko", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
+  { id: "tr_it6_05", regCode: "ITECH 6 MOD/14102/S2026", admissionNumber: "14102/S2026", fullName: "Felix Mugendi", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
+  { id: "tr_it6_06", regCode: "ITECH 6 MOD/14119/S2026", admissionNumber: "14119/S2026", fullName: "Mwangi Clinton Njiru", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
+  { id: "tr_it6_07", regCode: "ITECH 6 MOD/14149/S2026", admissionNumber: "14149/S2026", fullName: "Abigael Mukiri", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
+  { id: "tr_it6_08", regCode: "ITECH 6 MOD/14172/S2026", admissionNumber: "14172/S2026", fullName: "Fiona Kadogo Mwika", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
+  { id: "tr_it6_09", regCode: "ITECH 6 MOD/14207/S2026", admissionNumber: "14207/S2026", fullName: "Ann Mary Makena", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
+  { id: "tr_it6_10", regCode: "ITECH 6 MOD/14254/S2026", admissionNumber: "14254/S2026", fullName: "Brenda Ngugi", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
+  { id: "tr_it6_11", regCode: "ITECH 6 MOD/14267/S2026", admissionNumber: "14267/S2026", fullName: "Ingashia Favour Wawira", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
+  { id: "tr_it4_01", regCode: "ICT4 MOD/14076/S2026", admissionNumber: "14076/S2026", fullName: "Wanjau Alvin Gatere", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_02", regCode: "ICT4 MOD/14107/S2026", admissionNumber: "14107/S2026", fullName: "Ann Mukiri Matheta", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_03", regCode: "ICT4 MOD/14124/S2026", admissionNumber: "14124/S2026", fullName: "Kimanthi Dennis Mwenda", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_04", regCode: "ICT4 MOD/14128/S2026", admissionNumber: "14128/S2026", fullName: "Kimanthi Dennis Mwenda (II)", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_05", regCode: "ICT4 MOD/14211/S2026", admissionNumber: "14211/S2026", fullName: "Guantai Brandon Mutua", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_06", regCode: "ICT4 MOD/14218/S2026", admissionNumber: "14218/S2026", fullName: "Mwithia Mutharimi Nathan", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_07", regCode: "ICT4 MOD/14248/S2026", admissionNumber: "14248/S2026", fullName: "Mbaabu Sarah Nkatha", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_08", regCode: "ICT4 MOD/14341/S2026", admissionNumber: "14341/S2026", fullName: "Mutiria Hesborn Muriuki", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
 
-  // 2. ICT4 MOD/S/2026 (Perform Computer Essentials - Level 4 ONLY, ZERO Digital Literacy)
-  { id: "tr_it4_01", regCode: "ICT4 MOD/14076/S2026", admissionNumber: "14076/S2026", fullName: "Wanjau Alvin Gatere", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_02", regCode: "ICT4 MOD/14107/S2026", admissionNumber: "14107/S2026", fullName: "Ann Mukiri Matheta", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_03", regCode: "ICT4 MOD/14124/S2026", admissionNumber: "14124/S2026", fullName: "Kimanthi Dennis Mwenda", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_04", regCode: "ICT4 MOD/14128/S2026", admissionNumber: "14128/S2026", fullName: "Kimanthi Dennis Mwenda (II)", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_05", regCode: "ICT4 MOD/14211/S2026", admissionNumber: "14211/S2026", fullName: "Guantai Brandon Mutua", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_06", regCode: "ICT4 MOD/14218/S2026", admissionNumber: "14218/S2026", fullName: "Mwithia Mutharimi Nathan", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_07", regCode: "ICT4 MOD/14248/S2026", admissionNumber: "14248/S2026", fullName: "Mbaabu Sarah Nkatha", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_08", regCode: "ICT4 MOD/14341/S2026", admissionNumber: "14341/S2026", fullName: "Mutiria Hesborn Muriuki", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  // 2. ADMIN5/6/J/26 MOD 3 (Apply ICT Skills - Business Department, 11 Trainees)
+  { id: "tr_adm_01", regCode: "13410", admissionNumber: "13410", fullName: "RISPER MWENDE", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A-WA1", "061155101A", "061155101A-WA1"] },
+  { id: "tr_adm_02", regCode: "13527", admissionNumber: "13527", fullName: "Banta Micheni", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A-WA1", "061155101A", "061155101A-WA1"] },
+  { id: "tr_adm_03", regCode: "12218", admissionNumber: "12218", fullName: "Christine Gitonga", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A-WA1", "061155101A", "061155101A-WA1"] },
+  { id: "tr_adm_04", regCode: "13252", admissionNumber: "13252", fullName: "Cynthia Nkatha", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A-WA1", "061155101A", "061155101A-WA1"] },
+  { id: "tr_adm_05", regCode: "13284", admissionNumber: "13284", fullName: "Linet Ntinyari", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A-WA1", "061155101A", "061155101A-WA1"] },
+  { id: "tr_adm_06", regCode: "13424", admissionNumber: "13424", fullName: "Nanis Ngugi", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A-WA1", "061155101A", "061155101A-WA1"] },
+  { id: "tr_adm_07", regCode: "13276", admissionNumber: "13276", fullName: "Sharon Minoo", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A-WA1", "061155101A", "061155101A-WA1"] },
+  { id: "tr_adm_08", regCode: "10203", admissionNumber: "10203", fullName: "Frida Kianjira", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A-WA1", "061155101A", "061155101A-WA1"] },
+  { id: "tr_adm_09", regCode: "12254", admissionNumber: "12254", fullName: "Mercy Kiende", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A-WA1", "061155101A", "061155101A-WA1"] },
+  { id: "tr_adm_10", regCode: "12665", admissionNumber: "12665", fullName: "Ruth Kathure", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A-WA1", "061155101A", "061155101A-WA1"] },
+  { id: "tr_adm_11", regCode: "13580", admissionNumber: "13580", fullName: "MERCY KATHUURE", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A-WA1", "061155101A", "061155101A-WA1"] },
 
-  // 3. Admin 5/6/J/2026 (Apply ICT Skills - Business Department)
-  { id: "tr_adm_01", regCode: "13410", admissionNumber: "13410", fullName: "RISPER MWENDE", cohortCode: "Admin 5/6/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_adm_02", regCode: "13527", admissionNumber: "13527", fullName: "Banta Micheni", cohortCode: "Admin 5/6/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_adm_03", regCode: "12218", admissionNumber: "12218", fullName: "Christine Gitonga", cohortCode: "Admin 5/6/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_adm_04", regCode: "13252", admissionNumber: "13252", fullName: "Cynthia Nkatha", cohortCode: "Admin 5/6/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_adm_05", regCode: "13284", admissionNumber: "13284", fullName: "Linet Ntinyari", cohortCode: "Admin 5/6/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_adm_06", regCode: "13424", admissionNumber: "13424", fullName: "Nanis Ngugi", cohortCode: "Admin 5/6/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_adm_07", regCode: "13276", admissionNumber: "13276", fullName: "Sharon Minoo", cohortCode: "Admin 5/6/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_adm_08", regCode: "10203", admissionNumber: "10203", fullName: "Frida Kianjira", cohortCode: "Admin 5/6/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_adm_09", regCode: "12254", admissionNumber: "12254", fullName: "Mercy Kiende", cohortCode: "Admin 5/6/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_adm_10", regCode: "12665", admissionNumber: "12665", fullName: "Ruth Kathure", cohortCode: "Admin 5/6/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_adm_11", regCode: "13580", admissionNumber: "13580", fullName: "MERCY KATHUURE", cohortCode: "Admin 5/6/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
+  // 3. FBS5/6/J/26 (Apply Digital Literacy - Hospitality Department, 26 Trainees)
+  { id: "tr_fbs5_01", regCode: "FBS 5 MOD/13254/J2026", admissionNumber: "13254", fullName: "Yvonne Mwende", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_02", regCode: "FBS 5 MOD/13263/J2026", admissionNumber: "13263", fullName: "Muoki Muthoki", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_03", regCode: "FBS 5 MOD/13281/J2026", admissionNumber: "13281", fullName: "Kibaara Peninah Gaichuiri", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_04", regCode: "FBS 5 MOD/13297/J2026", admissionNumber: "13297", fullName: "Hilda Mwede Njagi", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_05", regCode: "FBS 5 MOD/13304/J2026", admissionNumber: "13304", fullName: "Ndolo Shalom Mbithe", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_06", regCode: "FBS 5 MOD/13313/J2026", admissionNumber: "13313", fullName: "Mirriam Nzula", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_07", regCode: "FBS 5 MOD/13343/J2026", admissionNumber: "13343", fullName: "Waweru Hope Marion Makena", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_08", regCode: "FBS 5 MOD/13355/J2026", admissionNumber: "13355", fullName: "Ann Joy Makena", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_09", regCode: "FBS 5 MOD/13378/J2026", admissionNumber: "13378", fullName: "Martha Mwende Kyalo", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_10", regCode: "FBS 5 MOD/13396/J2026", admissionNumber: "13396", fullName: "John Opiyo Omondi", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_11", regCode: "FBS 5 MOD/13445/J2026", admissionNumber: "13445", fullName: "Eunice Kendi Nyaga", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_12", regCode: "FBS 5 MOD/13446/J2026", admissionNumber: "13446", fullName: "Miriko Rita", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_13", regCode: "FBS 5 MOD/13463/J2026", admissionNumber: "13463", fullName: "Valentine Lesoito", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_14", regCode: "FBS 5 MOD/13482/J2026", admissionNumber: "13482", fullName: "Kinyua Christine Mutito", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_15", regCode: "FBS 5 MOD/13488/J2026", admissionNumber: "13488", fullName: "Gichukia Bridgit Nyakio", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_16", regCode: "FBS 5 MOD/13546/J2026", admissionNumber: "13546", fullName: "Karwitha Silvia", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_17", regCode: "FBS 5 MOD/13551/J2026", admissionNumber: "13551", fullName: "Lavint Aliviza", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_18", regCode: "FBS 5 MOD/13559/12026", admissionNumber: "13559", fullName: "Kinya Weddy", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_19", regCode: "FBS 5 MOD/13571/12026", admissionNumber: "13571", fullName: "Gakuhi Jackline Nyambura", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_20", regCode: "FBS 5 MOD/13583/12026", admissionNumber: "13583", fullName: "Terry Mwendwa", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs6_01", regCode: "FBP6 MOD/13251/12026", admissionNumber: "13251", fullName: "Mbithi Faith Wavinya", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs6_02", regCode: "FBS6 MOD/13314/12026", admissionNumber: "13314", fullName: "Emmanuel Njoroge", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs6_03", regCode: "FBS6 MOD/13403/12026", admissionNumber: "13403", fullName: "Brenda Ntinyari", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs6_04", regCode: "FBS6 MOD/13430/12026", admissionNumber: "13430", fullName: "Omedo Lilian Atieno", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs6_05", regCode: "FBS6 MOD/13487/12026", admissionNumber: "13487", fullName: "Waguama Donatus Wachira", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs6_06", regCode: "FBS6 MOD/13495/12026", admissionNumber: "13495", fullName: "Nyamai Caroline Mutheu", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
 
-  // 4. FBS 5 MOD/J/2026 (Apply Digital Literacy - Level 5)
-  { id: "tr_fbs5_01", regCode: "FBS 5 MOD/13254/J2026", admissionNumber: "13254", fullName: "Yvonne Mwende", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_02", regCode: "FBS 5 MOD/13263/J2026", admissionNumber: "13263", fullName: "Muoki Muthoki", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_03", regCode: "FBS 5 MOD/13281/J2026", admissionNumber: "13281", fullName: "Kibaara Peninah Gaichuiri", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_04", regCode: "FBS 5 MOD/13297/J2026", admissionNumber: "13297", fullName: "Hilda Mwede Njagi", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_05", regCode: "FBS 5 MOD/13304/J2026", admissionNumber: "13304", fullName: "Ndolo Shalom Mbithe", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_06", regCode: "FBS 5 MOD/13313/J2026", admissionNumber: "13313", fullName: "Mirriam Nzula", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_07", regCode: "FBS 5 MOD/13343/J2026", admissionNumber: "13343", fullName: "Waweru Hope Marion Makena", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_08", regCode: "FBS 5 MOD/13355/J2026", admissionNumber: "13355", fullName: "Ann Joy Makena", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_09", regCode: "FBS 5 MOD/13378/J2026", admissionNumber: "13378", fullName: "Martha Mwende Kyalo", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_10", regCode: "FBS 5 MOD/13396/J2026", admissionNumber: "13396", fullName: "John Opiyo Omondi", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_11", regCode: "FBS 5 MOD/13445/J2026", admissionNumber: "13445", fullName: "Eunice Kendi Nyaga", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_12", regCode: "FBS 5 MOD/13446/J2026", admissionNumber: "13446", fullName: "Miriko Rita", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_13", regCode: "FBS 5 MOD/13463/J2026", admissionNumber: "13463", fullName: "Valentine Lesoito", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_14", regCode: "FBS 5 MOD/13482/J2026", admissionNumber: "13482", fullName: "Kinyua Christine Mutito", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_15", regCode: "FBS 5 MOD/13488/J2026", admissionNumber: "13488", fullName: "Gichukia Bridgit Nyakio", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_16", regCode: "FBS 5 MOD/13546/J2026", admissionNumber: "13546", fullName: "Karwitha Silvia", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_17", regCode: "FBS 5 MOD/13551/J2026", admissionNumber: "13551", fullName: "Lavint Aliviza", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_18", regCode: "FBS 5 MOD/13559/12026", admissionNumber: "13559", fullName: "Kinya Weddy", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_19", regCode: "FBS 5 MOD/13571/12026", admissionNumber: "13571", fullName: "Gakuhi Jackline Nyambura", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs5_20", regCode: "FBS 5 MOD/13583/12026", admissionNumber: "13583", fullName: "Terry Mwendwa", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-
-  // 5. FBS6 MOD/J/2026 (6 Trainees)
-  { id: "tr_fbs6_01", regCode: "FBP6 MOD/13251/12026", admissionNumber: "13251", fullName: "Mbithi Faith Wavinya", cohortCode: "FBS6 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs6_02", regCode: "FBS6 MOD/13314/12026", admissionNumber: "13314", fullName: "Emmanuel Njoroge", cohortCode: "FBS6 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs6_03", regCode: "FBS6 MOD/13403/12026", admissionNumber: "13403", fullName: "Brenda Ntinyari", cohortCode: "FBS6 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs6_04", regCode: "FBS6 MOD/13430/12026", admissionNumber: "13430", fullName: "Omedo Lilian Atieno", cohortCode: "FBS6 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs6_05", regCode: "FBS6 MOD/13487/12026", admissionNumber: "13487", fullName: "Waguama Donatus Wachira", cohortCode: "FBS6 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_fbs6_06", regCode: "FBS6 MOD/13495/12026", admissionNumber: "13495", fullName: "Nyamai Caroline Mutheu", cohortCode: "FBS6 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-
-  // 6. LS5 MOD/S/2026 (9 Trainees)
-  { id: "tr_ls5_01", regCode: "LS5 MOD/14009/52026", admissionNumber: "14009", fullName: "Vick Mutembei", cohortCode: "LS5 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls5_02", regCode: "LS5 MOD/14024/52026", admissionNumber: "14024", fullName: "Kajuju Jackline Kathera", cohortCode: "LS5 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls5_03", regCode: "LS5 MOD/14032/52026", admissionNumber: "14032", fullName: "Muthike Bredah Nyawira", cohortCode: "LS5 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls5_04", regCode: "LS5 MOD/14092/S2026", admissionNumber: "14092", fullName: "Murithi Brian Munene", cohortCode: "LS5 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls5_05", regCode: "LS5 MOD/14120/52026", admissionNumber: "14120", fullName: "Glory Makena", cohortCode: "LS5 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls5_06", regCode: "LS5 MOD/14348/S2026", admissionNumber: "14348", fullName: "Okello Janet Auma", cohortCode: "LS5 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls5_07", regCode: "LS5 MOD/14403/52026", admissionNumber: "14403", fullName: "Mutegi Kagendo Emma", cohortCode: "LS5 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls5_08", regCode: "LS5 MOD/14428/52026", admissionNumber: "14428", fullName: "Risper Mwendwa", cohortCode: "LS5 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls5_09", regCode: "LS5 MOD/14502/52026", admissionNumber: "14502", fullName: "Mutegi Hyprith Gatwiri", cohortCode: "LS5 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-
-  // 7. LS6 MOD/S/2026 (10 Trainees)
-  { id: "tr_ls6_01", regCode: "LS6 MOD/14001/S2026", admissionNumber: "14001", fullName: "Njeru Salim Mutemi", cohortCode: "LS6 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls6_02", regCode: "LS6 MOD/14011/S2026", admissionNumber: "14011", fullName: "Jedida Karwitha", cohortCode: "LS6 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls6_03", regCode: "LS6 MOD/14066/52026", admissionNumber: "14066", fullName: "Nyaga Caroline Mukami", cohortCode: "LS6 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls6_04", regCode: "LS6 MOD/14183/S2026", admissionNumber: "14183", fullName: "Gideon Mucheria Kithendu", cohortCode: "LS6 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls6_05", regCode: "LS6 MOD/14256/52026", admissionNumber: "14256", fullName: "Linus Murerwa", cohortCode: "LS6 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls6_06", regCode: "LS6 MOD/14283/52026", admissionNumber: "14283", fullName: "Caroline Mwendwa", cohortCode: "LS6 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls6_07", regCode: "LS6 MOD/14331/S2026", admissionNumber: "14331", fullName: "Brian Mutembei", cohortCode: "LS6 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls6_08", regCode: "LS6 MOD/14332/52026", admissionNumber: "14332", fullName: "Kipngetich Cornelius", cohortCode: "LS6 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls6_09", regCode: "LS6 MOD/14351/52026", admissionNumber: "14351", fullName: "Otieno Jecinter Trizer", cohortCode: "LS6 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-  { id: "tr_ls6_10", regCode: "LS6 MOD/14451/S2026", admissionNumber: "14451", fullName: "Caroline Kanana Mwirigi", cohortCode: "LS6 MOD/S/2026", enrolled_units: ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3"] },
-
-  // 8. Electrical
-  { id: "trainee-003", regCode: "99999", admissionNumber: "99999", fullName: "Other Student", cohortCode: "class-ee-4", enrolled_units: ["EE/CU/01/4", "EE/CU/PO/CR/1/6"] },
+  // 4. LS5/6/S/26 (Apply Digital Literacy - Land Survey, 19 Trainees + Harriet Mwendwa)
+  { id: "tr_ls5_01", regCode: "LS5 MOD/14009/52026", admissionNumber: "14009", fullName: "Vick Mutembei", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls5_02", regCode: "LS5 MOD/14024/52026", admissionNumber: "14024", fullName: "Kajuju Jackline Kathera", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls5_03", regCode: "LS5 MOD/14032/52026", admissionNumber: "14032", fullName: "Muthike Bredah Nyawira", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls5_04", regCode: "LS5 MOD/14092/S2026", admissionNumber: "14092", fullName: "Murithi Brian Munene", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls5_05", regCode: "LS5 MOD/14120/52026", admissionNumber: "14120", fullName: "Glory Makena", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls5_06", regCode: "LS5 MOD/14348/S2026", admissionNumber: "14348", fullName: "Okello Janet Auma", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls5_07", regCode: "LS5 MOD/14403/52026", admissionNumber: "14403", fullName: "Mutegi Kagendo Emma", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls5_08", regCode: "LS5 MOD/14428/52026", admissionNumber: "14428", fullName: "Risper Mwendwa", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls5_09", regCode: "LS5 MOD/14502/52026", admissionNumber: "14502", fullName: "Mutegi Hyprith Gatwiri", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls6_01", regCode: "LS6 MOD/14001/S2026", admissionNumber: "14001", fullName: "Njeru Salim Mutemi", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls6_02", regCode: "LS6 MOD/14011/S2026", admissionNumber: "14011", fullName: "Jedida Karwitha", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls6_03", regCode: "LS6 MOD/14066/52026", admissionNumber: "14066", fullName: "Nyaga Caroline Mukami", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls6_04", regCode: "LS6 MOD/14183/S2026", admissionNumber: "14183", fullName: "Gideon Mucheria Kithendu", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls6_05", regCode: "LS6 MOD/14256/52026", admissionNumber: "14256", fullName: "Linus Murerwa", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls6_06", regCode: "LS6 MOD/14283/52026", admissionNumber: "14283", fullName: "Caroline Mwendwa", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls6_07", regCode: "LS6 MOD/14331/S2026", admissionNumber: "14331", fullName: "Brian Mutembei", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls6_08", regCode: "LS6 MOD/14332/52026", admissionNumber: "14332", fullName: "Kipngetich Cornelius", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls6_09", regCode: "LS6 MOD/14351/52026", admissionNumber: "14351", fullName: "Otieno Jecinter Trizer", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls6_10", regCode: "LS6 MOD/14451/S2026", admissionNumber: "14451", fullName: "Caroline Kanana Mwirigi", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_ls_harriet", regCode: "D/UPNUT/25042/069", admissionNumber: "D/UPNUT/25042/069", fullName: "Harriet Mwendwa", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
 ];
 
 export function findTraineeInRoster(
@@ -724,6 +725,456 @@ apiRouter.get("/trainees/lookup", (req: Request, res: Response) => {
     fullName: trainee.fullName,
     cohortCode: trainee.cohortCode,
   });
+});
+
+// ─── ENDPOINT: GET /api/trainees (Persistent Trainees Query) ──────────────────
+apiRouter.get("/trainees", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const classCode = typeof req.query.class_code === "string" ? req.query.class_code.trim() : "";
+    const persistentTrainees = loadPersistentTrainees();
+
+    // Map official institutional roster to TraineeRecord format
+    const officialRecords: TraineeRecord[] = OFFICIAL_INSTITUTIONAL_ROSTER.map(r => ({
+      id: r.id,
+      name: r.fullName,
+      reg_number: r.admissionNumber,
+      adm_no: r.admissionNumber,
+      reg_code: r.regCode || r.admissionNumber,
+      class_code: r.cohortCode,
+    }));
+
+    // Merge persistent trainees with official roster (persistent takes precedence on conflict)
+    const combinedMap = new Map<string, TraineeRecord>();
+    officialRecords.forEach(t => combinedMap.set(t.id, t));
+    DB.trainees.forEach(t => {
+      combinedMap.set(t.id, {
+        id: t.id,
+        name: t.name,
+        reg_number: t.reg_number,
+        adm_no: t.reg_number,
+        class_id: t.class_id,
+      });
+    });
+    persistentTrainees.forEach(t => combinedMap.set(t.id, t));
+
+    let result = Array.from(combinedMap.values());
+    if (classCode) {
+      result = result.filter(t => t.class_code === classCode || t.class_id === classCode);
+    }
+
+    res.json({
+      success: true,
+      data: result,
+      count: result.length,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to load trainees" });
+  }
+});
+
+// ─── ENDPOINT: POST /api/trainees (Transactional Trainee Persistence) ─────────
+apiRouter.post("/trainees", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const {
+      name,
+      admNo,
+      regCode,
+      classCode = "ICT4/ITECH6/S/26 MOD 1",
+      department = "Computing & Informatics",
+      gender = "M",
+      phone = "",
+      remarks = "",
+    } = req.body;
+
+    if (!name || (!admNo && !regCode)) {
+      res.status(400).json({ error: "Trainee name and admission number are required." });
+      return;
+    }
+
+    const adm_no = (admNo || regCode || "").trim();
+    const reg_code = (regCode || admNo || "").trim();
+    const id = req.body.id || `tr_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    const now = new Date().toISOString();
+
+    const traineeRecord: TraineeRecord = {
+      id,
+      name: name.trim(),
+      reg_number: adm_no,
+      adm_no,
+      reg_code,
+      class_code: classCode,
+      department,
+      gender,
+      phone,
+      remarks,
+      created_at: now,
+      updated_at: now,
+    };
+
+    // 1. Transactional PostgreSQL Upsert
+    let pgPersisted = false;
+    if (pool) {
+      try {
+        const sql = `
+          INSERT INTO trainees (id, name, adm_no, reg_number, reg_code, created_at)
+          VALUES ($1, $2, $3, $4, $5, NOW())
+          ON CONFLICT (id) DO UPDATE SET
+            name = EXCLUDED.name,
+            adm_no = EXCLUDED.adm_no,
+            reg_number = EXCLUDED.reg_number
+          RETURNING *;
+        `;
+        const result = await query(sql, [id, traineeRecord.name, adm_no, adm_no, reg_code]);
+        if (result.rowCount > 0) {
+          pgPersisted = true;
+        }
+      } catch (err: any) {
+        console.warn("PostgreSQL insert trainee warning:", err.message);
+      }
+    }
+
+    // 2. Persistent JSON Storage
+    const persistent = loadPersistentTrainees();
+    const existIdx = persistent.findIndex(t => t.id === id || t.adm_no === adm_no || t.reg_code === reg_code);
+    if (existIdx >= 0) {
+      persistent[existIdx] = { ...persistent[existIdx], ...traineeRecord };
+    } else {
+      persistent.push(traineeRecord);
+    }
+    savePersistentTrainees(persistent);
+
+    // 3. Mirror in runtime DB
+    const memIdx = DB.trainees.findIndex(t => t.id === id || t.reg_number === adm_no);
+    const memItem = {
+      id,
+      name: traineeRecord.name,
+      reg_number: adm_no,
+      email: `${adm_no.replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}@mtti.ac.ke`,
+      class_id: classCode,
+      enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "061155101A-WA1"],
+    };
+    if (memIdx >= 0) {
+      DB.trainees[memIdx] = memItem;
+    } else {
+      DB.trainees.push(memItem);
+    }
+
+    res.status(201).json({
+      success: true,
+      data: traineeRecord,
+      postgres_persisted: pgPersisted,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to persist trainee" });
+  }
+});
+
+// ─── ENDPOINT: GET /api/attendance (Rehydrate Attendance Records) ──────────────
+apiRouter.get("/attendance", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const unitOfferingId = (req.query.unit_offering_id as string) || "uo-1";
+    const weekNumber = req.query.week_number ? parseInt(req.query.week_number as string) : undefined;
+    const classCode = req.query.class_code as string;
+
+    let records: AttendanceRecord[] = [];
+
+    // 1. Query PostgreSQL attendance_register if connected
+    if (pool) {
+      try {
+        let sql = `SELECT * FROM attendance_register WHERE 1=1`;
+        const params: any[] = [];
+        if (unitOfferingId) {
+          params.push(unitOfferingId);
+          sql += ` AND unit_offering_id = $${params.length}`;
+        }
+        if (weekNumber !== undefined) {
+          params.push(weekNumber);
+          sql += ` AND week_number = $${params.length}`;
+        }
+        sql += ` ORDER BY week_number, session_date`;
+        const result = await query(sql, params);
+        if (result.rows.length > 0) {
+          records = result.rows.map(r => ({
+            id: r.id,
+            unit_offering_id: r.unit_offering_id,
+            trainee_id: r.trainee_id,
+            week_number: Number(r.week_number),
+            session_date: typeof r.session_date === "object" ? r.session_date.toISOString().split("T")[0] : String(r.session_date),
+            status: r.status,
+            hours_attended: Number(r.hours_attended || 2.0),
+            remarks: r.remarks || "",
+            marked_by: r.marked_by,
+            created_at: r.created_at,
+            updated_at: r.updated_at,
+          }));
+        }
+      } catch (err: any) {
+        console.warn("PostgreSQL fetch attendance warning:", err.message);
+      }
+    }
+
+    // 2. Fallback to file-backed persistent store
+    if (records.length === 0) {
+      const persistent = loadPersistentAttendance();
+      records = persistent.filter(r => {
+        if (unitOfferingId && r.unit_offering_id !== unitOfferingId) return false;
+        if (weekNumber !== undefined && r.week_number !== weekNumber) return false;
+        return true;
+      });
+    }
+
+    // 3. Construct rehydration matrix: trainee_id -> { "W{w}_S{s}": "X" | "0" | "" }
+    const matrix: Record<string, Record<string, string>> = {};
+    records.forEach(r => {
+      if (!matrix[r.trainee_id]) matrix[r.trainee_id] = {};
+      const sIndex = r.session_index || 1;
+      const key = `W${r.week_number}_S${sIndex}`;
+      const symbol = (r.status === "present" || r.status === "Present" || r.status === "X") ? "X" :
+                     (r.status === "absent" || r.status === "Absent" || r.status === "0") ? "0" : "";
+      matrix[r.trainee_id][key] = symbol;
+    });
+
+    res.json({
+      success: true,
+      records,
+      matrix,
+      count: records.length,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to load attendance" });
+  }
+});
+
+// ─── ENDPOINT: POST /api/attendance/mark (Single Session Mark) ────────────────
+apiRouter.post("/attendance/mark", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const {
+      unit_offering_id = "uo-1",
+      trainee_id,
+      week_number = 1,
+      session_date = new Date().toISOString().split("T")[0],
+      session_index = 1,
+      status = "present",
+      hours_attended = 2.0,
+      remarks = "",
+      marked_by = req.user?.id || "trainer-002",
+    } = req.body;
+
+    if (!trainee_id) {
+      res.status(400).json({ error: "Missing trainee_id parameter." });
+      return;
+    }
+
+    const normStatus = status === "X" ? "present" : (status === "0" ? "absent" : String(status).toLowerCase());
+
+    // 1. PostgreSQL Upsert with ON CONFLICT
+    let pgPersisted = false;
+    if (pool) {
+      try {
+        const sql = `
+          INSERT INTO attendance_register (
+            unit_offering_id, trainee_id, week_number, session_date, status, hours_attended, remarks, marked_by, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+          ON CONFLICT (unit_offering_id, trainee_id, week_number, session_date)
+          DO UPDATE SET
+            status = EXCLUDED.status,
+            hours_attended = COALESCE(EXCLUDED.hours_attended, attendance_register.hours_attended),
+            remarks = COALESCE(EXCLUDED.remarks, attendance_register.remarks),
+            marked_by = COALESCE(EXCLUDED.marked_by, attendance_register.marked_by),
+            updated_at = NOW()
+          RETURNING *;
+        `;
+        const result = await query(sql, [
+          unit_offering_id,
+          trainee_id,
+          Number(week_number),
+          session_date,
+          normStatus,
+          Number(hours_attended),
+          remarks,
+          marked_by,
+        ]);
+        if (result.rowCount > 0) pgPersisted = true;
+      } catch (err: any) {
+        console.warn("PostgreSQL attendance mark error:", err.message);
+      }
+    }
+
+    // 2. Persistent Storage Sync
+    const persistent = loadPersistentAttendance();
+    const existingIdx = persistent.findIndex(
+      r => r.unit_offering_id === unit_offering_id &&
+           r.trainee_id === trainee_id &&
+           r.week_number === Number(week_number) &&
+           (r.session_date === session_date || r.session_index === Number(session_index))
+    );
+
+    const now = new Date().toISOString();
+    const record: AttendanceRecord = {
+      id: existingIdx >= 0 ? persistent[existingIdx].id : `att_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      unit_offering_id,
+      trainee_id,
+      week_number: Number(week_number),
+      session_date,
+      session_index: Number(session_index),
+      status: normStatus,
+      hours_attended: Number(hours_attended),
+      remarks,
+      marked_by,
+      created_at: existingIdx >= 0 ? persistent[existingIdx].created_at : now,
+      updated_at: now,
+    };
+
+    if (existingIdx >= 0) {
+      persistent[existingIdx] = record;
+    } else {
+      persistent.push(record);
+    }
+    savePersistentAttendance(persistent);
+
+    res.json({
+      success: true,
+      data: record,
+      postgres_persisted: pgPersisted,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to mark attendance" });
+  }
+});
+
+// ─── ENDPOINT: POST /api/attendance/bulk (Transactional Bulk Upsert) ───────────
+apiRouter.post("/attendance/bulk", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { unit_offering_id = "uo-1", records = [], attendanceData, session_plan_id } = req.body;
+    let itemsToProcess: Array<{
+      unit_offering_id: string;
+      trainee_id: string;
+      week_number: number;
+      session_date: string;
+      session_index?: number;
+      status: string;
+      hours_attended?: number;
+      remarks?: string;
+    }> = [];
+
+    const today = new Date().toISOString().split("T")[0];
+
+    // Format 1: Normalized records array
+    if (Array.isArray(records) && records.length > 0) {
+      itemsToProcess = records.map(r => ({
+        unit_offering_id: r.unit_offering_id || unit_offering_id,
+        trainee_id: r.trainee_id,
+        week_number: Number(r.week_number || 1),
+        session_date: r.session_date || today,
+        session_index: r.session_index,
+        status: r.status === "X" ? "present" : (r.status === "0" ? "absent" : String(r.status || "present").toLowerCase()),
+        hours_attended: Number(r.hours_attended || 2.0),
+        remarks: r.remarks || "",
+      }));
+    } else if (attendanceData && typeof attendanceData === "object") {
+      // Format 2: Frontend Attendance Matrix { [traineeId]: { attendance: { "W1_S1": "X", ... } } }
+      for (const [traineeId, studentRec] of Object.entries(attendanceData as Record<string, any>)) {
+        if (!studentRec?.attendance) continue;
+        for (const [key, val] of Object.entries(studentRec.attendance as Record<string, string>)) {
+          const match = key.match(/W(\d+)_S(\d+)/);
+          const week = match ? parseInt(match[1]) : 1;
+          const session = match ? parseInt(match[2]) : 1;
+          const normStatus = val === "X" ? "present" : (val === "0" ? "absent" : "");
+          if (normStatus) {
+            itemsToProcess.push({
+              unit_offering_id,
+              trainee_id: traineeId,
+              week_number: week,
+              session_date: today,
+              session_index: session,
+              status: normStatus,
+              hours_attended: 2.0,
+            });
+          }
+        }
+      }
+    }
+
+    if (itemsToProcess.length === 0) {
+      res.status(400).json({ error: "No attendance records provided to persist." });
+      return;
+    }
+
+    // 1. Transactional PostgreSQL Upsert
+    let pgPersistedCount = 0;
+    if (pool) {
+      try {
+        await withTransaction(async (client) => {
+          for (const item of itemsToProcess) {
+            const sql = `
+              INSERT INTO attendance_register (
+                unit_offering_id, trainee_id, week_number, session_date, status, hours_attended, remarks, updated_at
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+              ON CONFLICT (unit_offering_id, trainee_id, week_number, session_date)
+              DO UPDATE SET
+                status = EXCLUDED.status,
+                hours_attended = COALESCE(EXCLUDED.hours_attended, attendance_register.hours_attended),
+                remarks = COALESCE(EXCLUDED.remarks, attendance_register.remarks),
+                updated_at = NOW();
+            `;
+            await client.query(sql, [
+              item.unit_offering_id,
+              item.trainee_id,
+              item.week_number,
+              item.session_date,
+              item.status,
+              item.hours_attended || 2.0,
+              item.remarks || "",
+            ]);
+            pgPersistedCount++;
+          }
+        });
+      } catch (err: any) {
+        console.warn("PostgreSQL bulk attendance warning:", err.message);
+      }
+    }
+
+    // 2. Persistent Storage Sync
+    const persistent = loadPersistentAttendance();
+    const now = new Date().toISOString();
+
+    for (const item of itemsToProcess) {
+      const idx = persistent.findIndex(
+        r => r.unit_offering_id === item.unit_offering_id &&
+             r.trainee_id === item.trainee_id &&
+             r.week_number === item.week_number &&
+             (r.session_date === item.session_date || (item.session_index !== undefined && r.session_index === item.session_index))
+      );
+      const rec: AttendanceRecord = {
+        id: idx >= 0 ? persistent[idx].id : `att_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        unit_offering_id: item.unit_offering_id,
+        trainee_id: item.trainee_id,
+        week_number: item.week_number,
+        session_date: item.session_date,
+        session_index: item.session_index,
+        status: item.status,
+        hours_attended: item.hours_attended || 2.0,
+        remarks: item.remarks || "",
+        created_at: idx >= 0 ? persistent[idx].created_at : now,
+        updated_at: now,
+      };
+      if (idx >= 0) {
+        persistent[idx] = rec;
+      } else {
+        persistent.push(rec);
+      }
+    }
+    savePersistentAttendance(persistent);
+
+    res.json({
+      success: true,
+      count: itemsToProcess.length,
+      postgres_upserted: pgPersistedCount,
+      message: `Persisted ${itemsToProcess.length} attendance records successfully.`,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to process bulk attendance" });
+  }
 });
 
 // ─── ENDPOINT: GET /api/exams/:id ────────────────────────────────────────────

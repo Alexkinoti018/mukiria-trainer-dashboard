@@ -279,8 +279,8 @@ export const generateMockSessionPlans = (): SessionPlan[] => {
 
   COURSE_TEMPLATES.forEach((template) => {
     template.weeks.forEach((week) => {
-      // Calculate date based on week offset
-      const startDate = new Date(2026, 4, 4); // May 4, 2026
+      // Calculate date based on week offset for Term 3, 2026 (Starts 31 August 2026)
+      const startDate = new Date(2026, 7, 31); // 31 August 2026 (Term 3, 2026)
       startDate.setDate(startDate.getDate() + (week.week - 1) * 7);
       
       const day = String(startDate.getDate()).padStart(2, '0');
@@ -314,8 +314,8 @@ export const generateMockSessionPlans = (): SessionPlan[] => {
         assignment: week.assignment || `Practical reinforcement exercise related to ${week.title}.`,
         reflection: "Pending review of trainee engagement and comprehension.",
         signature: "Alexander Kinoti",
-        signature_date: "03/07/2026",
-        status: week.week <= 3 && template.unit_code === "BUS/OS/IS/CR/11/5/A" ? "delivered" : "planned"
+        signature_date: "07/10/2026",
+        status: week.week <= 6 && template.unit_code === "BUS/OS/IS/CR/11/5/A" ? "delivered" : "planned"
       });
     });
   });
@@ -328,8 +328,8 @@ export const generateMockLearningPlans = (): LearningPlanWeek[] => {
 
   COURSE_TEMPLATES.forEach((template) => {
     template.weeks.forEach((week) => {
-      // Pre-link week 1 to 3 of Apply ICT Skills
-      const isDelivered = week.week <= 3 && template.unit_code === "BUS/OS/IS/CR/11/5/A";
+      // Pre-link week 1 to 6 of Apply ICT Skills
+      const isDelivered = week.week <= 6 && template.unit_code === "BUS/OS/IS/CR/11/5/A";
       plans.push({
         id: `lp-${template.unit_code.replace(/\//g, "-")}-w${week.week}`,
         unit_code: template.unit_code,
@@ -340,8 +340,8 @@ export const generateMockLearningPlans = (): LearningPlanWeek[] => {
         topic: week.title,
         learning_outcomes: week.outcomes,
         resources: week.resources || ["Projector", "lab workstations", "reference materials"],
-        status: isDelivered ? "delivered" : (week.week <= 6 && template.unit_code === "BUS/OS/IS/CR/11/5/A" ? "session_plan_created" : "planned"),
-        session_plan_id: week.week <= 6 && template.unit_code === "BUS/OS/IS/CR/11/5/A" ? `plan-${template.unit_code.replace(/\//g, "-")}-w${week.week}` : undefined
+        status: isDelivered ? "delivered" : (week.week <= 8 && template.unit_code === "BUS/OS/IS/CR/11/5/A" ? "session_plan_created" : "planned"),
+        session_plan_id: week.week <= 8 && template.unit_code === "BUS/OS/IS/CR/11/5/A" ? `plan-${template.unit_code.replace(/\//g, "-")}-w${week.week}` : undefined
       });
     });
   });
@@ -352,27 +352,37 @@ export const generateMockLearningPlans = (): LearningPlanWeek[] => {
 export const generateMockRecordsOfWork = (): RecordOfWork[] => {
   const records: RecordOfWork[] = [];
   
-  // Preload weeks 1-3 for BUS/OS/IS/CR/11/5/A
-  const dates = ["04/05/2026", "11/05/2026", "18/05/2026"];
-  const topics = ["Hardware ID", "Software/OS", "Operating Procedures"];
+  // Preload weeks 1-6 for Term 3, 2026 (Started 31 August 2026, Current: Week 6 on 07/10/2026)
+  const dates = ["31/08/2026", "07/09/2026", "14/09/2026", "21/09/2026", "28/09/2026", "07/10/2026"];
+  const topics = [
+    "Hardware ID",
+    "Software/OS",
+    "Operating Procedures",
+    "File Management",
+    "Formative Assessment",
+    "Word Processing"
+  ];
   const outcomes = [
     "Identify internal and external hardware components.",
     "Classify software and navigate OS interfaces.",
-    "Perform safe startup, shutdown, and peripheral connection."
+    "Perform safe startup, shutdown, and peripheral connection.",
+    "Create and manage file directories efficiently.",
+    "Demonstrate mastery of introductory ICT concepts.",
+    "Execute administrative tasks using word processing."
   ];
 
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 6; i++) {
     records.push({
       id: `row-${Date.now()}-${i}`,
       session_plan_id: `plan-BUS-OS-IS-CR-11-5-A-w${i + 1}`,
       unit_code: "BUS/OS/IS/CR/11/5/A",
-      class_code: "BUS/L5/25",
+      class_code: "ADMIN5/6/J/26 MOD 3",
       week_number: i + 1,
       date_delivered: dates[i],
-      trainees_present: 28 - i, // realistic attendance (out of 30)
+      trainees_present: 29 - (i % 3), // realistic attendance (out of 30)
       hours_covered: 2, // 120 min
       work_actually_covered: `Successfully conducted presentation and practical lab session on ${topics[i]}. Trainees completed all tasks.`,
-      reflection: `Learners achieved the outcome: ${outcomes[i]} Good engagement.`,
+      reflection: `Learners achieved the outcome: ${outcomes[i]} Good engagement and mastery.`,
       status: "delivered",
       signature: "Alexander Kinoti",
       signature_date: dates[i]

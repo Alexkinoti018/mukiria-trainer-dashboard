@@ -1,0 +1,16 @@
+[
+  {
+    "id": "tr_1791155578578_6sfojk",
+    "name": "Test Trainee Persistence",
+    "reg_number": "TEST/99999/S2026",
+    "adm_no": "TEST/99999/S2026",
+    "reg_code": "TEST/99999/S2026",
+    "class_code": "ICT4/ITECH6/S/26 MOD 1",
+    "department": "Computing & Informatics",
+    "gender": "M",
+    "phone": "0712345678",
+    "remarks": "Verification trainee",
+    "created_at": "2026-10-04T23:12:58.578Z",
+    "updated_at": "2026-10-04T23:12:58.578Z"
+  }
+]

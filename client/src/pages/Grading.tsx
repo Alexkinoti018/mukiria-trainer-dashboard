@@ -484,7 +484,7 @@ export default function Grading() {
   return (
     <TrainerLayout title="Grading Interface" subtitle="Review and grade student submissions">
       {/* Top View Mode Switcher */}
-      <div className="flex items-center gap-3 mb-6 border-b border-border pb-3">
+      <div className="flex items-center gap-3 mb-6 border-b border-border pb-3 print:hidden">
         <button
           onClick={() => setViewMode("submissions")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
@@ -1223,8 +1223,8 @@ export default function Grading() {
       <ObservationChecklistMarkingModal
         isOpen={isObservationModalOpen}
         onClose={() => setIsObservationModalOpen(false)}
-        candidateName={selectedPracticalCandidate?.name || "Harriet Mwendwa"}
-        candidateRegCode={selectedPracticalCandidate?.regCode || "10525"}
+        candidateName={selectedPracticalCandidate?.name || "Nthiga Gakii Doris"}
+        candidateRegCode={selectedPracticalCandidate?.regCode || "14179/S2026"}
         unitCode={selectedPracticalCandidate?.unitCode || "ICT/OS/IT/CR/1/6"}
         unitTitle="PERFORM COMPUTER NETWORKING"
         qualificationCode="061006T4ICT - ICT TECHNICIAN LEVEL 6"

@@ -5,6 +5,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
+import express from "express";
+import { apiRouter } from "./server/routes.ts";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
@@ -220,7 +222,29 @@ function vitePluginEnvInjector(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginStorageProxy(), vitePluginEnvInjector()];
+function vitePluginExpressApi(): Plugin {
+  return {
+    name: "vite-express-api",
+    configureServer(server: ViteDevServer) {
+      const app = express();
+      app.use(express.json({ limit: "50mb" }));
+      app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+      app.use("/api", apiRouter);
+      server.middlewares.use(app);
+    },
+  };
+}
+
+const plugins = [
+  react(),
+  tailwindcss(),
+  jsxLocPlugin(),
+  vitePluginManusRuntime(),
+  vitePluginManusDebugCollector(),
+  vitePluginStorageProxy(),
+  vitePluginEnvInjector(),
+  vitePluginExpressApi(),
+];
 
 export default defineConfig({
   plugins,

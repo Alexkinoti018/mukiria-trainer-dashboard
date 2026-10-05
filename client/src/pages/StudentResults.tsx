@@ -92,11 +92,12 @@ export default function StudentResults() {
         const pin = loginPassword.trim();
         
         const demoStudents: Record<string, { name: string; reg_number: string }> = {
-          "harriet@mtti.ac.ke": { name: "Harriet mwendwa", reg_number: "D/UPNUT/25042/069" },
-          "alice@mtti.ac.ke": { name: "Alice Wanjiku Kamau", reg_number: "MTTI/2024/001" },
-          "brian@mtti.ac.ke": { name: "Brian Otieno Odhiambo", reg_number: "MTTI/2024/002" },
-          "catherine@mtti.ac.ke": { name: "Catherine Muthoni Njoroge", reg_number: "MTTI/2024/003" },
-          "student@mtti.ac.ke": { name: "Harriet mwendwa", reg_number: "D/UPNUT/25042/069" },
+          "doris@mtti.ac.ke": { name: "Nthiga Gakii Doris", reg_number: "14179/S2026" },
+          "belinda@mtti.ac.ke": { name: "Kaumbuthu Belinda Mukiri", reg_number: "14255/S2026" },
+          "alvin@mtti.ac.ke": { name: "Wanjau Alvin Gatere", reg_number: "14076/S2026" },
+          "risper@mtti.ac.ke": { name: "RISPER MWENDE", reg_number: "13410" },
+          "harriet@mtti.ac.ke": { name: "Harriet Mwendwa", reg_number: "D/UPNUT/25042/069" },
+          "student@mtti.ac.ke": { name: "Nthiga Gakii Doris", reg_number: "14179/S2026" },
         };
         
         if (demoStudents[email] && (pin === "1234" || pin === "student")) {
@@ -560,8 +561,8 @@ export default function StudentResults() {
       <ObservationChecklistMarkingModal
         isOpen={isPracticalChecklistOpen}
         onClose={() => setIsPracticalChecklistOpen(false)}
-        candidateName={session?.name || "Harriet Mwendwa"}
-        candidateRegCode={session?.reg_number || "10525"}
+        candidateName={session?.name || "Nthiga Gakii Doris"}
+        candidateRegCode={session?.reg_number || "14179/S2026"}
         unitCode="ICT/OS/IT/CR/1/6"
         unitTitle="PERFORM COMPUTER NETWORKING"
         qualificationCode="061006T4ICT - ICT TECHNICIAN LEVEL 6"
