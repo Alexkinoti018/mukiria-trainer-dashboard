@@ -55,24 +55,21 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     const storedExams = localStorage.getItem("mukiria_exams");
     const storedSubmissions = localStorage.getItem("mukiria_submissions");
 
-    // Mandatory Modification 6: Disable mock fallback in authenticated production builds
-    if (isProd && isSupabaseConfigured()) {
-      // In production with Supabase, never seed hardcoded mocks
-      if (storedExams) setExams(JSON.parse(storedExams));
-      if (storedSubmissions) setAllSubmissions(JSON.parse(storedSubmissions));
-      return;
-    }
-
     if (storedExams) {
-      const parsed: Exam[] = JSON.parse(storedExams);
-      const existingIds = new Set(parsed.map((e) => e.id || e.unit_code));
-      const missingMocks = (MOCK_EXAMS as Exam[]).filter(
-        (m) => !existingIds.has(m.id) && !existingIds.has(m.unit_code)
-      );
-      const combined = [...parsed, ...missingMocks];
-      setExams(combined);
-      if (missingMocks.length > 0) {
-        localStorage.setItem("mukiria_exams", JSON.stringify(combined));
+      try {
+        const parsed: Exam[] = JSON.parse(storedExams);
+        const existingIds = new Set(parsed.map((e) => e.id || e.unit_code));
+        const missingMocks = (MOCK_EXAMS as Exam[]).filter(
+          (m) => !existingIds.has(m.id) && !existingIds.has(m.unit_code)
+        );
+        const combined = [...parsed, ...missingMocks];
+        setExams(combined);
+        if (missingMocks.length > 0) {
+          localStorage.setItem("mukiria_exams", JSON.stringify(combined));
+        }
+      } catch {
+        setExams(MOCK_EXAMS);
+        localStorage.setItem("mukiria_exams", JSON.stringify(MOCK_EXAMS));
       }
     } else {
       setExams(MOCK_EXAMS);

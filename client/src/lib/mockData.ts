@@ -10,6 +10,41 @@ import { DIGITAL_LITERACY_EXAMS } from "./digitalLiteracyExams";
 export const MOCK_EXAMS: any = [
   ...DIGITAL_LITERACY_EXAMS,
   {
+    id: "exam-essentials-mod1",
+    unit_id: "unit-essentials-4",
+    unit_code: "IT/CU/ICTA/CR/01/4/MA",
+    course_name: "ICT 4 / ICT Technician Level 5 & 6 (Perform Computer Essentials)",
+    created_at: "2026-09-01T08:00:00Z",
+    payload: {
+      title: "Perform Computer Essentials Formative Assessment",
+      class: "ICT4/ITECH6/S/2026 MOD 1",
+      series: "SEP – NOV 2026",
+      duration_minutes: 180,
+      total_marks: 100,
+      type: "practical",
+      instructions: "This practical examination consists of Practical Observation, Diagnostics & Management, and Oral Assessment.",
+      section_a: {
+        title: "Section A: Practical Observation & Device Management",
+        instructions: "Demonstrate hands-on tasks per assessor observation checklist.",
+        total_marks: 50,
+        questions: [
+          { id: "q_ess_1", text: "Identify 5 external ports and locate CMOS battery.", type: "practical", marks: 15 },
+          { id: "q_ess_2", text: "Open Device Manager and verify input device drivers.", type: "practical", marks: 15 },
+          { id: "q_ess_3", text: "Oral Assessment: Differentiate between RAM/ROM and SSD/HDD.", type: "oral", marks: 20 },
+        ]
+      },
+      section_b: {
+        title: "Section B: Desktop Configuration & Software Management",
+        instructions: "Perform file archiving and software management.",
+        total_marks: 50,
+        questions: [
+          { id: "q_ess_4", text: "Create folder structure and compress using 7-Zip.", type: "practical", marks: 25 },
+          { id: "q_ess_5", text: "Uninstall software and configure default PDF viewer.", type: "practical", marks: 25 },
+        ]
+      }
+    }
+  },
+  {
     "id": "exam-wa1-0415",
     "unit_code": "0415-451-21A-WA1",
     "course_name": "Office Administration (Apply ICT Skills)",

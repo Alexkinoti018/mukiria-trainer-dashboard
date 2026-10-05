@@ -28,6 +28,7 @@ import {
 import { useExam, sanitizeExamForStudent } from "@/contexts/ExamContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
+import { MOCK_EXAMS } from "@/lib/mockData";
 import type { Exam } from "@/lib/supabase";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
@@ -226,6 +227,7 @@ export default function CandidatePortal() {
   const unitCode = params.get("unitCode") ?? params.get("unit") ?? "";
   const { exams, submissions, submitExam } = useExam();
   const { user } = useAuth();
+  const allAvailableExams: Exam[] = (exams && exams.length > 0) ? exams : (MOCK_EXAMS as Exam[]);
 
   const [state, setState] = useState<PortalState>("loading");
   const [exam, setExam] = useState<Exam | null>(null);
@@ -329,7 +331,7 @@ export default function CandidatePortal() {
   const loadExam = async () => {
     setState("loading");
     try {
-      let foundExam = exams.find((e) => e.unit_code.toUpperCase() === unitCode.toUpperCase());
+      let foundExam = allAvailableExams.find((e) => e.unit_code.toUpperCase() === unitCode.toUpperCase());
       
       // Fallback to IndexedDB offline cache if not in memory
       if (!foundExam) {
@@ -342,6 +344,11 @@ export default function CandidatePortal() {
             created_at: new Date(cached.cached_at).toISOString(),
           } as Exam;
         }
+      }
+
+      // Direct fallback to MOCK_EXAMS
+      if (!foundExam) {
+        foundExam = (MOCK_EXAMS as Exam[]).find((e) => e.unit_code.toUpperCase() === unitCode.toUpperCase());
       }
       
       if (!foundExam) {
@@ -801,7 +808,7 @@ export default function CandidatePortal() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {exams.map((ex) => (
+            {allAvailableExams.map((ex) => (
               <div
                 key={ex.id || ex.unit_code}
                 className="glass-card p-5 space-y-4 hover:border-amber-500/40 transition-all flex flex-col justify-between"
