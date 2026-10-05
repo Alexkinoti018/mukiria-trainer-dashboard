@@ -40,6 +40,8 @@ import {
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
+import { saveSessionPlanToOffline, getAllOfflineSessionPlans, enqueueSyncItem } from "@/lib/offlineStore";
+import { syncEngine } from "@/lib/syncEngine";
 
 export default function SessionPlans() {
   const [activeTab, setActiveTab] = useState<"learning" | "session" | "record">("learning");
@@ -119,8 +121,14 @@ export default function SessionPlans() {
           }));
           setPlans(mapped);
           saveStoredSessionPlans(mapped);
+          mapped.forEach((p) => saveSessionPlanToOffline(p));
         } else {
-          setPlans(getStoredSessionPlans());
+          const idbPlans = await getAllOfflineSessionPlans();
+          if (idbPlans && idbPlans.length > 0) {
+            setPlans(idbPlans);
+          } else {
+            setPlans(getStoredSessionPlans());
+          }
         }
 
         if (lpRes.data && lpRes.data.length > 0) {
@@ -142,13 +150,15 @@ export default function SessionPlans() {
           setRecordsOfWork(getStoredRecordsOfWork());
         }
       } else {
-        setPlans(getStoredSessionPlans());
+        const idbPlans = await getAllOfflineSessionPlans();
+        setPlans(idbPlans.length > 0 ? idbPlans : getStoredSessionPlans());
         setLearningPlans(getStoredLearningPlans());
         setRecordsOfWork(getStoredRecordsOfWork());
       }
     } catch (err) {
-      console.error("Error loading TVET data pipeline:", err);
-      setPlans(getStoredSessionPlans());
+      console.error("Error loading TVET data pipeline, falling back to offline cache:", err);
+      const idbPlans = await getAllOfflineSessionPlans();
+      setPlans(idbPlans.length > 0 ? idbPlans : getStoredSessionPlans());
       setLearningPlans(getStoredLearningPlans());
       setRecordsOfWork(getStoredRecordsOfWork());
     } finally {
@@ -424,7 +434,12 @@ export default function SessionPlans() {
     setLearningPlans(updatedLp);
     saveStoredLearningPlans(updatedLp);
 
-    if (isSupabaseConfigured()) {
+    // Save to IndexedDB offline store
+    saveSessionPlanToOffline(updatedPlan);
+
+    const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+
+    if (isSupabaseConfigured() && isOnline) {
       try {
         await Promise.all([
           (supabase as any).from("session_plans").upsert({
@@ -459,9 +474,14 @@ export default function SessionPlans() {
           }).eq("unit_code", updatedPlan.unit_code).eq("week_number", updatedPlan.week_number)
         ]);
       } catch (err) {
-        console.error("Supabase sync failed for save session plan:", err);
+        console.error("Supabase sync failed for save session plan, queuing offline:", err);
+        await enqueueSyncItem("SESSION_PLAN_SAVE", updatedPlan);
       }
+    } else if (isSupabaseConfigured()) {
+      await enqueueSyncItem("SESSION_PLAN_SAVE", updatedPlan);
     }
+
+    syncEngine.flushQueue();
 
     setIsEditorOpen(false);
   };

@@ -26,6 +26,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getStoredRecordsOfWork, saveStoredRecordsOfWork } from "@/lib/mockSessionPlans";
 import WorkshopDoorQRModal from "@/components/WorkshopDoorQRModal";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { getAttendanceScansFromOffline, enqueueSyncItem } from "@/lib/offlineStore";
+import { syncEngine } from "@/lib/syncEngine";
 
 // --- Types ---
 type AttendanceStatus = "X" | "0" | "";
@@ -81,8 +83,18 @@ const MTTI_CLASSES: ClassConfig[] = [
     docCode: "MTTI/REG/CUR/03"
   },
   {
+    code: "FBS 5 MOD/J/2026",
+    name: "FBS 5 MOD/J/2026",
+    subject: "Apply Digital Literacy",
+    department: "FBS Hospitality",
+    level: "Level 5",
+    duration: "Term 3 2026",
+    assessmentType: "General Class Register",
+    docCode: "MTTI/REG/CUR/02"
+  },
+  {
     code: "FBS",
-    name: "FBS Hospitality",
+    name: "FBS Hospitality (Assessment)",
     subject: "Apply Digital Literacy",
     department: "FBS Hospitality",
     level: "Level 5",
@@ -150,7 +162,11 @@ export default function ClassRegister() {
 
   // Filter trainees by selected class
   const classTrainees = useMemo(() => {
-    const list = trainees.filter(t => t.classCode === selectedClassCode);
+    const list = trainees.filter(t => 
+      t.classCode === selectedClassCode ||
+      (selectedClassCode === "FBS 5 MOD/J/2026" && (t.classCode === "FBS" || t.classCode === "FBS 5 MOD/J/2026")) ||
+      (selectedClassCode === "FBS" && (t.classCode === "FBS" || t.classCode === "FBS 5 MOD/J/2026"))
+    );
     return list.length > 0 ? list : trainees.slice(0, 11);
   }, [trainees, selectedClassCode]);
 
@@ -362,11 +378,12 @@ export default function ClassRegister() {
     return { actualHrs, possibleHrs, percentage, totalMarkedSessions };
   };
 
-  // Sync QR door scans from StudentSessionView into current session
-  const handleSyncQRCheckIns = () => {
+  // Sync QR door scans from StudentSessionView & IndexedDB into current session
+  const handleSyncQRCheckIns = async () => {
     let totalSynced = 0;
-    const allScans: Array<{ adm: string; name: string; date: string; time: string }> = [];
+    const allScans: Array<{ adm: string; name: string; date?: string; time?: string }> = [];
 
+    // 1. Pull from localStorage
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && (key.startsWith("mtti_attendance_") || key === "mtti_attendance_all")) {
@@ -377,6 +394,14 @@ export default function ClassRegister() {
           }
         } catch (e) {}
       }
+    }
+
+    // 2. Pull from IndexedDB offline attendance scans
+    try {
+      const idbScans = await getAttendanceScansFromOffline();
+      allScans.push(...idbScans);
+    } catch (e) {
+      console.warn("Error reading IndexedDB attendance scans:", e);
     }
 
     if (allScans.length === 0) {
@@ -432,24 +457,34 @@ export default function ClassRegister() {
     try {
       localStorage.setItem(`mtti_class_register_${selectedClassCode}`, JSON.stringify(attendanceData));
 
-      if (isSupabaseConfigured()) {
+      const rows = classTrainees.map(t => {
+        const rec = attendanceData[t.id];
+        const isPresent = rec ? Object.values(rec.attendance).some(v => v === "X") : false;
+        return {
+          trainee_id: t.id,
+          status: isPresent ? "Present" : "Absent"
+        };
+      });
+
+      const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+
+      if (isSupabaseConfigured() && isOnline) {
         try {
-          const rows = classTrainees.map(t => {
-            const rec = attendanceData[t.id];
-            const isPresent = rec ? Object.values(rec.attendance).some(v => v === "X") : false;
-            return {
-              trainee_id: t.id,
-              status: isPresent ? "Present" : "Absent"
-            };
-          });
           await (supabase.from("attendance_register" as any) as any).upsert(rows as any);
         } catch (supaErr) {
           console.warn("Supabase attendance sync warning:", supaErr);
+          await enqueueSyncItem("ATTENDANCE_REGISTER_SAVE", { rows });
         }
+      } else if (isSupabaseConfigured()) {
+        await enqueueSyncItem("ATTENDANCE_REGISTER_SAVE", { rows });
       }
 
+      syncEngine.flushQueue();
+
       toast.success("Class Register Saved", {
-        description: `Attendance data for ${selectedClassCode} stored in offline database.`,
+        description: isOnline
+          ? `Attendance data for ${selectedClassCode} synced with MTTI cloud.`
+          : `Attendance data for ${selectedClassCode} stored in offline database & queued for sync.`,
       });
     } finally {
       setIsSaving(false);

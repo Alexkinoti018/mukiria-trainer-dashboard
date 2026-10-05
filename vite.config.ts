@@ -236,6 +236,42 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("react-dom") || id.includes("react/") || id.includes("wouter")) {
+              return "vendor-react";
+            }
+            if (id.includes("@radix-ui")) {
+              return "vendor-radix";
+            }
+            if (id.includes("framer-motion")) {
+              return "vendor-motion";
+            }
+            if (id.includes("recharts") || id.includes("d3-")) {
+              return "vendor-charts";
+            }
+            if (id.includes("jspdf")) {
+              return "vendor-jspdf";
+            }
+            if (id.includes("html2canvas")) {
+              return "vendor-html2canvas";
+            }
+            if (id.includes("lucide-react")) {
+              return "vendor-icons";
+            }
+            if (id.includes("@supabase")) {
+              return "vendor-supabase";
+            }
+            if (id.includes("@dnd-kit")) {
+              return "vendor-dnd";
+            }
+          }
+        },
+      },
+    },
   },
   server: {
     port: 3000,

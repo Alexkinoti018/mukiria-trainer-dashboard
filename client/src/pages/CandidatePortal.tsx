@@ -28,6 +28,14 @@ import { useExam } from "@/contexts/ExamContext";
 import type { Exam } from "@/lib/supabase";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
+import {
+  saveExamToOffline,
+  getExamFromOffline,
+  saveSubmissionToOffline,
+  getDraftSubmissionFromOffline,
+  enqueueSyncItem,
+} from "@/lib/offlineStore";
+import { syncEngine } from "@/lib/syncEngine";
 
 type PortalState =
   | "loading"
@@ -141,12 +149,28 @@ export default function CandidatePortal() {
   const loadExam = async () => {
     setState("loading");
     try {
-      const foundExam = exams.find((e) => e.unit_code.toUpperCase() === unitCode.toUpperCase());
+      let foundExam = exams.find((e) => e.unit_code.toUpperCase() === unitCode.toUpperCase());
+      
+      // Fallback to IndexedDB offline cache if not in memory
+      if (!foundExam) {
+        const cached = await getExamFromOffline(unitCode);
+        if (cached) {
+          foundExam = {
+            id: cached.id,
+            unit_code: cached.unit_code,
+            payload: cached.payload,
+            created_at: new Date(cached.cached_at).toISOString(),
+          } as Exam;
+        }
+      }
       
       if (!foundExam) {
         setState("not_found");
         return;
       }
+      
+      // Cache loaded exam into IndexedDB for offline resilience
+      await saveExamToOffline(foundExam);
       
       if (foundExam.payload.type === "practical") {
         setExam(foundExam);
@@ -274,13 +298,46 @@ export default function CandidatePortal() {
         
         submitExam(payload);
         
-        console.log("✅ [MTTI Portal] Submission saved to global state:", id);
+        const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+
+        // 1. Buffer submission in IndexedDB offline store
+        await saveSubmissionToOffline({
+          id,
+          unit_code: payload.unit_code,
+          student_name: payload.student_name,
+          reg_number: payload.reg_number,
+          student_email: payload.student_email,
+          section_a: payload.section_a,
+          section_b: payload.section_b,
+          status: payload.status,
+          total_score: payload.total_score,
+          created_at: Date.now(),
+          updated_at: Date.now(),
+          synced: isOnline,
+        });
+
+        // 2. Queue background sync action for Supabase upload
+        await enqueueSyncItem("SUBMISSION_SUBMIT", {
+          id,
+          ...payload,
+        });
+
+        // 3. Trigger immediate queue flush if connected
+        syncEngine.flushQueue();
+
+        console.log("✅ [MTTI Portal] Submission buffered & queued:", id);
 
         resetTimer();
         localStorage.removeItem(`mtti_exam_answers_${exam.unit_code}`);
         setState("submitted");
         if (!autoSubmit) {
-          toast.success("Exam Submitted!", { description: "Your answers have been recorded." });
+          if (isOnline) {
+            toast.success("Exam Submitted!", { description: "Your answers have been uploaded to MTTI servers." });
+          } else {
+            toast.success("Exam Saved Locally!", {
+              description: "Campus network disconnected. Your answers are buffered and will automatically upload when reconnected.",
+            });
+          }
         }
       } catch (err: any) {
         console.error("❌ [MTTI Portal] Submission error:", err);
@@ -292,27 +349,61 @@ export default function CandidatePortal() {
     [exam, student, sectionAAnswers, sectionBAnswers, submitting, resetTimer]
   );
 
-  // ── Save answers to localStorage (offline resilience) ────
+  // ── Save answers to localStorage & IndexedDB (offline resilience) ────
   useEffect(() => {
     if (exam && state === "exam") {
       localStorage.setItem(
         `mtti_exam_answers_${exam.unit_code}`,
         JSON.stringify({ sectionAAnswers, sectionBAnswers })
       );
-    }
-  }, [sectionAAnswers, sectionBAnswers, exam, state]);
 
-  // ── Restore answers from localStorage ────────────────────
+      // Auto-save draft into IndexedDB
+      saveSubmissionToOffline({
+        id: `draft_${exam.unit_code}_${student.regNumber.trim().toUpperCase() || "anon"}`,
+        unit_code: exam.unit_code,
+        student_name: student.name,
+        reg_number: student.regNumber.trim().toUpperCase(),
+        student_email: student.email,
+        section_a: Object.entries(sectionAAnswers).map(([k, v]) => ({ question_id: k, answer: String(v) })),
+        section_b: Object.entries(sectionBAnswers).map(([k, v]) => ({ question_id: k, answer: String(v) })),
+        status: "draft",
+        created_at: Date.now(),
+        updated_at: Date.now(),
+        synced: false,
+      });
+    }
+  }, [sectionAAnswers, sectionBAnswers, exam, state, student]);
+
+  // ── Restore answers from localStorage or IndexedDB ────────────────────
   useEffect(() => {
     if (exam && state === "exam") {
       const stored = localStorage.getItem(`mtti_exam_answers_${exam.unit_code}`);
       if (stored) {
-        const { sectionAAnswers: a, sectionBAnswers: b } = JSON.parse(stored);
-        if (a) setSectionAAnswers(a);
-        if (b) setSectionBAnswers(b);
+        try {
+          const { sectionAAnswers: a, sectionBAnswers: b } = JSON.parse(stored);
+          if (a) setSectionAAnswers(a);
+          if (b) setSectionBAnswers(b);
+          return;
+        } catch (e) {}
       }
+
+      // Check IndexedDB draft store
+      getDraftSubmissionFromOffline(exam.unit_code, student.regNumber).then((draft) => {
+        if (draft) {
+          const aMap: Record<string, any> = {};
+          (draft.section_a || []).forEach((item: any) => {
+            if (item.question_id) aMap[item.question_id] = item.answer;
+          });
+          const bMap: Record<string, string> = {};
+          (draft.section_b || []).forEach((item: any) => {
+            if (item.question_id) bMap[item.question_id] = item.answer;
+          });
+          if (Object.keys(aMap).length > 0) setSectionAAnswers(aMap);
+          if (Object.keys(bMap).length > 0) setSectionBAnswers(bMap);
+        }
+      });
     }
-  }, [exam, state]);
+  }, [exam, state, student.regNumber]);
 
   const answeredA = Object.keys(sectionAAnswers).filter(
     (k) => sectionAAnswers[k] !== "" && sectionAAnswers[k] !== undefined

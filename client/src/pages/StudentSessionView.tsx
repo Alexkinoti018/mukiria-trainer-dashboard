@@ -21,6 +21,8 @@ import {
 } from "@/lib/mockSessionPlans";
 import { toast } from "sonner";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { saveAttendanceScanToOffline, enqueueSyncItem } from "@/lib/offlineStore";
+import { syncEngine } from "@/lib/syncEngine";
 
 export default function StudentSessionView() {
   const [, params] = useRoute("/session/:id");
@@ -115,17 +117,26 @@ export default function StudentSessionView() {
     globalExisting.push(newEntry);
     localStorage.setItem("mtti_attendance_all", JSON.stringify(globalExisting));
 
-    // Optional Supabase background sync
-    if (isSupabaseConfigured()) {
-      try {
-        supabase.from("attendance_register" as any).insert({
-          status: "Present"
-        } as any).then(() => {});
-      } catch (err) {}
-    }
+    // 1. Save scan to IndexedDB offline store
+    saveAttendanceScanToOffline(newEntry);
+
+    // 2. Enqueue background sync action with union-merge conflict resolution
+    enqueueSyncItem("ATTENDANCE_CHECKIN", newEntry);
+
+    // 3. Flush queue if online
+    syncEngine.flushQueue();
 
     setCheckedIn(true);
-    toast.success(`Check-in confirmed for ${traineeName}!`);
+    const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+    if (isOnline) {
+      toast.success(`Check-in confirmed for ${traineeName}!`, {
+        description: "Synced with MTTI attendance cloud."
+      });
+    } else {
+      toast.success(`Check-in recorded for ${traineeName}!`, {
+        description: "Buffered offline. Will automatically sync when reconnected to campus Wi-Fi."
+      });
+    }
   };
 
   if (!session) {

@@ -1,0 +1,49 @@
+{
+  "name": "Mukiria Technical Training Institute — Academic & Candidate Portal",
+  "short_name": "MTTI Portal",
+  "description": "Offline-resilient TVET Trainer Dashboard, Candidate Exam Portal, and Institutional Class Register for Mukiria Technical Training Institute.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#000953",
+  "theme_color": "#000953",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/mtti-logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/mtti-logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Candidate Exam Portal",
+      "short_name": "Exam Portal",
+      "description": "Take offline-resilient digital examinations",
+      "url": "/exam",
+      "icons": [{ "src": "/mtti-logo.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Class Register (CUR/02 & CUR/03)",
+      "short_name": "Class Register",
+      "description": "Log attendance and verify trainee door QR scans",
+      "url": "/trainer/class-register",
+      "icons": [{ "src": "/mtti-logo.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Session Plans (CUR/05)",
+      "short_name": "Session Plans",
+      "description": "Prepare TVET CDACC session plans and records of work",
+      "url": "/trainer/session-plans",
+      "icons": [{ "src": "/mtti-logo.jpg", "sizes": "192x192" }]
+    }
+  ]
+}

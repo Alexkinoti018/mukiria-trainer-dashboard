@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import OfflineStatusBar from "@/components/OfflineStatusBar";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -9,44 +10,58 @@ import { TraineeProvider } from "./contexts/TraineeContext";
 import { ExamProvider } from "./contexts/ExamContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+import { lazy, Suspense } from "react";
+import { Loader2 } from "lucide-react";
 
-import Login from "./pages/Login";
+function PageFallback() {
+  return (
+    <div className="min-h-screen bg-[#000953]/20 flex flex-col items-center justify-center gap-3 text-slate-300">
+      <Loader2 className="w-8 h-8 animate-spin text-[#c48820]" />
+      <span className="text-xs font-semibold tracking-wider text-slate-300">
+        Loading MTTI Academic Module...
+      </span>
+    </div>
+  );
+}
+
+const Login = lazy(() => import("./pages/Login"));
 
 // Trainer pages
-import Dashboard from "./pages/Dashboard";
-import ExamBuilder from "./pages/ExamBuilder";
-import Grading from "./pages/Grading";
-import Analytics from "./pages/Analytics";
-import Reports from "./pages/Reports";
-import Setup from "./pages/Setup";
-import Proctoring from "./pages/Proctoring";
-import AutoGrading from "./pages/AutoGrading";
-import PerformanceInsights from "./pages/PerformanceInsights";
-import SessionPlans from "./pages/SessionPlans";
-import AcademicWorkspaceShell from "./pages/AcademicWorkspaceShell";
-import ClassRegister from "./pages/ClassRegister";
-import LearningPlan from "./pages/LearningPlan";
-import RecordsOfWork from "./pages/RecordsOfWork";
-import AssessmentPlan from "./pages/AssessmentPlan";
-import AssessmentMarks from "./pages/AssessmentMarks";
-import CurriculumParsingHub from "./pages/CurriculumParsingHub";
-import TraineeAssignments from "./pages/TraineeAssignments";
-import UploadGrading from "./pages/UploadGrading";
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const ExamBuilder = lazy(() => import("./pages/ExamBuilder"));
+const Grading = lazy(() => import("./pages/Grading"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Setup = lazy(() => import("./pages/Setup"));
+const Proctoring = lazy(() => import("./pages/Proctoring"));
+const AutoGrading = lazy(() => import("./pages/AutoGrading"));
+const PerformanceInsights = lazy(() => import("./pages/PerformanceInsights"));
+const SessionPlans = lazy(() => import("./pages/SessionPlans"));
+const AcademicWorkspaceShell = lazy(() => import("./pages/AcademicWorkspaceShell"));
+const ClassRegister = lazy(() => import("./pages/ClassRegister"));
+const LearningPlan = lazy(() => import("./pages/LearningPlan"));
+const RecordsOfWork = lazy(() => import("./pages/RecordsOfWork"));
+const AssessmentPlan = lazy(() => import("./pages/AssessmentPlan"));
+const AssessmentMarks = lazy(() => import("./pages/AssessmentMarks"));
+const CurriculumParsingHub = lazy(() => import("./pages/CurriculumParsingHub"));
+const TraineeAssignments = lazy(() => import("./pages/TraineeAssignments"));
+const UploadGrading = lazy(() => import("./pages/UploadGrading"));
 
 // HOD pages
-import HODDashboard from "./pages/HODDashboard";
-import HODCompliance from "./pages/HODCompliance";
-import HODAnalytics from "./pages/HODAnalytics";
-import HODReports from "./pages/HODReports";
+const HODDashboard = lazy(() => import("./pages/HODDashboard"));
+const HODCompliance = lazy(() => import("./pages/HODCompliance"));
+const HODAnalytics = lazy(() => import("./pages/HODAnalytics"));
+const HODReports = lazy(() => import("./pages/HODReports"));
 
 // Trainee pages
-import TraineeDashboard from "./pages/TraineeDashboard";
-import CandidatePortal from "./pages/CandidatePortal";
-import StudentResults from "./pages/StudentResults";
-import StudentSessionView from "./pages/StudentSessionView";
+const TraineeDashboard = lazy(() => import("./pages/TraineeDashboard"));
+const CandidatePortal = lazy(() => import("./pages/CandidatePortal"));
+const StudentResults = lazy(() => import("./pages/StudentResults"));
+const StudentSessionView = lazy(() => import("./pages/StudentSessionView"));
 
 function Router() {
   return (
+    <Suspense fallback={<PageFallback />}>
     <Switch>
       {/* Public routes */}
       <Route path="/" component={Login} />
@@ -161,6 +176,7 @@ function Router() {
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
+    </Suspense>
   );
 }
 
@@ -173,6 +189,7 @@ function App() {
             <ExamProvider>
               <TooltipProvider>
                 <Toaster richColors position="top-right" />
+                <OfflineStatusBar />
                 <Router />
               </TooltipProvider>
             </ExamProvider>

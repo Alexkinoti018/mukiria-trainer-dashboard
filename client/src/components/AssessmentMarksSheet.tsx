@@ -72,10 +72,34 @@ export function AssessmentMarksSheet() {
       });
     });
 
-    // Update level if class is known
-    if (selectedClass.includes("4")) setLevel(4);
-    else if (selectedClass.includes("5")) setLevel(5);
-    else if (selectedClass.includes("6")) setLevel(6);
+    // Update level and unit metadata if class is known
+    if (selectedClass.includes("FBS")) {
+      setLevel(5);
+      setCourseTitle("Diploma in Food & Beverage Sales and Service Management");
+      setCourseCode("FBS-MOD-5");
+      setUnitCode("HBS/OS/COS/BC/01/5/MA");
+      setUnitTitle("Apply Digital Literacy");
+    } else if (selectedClass.includes("Admin")) {
+      setLevel(6);
+      setCourseTitle("Diploma in Secretarial & Administration");
+      setCourseCode("Admin-MOD-6");
+      setUnitCode("ADM/OS/SEC/BC/01/6/MA");
+      setUnitTitle("Apply ICT Skills");
+    } else if (selectedClass.includes("4")) {
+      setLevel(4);
+      setCourseTitle("Certificate in Information Communication Technology");
+      setCourseCode("041304T4ICT");
+      setUnitCode("IT/CU/ICT/CC/01/4/MA");
+      setUnitTitle("Perform Computer Essentials");
+    } else if (selectedClass.includes("5")) {
+      setLevel(5);
+    } else if (selectedClass.includes("6")) {
+      setLevel(6);
+      setCourseTitle("Diploma in Information Communication Technology");
+      setCourseCode("041305T4OAD");
+      setUnitCode("IT/CU/ICTA/CR/01/6/MA");
+      setUnitTitle("Perform Computer Essentials");
+    }
   }, [selectedClass, trainees, ctCount, cpCount]);
 
   // Round averages to whole number (no decimals)
