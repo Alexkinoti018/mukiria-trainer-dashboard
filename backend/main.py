@@ -1029,11 +1029,12 @@ def generate_exam_results_pdf(payload):
     grade = clean_pdf_text(str(payload.get("grade", "Pass")))
     status = clean_pdf_text(str(payload.get("status", "PASS" if pct >= 50 else "FAIL")))
 
+    is_competent = ("PASS" in status.upper() or "COMPETENT" in status.upper()) and "NOT" not in status.upper() and "REFER" not in status.upper()
     cards = [
         ("ASSESSOR TALLY", f"{total_score} / {total_marks}", (220, 38, 38)),
         ("PERCENTAGE", f"{pct}%", (196, 136, 32)),
         ("FINAL GRADE", grade, (0, 9, 83)),
-        ("VERDICT", status, (34, 139, 34) if status == "PASS" else (220, 38, 38))
+        ("VERDICT", status, (34, 139, 34) if is_competent else (220, 38, 38))
     ]
     card_w = 186 / 4
     for idx, (label, val, col) in enumerate(cards):

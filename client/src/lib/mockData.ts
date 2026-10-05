@@ -561,10 +561,10 @@ export const MOCK_SUBMISSIONS: Submission[] = [
   {
     id: "sub-harriet-061155101A",
     unit_code: "061155101A-WA1",
-    student_name: "Harriet mwendwa",
+    student_name: "Harriet Mwendwa",
     reg_number: "D/UPNUT/25042/069",
     section_a: [
-      { question_id: "dl1_a1", answer: "Define digital literacy and state its importance in a modern workplace.", marks_awarded: 2, ai_reasoning: "Accurately articulates digital technology application and workplace efficiency." },
+      { question_id: "dl1_a1", answer: "Digital literacy is the ability to use digital tools safely and effectively to enhance workplace productivity.", marks_awarded: 2, ai_reasoning: "Accurately articulates digital technology application and workplace efficiency." },
       { question_id: "dl1_a2", answer: "1", marks_awarded: 2, ai_reasoning: "Correct option B selected (Keyboard, Optical Scanner, and Mouse)." },
       { question_id: "dl1_a3", answer: "Input: Keyboard. Output: Monitor.", marks_awarded: 1, ai_reasoning: "Provided 1 input and 1 output device instead of required two each." },
       { question_id: "dl1_a4", answer: "Click start and power off.", marks_awarded: 0, ai_reasoning: "Omitted crucial safety steps: save files, close apps, and wall socket switch-off." },
