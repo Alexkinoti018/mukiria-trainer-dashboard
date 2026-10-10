@@ -1188,7 +1188,15 @@ export default function CandidatePortal() {
               <p className="font-bold mb-2 text-[#000953] text-sm">
                 General Instructions:
               </p>
-              {exam?.payload.instructions}
+              {Array.isArray(exam?.payload.instructions) ? (
+                <ol className="list-decimal list-inside space-y-1">
+                  {(exam?.payload.instructions as string[]).map((inst, i) => (
+                    <li key={i}>{inst}</li>
+                  ))}
+                </ol>
+              ) : (
+                exam?.payload.instructions
+              )}
             </div>
 
             <div className="space-y-2 mb-6 text-xs text-slate-600 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
@@ -1225,7 +1233,8 @@ export default function CandidatePortal() {
     const questions = isInSectionA
       ? (exam.payload?.section_a?.questions || [])
       : (exam.payload?.section_b?.questions || []);
-    const currentQ = questions[currentQIndex];
+    const currentQ = questions[currentQIndex] as any;
+    const qType = currentQ?.type || "short";
 
     return (
       <div className="min-h-screen bg-slate-100 text-[#0f172a]">
@@ -1287,6 +1296,50 @@ export default function CandidatePortal() {
         </div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+          {/* Official Exam Paper Cover Banner (Matches Graded Exam Paper Header) */}
+          <div className="bg-white rounded-2xl border-2 border-[#000953]/20 shadow-sm p-4 sm:p-5 mb-5">
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-3">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                  {(exam.payload as any)?.institution || "MUKIRIA TECHNICAL TRAINING INSTITUTE"} •{" "}
+                  {((exam.payload as any)?.department || "DEPARTMENT OF COMPUTING & INFORMATICS").replace(/\n/g, " / ")}
+                </p>
+                <h1 className="text-base sm:text-lg font-extrabold text-[#000953] uppercase mt-0.5">
+                  {(exam.payload as any)?.exam_header || "INTERNAL EXAMINATION"} — {exam.payload.title}
+                </h1>
+                <p className="text-xs font-semibold text-slate-700 mt-0.5">
+                  Course: {exam.course_name} | Unit: {exam.unit_code} — {(exam.payload as any)?.unit_name || exam.course_name}
+                </p>
+              </div>
+              <div className="text-right text-xs space-y-0.5">
+                <div className="font-bold text-[#000953]">
+                  Time Allowed: <span className="text-[#c48820]">{(exam.payload as any)?.time_allowed || `${exam.payload.duration_minutes} MINUTES`}</span> | Total Marks: <span className="text-[#c48820]">{exam.payload.total_marks}</span>
+                </div>
+                <div className="text-slate-600 font-medium">
+                  Class: {(exam.payload as any)?.class || student.cohortCode || "Active Cohort"} • Series: {(exam.payload as any)?.series || "SEP - NOV 2026"}
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 text-xs">
+              <div>
+                <span className="text-[10px] font-bold uppercase text-slate-500 block">Candidate Name:</span>
+                <span className="font-bold text-slate-900">{student.name}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase text-slate-500 block">Registration No:</span>
+                <span className="font-mono font-bold text-slate-900">{student.regNumber}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase text-slate-500 block">Unit Code:</span>
+                <span className="font-mono font-bold text-slate-900">{exam.unit_code}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase text-slate-500 block">Questions Answered:</span>
+                <span className="font-mono font-bold text-[#000953]">{totalAnswered} / {totalQuestions}</span>
+              </div>
+            </div>
+          </div>
+
           {/* Section tabs */}
           <div className="flex gap-2.5 mb-5">
             {(["a", "b"] as const).map((sec) => {
@@ -1318,15 +1371,16 @@ export default function CandidatePortal() {
             })}
           </div>
 
-          {/* Section B Notice Banner */}
-          {currentSection === "b" && (
-            <div className="mb-5 p-3.5 rounded-xl text-xs flex items-center gap-3 bg-amber-50 border border-amber-300 text-amber-900">
-              <Info className="w-4 h-4 shrink-0 text-[#c48820]" />
-              <span>
-                <strong>Section B Instructions:</strong> Answer <strong>ANY TWO</strong> questions (20 marks each). You can switch between questions below.
-              </span>
-            </div>
-          )}
+          {/* Section Instructions Banner */}
+          <div className="mb-5 p-3.5 rounded-xl text-xs flex items-center gap-3 bg-[#fef6e7] border border-[#c48820]/50 text-slate-900">
+            <Info className="w-4 h-4 shrink-0 text-[#c48820]" />
+            <span>
+              <strong>Section {currentSection.toUpperCase()} Instructions:</strong>{" "}
+              {currentSection === "a"
+                ? exam.payload?.section_a?.instructions || "Answer ALL questions in this section."
+                : exam.payload?.section_b?.instructions || "Answer ALL structured/practical questions in this section."}
+            </span>
+          </div>
 
           {/* Question Booklet Paper */}
           <AnimatePresence mode="wait">
@@ -1339,24 +1393,37 @@ export default function CandidatePortal() {
               className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-300 shadow-md mb-6"
             >
               {/* Question Header */}
-              <div className="flex items-start gap-3.5 mb-5 pb-4 border-b border-slate-200">
-                <div className="px-2.5 py-1 rounded-lg flex items-center justify-center text-xs font-bold font-mono bg-[#000953] text-white shrink-0 shadow-sm">
-                  {currentSection.toUpperCase()}{currentQIndex + 1}
+              <div className="flex items-start justify-between gap-3.5 mb-4 pb-4 border-b border-slate-200">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="px-2.5 py-1 rounded-lg flex items-center justify-center text-xs font-bold font-mono bg-[#000953] text-white shrink-0 shadow-sm">
+                    Q{currentQ?.q_num || (isInSectionA ? currentQIndex + 1 : (exam.payload?.section_a?.questions?.length || 10) + currentQIndex + 1)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-semibold leading-relaxed whitespace-pre-line text-[#0f172a]">
+                      {currentQ?.text}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-base font-semibold leading-relaxed whitespace-pre-line text-[#0f172a]">
-                    {currentQ?.text}
-                  </p>
-                  <p className="text-xs mt-1.5 font-bold text-[#c48820]">
-                    [{currentQ?.marks} mark{currentQ?.marks !== 1 ? "s" : ""}]
-                  </p>
-                </div>
+                <span className="exam-marks-badge shrink-0">
+                  ({currentQ?.marks} {currentQ?.marks === 1 ? "Mark" : "Marks"})
+                </span>
               </div>
 
+              {/* Structured Sub-Parts (a, b, c, d) — Identical to Graded Exam Paper */}
+              {Array.isArray(currentQ?.sub_parts) && currentQ.sub_parts.length > 0 && (
+                <div className="mb-5 pl-4 border-l-2 border-[#000953]/30 space-y-1.5 bg-slate-50 py-2.5 pr-3 rounded-r">
+                  {currentQ.sub_parts.map((sp: string, spIdx: number) => (
+                    <p key={spIdx} className="text-xs sm:text-sm font-medium text-slate-800 leading-relaxed">
+                      {sp}
+                    </p>
+                  ))}
+                </div>
+              )}
+
               {/* MCQ Options */}
-              {currentQ?.type === "mcq" && (
+              {qType === "mcq" && (
                 <div className="space-y-2.5">
-                  {currentQ.options?.map((opt, oi) => {
+                  {currentQ.options?.map((opt: string, oi: number) => {
                     const isSelected = String(sectionAAnswers[currentQ.id]) === String(oi) || sectionAAnswers[currentQ.id] === oi;
                     return (
                       <button
@@ -1385,10 +1452,10 @@ export default function CandidatePortal() {
               )}
 
               {/* True/False */}
-              {currentQ?.type === "true_false" && (
+              {(qType === "true_false" || qType === "tf") && (
                 <div className="flex gap-4">
                   {["True", "False"].map((opt, oi) => {
-                    const isSelected = sectionAAnswers[currentQ.id] === oi;
+                    const isSelected = sectionAAnswers[currentQ.id] === oi || String(sectionAAnswers[currentQ.id]).toLowerCase() === opt.toLowerCase();
                     return (
                       <button
                         key={opt}
@@ -1407,10 +1474,12 @@ export default function CandidatePortal() {
               )}
 
               {/* Short Answer / Practical / Essay / Open-ended text */}
-              {(currentQ?.type === "short_answer" || currentQ?.type === "practical" || currentQ?.type === "essay" || !currentQ?.type) && (
+              {(qType === "short" || qType === "short_answer" || qType === "practical" || qType === "essay" || !currentQ?.type) && (
                 <div className="space-y-2">
-                  <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                    Candidate Written Response:
+                  <div className="text-[11px] font-bold text-[#000953] uppercase tracking-wider mb-1">
+                    {isInSectionA
+                      ? "Candidate Written Response:"
+                      : "Candidate Written / Practical Procedure Response:"}
                   </div>
                   <textarea
                     value={
@@ -1429,10 +1498,10 @@ export default function CandidatePortal() {
                     placeholder={
                       isInSectionA
                         ? "Write your concise answer, definition, formula, or shortcut key here..."
-                        : "Type your structured response, steps, procedures, or practical explanation here (e.g. Part a, Part b...)..."
+                        : "Type your structured response, steps, procedures, or practical explanation here (e.g. a) ..., b) ..., c) ..., d) ...)..."
                     }
                     rows={isInSectionA ? 5 : 9}
-                    className="w-full px-4 py-3.5 rounded-xl text-sm resize-y bg-white border-2 border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-4 focus:ring-[#000953]/10 leading-relaxed font-sans shadow-inner"
+                    className="w-full px-4 py-3.5 rounded-xl text-sm resize-y bg-[#fffdfa] border-2 border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-4 focus:ring-[#000953]/10 leading-relaxed font-sans shadow-inner"
                   />
                   <div className="flex justify-between items-center text-xs text-slate-500 px-1 pt-1">
                     <span>{isInSectionA ? "Section A (Short Answer)" : "Section B (Practical & Structured)"}</span>

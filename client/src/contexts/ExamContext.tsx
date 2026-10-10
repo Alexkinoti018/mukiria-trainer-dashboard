@@ -55,18 +55,36 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     const storedExams = localStorage.getItem("mukiria_exams");
     const storedSubmissions = localStorage.getItem("mukiria_submissions");
 
+    let loadedExams: Exam[] = MOCK_EXAMS;
     if (storedExams) {
       try {
         const parsed: Exam[] = JSON.parse(storedExams);
-        const existingIds = new Set(parsed.map((e) => e.id || e.unit_code));
+        const mockExamById = new Map((MOCK_EXAMS as Exam[]).map((m) => [m.id, m]));
+        const mockExamByUnit = new Map((MOCK_EXAMS as Exam[]).map((m) => [m.unit_code, m]));
+        const refreshedParsed = parsed.map((e) => {
+          const mockMatch = mockExamById.get(e.id) || mockExamByUnit.get(e.unit_code);
+          if (mockMatch) {
+            return {
+              ...mockMatch,
+              ...e,
+              payload: {
+                ...mockMatch.payload,
+                ...e.payload,
+                section_a: mockMatch.payload.section_a || e.payload?.section_a,
+                section_b: mockMatch.payload.section_b || e.payload?.section_b,
+              },
+            };
+          }
+          return e;
+        });
+        const existingIds = new Set(refreshedParsed.map((e) => e.id));
+        const existingUnits = new Set(refreshedParsed.map((e) => e.unit_code));
         const missingMocks = (MOCK_EXAMS as Exam[]).filter(
-          (m) => !existingIds.has(m.id) && !existingIds.has(m.unit_code)
+          (m) => !existingIds.has(m.id) && !existingUnits.has(m.unit_code)
         );
-        const combined = [...parsed, ...missingMocks];
-        setExams(combined);
-        if (missingMocks.length > 0) {
-          localStorage.setItem("mukiria_exams", JSON.stringify(combined));
-        }
+        loadedExams = [...refreshedParsed, ...missingMocks];
+        setExams(loadedExams);
+        localStorage.setItem("mukiria_exams", JSON.stringify(loadedExams));
       } catch {
         setExams(MOCK_EXAMS);
         localStorage.setItem("mukiria_exams", JSON.stringify(MOCK_EXAMS));
@@ -77,28 +95,61 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     }
 
     if (storedSubmissions) {
-      let parsed: Submission[] = JSON.parse(storedSubmissions);
-      parsed = parsed.map((s) => ({
-        ...s,
-        total_score: s.total_score !== null ? Math.round(s.total_score) : null,
-        section_a: (s.section_a || []).map((a) => ({
-          ...a,
-          marks_awarded: a.marks_awarded !== undefined ? Math.round(a.marks_awarded) : undefined,
-        })),
-        section_b: (s.section_b || []).map((b) => ({
-          ...b,
-          marks_awarded: b.marks_awarded !== undefined ? Math.round(b.marks_awarded) : undefined,
-        })),
-      }));
+      try {
+        let parsed: Submission[] = JSON.parse(storedSubmissions);
+        const mockSubById = new Map((MOCK_SUBMISSIONS as Submission[]).map((m) => [m.id, m]));
 
-      const existingIds = new Set(parsed.map((s) => s.id));
-      const missingMocks = (MOCK_SUBMISSIONS as Submission[]).filter((m) => !existingIds.has(m.id));
-      const combined = [...missingMocks, ...parsed];
-      setAllSubmissions(combined);
-      localStorage.setItem("mukiria_submissions", JSON.stringify(combined));
+        parsed = parsed.map((s) => {
+          const mockSub = mockSubById.get(s.id);
+          const exam = loadedExams.find((e) => e.unit_code === s.unit_code || e.id === s.exam_id);
+          const validQIds = new Set([
+            ...(exam?.payload?.section_a?.questions || []).map((q: any) => String(q.id)),
+            ...(exam?.payload?.section_b?.questions || []).map((q: any) => String(q.id)),
+          ]);
+          const hasMismatchedQIds =
+            validQIds.size > 0 &&
+            (s.section_a || []).some((a) => !validQIds.has(String(a.question_id)));
+          const maxMarks = exam?.payload?.total_marks ?? 100;
+          const hasOverflowScore = s.total_score !== null && s.total_score > maxMarks;
+
+          const baseSub =
+            mockSub && (hasMismatchedQIds || hasOverflowScore)
+              ? {
+                  ...mockSub,
+                  task_code: s.task_code || mockSub.task_code,
+                  trainer_comments: s.trainer_comments || mockSub.trainer_comments,
+                }
+              : s;
+
+          return {
+            ...baseSub,
+            total_score: baseSub.total_score !== null ? Math.round(baseSub.total_score) : null,
+            section_a: (baseSub.section_a || []).map((a) => ({
+              ...a,
+              marks_awarded: a.marks_awarded !== undefined ? Math.round(a.marks_awarded) : undefined,
+            })),
+            section_b: (baseSub.section_b || []).map((b) => ({
+              ...b,
+              marks_awarded: b.marks_awarded !== undefined ? Math.round(b.marks_awarded) : undefined,
+            })),
+          };
+        });
+
+        const existingIds = new Set(parsed.map((s) => s.id));
+        const missingMocks = (MOCK_SUBMISSIONS as Submission[]).filter((m) => !existingIds.has(m.id));
+        const combined = [...missingMocks, ...parsed];
+        setAllSubmissions(combined);
+        localStorage.setItem("mukiria_submissions", JSON.stringify(combined));
+        combined.forEach((sub) => syncSubmissionWithMarksheet(sub, loadedExams));
+      } catch {
+        setAllSubmissions(MOCK_SUBMISSIONS);
+        localStorage.setItem("mukiria_submissions", JSON.stringify(MOCK_SUBMISSIONS));
+        MOCK_SUBMISSIONS.forEach((sub) => syncSubmissionWithMarksheet(sub, loadedExams));
+      }
     } else {
       setAllSubmissions(MOCK_SUBMISSIONS);
       localStorage.setItem("mukiria_submissions", JSON.stringify(MOCK_SUBMISSIONS));
+      MOCK_SUBMISSIONS.forEach((sub) => syncSubmissionWithMarksheet(sub, loadedExams));
     }
   }, []);
 

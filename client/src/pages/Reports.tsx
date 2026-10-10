@@ -20,6 +20,7 @@ import TrainerLayout from "@/components/TrainerLayout";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { useExam } from "@/contexts/ExamContext";
 import type { Exam, Submission } from "@/lib/supabase";
+import { buildUnifiedGradedExamData, exportGradedExamPDFClientSide } from "@/lib/exportGradedExamPdf";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
@@ -64,7 +65,8 @@ export default function Reports() {
 
   // ── Generate Individual Transcript ────────────────────────
   const generateTranscript = async (sub: Submission) => {
-    const exam = exams.find((e) => e.unit_code === sub.unit_code);
+    const exam = exams.find((e) => e.unit_code === sub.unit_code || e.id === sub.exam_id);
+    const unified = buildUnifiedGradedExamData(sub, exam, "Alexander Kinoti");
     setGenerating(sub.id);
 
     try {
@@ -74,26 +76,26 @@ export default function Reports() {
       const contentW = pageW - 2 * margin; // 182 mm
       let y = margin;
 
-      // ── Header (Deep Institutional Navy) ──
-      doc.setFillColor(13, 27, 42);
+      // ── Header (Deep Institutional Navy #000953 -> 0, 9, 83) ──
+      doc.setFillColor(0, 9, 83);
       doc.rect(0, 0, pageW, 38, "F");
 
-      // Emerald accent stripe
-      doc.setFillColor(16, 185, 129);
-      doc.rect(0, 38, pageW, 1.5, "F");
+      // Gold accent stripe (#c48820 -> 196, 136, 32)
+      doc.setFillColor(196, 136, 32);
+      doc.rect(0, 38, pageW, 1.8, "F");
 
-      doc.setTextColor(16, 185, 129);
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(15);
       doc.setFont("helvetica", "bold");
       doc.text("MUKIRIA TECHNICAL TRAINING INSTITUTE", pageW / 2, 12, { align: "center" });
 
-      doc.setTextColor(200, 220, 240);
+      doc.setTextColor(226, 232, 240);
       doc.setFontSize(8.5);
       doc.setFont("helvetica", "normal");
       doc.text("P.O. Box 100 - 60200, Meru, Kenya  |  Tel: +254 700 000 000  |  Email: info@mukiriatti.ac.ke", pageW / 2, 18, { align: "center" });
       doc.text("DEPARTMENT OF COMPUTING & INFORMATICS  •  TVET CDACC CBET ACCREDITED", pageW / 2, 24, { align: "center" });
 
-      doc.setTextColor(255, 255, 255);
+      doc.setTextColor(254, 246, 231);
       doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
       doc.text("OFFICIAL CANDIDATE ACADEMIC TRANSCRIPT", pageW / 2, 33, { align: "center" });
@@ -103,14 +105,14 @@ export default function Reports() {
       // ── Candidate & Assessment Info Box ──
       doc.setFillColor(248, 250, 252);
       doc.roundedRect(margin, y, contentW, 36, 2, 2, "F");
-      doc.setDrawColor(16, 185, 129);
+      doc.setDrawColor(0, 9, 83);
       doc.setLineWidth(0.4);
       doc.roundedRect(margin, y, contentW, 36, 2, 2, "S");
 
       // Header inside box
-      doc.setFillColor(13, 27, 42);
+      doc.setFillColor(0, 9, 83);
       doc.roundedRect(margin, y, contentW, 7, 2, 2, "F");
-      doc.setTextColor(16, 185, 129);
+      doc.setTextColor(254, 246, 231);
       doc.setFontSize(8);
       doc.setFont("helvetica", "bold");
       doc.text("CANDIDATE & EXAMINATION SPECIFICATIONS", margin + 4, y + 4.8);
@@ -127,15 +129,15 @@ export default function Reports() {
       // Row 1
       doc.text("Candidate:", col1X, y + 13);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(13, 27, 42);
-      doc.text(sub.student_name.toUpperCase(), col1ValX, y + 13);
+      doc.setTextColor(15, 23, 42);
+      doc.text(unified.student_name.toUpperCase(), col1ValX, y + 13);
 
       doc.setFont("helvetica", "normal");
       doc.setTextColor(70, 80, 95);
       doc.text("Course Unit:", col2X, y + 13);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(13, 27, 42);
-      const courseLines = doc.splitTextToSize(exam?.course_name ?? "Apply Digital Literacy", 58);
+      doc.setTextColor(15, 23, 42);
+      const courseLines = doc.splitTextToSize(unified.unit_name, 58);
       doc.text(courseLines[0], col2ValX, y + 13);
 
       // Row 2
@@ -143,30 +145,30 @@ export default function Reports() {
       doc.setTextColor(70, 80, 95);
       doc.text("Reg Number:", col1X, y + 20);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(13, 27, 42);
-      doc.text(sub.reg_number, col1ValX, y + 20);
+      doc.setTextColor(15, 23, 42);
+      doc.text(unified.reg_number, col1ValX, y + 20);
 
       doc.setFont("helvetica", "normal");
       doc.setTextColor(70, 80, 95);
       doc.text("Unit Code:", col2X, y + 20);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(13, 27, 42);
-      doc.text(sub.unit_code, col2ValX, y + 20);
+      doc.setTextColor(15, 23, 42);
+      doc.text(unified.unit_code, col2ValX, y + 20);
 
       // Row 3
       doc.setFont("helvetica", "normal");
       doc.setTextColor(70, 80, 95);
       doc.text("Class / Cohort:", col1X, y + 27);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(13, 27, 42);
-      doc.text(exam?.payload?.class ?? "FBS 5 MOD/J/2026", col1ValX, y + 27);
+      doc.setTextColor(15, 23, 42);
+      doc.text(unified.class_code, col1ValX, y + 27);
 
       doc.setFont("helvetica", "normal");
       doc.setTextColor(70, 80, 95);
       doc.text("Assessment:", col2X, y + 27);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(13, 27, 42);
-      const titleLines = doc.splitTextToSize(exam?.payload?.title ?? "Written Assessment 1", 58);
+      doc.setTextColor(15, 23, 42);
+      const titleLines = doc.splitTextToSize(unified.exam_title, 58);
       doc.text(titleLines[0], col2ValX, y + 27);
 
       // Row 4
@@ -174,33 +176,33 @@ export default function Reports() {
       doc.setTextColor(70, 80, 95);
       doc.text("Assessor:", col1X, y + 33);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(13, 27, 42);
+      doc.setTextColor(15, 23, 42);
       doc.text("Alexander Kinoti (Trainer)", col1ValX, y + 33);
 
       doc.setFont("helvetica", "normal");
       doc.setTextColor(70, 80, 95);
       doc.text("Exam Date:", col2X, y + 33);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(13, 27, 42);
+      doc.setTextColor(15, 23, 42);
       doc.text(format(new Date(sub.created_at), "dd MMMM yyyy"), col2ValX, y + 33);
 
       y += 42;
 
       // ── Section A Results ──
-      if (sub.section_a && sub.section_a.length > 0 && exam) {
-        doc.setFillColor(13, 27, 42);
+      if (unified.section_a.length > 0) {
+        doc.setFillColor(0, 9, 83);
         doc.rect(margin, y, contentW, 7, "F");
-        doc.setTextColor(16, 185, 129);
+        doc.setTextColor(254, 246, 231);
         doc.setFontSize(8.5);
         doc.setFont("helvetica", "bold");
-        const secATitle = (exam.payload?.section_a?.title ?? "SECTION A — CORE CONCEPTS & WORKPLACE PROCEDURES (30 MARKS)").toUpperCase();
+        const secATitle = `SECTION A — CORE CONCEPTS & WORKPLACE PROCEDURES (${unified.sec_a_max} MARKS)`;
         doc.text(secATitle, margin + 4, y + 4.8);
         y += 8.5;
 
         // Table Header
-        doc.setFillColor(232, 245, 238);
+        doc.setFillColor(254, 246, 231);
         doc.rect(margin, y, contentW, 6.5, "F");
-        doc.setTextColor(13, 27, 42);
+        doc.setTextColor(0, 9, 83);
         doc.setFontSize(7.5);
         doc.setFont("helvetica", "bold");
         doc.text("Q#", margin + 3, y + 4.5);
@@ -211,16 +213,15 @@ export default function Reports() {
         doc.text("Verdict", margin + 168, y + 4.5);
         y += 7.5;
 
-        sub.section_a.forEach((ans, idx) => {
+        unified.section_a.forEach((q, idx) => {
           if (y > 265) {
             doc.addPage();
             y = margin + 5;
           }
 
-          const question = exam.payload?.section_a?.questions?.find((q) => q.id === ans.question_id);
-          const maxMarks = question?.marks ?? 2;
-          const marksAwarded = ans.marks_awarded ?? 0;
-          const isFull = marksAwarded === maxMarks;
+          const maxMarks = q.max_marks;
+          const marksAwarded = q.marks_awarded;
+          const isFull = marksAwarded >= maxMarks;
           const isPartial = marksAwarded > 0 && marksAwarded < maxMarks;
 
           if (idx % 2 === 0) {
@@ -228,69 +229,55 @@ export default function Reports() {
             doc.rect(margin, y - 1, contentW, 6.5, "F");
           }
 
-          doc.setTextColor(13, 27, 42);
+          doc.setTextColor(15, 23, 42);
           doc.setFont("helvetica", "normal");
           doc.setFontSize(7.5);
 
           // Q#
           doc.setFont("helvetica", "bold");
-          doc.text(`Q${idx + 1}`, margin + 3, y + 3.8);
+          doc.text(`Q${q.q_num || idx + 1}`, margin + 3, y + 3.8);
           doc.setFont("helvetica", "normal");
 
           // Question Prompt / Task
-          const qText = question?.text ?? question?.critical_aspect ?? `Item ${idx + 1}`;
-          doc.text(cleanEllipsis(qText, 32), margin + 12, y + 3.8);
+          doc.text(cleanEllipsis(q.text, 32), margin + 12, y + 3.8);
 
           // Student Answer
-          let studentAns = "";
-          if (question?.options && !isNaN(Number(ans.answer))) {
-            const optIdx = Number(ans.answer);
-            studentAns = `${String.fromCharCode(65 + optIdx)}: ${question.options[optIdx] ?? ans.answer}`;
-          } else {
-            studentAns = String(ans.answer || "No response");
-          }
-          doc.text(cleanEllipsis(studentAns, 32), margin + 66, y + 3.8);
+          doc.text(cleanEllipsis(q.formatted_answer || "No response", 32), margin + 66, y + 3.8);
 
           // Correct Answer / Expected Key
-          let correctAns = "";
-          if (question?.options && !isNaN(Number(question.correct_answer))) {
-            const optIdx = Number(question.correct_answer);
-            correctAns = `${String.fromCharCode(65 + optIdx)}: ${question.options[optIdx] ?? question.correct_answer}`;
-          } else {
-            correctAns = String(question?.correct_answer ?? question?.critical_aspect ?? "");
-          }
+          const correctAns =
+            q.formatted_correct_answer ||
+            (q.breakdown && q.breakdown.length > 0 ? q.breakdown.join("; ") : "");
           doc.text(cleanEllipsis(correctAns, 26), margin + 118, y + 3.8);
 
           // Marks
           doc.setFont("helvetica", "bold");
           doc.text(`${marksAwarded}/${maxMarks}`, margin + 156, y + 3.8);
 
-          // Verdict (Pure ASCII verdict with no Unicode font artifacts)
+          // Verdict
           if (isFull) {
-            doc.setTextColor(16, 140, 90);
+            doc.setTextColor(21, 128, 61);
             doc.text("CORRECT", margin + 168, y + 3.8);
           } else if (isPartial) {
-            doc.setTextColor(180, 100, 10);
+            doc.setTextColor(196, 136, 32);
             doc.text("PARTIAL", margin + 168, y + 3.8);
           } else {
             doc.setTextColor(200, 30, 30);
             doc.text("WRONG", margin + 168, y + 3.8);
           }
-          doc.setTextColor(13, 27, 42);
+          doc.setTextColor(15, 23, 42);
           y += 6.5;
         });
 
-        const sectionAScore = sub.section_a.reduce((s, a) => s + (a.marks_awarded ?? 0), 0);
-        const sectionAMax = exam.payload?.section_a?.total_marks ?? 30;
-        const sectionAPct = Math.round((sectionAScore / sectionAMax) * 100);
+        const sectionAPct = unified.sec_a_max > 0 ? Math.round((unified.sec_a_awarded / unified.sec_a_max) * 100) : 0;
 
-        doc.setFillColor(232, 245, 238);
+        doc.setFillColor(254, 246, 231);
         doc.rect(margin, y, contentW, 6.5, "F");
         doc.setFont("helvetica", "bold");
         doc.setFontSize(8);
-        doc.setTextColor(13, 27, 42);
+        doc.setTextColor(0, 9, 83);
         doc.text(
-          `Section A Total: ${sectionAScore} / ${sectionAMax} Marks (${sectionAPct}%) — Competency Level: ${sectionAPct >= 50 ? "COMPETENT" : "NOT YET COMPETENT"}`,
+          `Section A Total: ${unified.sec_a_awarded} / ${unified.sec_a_max} Marks (${sectionAPct}%) — Competency Level: ${sectionAPct >= 50 ? "COMPETENT" : "NOT YET COMPETENT"}`,
           margin + 4,
           y + 4.5
         );
@@ -298,59 +285,75 @@ export default function Reports() {
       }
 
       // ── Section B Results ──
-      if (sub.section_b && sub.section_b.length > 0 && exam) {
+      if (unified.section_b.length > 0) {
         if (y > 230) {
           doc.addPage();
           y = margin + 5;
         }
 
-        doc.setFillColor(13, 27, 42);
+        doc.setFillColor(0, 9, 83);
         doc.rect(margin, y, contentW, 7, "F");
-        doc.setTextColor(16, 185, 129);
+        doc.setTextColor(255, 255, 255);
         doc.setFontSize(8.5);
         doc.setFont("helvetica", "bold");
-        const secBTitle = (exam.payload?.section_b?.title ?? "SECTION B — STRUCTURED PRACTICAL & APPLICATION QUESTIONS (40 MARKS)").toUpperCase();
+        const secBTitle = (unified.section_b_instructions || "SECTION B — STRUCTURED PRACTICAL & APPLICATION QUESTIONS").toUpperCase();
         doc.text(secBTitle, margin + 4, y + 4.8);
         y += 9;
 
-        sub.section_b.forEach((ans, idx) => {
+        unified.section_b.forEach((q, idx) => {
           if (y > 230) {
             doc.addPage();
             y = margin + 5;
           }
 
-          const question = exam.payload?.section_b?.questions?.find((q) => q.id === ans.question_id);
-          const qMaxMarks = question?.marks ?? 20;
+          const qMaxMarks = q.max_marks ?? 20;
+          const qAwarded = q.marks_awarded ?? 0;
 
           // Question header banner
           doc.setFillColor(242, 246, 250);
           doc.rect(margin, y, contentW, 6.5, "F");
-          doc.setTextColor(13, 27, 42);
+          doc.setTextColor(0, 9, 83);
           doc.setFont("helvetica", "bold");
           doc.setFontSize(8);
-          doc.text(`Question ${idx + 1}${question?.critical_aspect ? ` — ${question.critical_aspect}` : ""}`, margin + 3, y + 4.5);
-          doc.setTextColor(16, 140, 90);
-          doc.text(`${ans.marks_awarded ?? 0} / ${qMaxMarks} Marks`, margin + contentW - 4, y + 4.5, { align: "right" });
+          doc.text(`Question ${q.q_num || idx + 1}${q.critical_aspect ? ` — ${q.critical_aspect}` : ""}`, margin + 3, y + 4.5);
+          doc.setTextColor(196, 136, 32);
+          doc.text(`${qAwarded} / ${qMaxMarks} Marks`, margin + contentW - 4, y + 4.5, { align: "right" });
           y += 7.5;
 
           // Question Prompt
-          if (question?.text) {
-            doc.setTextColor(70, 80, 95);
-            doc.setFont("helvetica", "italic");
+          if (q.text) {
+            doc.setTextColor(15, 23, 42);
+            doc.setFont("helvetica", "normal");
             doc.setFontSize(7.5);
-            const qLines = doc.splitTextToSize(question.text, contentW - 6);
+            const qLines = doc.splitTextToSize(q.text, contentW - 6);
             for (let l = 0; l < qLines.length; l++) {
               if (y > 268) { doc.addPage(); y = margin + 5; }
               doc.text(qLines[l], margin + 3, y + 3);
               y += 3.6;
             }
-            y += 2;
+            y += 1.5;
+          }
+
+          // Structured Sub-parts (a, b, c, d)
+          if (q.sub_parts && q.sub_parts.length > 0) {
+            q.sub_parts.forEach((spLine) => {
+              doc.setFont("helvetica", "italic");
+              doc.setTextColor(51, 65, 85);
+              doc.setFontSize(7.2);
+              const spLines = doc.splitTextToSize(spLine, contentW - 10);
+              for (let l = 0; l < spLines.length; l++) {
+                if (y > 268) { doc.addPage(); y = margin + 5; }
+                doc.text(spLines[l], margin + 6, y + 3);
+                y += 3.5;
+              }
+            });
+            y += 1.5;
           }
 
           // Candidate Answer
-          if (ans.answer) {
+          if (q.formatted_answer) {
             if (y > 268) { doc.addPage(); y = margin + 5; }
-            doc.setTextColor(13, 27, 42);
+            doc.setTextColor(0, 9, 83);
             doc.setFont("helvetica", "bold");
             doc.setFontSize(7.5);
             doc.text("Candidate Response:", margin + 3, y + 3);
@@ -358,7 +361,7 @@ export default function Reports() {
 
             doc.setFont("helvetica", "normal");
             doc.setTextColor(30, 40, 55);
-            const ansLines = doc.splitTextToSize(String(ans.answer), contentW - 6);
+            const ansLines = doc.splitTextToSize(String(q.formatted_answer), contentW - 6);
             for (let l = 0; l < ansLines.length; l++) {
               if (y > 268) { doc.addPage(); y = margin + 5; }
               doc.text(ansLines[l], margin + 3, y + 3);
@@ -368,9 +371,9 @@ export default function Reports() {
           }
 
           // Assessor Feedback
-          if (ans.ai_reasoning) {
+          if (q.ai_reasoning) {
             if (y > 268) { doc.addPage(); y = margin + 5; }
-            doc.setTextColor(16, 140, 90);
+            doc.setTextColor(185, 28, 28);
             doc.setFont("helvetica", "bold");
             doc.setFontSize(7.5);
             doc.text("Assessor Evaluation Feedback:", margin + 3, y + 3);
@@ -378,7 +381,7 @@ export default function Reports() {
 
             doc.setFont("helvetica", "italic");
             doc.setTextColor(60, 70, 85);
-            const reasonLines = doc.splitTextToSize(ans.ai_reasoning, contentW - 6);
+            const reasonLines = doc.splitTextToSize(q.ai_reasoning, contentW - 6);
             for (let l = 0; l < reasonLines.length; l++) {
               if (y > 268) { doc.addPage(); y = margin + 5; }
               doc.text(reasonLines[l], margin + 3, y + 3);
@@ -390,21 +393,16 @@ export default function Reports() {
           y += 2;
         });
 
-        // Section B Total calculation & capping
-        const rawSecBScore = sub.section_b.reduce((s, a) => s + (a.marks_awarded ?? 0), 0);
-        const sectionBMax = exam.payload?.section_b?.total_marks ?? 40;
-        const sectionBScore = Math.min(sectionBMax, rawSecBScore);
-        const sectionBPct = Math.round((sectionBScore / sectionBMax) * 100);
+        const sectionBPct = unified.sec_b_max > 0 ? Math.round((unified.sec_b_awarded / unified.sec_b_max) * 100) : 0;
 
         if (y > 260) { doc.addPage(); y = margin + 5; }
-        doc.setFillColor(232, 245, 238);
+        doc.setFillColor(254, 246, 231);
         doc.rect(margin, y, contentW, 6.5, "F");
         doc.setFont("helvetica", "bold");
         doc.setFontSize(8);
-        doc.setTextColor(13, 27, 42);
-        const capNotice = sub.section_b.length > 2 ? ` (${sub.section_b.length} questions attempted — marks capped at ${sectionBMax} max)` : "";
+        doc.setTextColor(0, 9, 83);
         doc.text(
-          `Section B Total: ${sectionBScore} / ${sectionBMax} Marks (${sectionBPct}%)${capNotice}`,
+          `Section B Total: ${unified.sec_b_awarded} / ${unified.sec_b_max} Marks (${sectionBPct}%)`,
           margin + 4,
           y + 4.5
         );
@@ -414,19 +412,14 @@ export default function Reports() {
       // ── Final Aggregate Score & CDACC Verdict Box ──
       if (y > 215) { doc.addPage(); y = margin + 5; }
 
-      const secAScore = (sub.section_a || []).reduce((s, a) => s + (a.marks_awarded ?? 0), 0);
-      const secBScoreRaw = (sub.section_b || []).reduce((s, a) => s + (a.marks_awarded ?? 0), 0);
-      const secBMax = exam?.payload?.section_b?.total_marks ?? 40;
-      const secBScore = Math.min(secBMax, secBScoreRaw);
-
-      const examTotalMarks = exam?.payload?.total_marks ?? 70;
-      const totalScore = sub.total_score ?? (secAScore + secBScore);
-      const percentage = examTotalMarks > 0 ? Math.round((totalScore / examTotalMarks) * 100) : totalScore;
+      const examTotalMarks = unified.total_marks;
+      const totalScore = unified.total_score;
+      const percentage = unified.percentage;
       const isCompetent = percentage >= 50;
       const grade = getCDACCGrade(percentage);
       const remark = getCDACCRemark(percentage);
 
-      const scoreBg = isCompetent ? [16, 140, 90] : [185, 28, 28];
+      const scoreBg = isCompetent ? [0, 9, 83] : [185, 28, 28];
       doc.setFillColor(scoreBg[0], scoreBg[1], scoreBg[2]);
       doc.roundedRect(margin, y, contentW, 22, 2.5, 2.5, "F");
 
@@ -441,7 +434,7 @@ export default function Reports() {
       );
 
       doc.setFontSize(10);
-      doc.setTextColor(245, 250, 255);
+      doc.setTextColor(196, 136, 32);
       doc.text(
         `CDACC CBET VERDICT: ${remark.toUpperCase()}  |  CLASSIFICATION: ${grade}`,
         pageW / 2,
@@ -459,7 +452,7 @@ export default function Reports() {
       doc.setLineWidth(0.3);
       doc.roundedRect(margin, y, contentW, 28, 2, 2, "S");
 
-      doc.setTextColor(13, 27, 42);
+      doc.setTextColor(0, 9, 83);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8);
       doc.text("INTERNAL ASSESSOR & INSTITUTIONAL VERIFICATION", margin + 4, y + 5);
@@ -493,10 +486,10 @@ export default function Reports() {
       const totalPages = (doc as any).internal.getNumberOfPages();
       for (let p = 1; p <= totalPages; p++) {
         doc.setPage(p);
-        doc.setFillColor(13, 27, 42);
+        doc.setFillColor(0, 9, 83);
         doc.rect(0, 283, pageW, 14, "F");
 
-        doc.setTextColor(180, 200, 220);
+        doc.setTextColor(226, 232, 240);
         doc.setFontSize(7);
         doc.setFont("helvetica", "normal");
         doc.text(
@@ -546,37 +539,40 @@ export default function Reports() {
       let y = margin;
 
       // Header
-      doc.setFillColor(13, 27, 42);
+      doc.setFillColor(0, 9, 83);
       doc.rect(0, 0, pageW, 38, "F");
-      doc.setFillColor(16, 185, 129);
+      doc.setFillColor(196, 136, 32);
       doc.rect(0, 38, pageW, 1.5, "F");
 
-      doc.setTextColor(16, 185, 129);
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(15);
       doc.setFont("helvetica", "bold");
       doc.text("MUKIRIA TECHNICAL TRAINING INSTITUTE", pageW / 2, 12, { align: "center" });
-      doc.setTextColor(180, 200, 220);
+      doc.setTextColor(226, 232, 240);
       doc.setFontSize(8.5);
       doc.setFont("helvetica", "normal");
       doc.text("DEPARTMENT OF COMPUTING & INFORMATICS  •  CLASS PERFORMANCE REPORT", pageW / 2, 20, { align: "center" });
-      doc.setTextColor(16, 185, 129);
+      doc.setTextColor(196, 136, 32);
       doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
       doc.text(`${unitCode} — ${exam?.course_name ?? ""}`, pageW / 2, 30, { align: "center" });
 
       y = 48;
 
-      // Summary stats
-      const examTotalMarks = exam?.payload?.total_marks ?? 70;
-      const getPct = (score: number | null) => (score !== null && examTotalMarks > 0 ? Math.round((score / examTotalMarks) * 100) : score);
+      // Summary stats using unified clamped scores
+      const unifiedSubs = unitSubs.map((s) => ({
+        sub: s,
+        unified: buildUnifiedGradedExamData(s, exam),
+      }));
+      const examTotalMarks = unifiedSubs[0]?.unified.total_marks ?? (exam?.payload?.total_marks ?? 70);
 
-      const avgRaw = unitSubs.reduce((s, sub) => s + (sub.total_score ?? 0), 0) / unitSubs.length;
+      const avgRaw = unifiedSubs.reduce((s, item) => s + item.unified.total_score, 0) / unifiedSubs.length;
       const avgPct = examTotalMarks > 0 ? (avgRaw / examTotalMarks) * 100 : avgRaw;
-      const passSubs = unitSubs.filter((s) => (getPct(s.total_score) ?? 0) >= 50);
+      const passSubs = unifiedSubs.filter((item) => item.unified.percentage >= 50);
       const passCount = passSubs.length;
-      const passRate = (passCount / unitSubs.length) * 100;
-      const highestPct = Math.max(...unitSubs.map((s) => getPct(s.total_score) ?? 0));
-      const lowestPct = Math.min(...unitSubs.map((s) => getPct(s.total_score) ?? 0));
+      const passRate = (passCount / unifiedSubs.length) * 100;
+      const highestPct = Math.max(...unifiedSubs.map((item) => item.unified.percentage));
+      const lowestPct = Math.min(...unifiedSubs.map((item) => item.unified.percentage));
 
       doc.setFillColor(248, 250, 252);
       doc.roundedRect(margin, y, contentW, 26, 2, 2, "F");
@@ -584,7 +580,7 @@ export default function Reports() {
       doc.setLineWidth(0.3);
       doc.roundedRect(margin, y, contentW, 26, 2, 2, "S");
 
-      doc.setTextColor(13, 27, 42);
+      doc.setTextColor(0, 9, 83);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.text("CLASS SUMMARY STATISTICS", margin + 4, y + 6);
@@ -602,18 +598,18 @@ export default function Reports() {
       y += 33;
 
       // Student results table
-      doc.setFillColor(13, 27, 42);
+      doc.setFillColor(0, 9, 83);
       doc.rect(margin, y, contentW, 7, "F");
-      doc.setTextColor(16, 185, 129);
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(8.5);
       doc.setFont("helvetica", "bold");
       doc.text("CANDIDATE PERFORMANCE LIST", margin + 4, y + 4.8);
       y += 8.5;
 
       // Table headers
-      doc.setFillColor(232, 245, 238);
+      doc.setFillColor(254, 246, 231);
       doc.rect(margin, y, contentW, 6.5, "F");
-      doc.setTextColor(13, 27, 42);
+      doc.setTextColor(0, 9, 83);
       doc.setFontSize(7.5);
       doc.setFont("helvetica", "bold");
       doc.text("#", margin + 3, y + 4.5);
@@ -625,34 +621,34 @@ export default function Reports() {
       doc.text("CDACC Verdict", margin + 162, y + 4.5);
       y += 7.5;
 
-      const sorted = [...unitSubs].sort((a, b) => (b.total_score ?? 0) - (a.total_score ?? 0));
-      sorted.forEach((sub, idx) => {
+      const sorted = [...unifiedSubs].sort((a, b) => b.unified.total_score - a.unified.total_score);
+      sorted.forEach(({ sub, unified }, idx) => {
         if (y > 265) { doc.addPage(); y = margin + 5; }
         if (idx % 2 === 0) {
           doc.setFillColor(248, 250, 252);
           doc.rect(margin, y - 1, contentW, 6.5, "F");
         }
-        const pct = getPct(sub.total_score) ?? 0;
+        const pct = unified.percentage;
         const isComp = pct >= 50;
 
-        doc.setTextColor(13, 27, 42);
+        doc.setTextColor(15, 23, 42);
         doc.setFont("helvetica", "normal");
         doc.setFontSize(7.5);
         doc.text(`${idx + 1}`, margin + 3, y + 3.8);
         doc.text(cleanEllipsis(sub.student_name, 28), margin + 10, y + 3.8);
         doc.text(sub.reg_number, margin + 65, y + 3.8);
 
-        doc.text(`${sub.total_score ?? "—"}/${examTotalMarks}`, margin + 110, y + 3.8);
+        doc.text(`${unified.total_score}/${unified.total_marks}`, margin + 110, y + 3.8);
 
         doc.setFont("helvetica", "bold");
-        const scoreColor = isComp ? [16, 140, 90] : [200, 30, 30];
+        const scoreColor = isComp ? [21, 128, 61] : [200, 30, 30];
         doc.setTextColor(scoreColor[0], scoreColor[1], scoreColor[2]);
         doc.text(`${pct}%`, margin + 130, y + 3.8);
         doc.text(getCDACCGrade(pct), margin + 145, y + 3.8);
 
         doc.setFont("helvetica", "normal");
         doc.text(isComp ? "COMPETENT" : "NOT YET COMPETENT", margin + 162, y + 3.8);
-        doc.setTextColor(13, 27, 42);
+        doc.setTextColor(15, 23, 42);
         y += 6.5;
       });
 
@@ -660,9 +656,9 @@ export default function Reports() {
       const totalPages = (doc as any).internal.getNumberOfPages();
       for (let p = 1; p <= totalPages; p++) {
         doc.setPage(p);
-        doc.setFillColor(13, 27, 42);
+        doc.setFillColor(0, 9, 83);
         doc.rect(0, 283, pageW, 14, "F");
-        doc.setTextColor(180, 200, 220);
+        doc.setTextColor(226, 232, 240);
         doc.setFontSize(7);
         doc.setFont("helvetica", "normal");
         doc.text(
@@ -749,7 +745,7 @@ export default function Reports() {
       <div>
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h3 className="text-sm font-bold text-[#000953]">
-            Individual Transcripts
+            Individual Transcripts & Graded Exam Papers
           </h3>
           <div className="flex gap-2">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-300 shadow-sm">
@@ -778,7 +774,7 @@ export default function Reports() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
-                {["Student", "Reg Number", "Unit", "Score", "Grade", "Status", "Action"].map((h) => (
+                {["Student", "Reg Number", "Unit", "Score", "Grade", "Status", "Actions"].map((h) => (
                   <th
                     key={h}
                     className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-600"
@@ -808,6 +804,10 @@ export default function Reports() {
               ) : (
                 filteredSubs.map((sub) => {
                   const isGen = generating === sub.id;
+                  const exam = exams.find((e) => e.id === sub.exam_id || e.unit_code === sub.unit_code);
+                  const unified = buildUnifiedGradedExamData(sub, exam);
+                  const pct = sub.total_score !== null ? unified.percentage : null;
+
                   return (
                     <tr key={sub.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3">
@@ -826,51 +826,37 @@ export default function Reports() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        {(() => {
-                          const exam = exams.find((e) => e.unit_code === sub.unit_code);
-                          const totalMarks = exam?.payload?.total_marks ?? 70;
-                          const pct = sub.total_score !== null && totalMarks > 0 ? Math.round((sub.total_score / totalMarks) * 100) : null;
-                          return (
-                            <div className="flex flex-col">
-                              <span
-                                className={`text-sm font-bold font-mono ${
-                                  sub.total_score === null
-                                    ? "text-slate-400"
-                                    : (pct ?? 0) >= 50
-                                    ? "text-emerald-700"
-                                    : "text-rose-600"
-                                }`}
-                              >
-                                {sub.total_score !== null ? `${sub.total_score} / ${totalMarks}` : "—"}
-                              </span>
-                              {pct !== null && (
-                                <span className="text-[10px] font-mono font-semibold text-slate-500">
-                                  {pct}%
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })()}
+                        <div className="flex flex-col">
+                          <span
+                            className={`text-sm font-bold font-mono ${
+                              sub.total_score === null
+                                ? "text-slate-400"
+                                : (pct ?? 0) >= 50
+                                ? "text-emerald-700"
+                                : "text-rose-600"
+                            }`}
+                          >
+                            {sub.total_score !== null ? `${unified.total_score} / ${unified.total_marks}` : "—"}
+                          </span>
+                          {pct !== null && (
+                            <span className="text-[10px] font-mono font-semibold text-slate-500">
+                              {pct}%
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
-                        {(() => {
-                          const exam = exams.find((e) => e.unit_code === sub.unit_code);
-                          const totalMarks = exam?.payload?.total_marks ?? 70;
-                          const pct = sub.total_score !== null && totalMarks > 0 ? Math.round((sub.total_score / totalMarks) * 100) : null;
-                          return (
-                            <span
-                              className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-                                sub.total_score === null
-                                  ? "bg-slate-100 border-slate-300 text-slate-500"
-                                  : (pct ?? 0) >= 50
-                                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                                  : "bg-rose-50 border-rose-200 text-rose-700"
-                              }`}
-                            >
-                              {getGrade(pct)}
-                            </span>
-                          );
-                        })()}
+                        <span
+                          className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                            sub.total_score === null
+                              ? "bg-slate-100 border-slate-300 text-slate-500"
+                              : (pct ?? 0) >= 50
+                              ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                              : "bg-rose-50 border-rose-200 text-rose-700"
+                          }`}
+                        >
+                          {getGrade(pct)}
+                        </span>
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider status-${sub.status}`}>
@@ -878,14 +864,31 @@ export default function Reports() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <button
-                          onClick={() => generateTranscript(sub)}
-                          disabled={isGen || sub.total_score === null}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-40 bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm"
-                        >
-                          <Download className="w-3 h-3 text-[#c48820]" />
-                          {isGen ? "..." : "PDF"}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              exportGradedExamPDFClientSide(unified);
+                              toast.success("Official Graded Exam Paper Downloaded", {
+                                description: `${sub.student_name} (${sub.unit_code})`,
+                              });
+                            }}
+                            disabled={sub.total_score === null}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-40 bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm"
+                            title="Download Official Graded Exam Paper PDF (Matches Trainee Exam Format)"
+                          >
+                            <Download className="w-3 h-3 text-[#c48820]" />
+                            Graded Paper
+                          </button>
+                          <button
+                            onClick={() => generateTranscript(sub)}
+                            disabled={isGen || sub.total_score === null}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-40 bg-white border border-slate-300 hover:bg-slate-100 text-[#000953] shadow-sm"
+                            title="Download Summary Transcript PDF"
+                          >
+                            <Download className="w-3 h-3 text-slate-600" />
+                            {isGen ? "..." : "Transcript"}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

@@ -48,6 +48,7 @@ import {
   syncScoreToContinuousMarksheet,
 } from "@/contexts/TraineeContext";
 import type { Exam, Submission, StudentAnswer, ExamQuestion } from "@/lib/supabase";
+import { buildUnifiedGradedExamData, exportGradedExamPDFClientSide } from "@/lib/exportGradedExamPdf";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -329,98 +330,127 @@ export default function Grading() {
 
   const handleExportDocument = async (sub: Submission, formatType: "docx" | "pdf") => {
     const exam = getExamForSub(sub);
-    const endpoint = formatType === "docx"
-      ? "http://localhost:8000/api/export-exam-results-docx"
-      : "http://localhost:8000/api/export-exam-results-pdf";
-    
+    const endpoint =
+      formatType === "docx"
+        ? "http://localhost:8000/api/export-exam-results-docx"
+        : "http://localhost:8000/api/export-exam-results-pdf";
+
     setExporting(true);
     try {
-      const totalMarks = exam?.payload?.total_marks ?? 70;
-      const currentTotal = sub.total_score ?? calculateTotal(sub);
-      const percentage = Math.round((currentTotal / totalMarks) * 100);
+      const subWithComments = {
+        ...sub,
+        trainer_comments: trainerComments[sub.id] ?? sub.trainer_comments,
+      };
+      const unified = buildUnifiedGradedExamData(subWithComments, exam, "Alexander Kinoti");
 
-      const secA = (sub.section_a || []).map((ans, idx) => {
-        const q = exam?.payload?.section_a?.questions?.find((item) => item.id === ans.question_id);
-        let ansDisplay = String(ans.answer ?? "No response");
-        if (q?.type === "mcq" && q?.options && !isNaN(Number(ansDisplay))) {
-          const optIdx = Number(ansDisplay);
-          ansDisplay = `${String.fromCharCode(65 + optIdx)}: ${q.options[optIdx] ?? ansDisplay}`;
-        }
-        return {
-          q_num: q?.q_num || idx + 1,
-          text: q?.text || `Question ${idx + 1}`,
-          answer: ansDisplay,
-          marks_awarded: ans.marks_awarded ?? 0,
-          max_marks: q?.marks ?? 2,
-          breakdown: q?.breakdown,
-          ai_reasoning: ans.notes || ans.ai_reasoning || "",
-        };
-      });
+      const secA = unified.section_a.map((q) => ({
+        q_num: q.q_num,
+        type: q.type,
+        text: q.text,
+        options: q.options,
+        selected_option_index: q.selected_option_index,
+        correct_option_index: q.correct_option_index,
+        answer: q.formatted_answer || "No response",
+        correct_answer: q.formatted_correct_answer,
+        marks_awarded: q.marks_awarded,
+        max_marks: q.max_marks,
+        sub_parts: q.sub_parts,
+        breakdown: q.breakdown,
+        ai_reasoning: q.ai_reasoning,
+      }));
 
-      const secB = (sub.section_b || []).map((ans, idx) => {
-        const q = exam?.payload?.section_b?.questions?.find((item) => item.id === ans.question_id);
-        return {
-          q_num: q?.q_num || (idx + 11),
-          text: q?.text || `Task ${idx + 1}`,
-          answer: String(ans.answer ?? "No response"),
-          marks_awarded: ans.marks_awarded ?? 0,
-          max_marks: q?.marks ?? 20,
-          breakdown: q?.breakdown,
-          sub_parts: q?.sub_parts,
-          ai_reasoning: ans.notes || ans.ai_reasoning || "",
-        };
-      });
+      const secB = unified.section_b.map((q) => ({
+        q_num: q.q_num,
+        type: q.type,
+        text: q.text,
+        options: q.options,
+        answer: q.formatted_answer || "No response",
+        correct_answer: q.formatted_correct_answer,
+        marks_awarded: q.marks_awarded,
+        max_marks: q.max_marks,
+        sub_parts: q.sub_parts,
+        breakdown: q.breakdown,
+        ai_reasoning: q.ai_reasoning,
+      }));
 
       const payload = {
-        student_name: sub.student_name,
-        reg_number: sub.reg_number,
-        department: exam?.payload?.department || "HOSPITALITY DEPARTMENT\nBUILDING DEPARTMENT",
-        course_name: exam?.payload?.course_name || "OFFICE ADMINISTRATION LEVEL 5 & 6, LAND SURVEY LEVEL 5 & 6",
-        course_code: exam?.payload?.course_code || sub.unit_code,
-        unit_name: exam?.payload?.unit_name || exam?.course_name || "APPLY DIGITAL LITERACY",
-        unit_code: sub.unit_code,
-        class_code: exam?.payload?.class || "FBS5/6/J/25, LS5/6/S/25",
-        series: exam?.payload?.series || "SEP - NOV 2026",
-        time_allowed: exam?.payload?.time_allowed || "2 HOURS",
-        exam_title: exam?.payload?.title || "WRITTEN ASSESSMENT 1",
-        evaluated_at: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
-        total_score: currentTotal,
-        total_marks: totalMarks,
-        percentage: percentage,
-        grade: percentage >= 80 ? "DISTINCTION" : percentage >= 65 ? "CREDIT" : percentage >= 50 ? "PASS" : "REFER",
-        status: percentage >= 50 ? "COMPETENT (PASS)" : "NOT YET COMPETENT (REFER)",
-        trainer_comments: trainerComments[sub.id] || sub.trainer_comments || "The candidate demonstrates exceptional competence in digital literacy principles, practical workplace computer procedures, and software applications.",
-        trainer_name: "Alexander Kinoti",
+        student_name: unified.student_name,
+        reg_number: unified.reg_number,
+        department: unified.department,
+        course_name: unified.course_name,
+        course_code: unified.course_code,
+        unit_name: unified.unit_name,
+        unit_code: unified.unit_code,
+        class_code: unified.class_code,
+        series: unified.series,
+        time_allowed: unified.time_allowed,
+        exam_title: unified.exam_title,
+        instructions: unified.instructions,
+        section_a_instructions: unified.section_a_instructions,
+        section_b_instructions: unified.section_b_instructions,
+        evaluated_at: unified.evaluated_at,
+        total_score: unified.total_score,
+        total_marks: unified.total_marks,
+        percentage: unified.percentage,
+        grade:
+          unified.percentage >= 80
+            ? "DISTINCTION"
+            : unified.percentage >= 65
+            ? "CREDIT"
+            : unified.percentage >= 50
+            ? "PASS"
+            : "REFER",
+        status: unified.status_label,
+        trainer_comments: unified.trainer_comments,
+        trainer_name: unified.trainer_name,
         section_a: secA,
         section_b: secB,
       };
 
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        throw new Error(`Export service error (${res.status})`);
-      }
-
-      const resData = await res.json();
-      const fileData = resData.data || resData.file_data;
-      if ((resData.status === "success" || resData.success) && fileData) {
-        const mime = formatType === "docx"
-          ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          : "application/pdf";
-        downloadBase64File(fileData, resData.filename, mime);
-        toast.success(`Exported as ${formatType.toUpperCase()}`, {
-          description: `Downloaded ${resData.filename}`,
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
         });
-      } else {
+        clearTimeout(timeoutId);
+
+        if (!res.ok) {
+          throw new Error(`Export service error (${res.status})`);
+        }
+
+        const resData = await res.json();
+        const fileData = resData.data || resData.file_data;
+        if ((resData.status === "success" || resData.success) && fileData) {
+          const mime =
+            formatType === "docx"
+              ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              : "application/pdf";
+          downloadBase64File(fileData, resData.filename, mime);
+          toast.success(`Exported as ${formatType.toUpperCase()}`, {
+            description: `Downloaded ${resData.filename}`,
+          });
+          return;
+        }
         throw new Error(resData.detail || "Server failed to produce document data");
+      } catch (backendErr) {
+        if (formatType === "pdf") {
+          exportGradedExamPDFClientSide(unified);
+          toast.success("Exported as PDF", {
+            description: `Downloaded official graded exam script for ${unified.student_name}`,
+          });
+          return;
+        }
+        throw backendErr;
       }
     } catch (err: any) {
       console.error("Export error:", err);
-      toast.error("Export Failed", { description: err.message || "Failed to contact export service" });
+      toast.error("Export Failed", {
+        description: err.message || "Failed to contact export service",
+      });
     } finally {
       setExporting(false);
     }
@@ -824,13 +854,9 @@ export default function Grading() {
             const isSaving = saving === sub.id;
             const subEdits = editedScores[sub.id] ?? {};
             const slot = getSubmissionTaskSlot(sub);
-            const maxMarks = exam?.payload?.total_marks ?? 100;
-            const pctScore =
-              sub.total_score !== null
-                ? maxMarks > 0 && maxMarks !== 100
-                  ? Math.round((sub.total_score / maxMarks) * 100)
-                  : Math.round(sub.total_score)
-                : null;
+            const unified = buildUnifiedGradedExamData(sub, exam, "Alexander Kinoti");
+            const maxMarks = unified.total_marks;
+            const pctScore = sub.total_score !== null ? unified.percentage : null;
 
             return (
               <motion.div
@@ -880,7 +906,7 @@ export default function Grading() {
                     {sub.total_score !== null && pctScore !== null && (
                       <div className="text-right">
                         <div className="text-lg font-bold font-mono text-[#000953]">
-                          {Math.round(sub.total_score)}
+                          {unified.total_score}
                           <span className="text-xs font-normal text-slate-500">/{maxMarks}</span>
                           <span className="ml-1.5 text-xs font-bold text-[#c48820]">({pctScore}%)</span>
                         </div>
@@ -927,59 +953,59 @@ export default function Grading() {
                         {/* Action buttons + Marksheet Slot Mapping */}
                         <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
                           <div className="flex flex-wrap items-center gap-2">
-                          {sub.status === "pending" && exam && (
+                            {sub.status === "pending" && exam && (
+                              <button
+                                onClick={() => handleAutoGrade(sub)}
+                                disabled={isSaving}
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                {isSaving ? "Grading..." : "Auto-Grade MCQ"}
+                              </button>
+                            )}
+                            {Object.keys(subEdits).length > 0 && (
+                              <button
+                                onClick={() => handleSaveAllScores(sub)}
+                                disabled={isSaving}
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#000953] hover:bg-[#000e7a] text-white transition shadow-sm"
+                              >
+                                <Save className="w-3.5 h-3.5 text-[#c48820]" />
+                                {isSaving ? "Saving..." : "Save All Modified Marks"}
+                              </button>
+                            )}
                             <button
-                              onClick={() => handleAutoGrade(sub)}
-                              disabled={isSaving}
-                              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm"
+                              onClick={() => setMarkedScriptSub(sub)}
+                              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition"
+                              title="Open simulated red pen marked exam paper"
                             >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              {isSaving ? "Grading..." : "Auto-Grade MCQ"}
+                              <PenTool className="w-3.5 h-3.5 text-[#c48820]" />
+                              View Marked Script (Red Pen)
                             </button>
-                          )}
-                          {Object.keys(subEdits).length > 0 && (
                             <button
-                              onClick={() => handleSaveAllScores(sub)}
-                              disabled={isSaving}
-                              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#000953] hover:bg-[#000e7a] text-white transition shadow-sm"
+                              onClick={() => {
+                                setSelectedPracticalCandidate({
+                                  name: sub.student_name,
+                                  regCode: sub.reg_number,
+                                  unitCode: sub.unit_code,
+                                });
+                                setIsObservationModalOpen(true);
+                              }}
+                              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-[#000953] border border-[#000953] shadow-sm transition"
+                              title="Open CDACC Practical Observation Checklist for this trainee"
                             >
-                              <Save className="w-3.5 h-3.5 text-[#c48820]" />
-                              {isSaving ? "Saving..." : "Save All Modified Marks"}
+                              <FileCheck className="w-3.5 h-3.5 text-[#000953]" />
+                              Mark Practical Checklist
                             </button>
-                          )}
-                          <button
-                            onClick={() => setMarkedScriptSub(sub)}
-                            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition"
-                            title="Open simulated red pen marked exam paper"
-                          >
-                            <PenTool className="w-3.5 h-3.5 text-[#c48820]" />
-                            View Marked Script (Red Pen)
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedPracticalCandidate({
-                                name: sub.student_name,
-                                regCode: sub.reg_number,
-                                unitCode: sub.unit_code,
-                              });
-                              setIsObservationModalOpen(true);
-                            }}
-                            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-[#000953] border border-[#000953] shadow-sm transition"
-                            title="Open CDACC Practical Observation Checklist for this trainee"
-                          >
-                            <FileCheck className="w-3.5 h-3.5 text-[#000953]" />
-                            Mark Practical Checklist
-                          </button>
-                          {sub.status === "graded" && (
-                            <button
-                              onClick={() => handleMarkReviewed(sub)}
-                              disabled={isSaving}
-                              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-sm transition"
-                            >
-                              <Award className="w-3.5 h-3.5 text-[#c48820]" />
-                              Mark as Reviewed
-                            </button>
-                          )}
+                            {sub.status === "graded" && (
+                              <button
+                                onClick={() => handleMarkReviewed(sub)}
+                                disabled={isSaving}
+                                className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-sm transition"
+                              >
+                                <Award className="w-3.5 h-3.5 text-[#c48820]" />
+                                Mark as Reviewed
+                              </button>
+                            )}
                           </div>
 
                           {/* Marksheet Assessment Slot Selector */}
@@ -1005,50 +1031,86 @@ export default function Grading() {
                           </div>
                         </div>
 
-                        {/* Section A — Core Concepts & Short Answers */}
-                        {exam && sub.section_a.length > 0 && (
+                        {/* Official Exam Paper Header & Instructions Banner (Matches Trainee Exam Format) */}
+                        <div className="p-4 rounded-xl bg-white border-2 border-[#000953]/20 shadow-sm space-y-3">
+                          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-3">
+                            <div>
+                              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                {unified.institution} • {unified.department.replace(/\n/g, " / ")}
+                              </p>
+                              <h4 className="text-sm font-extrabold text-[#000953] uppercase mt-0.5">
+                                {unified.exam_header} — {unified.exam_title}
+                              </h4>
+                              <p className="text-xs text-slate-700 font-semibold mt-0.5">
+                                {unified.course_name} ({unified.unit_code} — {unified.unit_name})
+                              </p>
+                            </div>
+                            <div className="text-right text-xs space-y-0.5">
+                              <div className="font-bold text-[#000953]">
+                                Time Allowed: <span className="text-[#c48820]">{unified.time_allowed}</span> | Total Marks: <span className="text-[#c48820]">{unified.total_marks}</span>
+                              </div>
+                              <div className="text-slate-600 font-medium">
+                                Class: {unified.class_code} • Series: {unified.series}
+                              </div>
+                            </div>
+                          </div>
+
+                          {unified.instructions && unified.instructions.length > 0 && (
+                            <div className="text-xs bg-[#fef6e7] border border-[#c48820]/40 rounded-lg p-2.5 text-slate-800">
+                              <span className="font-bold uppercase text-[#000953] block mb-1 text-[11px]">
+                                Instructions to Candidate (As Shown on Trainee Exam):
+                              </span>
+                              <ol className="list-decimal list-inside space-y-0.5 text-[11px] font-medium">
+                                {unified.instructions.map((inst, idx) => (
+                                  <li key={idx}>{inst}</li>
+                                ))}
+                              </ol>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Section A — Compulsory Objective & Short Answer Questions */}
+                        {unified.section_a.length > 0 && (
                           <div>
-                            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
-                              <div className="flex items-center gap-2">
-                                <span className="w-1.5 h-4 bg-[#c48820] rounded-full" />
-                                <h4 className="text-xs font-bold text-[#000953] uppercase tracking-wide">
-                                  Section A — Core Concepts & Objective/Short Answer
-                                </h4>
+                            <div className="flex flex-wrap items-center justify-between mb-3 pb-2 border-b-2 border-[#000953]">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="w-1.5 h-4 bg-[#c48820] rounded-full" />
+                                  <h4 className="text-xs font-bold text-[#000953] uppercase tracking-wide">
+                                    SECTION A ({unified.sec_a_max} MARKS)
+                                  </h4>
+                                </div>
+                                <p className="text-[11px] text-slate-600 mt-0.5 pl-3.5">
+                                  {unified.section_a_instructions}
+                                </p>
                               </div>
                               <span className="font-mono text-xs font-bold text-[#000953]">
-                                {sub.section_a.reduce((s, a) => s + (a.marks_awarded ?? 0), 0)} /{" "}
-                                {exam.payload?.section_a?.total_marks ?? 30} marks
+                                Section A Subtotal: {unified.sec_a_awarded} / {unified.sec_a_max} marks
                               </span>
                             </div>
                             <div className="space-y-3">
-                              {sub.section_a.map((ans, qi) => {
-                                const question = exam.payload?.section_a?.questions?.find(
-                                  (q) => q.id === ans.question_id
-                                );
-                                const currentMarks = subEdits[ans.question_id] ?? ans.marks_awarded ?? 0;
-                                let ansDisplay = String(ans.answer ?? "");
-                                if (question?.type === "mcq" && question.options && !isNaN(Number(ansDisplay))) {
-                                  const optIdx = Number(ansDisplay);
-                                  ansDisplay = `Option ${String.fromCharCode(65 + optIdx)}: ${question.options[optIdx] ?? ""}`;
-                                } else if (question?.type === "true_false") {
-                                  ansDisplay = ansDisplay === "0" ? "True" : ansDisplay === "1" ? "False" : ansDisplay;
-                                }
+                              {unified.section_a.map((q, qi) => {
+                                const origAns = sub.section_a.find(
+                                  (a) => String(a.question_id) === String(q.question_id)
+                                ) || sub.section_a[qi];
+                                const qIdKey = origAns?.question_id || q.question_id;
+                                const currentMarks = subEdits[qIdKey] ?? q.marks_awarded;
 
                                 return (
                                   <div
-                                    key={ans.question_id}
+                                    key={q.question_id || qi}
                                     className="p-4 rounded-xl space-y-2.5 bg-white border border-slate-300 shadow-sm"
                                   >
                                     <div className="flex items-start justify-between gap-3">
                                       <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                                           <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-[#000953] text-white">
-                                            Q{qi + 1}
+                                            Q{q.q_num || qi + 1}
                                           </span>
                                           <span className="text-[10px] px-2 py-0.5 rounded uppercase font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                                            {question?.type || "objective"}
+                                            {q.type === "mcq" ? "Multiple Choice" : q.type === "tf" ? "True / False" : "Short Answer"} ({q.max_marks} Marks)
                                           </span>
-                                          {ans.flagged_for_review && (
+                                          {origAns?.flagged_for_review && (
                                             <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-amber-50 text-[#c48820] border border-amber-300 flex items-center gap-1">
                                               <AlertCircle className="w-3 h-3" />
                                               Needs Review
@@ -1056,12 +1118,86 @@ export default function Grading() {
                                           )}
                                         </div>
                                         <p className="text-sm font-semibold leading-snug mb-2 text-[#0f172a]">
-                                          {question?.text}
+                                          {q.text}
                                         </p>
-                                        <div className="text-xs p-3 rounded-lg bg-slate-50 text-[#0f172a] border border-slate-200">
-                                          <span className="text-[11px] text-slate-500 block mb-0.5 font-bold uppercase tracking-wider">Candidate Response:</span>
-                                          {ansDisplay || <em className="text-slate-400">No response provided</em>}
-                                        </div>
+
+                                        {/* Sub-parts if any */}
+                                        {q.sub_parts && q.sub_parts.length > 0 && (
+                                          <div className="mb-2.5 pl-3 border-l-2 border-[#000953]/30 space-y-1 bg-slate-50 py-1.5 pr-2 rounded-r">
+                                            {q.sub_parts.map((sp, spIdx) => (
+                                              <p key={spIdx} className="text-xs text-slate-800 font-medium">
+                                                {sp}
+                                              </p>
+                                            ))}
+                                          </div>
+                                        )}
+
+                                        {/* Multiple Choice Options (A, B, C, D) — Identical to Trainee Exam */}
+                                        {q.type === "mcq" && q.options && q.options.length > 0 ? (
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                                            {q.options.map((opt, oIdx) => {
+                                              const isSelected = q.selected_option_index === oIdx;
+                                              const isCorrect = q.correct_option_index === oIdx;
+                                              const letter = String.fromCharCode(65 + oIdx);
+                                              return (
+                                                <div
+                                                  key={oIdx}
+                                                  className={`flex items-start justify-between gap-2 p-2.5 rounded-lg border text-xs ${
+                                                    isSelected && isCorrect
+                                                      ? "border-emerald-600 bg-emerald-50 text-emerald-950 font-semibold"
+                                                      : isSelected && !isCorrect
+                                                      ? "border-red-600 bg-red-50 text-red-950 font-semibold"
+                                                      : isCorrect
+                                                      ? "border-[#000953] bg-blue-50/70 text-[#000953] font-semibold"
+                                                      : "border-slate-200 bg-slate-50/70 text-slate-700"
+                                                  }`}
+                                                >
+                                                  <div className="flex items-start gap-2 min-w-0">
+                                                    <span
+                                                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 border ${
+                                                        isSelected
+                                                          ? isCorrect
+                                                            ? "bg-emerald-600 text-white border-emerald-600"
+                                                            : "bg-red-600 text-white border-red-600"
+                                                          : isCorrect
+                                                          ? "bg-[#000953] text-white border-[#000953]"
+                                                          : "bg-white text-slate-700 border-slate-300"
+                                                      }`}
+                                                    >
+                                                      {letter}
+                                                    </span>
+                                                    <span className="leading-snug pt-0.5">{opt}</span>
+                                                  </div>
+                                                  {isSelected && (
+                                                    <span
+                                                      className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded border shrink-0 ${
+                                                        isCorrect
+                                                          ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                                                          : "bg-red-100 text-red-800 border-red-300"
+                                                      }`}
+                                                    >
+                                                      {isCorrect ? "Candidate ✓" : "Candidate ✗"}
+                                                    </span>
+                                                  )}
+                                                  {!isSelected && isCorrect && (
+                                                    <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-100 text-[#000953] border border-blue-300 shrink-0">
+                                                      Correct Key ✓
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        ) : (
+                                          <div className="text-xs p-3 rounded-lg bg-[#fffdfa] text-[#0f172a] border border-amber-200">
+                                            <span className="text-[10px] text-[#000953] block mb-0.5 font-bold uppercase tracking-wider">
+                                              Candidate Written Response:
+                                            </span>
+                                            {q.formatted_answer || (
+                                              <em className="text-slate-400">No response provided</em>
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
 
                                       <div className="flex items-center gap-2 shrink-0 pt-1">
@@ -1070,50 +1206,57 @@ export default function Grading() {
                                           step="1"
                                           value={Math.round(currentMarks)}
                                           min={0}
-                                          max={question?.marks ?? 10}
+                                          max={q.max_marks}
                                           onChange={(e) => {
-                                            const val = Math.round(Math.min(
-                                              Math.max(0, +e.target.value),
-                                              question?.marks ?? 10
-                                            ));
+                                            const val = Math.round(
+                                              Math.min(Math.max(0, +e.target.value), q.max_marks)
+                                            );
                                             setEditedScores((prev) => ({
                                               ...prev,
-                                              [sub.id]: { ...prev[sub.id], [ans.question_id]: val },
+                                              [sub.id]: { ...prev[sub.id], [qIdKey]: val },
                                             }));
-                                            clearTimeout((window as any)[`debounce_${ans.question_id}`]);
-                                            (window as any)[`debounce_${ans.question_id}`] = setTimeout(() => {
-                                              autoSaveOverride(sub, ans.question_id, val, "a");
+                                            clearTimeout((window as any)[`debounce_${qIdKey}`]);
+                                            (window as any)[`debounce_${qIdKey}`] = setTimeout(() => {
+                                              autoSaveOverride(sub, qIdKey, val, "a");
                                             }, 1000);
                                           }}
-                                          onBlur={() => handleScoreBlur(sub, ans.question_id, currentMarks, "a")}
+                                          onBlur={() => handleScoreBlur(sub, qIdKey, currentMarks, "a")}
                                           onKeyDown={(e) => {
-                                            if (e.key === "Enter") handleScoreBlur(sub, ans.question_id, currentMarks, "a");
+                                            if (e.key === "Enter")
+                                              handleScoreBlur(sub, qIdKey, currentMarks, "a");
                                           }}
                                           className={`w-16 text-center px-2 py-1.5 rounded-lg text-sm font-mono font-bold transition-all bg-white text-[#000953] border ${
-                                            autoSaveStatus[ans.question_id] === "saved"
+                                            autoSaveStatus[qIdKey] === "saved"
                                               ? "border-emerald-500 ring-2 ring-emerald-500/20"
-                                              : autoSaveStatus[ans.question_id] === "saving"
+                                              : autoSaveStatus[qIdKey] === "saving"
                                               ? "border-[#c48820] ring-2 ring-[#c48820]/20"
                                               : "border-slate-300 focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/20"
                                           }`}
                                         />
                                         <span className="text-xs font-mono font-bold text-slate-600">
-                                          / {question?.marks ?? 2}
+                                          / {q.max_marks}
                                         </span>
                                       </div>
                                     </div>
 
-                                    {ans.ai_reasoning && (
+                                    {q.ai_reasoning && (
                                       <div className="flex items-center gap-1.5 text-[11px] text-[#000953] bg-blue-50 px-2.5 py-1.5 rounded-md border border-blue-200 font-medium">
                                         <Sparkles className="w-3 h-3 shrink-0 text-[#c48820]" />
-                                        <span>Auto-Grader: {ans.ai_reasoning}</span>
+                                        <span>Assessor / Auto-Grader Evaluation: {q.ai_reasoning}</span>
                                       </div>
                                     )}
 
-                                    {question?.correct_answer && (
+                                    {((q.breakdown && q.breakdown.length > 0) ||
+                                      (q.formatted_correct_answer && q.type !== "mcq")) && (
                                       <div className="text-[11px] px-3 py-2 rounded-md bg-amber-50/70 text-slate-800 border border-amber-200">
-                                        <span className="font-bold text-[#000953]">Marking Guide: </span>
-                                        <span>{String(question.correct_answer)}</span>
+                                        <span className="font-bold text-[#000953]">
+                                          Official Marking Scheme:{" "}
+                                        </span>
+                                        {q.breakdown && q.breakdown.length > 0 ? (
+                                          <span>{q.breakdown.join(" • ")}</span>
+                                        ) : (
+                                          <span>{q.formatted_correct_answer}</span>
+                                        )}
                                       </div>
                                     )}
                                   </div>
@@ -1124,37 +1267,47 @@ export default function Grading() {
                         )}
 
                         {/* Section B — Structured Practical & Application */}
-                        {exam && sub.section_b.length > 0 && (
+                        {unified.section_b.length > 0 && (
                           <div>
-                            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
-                              <div className="flex items-center gap-2">
-                                <span className="w-1.5 h-4 bg-[#c48820] rounded-full" />
-                                <h4 className="text-xs font-bold text-[#000953] uppercase tracking-wide">
-                                  Section B — Structured Practical Tasks
-                                </h4>
+                            <div className="flex flex-wrap items-center justify-between mb-3 pb-2 border-b-2 border-[#000953]">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="w-1.5 h-4 bg-[#c48820] rounded-full" />
+                                  <h4 className="text-xs font-bold text-[#000953] uppercase tracking-wide">
+                                    SECTION B ({unified.sec_b_max} MARKS)
+                                  </h4>
+                                </div>
+                                <p className="text-[11px] text-slate-600 mt-0.5 pl-3.5">
+                                  {unified.section_b_instructions}
+                                </p>
                               </div>
                               <span className="font-mono text-xs font-bold text-[#000953]">
-                                {sub.section_b.reduce((s, a) => s + (a.marks_awarded ?? 0), 0)} /{exam.payload?.section_b?.total_marks ?? 40} marks
+                                Section B Subtotal: {unified.sec_b_awarded} / {unified.sec_b_max} marks
                               </span>
                             </div>
                             <div className="space-y-3">
-                              {sub.section_b.map((ans, qi) => {
-                                const question = exam.payload?.section_b?.questions?.find(
-                                  (q) => q.id === ans.question_id
-                                );
-                                const currentMarks = subEdits[ans.question_id] ?? ans.marks_awarded ?? 0;
+                              {unified.section_b.map((q, qi) => {
+                                const origAns = sub.section_b.find(
+                                  (b) => String(b.question_id) === String(q.question_id)
+                                ) || sub.section_b[qi];
+                                const qIdKey = origAns?.question_id || q.question_id;
+                                const currentMarks = subEdits[qIdKey] ?? q.marks_awarded;
+
                                 return (
                                   <div
-                                    key={ans.question_id}
+                                    key={q.question_id || qi}
                                     className="p-4 rounded-xl space-y-3 bg-white border border-slate-300 shadow-sm"
                                   >
                                     <div className="flex items-start justify-between gap-3">
                                       <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                                           <span className="text-xs font-bold font-mono px-2.5 py-0.5 rounded bg-[#000953] text-white">
-                                            Task {qi + 1}
+                                            Q{q.q_num || qi + 1}
                                           </span>
-                                          {ans.flagged_for_review && (
+                                          <span className="text-[10px] px-2 py-0.5 rounded uppercase font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                            Structured / Practical ({q.max_marks} Marks)
+                                          </span>
+                                          {origAns?.flagged_for_review && (
                                             <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-amber-50 text-[#c48820] border border-amber-300 flex items-center gap-1">
                                               <AlertCircle className="w-3 h-3" />
                                               Needs Review
@@ -1162,13 +1315,32 @@ export default function Grading() {
                                           )}
                                         </div>
                                         <p className="text-sm font-semibold whitespace-pre-line mb-2 text-[#0f172a]">
-                                          {question?.text}
+                                          {q.text}
                                         </p>
-                                        <div className="text-xs p-3 rounded-lg bg-slate-50 text-[#0f172a] border border-slate-200 whitespace-pre-line">
-                                          <span className="text-[11px] text-slate-500 block mb-1 font-bold uppercase tracking-wider">Candidate Work / Written Submission:</span>
-                                          {typeof ans.answer === "string" && ans.answer.trim()
-                                            ? ans.answer
-                                            : <em className="text-slate-400">No response provided</em>}
+
+                                        {/* Structured Sub-parts (a, b, c, d) — Identical to Trainee Exam Paper */}
+                                        {q.sub_parts && q.sub_parts.length > 0 && (
+                                          <div className="mb-3 pl-3.5 border-l-2 border-[#000953]/30 space-y-1 bg-slate-50 py-2 pr-3 rounded-r">
+                                            {q.sub_parts.map((sp, spIdx) => (
+                                              <p
+                                                key={spIdx}
+                                                className="text-xs font-medium text-slate-800 leading-relaxed"
+                                              >
+                                                {sp}
+                                              </p>
+                                            ))}
+                                          </div>
+                                        )}
+
+                                        <div className="text-xs p-3 rounded-lg bg-[#fffdfa] text-[#0f172a] border border-amber-200 whitespace-pre-line leading-relaxed">
+                                          <span className="text-[10px] text-[#000953] block mb-1 font-bold uppercase tracking-wider">
+                                            Candidate Written / Practical Submission:
+                                          </span>
+                                          {q.formatted_answer ? (
+                                            q.formatted_answer
+                                          ) : (
+                                            <em className="text-slate-400">No response provided</em>
+                                          )}
                                         </div>
                                       </div>
                                       <div className="flex items-center gap-2 shrink-0 pt-1">
@@ -1177,53 +1349,63 @@ export default function Grading() {
                                           step="1"
                                           value={Math.round(currentMarks)}
                                           min={0}
-                                          max={question?.marks ?? 30}
+                                          max={q.max_marks}
                                           onChange={(e) => {
-                                            const val = Math.round(Math.min(
-                                              Math.max(0, +e.target.value),
-                                              question?.marks ?? 30
-                                            ));
+                                            const val = Math.round(
+                                              Math.min(Math.max(0, +e.target.value), q.max_marks)
+                                            );
                                             setEditedScores((prev) => ({
                                               ...prev,
-                                              [sub.id]: { ...prev[sub.id], [ans.question_id]: val },
+                                              [sub.id]: { ...prev[sub.id], [qIdKey]: val },
                                             }));
-                                            
-                                            clearTimeout((window as any)[`debounce_${ans.question_id}`]);
-                                            (window as any)[`debounce_${ans.question_id}`] = setTimeout(() => {
-                                              autoSaveOverride(sub, ans.question_id, val, "b");
+
+                                            clearTimeout((window as any)[`debounce_${qIdKey}`]);
+                                            (window as any)[`debounce_${qIdKey}`] = setTimeout(() => {
+                                              autoSaveOverride(sub, qIdKey, val, "b");
                                             }, 1000);
                                           }}
-                                          onBlur={() => handleScoreBlur(sub, ans.question_id, currentMarks, "b")}
+                                          onBlur={() => handleScoreBlur(sub, qIdKey, currentMarks, "b")}
                                           onKeyDown={(e) => {
                                             if (e.key === "Enter") {
-                                              handleScoreBlur(sub, ans.question_id, currentMarks, "b");
+                                              handleScoreBlur(sub, qIdKey, currentMarks, "b");
                                             }
                                           }}
                                           className={`w-16 text-center px-2 py-1.5 rounded-lg text-sm font-mono font-bold transition-all bg-white text-[#000953] border ${
-                                            autoSaveStatus[ans.question_id] === "saved"
+                                            autoSaveStatus[qIdKey] === "saved"
                                               ? "border-emerald-500 ring-2 ring-emerald-500/20"
-                                              : autoSaveStatus[ans.question_id] === "saving"
+                                              : autoSaveStatus[qIdKey] === "saving"
                                               ? "border-[#c48820] ring-2 ring-[#c48820]/20"
                                               : "border-slate-300 focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/20"
                                           }`}
                                         />
                                         <span className="text-xs font-mono font-bold text-slate-600">
-                                          / {question?.marks ?? 20}
+                                          / {q.max_marks}
                                         </span>
                                       </div>
                                     </div>
 
-                                    {ans.ai_reasoning && (
+                                    {q.ai_reasoning && (
                                       <div className="flex items-center gap-1.5 text-[11px] text-[#000953] bg-blue-50 px-2.5 py-1.5 rounded-md border border-blue-200 font-medium">
                                         <Sparkles className="w-3 h-3 shrink-0 text-[#c48820]" />
-                                        <span>Auto-Grader: {ans.ai_reasoning}</span>
+                                        <span>Assessor / Auto-Grader Evaluation: {q.ai_reasoning}</span>
                                       </div>
                                     )}
 
-                                    {question?.correct_answer && (
+                                    {((q.breakdown && q.breakdown.length > 0) ||
+                                      q.formatted_correct_answer) && (
                                       <div className="text-[11px] px-3 py-2 rounded-lg bg-amber-50/70 text-slate-800 border border-amber-200">
-                                        <span className="font-bold text-[#000953]">Marking Rubric: </span>
-                                        <span>{String(question.correct_answer)}</span>
+                                        <span className="font-bold text-[#000953] block mb-0.5">
+                                          Official Marking Scheme / Rubric Breakdown:
+                                        </span>
+                                        {q.breakdown && q.breakdown.length > 0 ? (
+                                          <ul className="list-disc list-inside space-y-0.5">
+                                            {q.breakdown.map((bItem, bIdx) => (
+                                              <li key={bIdx}>{bItem}</li>
+                                            ))}
+                                          </ul>
+                                        ) : (
+                                          <span>{q.formatted_correct_answer}</span>
+                                        )}
                                       </div>
                                     )}
                                   </div>

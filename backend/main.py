@@ -1010,19 +1010,29 @@ def generate_exam_results_docx(payload):
     grade = str(payload.get("grade", "Pass"))
     status = str(payload.get("status", "COMPETENT (PASS)" if pct >= 50 else "NOT YET COMPETENT (REFER)"))
 
-    sec_a_items = payload.get("section_a") or payload.get("answers", {}).get("section_a", [])
-    sec_b_items = payload.get("section_b") or payload.get("answers", {}).get("section_b", [])
-    sec_a_subtotal = sum(float(it.get("marks_awarded", 0)) for it in sec_a_items)
+    sec_a_items = payload.get("section_a_details") or payload.get("section_a") or payload.get("answers", {}).get("section_a", [])
+    sec_b_items = payload.get("section_b_details") or payload.get("section_b") or payload.get("answers", {}).get("section_b", [])
+    sec_a_max = payload.get("sec_a_max", 30)
+    sec_b_max = payload.get("sec_b_max", 40)
+    sec_a_subtotal = payload.get("sec_a_awarded")
+    if sec_a_subtotal is None:
+        sec_a_subtotal = sum(float(it.get("marks_awarded", 0)) for it in sec_a_items)
+    else:
+        sec_a_subtotal = float(sec_a_subtotal)
     if sec_a_subtotal.is_integer():
         sec_a_subtotal = int(sec_a_subtotal)
-    sec_b_subtotal = sum(float(it.get("marks_awarded", 0)) for it in sec_b_items)
+    sec_b_subtotal = payload.get("sec_b_awarded")
+    if sec_b_subtotal is None:
+        sec_b_subtotal = sum(float(it.get("marks_awarded", 0)) for it in sec_b_items)
+    else:
+        sec_b_subtotal = float(sec_b_subtotal)
     if sec_b_subtotal.is_integer():
         sec_b_subtotal = int(sec_b_subtotal)
 
     cand_name = str(payload.get('student_name', 'Alex Kinoti'))
     cand_reg = str(payload.get('reg_number', '10525'))
     trainer_n = str(payload.get('trainer_name', 'Alexander Kinoti'))
-    eval_date = str(payload.get('evaluated_at', '07/10/2026'))
+    eval_date = str(payload.get('evaluated_at') or payload.get('submitted_at') or '07/10/2026')
 
     tbl_stamp = doc.add_table(rows=3, cols=2)
     tbl_stamp.style = 'Table Grid'
@@ -1050,7 +1060,7 @@ def generate_exam_results_docx(payload):
     tbl_stamp.rows[2].cells[1].merge(cell_bot)
     p_sc = cell_bot.paragraphs[0]
     p_sc.alignment = 1
-    r_sc = p_sc.add_run(f"SECTION A: {sec_a_subtotal}/30  |  SECTION B: {sec_b_subtotal}/40  |  TOTAL: {total_score}/{total_marks} ({pct}%)  --  {status}")
+    r_sc = p_sc.add_run(f"SECTION A: {sec_a_subtotal}/{sec_a_max}  |  SECTION B: {sec_b_subtotal}/{sec_b_max}  |  TOTAL: {total_score}/{total_marks} ({pct}%)  --  {status}")
     r_sc.bold = True
     r_sc.font.size = docx.shared.Pt(10)
     try:
@@ -1072,13 +1082,17 @@ def generate_exam_results_docx(payload):
     r_ih.bold = True
     r_ih.font.size = docx.shared.Pt(9)
 
-    instructions = [
-        "1. This paper consists of two sections A and B;",
-        "2. Answer ALL the question as guided in each section;",
-        "3. Marks for each question are as indicated in the brackets;",
-        "4. You are provided with a separate answer booklet to answer the questions;",
-        "5. Do not write in this question paper."
-    ]
+    custom_instructions = payload.get("instructions")
+    if isinstance(custom_instructions, list) and len(custom_instructions) > 0:
+        instructions = [f"{i+1}. {line}" if not str(line).strip()[0:1].isdigit() else str(line) for i, line in enumerate(custom_instructions)]
+    else:
+        instructions = [
+            "1. This paper consists of two sections A and B;",
+            "2. Answer ALL the question as guided in each section;",
+            "3. Marks for each question are as indicated in the brackets;",
+            "4. You are provided with a separate answer booklet to answer the questions;",
+            "5. Do not write in this question paper."
+        ]
     for inst in instructions:
         p_i = doc.add_paragraph(inst)
         p_i.paragraph_format.space_after = docx.shared.Pt(1)
@@ -1088,8 +1102,8 @@ def generate_exam_results_docx(payload):
     def render_docx_question(item, default_num, is_sec_b=False):
         q_num = item.get("q_num", default_num)
         default_meta = DEFAULT_EXAM_QUESTIONS.get(q_num, {})
-        q_text_raw = item.get("text")
-        if not q_text_raw or q_text_raw.lower() in [f"question {q_num}", f"task {q_num}", f"question {default_num}", f"task {default_num}"]:
+        q_text_raw = item.get("question_text") or item.get("text")
+        if not q_text_raw or str(q_text_raw).lower() in [f"question {q_num}", f"task {q_num}", f"question {default_num}", f"task {default_num}"]:
             q_text_raw = default_meta.get("text", f"Question {q_num}")
         q_text = str(q_text_raw)
 
@@ -1101,8 +1115,8 @@ def generate_exam_results_docx(payload):
         except Exception:
             awarded = raw_awarded
         max_m = item.get("max_marks", default_meta.get("max_marks", 20 if is_sec_b else 2))
-        ans_text = str(item.get("answer", ""))
-        reasoning = str(item.get("ai_reasoning") or item.get("notes") or "")
+        ans_text = str(item.get("student_answer") if item.get("student_answer") is not None else item.get("answer", ""))
+        reasoning = str(item.get("ai_feedback") or item.get("ai_reasoning") or item.get("notes") or "")
 
         p_q = doc.add_paragraph()
         p_q.paragraph_format.space_before = docx.shared.Pt(5)
@@ -1114,11 +1128,44 @@ def generate_exam_results_docx(payload):
         r_q.bold = True
         r_q.font.size = docx.shared.Pt(8.5)
 
+        # Structured sub-parts (a, b, c, d)
+        sub_parts = item.get("sub_parts") or []
+        for sp in sub_parts:
+            p_sp = doc.add_paragraph()
+            p_sp.paragraph_format.left_indent = docx.shared.Inches(0.25)
+            p_sp.paragraph_format.space_after = docx.shared.Pt(1)
+            r_sp = p_sp.add_run(f"{sp.get('label', 'a')}) {sp.get('text', '')} ({sp.get('marks', 0)} Marks)")
+            r_sp.font.size = docx.shared.Pt(8)
+
+        # MCQ Options (A, B, C, D)
+        options = item.get("options") or []
+        if isinstance(options, list) and len(options) > 0:
+            sel_idx = item.get("selected_option_index")
+            corr_idx = item.get("correct_option_index")
+            for opt_i, opt_text in enumerate(options):
+                opt_letter = chr(65 + opt_i)
+                is_sel = (sel_idx == opt_i) or (str(opt_text).strip().lower() == ans_text.strip().lower())
+                is_corr = (corr_idx == opt_i) or (str(opt_text).strip().lower() == str(item.get("correct_answer", "")).strip().lower())
+                tag = ""
+                if is_sel and is_corr:
+                    tag = "  [CANDIDATE SELECTED - CORRECT]"
+                elif is_sel and not is_corr:
+                    tag = "  [CANDIDATE SELECTED - INCORRECT]"
+                elif is_corr:
+                    tag = "  [CORRECT ANSWER]"
+                p_opt = doc.add_paragraph()
+                p_opt.paragraph_format.left_indent = docx.shared.Inches(0.25)
+                p_opt.paragraph_format.space_after = docx.shared.Pt(1)
+                r_opt = p_opt.add_run(f"({opt_letter}) {opt_text}{tag}")
+                r_opt.font.size = docx.shared.Pt(8)
+                if is_sel or is_corr:
+                    r_opt.bold = True
+
         # Candidate response
         p_ans = doc.add_paragraph()
         p_ans.paragraph_format.left_indent = docx.shared.Inches(0.25)
         p_ans.paragraph_format.space_after = docx.shared.Pt(1)
-        r_ans_lbl = p_ans.add_run("Candidate's Written Response:\n")
+        r_ans_lbl = p_ans.add_run("Candidate's Response:\n")
         r_ans_lbl.bold = True
         r_ans_lbl.font.size = docx.shared.Pt(7.5)
         try:
@@ -1144,8 +1191,12 @@ def generate_exam_results_docx(payload):
 
             rem_marks = float(awarded) if isinstance(awarded, (int, float)) else 0.0
             for crit_idx, crit in enumerate(breakdown):
-                c_desc = str(crit.get("criterion", f"Mark Component {crit_idx+1}"))
-                c_max = float(crit.get("marks", 1))
+                if isinstance(crit, str):
+                    c_desc = crit
+                    c_max = round(float(max_m) / max(len(breakdown), 1), 1)
+                else:
+                    c_desc = str(crit.get("criterion", f"Mark Component {crit_idx+1}"))
+                    c_max = float(crit.get("marks", 1))
                 if isinstance(awarded, (int, float)):
                     if awarded == max_m:
                         c_awarded = c_max
@@ -1222,14 +1273,15 @@ def generate_exam_results_docx(payload):
     p_a_hdr = doc.add_paragraph()
     p_a_hdr.paragraph_format.space_before = docx.shared.Pt(8)
     p_a_hdr.paragraph_format.space_after = docx.shared.Pt(2)
-    r_ah = p_a_hdr.add_run("SECTION A (30 MARKS) -- Answer ALL Questions")
+    sec_a_title = str(payload.get("sec_a_title") or f"SECTION A ({sec_a_max} MARKS) -- Answer ALL Questions").upper()
+    r_ah = p_a_hdr.add_run(sec_a_title)
     r_ah.bold = True
     r_ah.font.size = docx.shared.Pt(10)
     try:
         r_ah.font.color.rgb = docx.shared.RGBColor(0, 9, 83)
     except Exception:
         pass
-    r_asub = p_a_hdr.add_run(f"    (Subtotal: {sec_a_subtotal} / 30 Marks)")
+    r_asub = p_a_hdr.add_run(f"    (Subtotal: {sec_a_subtotal} / {sec_a_max} Marks)")
     r_asub.bold = True
     r_asub.font.size = docx.shared.Pt(8.5)
     try:
@@ -1244,14 +1296,15 @@ def generate_exam_results_docx(payload):
     p_b_hdr = doc.add_paragraph()
     p_b_hdr.paragraph_format.space_before = docx.shared.Pt(8)
     p_b_hdr.paragraph_format.space_after = docx.shared.Pt(2)
-    r_bh = p_b_hdr.add_run("SECTION B (40 MARKS) -- Answer ANY TWO Questions")
+    sec_b_title = str(payload.get("sec_b_title") or f"SECTION B ({sec_b_max} MARKS) -- Answer ANY TWO Questions").upper()
+    r_bh = p_b_hdr.add_run(sec_b_title)
     r_bh.bold = True
     r_bh.font.size = docx.shared.Pt(10)
     try:
         r_bh.font.color.rgb = docx.shared.RGBColor(0, 9, 83)
     except Exception:
         pass
-    r_bsub = p_b_hdr.add_run(f"    (Subtotal: {sec_b_subtotal} / 40 Marks)")
+    r_bsub = p_b_hdr.add_run(f"    (Subtotal: {sec_b_subtotal} / {sec_b_max} Marks)")
     r_bsub.bold = True
     r_bsub.font.size = docx.shared.Pt(8.5)
     try:
@@ -1260,7 +1313,7 @@ def generate_exam_results_docx(payload):
         pass
 
     for idx, item in enumerate(sec_b_items):
-        render_docx_question(item, idx + 11, is_sec_b=True)
+        render_docx_question(item, len(sec_a_items) + idx + 1, is_sec_b=True)
 
     # Overall Remarks
     p_rem_hdr = doc.add_paragraph()
@@ -1420,12 +1473,22 @@ def generate_exam_results_pdf(payload):
     pdf.cell(90, 4, f"Candidate Name: {cand_name}", ln=0)
     pdf.cell(88, 4, f"Admission / Reg No: {cand_reg}", ln=1)
 
-    sec_a_items = payload.get("section_a") or payload.get("answers", {}).get("section_a", [])
-    sec_b_items = payload.get("section_b") or payload.get("answers", {}).get("section_b", [])
-    sec_a_subtotal = sum(float(it.get("marks_awarded", 0)) for it in sec_a_items)
+    sec_a_items = payload.get("section_a_details") or payload.get("section_a") or payload.get("answers", {}).get("section_a", [])
+    sec_b_items = payload.get("section_b_details") or payload.get("section_b") or payload.get("answers", {}).get("section_b", [])
+    sec_a_max = payload.get("sec_a_max", 30)
+    sec_b_max = payload.get("sec_b_max", 40)
+    sec_a_subtotal = payload.get("sec_a_awarded")
+    if sec_a_subtotal is None:
+        sec_a_subtotal = sum(float(it.get("marks_awarded", 0)) for it in sec_a_items)
+    else:
+        sec_a_subtotal = float(sec_a_subtotal)
     if sec_a_subtotal.is_integer():
         sec_a_subtotal = int(sec_a_subtotal)
-    sec_b_subtotal = sum(float(it.get("marks_awarded", 0)) for it in sec_b_items)
+    sec_b_subtotal = payload.get("sec_b_awarded")
+    if sec_b_subtotal is None:
+        sec_b_subtotal = sum(float(it.get("marks_awarded", 0)) for it in sec_b_items)
+    else:
+        sec_b_subtotal = float(sec_b_subtotal)
     if sec_b_subtotal.is_integer():
         sec_b_subtotal = int(sec_b_subtotal)
 
@@ -1433,14 +1496,14 @@ def generate_exam_results_pdf(payload):
     pdf.set_font('Helvetica', 'B', 8)
     pdf.set_text_color(20, 20, 20)
     trainer_n = clean_pdf_text(payload.get('trainer_name', 'Alexander Kinoti'))
-    eval_date = clean_pdf_text(payload.get('evaluated_at', '07/10/2026'))
+    eval_date = clean_pdf_text(payload.get('evaluated_at') or payload.get('submitted_at') or '07/10/2026')
     pdf.cell(90, 4, f"Assessor / Trainer: {trainer_n}", ln=0)
     pdf.cell(88, 4, f"Date Evaluated: {eval_date}", ln=1)
 
     pdf.set_xy(16, box_y + 15)
     pdf.set_font('Helvetica', 'B', 9.5)
     pdf.set_text_color(220, 38, 38)
-    score_summary = f"SECTION A: {sec_a_subtotal}/30  |  SECTION B: {sec_b_subtotal}/40  |  TOTAL: {total_score}/{total_marks} ({pct}%)  --  {status}"
+    score_summary = f"SECTION A: {sec_a_subtotal}/{sec_a_max}  |  SECTION B: {sec_b_subtotal}/{sec_b_max}  |  TOTAL: {total_score}/{total_marks} ({pct}%)  --  {status}"
     pdf.cell(178, 5, score_summary, ln=1)
 
     pdf.set_y(box_y + 24)
@@ -1450,13 +1513,17 @@ def generate_exam_results_pdf(payload):
     pdf.set_text_color(0, 0, 0)
     pdf.cell(0, 4.5, "INSTRUCTIONS TO CANDIDATE", ln=1)
 
-    instructions = [
-        "1. This paper consists of two sections A and B;",
-        "2. Answer ALL the question as guided in each section;",
-        "3. Marks for each question are as indicated in the brackets;",
-        "4. You are provided with a separate answer booklet to answer the questions;",
-        "5. Do not write in this question paper."
-    ]
+    custom_instructions = payload.get("instructions")
+    if isinstance(custom_instructions, list) and len(custom_instructions) > 0:
+        instructions = [f"{i+1}. {line}" if not str(line).strip()[0:1].isdigit() else str(line) for i, line in enumerate(custom_instructions)]
+    else:
+        instructions = [
+            "1. This paper consists of two sections A and B;",
+            "2. Answer ALL the question as guided in each section;",
+            "3. Marks for each question are as indicated in the brackets;",
+            "4. You are provided with a separate answer booklet to answer the questions;",
+            "5. Do not write in this question paper."
+        ]
     pdf.set_font('Helvetica', '', 8)
     pdf.set_text_color(30, 30, 30)
     for inst in instructions:
@@ -1470,8 +1537,8 @@ def generate_exam_results_pdf(payload):
     def render_marked_question(item, default_num, is_section_b=False):
         q_num = item.get("q_num", default_num)
         default_meta = DEFAULT_EXAM_QUESTIONS.get(q_num, {})
-        q_text_raw = item.get("text")
-        if not q_text_raw or q_text_raw.lower() in [f"question {q_num}", f"task {q_num}", f"question {default_num}", f"task {default_num}"]:
+        q_text_raw = item.get("question_text") or item.get("text")
+        if not q_text_raw or str(q_text_raw).lower() in [f"question {q_num}", f"task {q_num}", f"question {default_num}", f"task {default_num}"]:
             q_text_raw = default_meta.get("text", f"Question {q_num}")
         q_text = clean_pdf_text(str(q_text_raw))
 
@@ -1483,8 +1550,8 @@ def generate_exam_results_pdf(payload):
         except Exception:
             awarded = raw_awarded
         max_m = item.get("max_marks", default_meta.get("max_marks", 20 if is_section_b else 2))
-        ans_text = clean_pdf_text(str(item.get("answer", "")))
-        reasoning = clean_pdf_text(str(item.get("ai_reasoning") or item.get("notes") or ""))
+        ans_text = clean_pdf_text(str(item.get("student_answer") if item.get("student_answer") is not None else item.get("answer", "")))
+        reasoning = clean_pdf_text(str(item.get("ai_feedback") or item.get("ai_reasoning") or item.get("notes") or ""))
 
         # Check page break margin
         if pdf.get_y() > 235:
@@ -1498,11 +1565,52 @@ def generate_exam_results_pdf(payload):
             q_header += f" ({max_m} Marks)"
         pdf.multi_cell(182, 4.2, q_header)
 
+        # Structured sub-parts (a, b, c, d)
+        sub_parts = item.get("sub_parts") or []
+        for sp in sub_parts:
+            if pdf.get_y() > 265:
+                pdf.add_page()
+            pdf.set_x(18)
+            pdf.set_font('Helvetica', '', 8)
+            pdf.set_text_color(30, 30, 30)
+            sp_line = clean_pdf_text(f"{sp.get('label', 'a')}) {sp.get('text', '')} ({sp.get('marks', 0)} Marks)")
+            pdf.multi_cell(176, 3.8, sp_line)
+
+        # MCQ Options (A, B, C, D)
+        options = item.get("options") or []
+        if isinstance(options, list) and len(options) > 0:
+            sel_idx = item.get("selected_option_index")
+            corr_idx = item.get("correct_option_index")
+            for opt_i, opt_text in enumerate(options):
+                if pdf.get_y() > 268:
+                    pdf.add_page()
+                opt_letter = chr(65 + opt_i)
+                is_sel = (sel_idx == opt_i) or (str(opt_text).strip().lower() == ans_text.strip().lower())
+                is_corr = (corr_idx == opt_i) or (str(opt_text).strip().lower() == str(item.get("correct_answer", "")).strip().lower())
+                tag = ""
+                if is_sel and is_corr:
+                    tag = "  [CANDIDATE SELECTED - CORRECT]"
+                    pdf.set_text_color(21, 128, 61)
+                    pdf.set_font('Helvetica', 'B', 8)
+                elif is_sel and not is_corr:
+                    tag = "  [CANDIDATE SELECTED - INCORRECT]"
+                    pdf.set_text_color(185, 28, 28)
+                    pdf.set_font('Helvetica', 'B', 8)
+                elif is_corr:
+                    tag = "  [CORRECT ANSWER]"
+                    pdf.set_text_color(21, 128, 61)
+                    pdf.set_font('Helvetica', 'B', 8)
+                else:
+                    pdf.set_text_color(50, 50, 50)
+                    pdf.set_font('Helvetica', '', 8)
+                pdf.set_x(18)
+                pdf.multi_cell(176, 3.8, clean_pdf_text(f"({opt_letter}) {opt_text}{tag}"))
+
         # Candidate's Written Response block
         pdf.set_font('Helvetica', 'B', 7.5)
         pdf.set_text_color(80, 80, 80)
         pdf.set_x(18)
-        pdf.cell(178, 3.5, "Candidate's Written Response:", ln=1)
+        pdf.cell(178, 3.5, "Candidate's Response:", ln=1)
 
         pdf.set_font('Helvetica', '', 8)
         pdf.set_text_color(30, 30, 30)
@@ -1512,17 +1620,20 @@ def generate_exam_results_pdf(payload):
 
         # Assessor Mark Distribution & Rubric Breakdown block
         breakdown = item.get("breakdown") or default_meta.get("breakdown") or DEFAULT_BREAKDOWNS.get(q_num, [])
-        pdf.set_x(18)
-        pdf.set_font('Helvetica', 'B', 7.5)
-        pdf.set_text_color(185, 28, 28)
-        pdf.cell(178, 3.5, "Official Assessor Mark Distribution & Rubric Breakdown:", ln=1)
-
-        # Distribute marks across criteria
         if breakdown:
+            pdf.set_x(18)
+            pdf.set_font('Helvetica', 'B', 7.5)
+            pdf.set_text_color(185, 28, 28)
+            pdf.cell(178, 3.5, "Official Assessor Mark Distribution & Rubric Breakdown:", ln=1)
+
             rem_marks = float(awarded) if isinstance(awarded, (int, float)) else 0.0
             for crit_idx, crit in enumerate(breakdown):
-                c_desc = clean_pdf_text(crit.get("criterion", f"Mark Component {crit_idx+1}"))
-                c_max = float(crit.get("marks", 1))
+                if isinstance(crit, str):
+                    c_desc = clean_pdf_text(crit)
+                    c_max = round(float(max_m) / max(len(breakdown), 1), 1)
+                else:
+                    c_desc = clean_pdf_text(crit.get("criterion", f"Mark Component {crit_idx+1}"))
+                    c_max = float(crit.get("marks", 1))
                 if isinstance(awarded, (int, float)):
                     if awarded == max_m:
                         c_awarded = c_max
@@ -1581,12 +1692,13 @@ def generate_exam_results_pdf(payload):
         pdf.line(14, pdf.get_y(), 196, pdf.get_y())
         pdf.ln(2.5)
 
+    sec_a_title = clean_pdf_text(str(payload.get("sec_a_title") or f"SECTION A ({sec_a_max} MARKS) -- Answer ALL Questions").upper())
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(0, 9, 83)
-    pdf.cell(130, 5, "SECTION A (30 MARKS) -- Answer ALL Questions", ln=0)
+    pdf.cell(130, 5, sec_a_title[:65], ln=0)
     pdf.set_font('Helvetica', 'B', 8.5)
     pdf.set_text_color(220, 38, 38)
-    pdf.cell(52, 5, f"Subtotal: {sec_a_subtotal} / 30 Marks", ln=1, align='R')
+    pdf.cell(52, 5, f"Subtotal: {sec_a_subtotal} / {sec_a_max} Marks", ln=1, align='R')
     pdf.ln(1.5)
 
     for idx, item in enumerate(sec_a_items):
@@ -1601,16 +1713,17 @@ def generate_exam_results_pdf(payload):
         pdf.line(14, pdf.get_y(), 196, pdf.get_y())
         pdf.ln(2.5)
 
+    sec_b_title = clean_pdf_text(str(payload.get("sec_b_title") or f"SECTION B ({sec_b_max} MARKS) -- Answer ANY TWO Questions").upper())
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(0, 9, 83)
-    pdf.cell(130, 5, "SECTION B (40 MARKS) -- Answer ANY TWO Questions", ln=0)
+    pdf.cell(130, 5, sec_b_title[:65], ln=0)
     pdf.set_font('Helvetica', 'B', 8.5)
     pdf.set_text_color(220, 38, 38)
-    pdf.cell(52, 5, f"Subtotal: {sec_b_subtotal} / 40 Marks", ln=1, align='R')
+    pdf.cell(52, 5, f"Subtotal: {sec_b_subtotal} / {sec_b_max} Marks", ln=1, align='R')
     pdf.ln(1.5)
 
     for idx, item in enumerate(sec_b_items):
-        render_marked_question(item, idx + 11, is_section_b=True)
+        render_marked_question(item, len(sec_a_items) + idx + 1, is_section_b=True)
 
     # ── Overall Feedback & Signatures Footer ──────────────────────────────────
     if pdf.get_y() > 220:

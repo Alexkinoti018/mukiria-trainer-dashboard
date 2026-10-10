@@ -25,6 +25,7 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { useExam } from "@/contexts/ExamContext";
 import MarkedExamScriptModal from "@/components/MarkedExamScriptModal";
 import ObservationChecklistMarkingModal from "@/components/ObservationChecklistMarkingModal";
+import { buildUnifiedGradedExamData, exportGradedExamPDFClientSide } from "@/lib/exportGradedExamPdf";
 import { toast } from "sonner";
 import type { Submission } from "@/lib/supabase";
 
@@ -413,70 +414,100 @@ export default function StudentResults() {
           ) : (
             <div className="space-y-4">
               <AnimatePresence>
-                {submissions.map((sub, idx) => (
-                  <motion.div
-                    key={sub.id}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="p-6 rounded-2xl bg-white border border-slate-300 shadow-sm hover:border-[#000953] transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-4 flex-wrap">
-                      <div className="flex-1 min-w-0">
-                        <span className="px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-[#000953]/10 text-[#000953] border border-[#000953]/20">
-                          {sub.unit_code}
-                        </span>
-                        <h3 className="font-bold text-lg text-slate-900 mt-1">
-                          {sub.unit_code} Assessment Paper
-                        </h3>
-                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5 font-medium">
-                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                          Submitted on {new Date(sub.created_at).toLocaleDateString()}
-                        </p>
+                {submissions.map((sub, idx) => {
+                  const matchedExam =
+                    exams.find((e) => e.unit_code === sub.unit_code || e.id === sub.exam_id) ||
+                    null;
+                  const unified = buildUnifiedGradedExamData(sub, matchedExam, "Alexander Kinoti");
+                  return (
+                    <motion.div
+                      key={sub.id}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="p-6 rounded-2xl bg-white border border-slate-300 shadow-sm hover:border-[#000953] transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-4 flex-wrap">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-[#000953] text-white">
+                              {unified.unit_code}
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-[#fef6e7] text-[#c48820] border border-[#c48820]/40 uppercase">
+                              {unified.exam_title}
+                            </span>
+                          </div>
+                          <h3 className="font-bold text-lg text-[#000953] mt-1.5">
+                            {unified.course_name} — {unified.unit_name}
+                          </h3>
+                          <p className="text-xs text-slate-600 mt-1 font-medium">
+                            Class: {unified.class_code} • Series: {unified.series} • Time Allowed:{" "}
+                            {unified.time_allowed}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5 font-medium">
+                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                            Submitted on {new Date(sub.created_at).toLocaleDateString()} • Sec A:{" "}
+                            {unified.sec_a_awarded}/{unified.sec_a_max} | Sec B:{" "}
+                            {unified.sec_b_awarded}/{unified.sec_b_max}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-3xl font-bold font-mono text-[#000953]">
+                            {unified.total_score}
+                            <span className="text-sm font-normal text-slate-500">
+                              /{unified.total_marks}
+                            </span>
+                          </p>
+                          <p className="text-xs text-[#c48820] font-bold">
+                            {unified.percentage}% Score
+                          </p>
+                          {unified.is_pass ? (
+                            <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-300">
+                              ✓ Competent / Passed
+                            </span>
+                          ) : (
+                            <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-300">
+                              ✗ NYC / Referral
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-3xl font-bold font-mono text-[#000953]">
-                          {sub.total_score !== null ? Math.round(sub.total_score) : 0}
-                        </p>
-                        <p className="text-xs text-slate-500 font-medium">
-                          marks scored
-                        </p>
-                        {(sub.total_score ?? 0) >= 50 ? (
-                          <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-300">
-                            ✓ Competent / Passed
-                          </span>
-                        ) : (
-                          <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-300">
-                            ✗ NYC / Referral
-                          </span>
-                        )}
-                      </div>
-                    </div>
 
-                    {/* View Marked Script Button */}
-                    <div className="mt-5 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
-                      <span className="text-xs text-slate-600 font-medium">
-                        Official Simulated Red Pen Examination Script & Observation Checklists
-                      </span>
-                      <div className="flex items-center gap-2.5">
-                        <button
-                          onClick={() => setSelectedSubForScript(sub)}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition"
-                        >
-                          <PenTool className="w-3.5 h-3.5 text-[#c48820]" />
-                          <span>Theory Paper (Red Pen Script)</span>
-                        </button>
-                        <button
-                          onClick={() => setIsPracticalChecklistOpen(true)}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-[#000953] border-2 border-[#000953] shadow-sm transition"
-                        >
-                          <FileCheck className="w-3.5 h-3.5 text-[#000953]" />
-                          <span>Practical Checklist (Red Pen)</span>
-                        </button>
+                      {/* View Marked Script Button */}
+                      <div className="mt-5 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                        <span className="text-xs text-slate-600 font-medium">
+                          Official Graded Examination Paper (Same Format as Trainee Exam) &
+                          Observation Checklist
+                        </span>
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <button
+                            onClick={() => setSelectedSubForScript(sub)}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition"
+                          >
+                            <PenTool className="w-3.5 h-3.5 text-[#c48820]" />
+                            <span>View Graded Exam Paper (Red Pen)</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              exportGradedExamPDFClientSide(unified);
+                              toast.success("Downloaded Official Graded Exam Paper PDF!");
+                            }}
+                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#fef6e7] hover:bg-amber-100 text-[#000953] border border-[#c48820] shadow-sm transition"
+                          >
+                            <span>Download Graded PDF</span>
+                          </button>
+                          <button
+                            onClick={() => setIsPracticalChecklistOpen(true)}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-[#000953] border-2 border-[#000953] shadow-sm transition"
+                          >
+                            <FileCheck className="w-3.5 h-3.5 text-[#000953]" />
+                            <span>Practical Checklist (Red Pen)</span>
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  );
+                })}
               </AnimatePresence>
             </div>
           )}
@@ -488,7 +519,15 @@ export default function StudentResults() {
         isOpen={!!selectedSubForScript}
         onClose={() => setSelectedSubForScript(null)}
         submission={selectedSubForScript}
-        exam={selectedSubForScript ? (exams.find(e => e.unit_code === selectedSubForScript.unit_code) || null) : null}
+        exam={
+          selectedSubForScript
+            ? exams.find(
+                (e) =>
+                  e.unit_code === selectedSubForScript.unit_code ||
+                  e.id === selectedSubForScript.exam_id
+              ) || null
+            : null
+        }
       />
 
       {/* Visual Marked Practical Checklist Modal (TVET CDACC Red Pen) */}
