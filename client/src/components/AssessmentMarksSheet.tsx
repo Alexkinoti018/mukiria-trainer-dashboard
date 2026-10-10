@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Plus, Trash2, Save, Printer, Download, Filter, CheckCircle2, Lock, Unlock, Users, PenTool, FileSpreadsheet, Eye } from "lucide-react";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import React, { useState, useEffect, useMemo } from "react";
+import { Plus, Save, Printer, Download, Lock, Unlock, Users, PenTool, RefreshCw } from "lucide-react";
+import { supabase, isSupabaseConfigured, normalizeAssessmentTaskSlot } from "@/lib/supabase";
 import { toast } from "sonner";
-import { useTrainees } from "@/contexts/TraineeContext";
+import { useTrainees, findMatchingTrainee, syncScoreToContinuousMarksheet } from "@/contexts/TraineeContext";
+import { useExam } from "@/contexts/ExamContext";
 import ObservationChecklistMarkingModal from "./ObservationChecklistMarkingModal";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -15,6 +16,7 @@ interface AssessmentRow {
   name: string;
   ctScores: (number | string)[];
   cpScores: (number | string)[];
+  assignmentScore?: number | string;
   projectScore?: number | string;
   ctAvg: number;
   cpAvg: number;
@@ -38,10 +40,12 @@ export function AssessmentMarksSheet() {
   
   // Class selection for targeted marksheet
   const [selectedClass, setSelectedClass] = useState<string>("ICT4/ITECH6/S/26 MOD 1");
-  const [unitOfferingId, setUnitOfferingId] = useState("uo_1");
+  const [unitOfferingId] = useState("uo_1");
   const [isLocked, setIsLocked] = useState(false); // Internal Assessor Sign-off
-  const [includeProject, setIncludeProject] = useState(false);
+  const [includeAssignment, setIncludeAssignment] = useState(true);
+  const [includeProject, setIncludeProject] = useState(true);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [syncVersion, setSyncVersion] = useState(0);
 
   const [ctCount, setCtCount] = useState(3);
   const [cpCount, setCpCount] = useState(3);
@@ -50,14 +54,48 @@ export function AssessmentMarksSheet() {
   const [isObservationModalOpen, setIsObservationModalOpen] = useState(false);
   const [selectedCandidateForPractical, setSelectedCandidateForPractical] = useState<AssessmentRow | null>(null);
 
-  const { trainees } = useTrainees();
+  const { trainees, uploads } = useTrainees();
+  const { exams, submissions } = useExam();
+
+  useEffect(() => {
+    const handleMarksUpdated = () => setSyncVersion((v) => v + 1);
+    window.addEventListener("mtti-marks-updated", handleMarksUpdated);
+    return () => window.removeEventListener("mtti-marks-updated", handleMarksUpdated);
+  }, []);
 
   // Distinct classes available from trainees roster
   const availableClasses = useMemo(() => {
     return Array.from(new Set(trainees.map(t => t.classCode).filter(Boolean)));
   }, [trainees]);
 
-  // Auto-populate based on selected class and context Trainees
+  // Round averages to whole number (no decimals) per TVET CDACC requirements
+  const calculateAverages = (scores: any[]): number => {
+    const validScores = scores
+      .map((s) => parseFloat(s))
+      .filter((s) => !isNaN(s));
+    if (validScores.length === 0) return 0;
+    const sum = validScores.reduce((a, b) => a + b, 0);
+    return Math.round(sum / validScores.length);
+  };
+
+  // TVET CDACC Official Weight Formula per Level
+  const calculateWeighted = (ctAvg: number, cpAvg: number, currentLevel: number, projectScore: number = 0): number => {
+    if (projectScore > 0) {
+      const score = (cpAvg * 0.4) + (ctAvg * 0.2) + (projectScore * 0.4);
+      return Math.round(score);
+    }
+    let raw = 0;
+    switch (currentLevel) {
+      case 6: raw = (ctAvg * 0.5) + (cpAvg * 0.5); break;
+      case 5: raw = (ctAvg * 0.4) + (cpAvg * 0.6); break;
+      case 4: raw = (ctAvg * 0.3) + (cpAvg * 0.7); break;
+      case 3: raw = (ctAvg * 0.2) + (cpAvg * 0.8); break;
+      default: raw = (ctAvg * 0.5) + (cpAvg * 0.5); break;
+    }
+    return Math.round(raw);
+  };
+
+  // Auto-populate and synchronize based on selected class, trainees, graded submissions, graded uploads, and saved marks
   useEffect(() => {
     const classTrainees = selectedClass === "all" 
       ? trainees 
@@ -73,60 +111,9 @@ export function AssessmentMarksSheet() {
           return false;
         });
 
-    let savedMarks: any[] = [];
-    try {
-      const raw = localStorage.getItem(`mtti_marks_${unitOfferingId}`);
-      if (raw) savedMarks = JSON.parse(raw);
-    } catch {}
-
-    setRows((currentRows) => {
-      return classTrainees.map((t, idx) => {
-        const existingRow = currentRows.find(r => r.id === t.id);
-        const cleanAdm = t.admNo?.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD)\//i, "") || t.admNo;
-        const savedEntry = savedMarks.find(m => m.trainee_id === t.id);
-
-        if (existingRow) {
-          return { ...existingRow, sn: idx + 1 };
-        }
-
-        // Initialize scores with saved values if present
-        const initCtScores = Array(ctCount).fill("");
-        const initCpScores = Array(cpCount).fill("");
-
-        if (savedEntry) {
-          if (Array.isArray(savedEntry.ct_scores)) {
-            savedEntry.ct_scores.forEach((s: any, sIdx: number) => {
-              if (sIdx < ctCount) initCtScores[sIdx] = String(s);
-            });
-          }
-          if (Array.isArray(savedEntry.cp_scores)) {
-            savedEntry.cp_scores.forEach((s: any, sIdx: number) => {
-              if (sIdx < cpCount) initCpScores[sIdx] = String(s);
-            });
-          }
-        }
-
-        const ctAvg = calculateAverages(initCtScores);
-        const cpAvg = calculateAverages(initCpScores);
-        const weightedMark = calculateWeighted(ctAvg, cpAvg, level);
-
-        return {
-          id: t.id,
-          sn: idx + 1,
-          regCode: t.regCode || (t.admNo ? `ITECH 6 MOD/${cleanAdm}` : `MTTI/2026/${String(idx + 1).padStart(3, '0')}`),
-          admNo: cleanAdm,
-          name: t.name,
-          ctScores: initCtScores,
-          cpScores: initCpScores,
-          ctAvg,
-          cpAvg,
-          weightedMark,
-        };
-      });
-    });
-
-    // Update level and unit metadata for Term 3 2026 based on timetable
+    let targetLevel = 6;
     if (selectedClass.includes("FBS")) {
+      targetLevel = 5;
       setLevel(5);
       setCourseTitle("Diploma in Food & Beverage Sales and Service Management");
       setCourseCode("FBS-MOD-5");
@@ -134,6 +121,7 @@ export function AssessmentMarksSheet() {
       setUnitTitle("Apply Digital Literacy");
       setTermDates("From SEPT 2026 to NOV 2026");
     } else if (selectedClass.includes("ADMIN")) {
+      targetLevel = 6;
       setLevel(6);
       setCourseTitle("Diploma in Secretarial & Administration");
       setCourseCode("Admin-MOD-6");
@@ -141,6 +129,7 @@ export function AssessmentMarksSheet() {
       setUnitTitle("Apply ICT Skills");
       setTermDates("From SEPT 2026 to NOV 2026");
     } else if (selectedClass.includes("LS")) {
+      targetLevel = 6;
       setLevel(6);
       setCourseTitle("Diploma in Land Survey");
       setCourseCode("LS-MOD-6");
@@ -148,6 +137,7 @@ export function AssessmentMarksSheet() {
       setUnitTitle("Apply Digital Literacy");
       setTermDates("From SEPT 2026 to NOV 2026");
     } else if (selectedClass.includes("ICT4") || selectedClass.includes("ITECH6")) {
+      targetLevel = 6;
       setLevel(6);
       setCourseTitle("Diploma in Information Communication Technology");
       setCourseCode("041305T4OAD");
@@ -155,51 +145,148 @@ export function AssessmentMarksSheet() {
       setUnitTitle("Perform Computer Essentials");
       setTermDates("From SEPT 2026 to NOV 2026");
     }
-  }, [selectedClass, trainees, ctCount, cpCount]);
 
-  // Round averages to whole number (no decimals) per TVET CDACC requirements
-  const calculateAverages = (scores: any[]): number => {
-    const validScores = scores
-      .map((s) => parseFloat(s))
-      .filter((s) => !isNaN(s));
-    if (validScores.length === 0) return 0;
-    const sum = validScores.reduce((a, b) => a + b, 0);
-    return Math.round(sum / validScores.length);
-  };
+    let savedMarks: any[] = [];
+    try {
+      const raw = localStorage.getItem(`mtti_marks_${unitOfferingId}`);
+      if (raw) savedMarks = JSON.parse(raw);
+    } catch {}
 
-  // TVET CDACC Official Weight Formula per Level
-  // Level 6 = (Theory x 0.5) + (Practical x 0.5) [or project weighting if applicable]
-  // Level 5 = (Theory x 0.4) + (Practical x 0.6)
-  // Level 4 = (Theory x 0.3) + (Practical x 0.7)
-  // Level 3 = (Theory x 0.2) + (Practical x 0.8)
-  const calculateWeighted = (ctAvg: number, cpAvg: number, currentLevel: number, projectScore: number = 0): number => {
-    if (projectScore > 0) {
-      const score = (cpAvg * 0.4) + (ctAvg * 0.2) + (projectScore * 0.4);
-      return Math.round(score * 10) / 10;
-    }
-    let raw = 0;
-    switch (currentLevel) {
-      case 6: raw = (ctAvg * 0.5) + (cpAvg * 0.5); break;
-      case 5: raw = (ctAvg * 0.4) + (cpAvg * 0.6); break;
-      case 4: raw = (ctAvg * 0.3) + (cpAvg * 0.7); break;
-      case 3: raw = (ctAvg * 0.2) + (cpAvg * 0.8); break;
-      default: raw = (ctAvg * 0.5) + (cpAvg * 0.5); break;
-    }
-    return Math.round(raw);
-  };
+    setRows(
+      classTrainees.map((t, idx) => {
+        const cleanAdm = t.admNo?.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD)\//i, "") || t.admNo;
+        const savedEntry = savedMarks.find((m) => m.trainee_id === t.id);
+
+        const initCtScores: (number | string)[] = Array(ctCount).fill("");
+        const initCpScores: (number | string)[] = Array(cpCount).fill("");
+        let initAssignmentScore: number | string = "";
+        let initProjectScore: number | string = "";
+
+        // 1. Pull graded online exam submissions (CATs, CT1, CT2, CT3, CP1-3, Project, Assignment) from ExamContext
+        submissions.forEach((sub) => {
+          if (sub.total_score === null || sub.total_score === undefined) return;
+          const matched = findMatchingTrainee([t], {
+            traineeId: sub.trainee_id,
+            regNumber: sub.reg_number,
+            studentName: sub.student_name,
+          });
+          if (!matched) return;
+
+          const exam = exams.find((e) => e.unit_code === sub.unit_code || e.id === sub.exam_id);
+          const maxMarks = exam?.payload?.total_marks ?? 100;
+          const pct =
+            maxMarks !== 100 && maxMarks > 0 && sub.total_score <= maxMarks
+              ? Math.round((sub.total_score / maxMarks) * 100)
+              : Math.round(sub.total_score);
+
+          const slot = normalizeAssessmentTaskSlot(
+            sub.task_code || exam?.payload?.task_code,
+            sub.unit_code,
+            exam?.payload?.title,
+            exam?.payload?.type
+          );
+
+          if (slot === "CT1" && ctCount >= 1) initCtScores[0] = String(pct);
+          else if (slot === "CT2" && ctCount >= 2) initCtScores[1] = String(pct);
+          else if (slot === "CT3" && ctCount >= 3) initCtScores[2] = String(pct);
+          else if (slot === "CP1" && cpCount >= 1) initCpScores[0] = String(pct);
+          else if (slot === "CP2" && cpCount >= 2) initCpScores[1] = String(pct);
+          else if (slot === "CP3" && cpCount >= 3) initCpScores[2] = String(pct);
+          else if (slot === "Assignment") initAssignmentScore = String(pct);
+          else if (slot === "Project") initProjectScore = String(pct);
+        });
+
+        // 2. Pull graded uploaded evidence (Practicals CP1-CP3, CATs CT1-CT3, Project, Assignment) from TraineeContext
+        uploads.forEach((up) => {
+          if (up.status !== "graded" || up.grade === null || up.grade === undefined) return;
+          const matched = findMatchingTrainee([t], {
+            traineeId: up.traineeId,
+            studentName: up.student_name,
+          });
+          if (!matched) return;
+
+          const slot = normalizeAssessmentTaskSlot(
+            up.task_code || up.uploadType,
+            up.unit_code,
+            up.filename
+          );
+          const pct = Math.round(Number(up.grade));
+
+          if (slot === "CT1" && ctCount >= 1) initCtScores[0] = String(pct);
+          else if (slot === "CT2" && ctCount >= 2) initCtScores[1] = String(pct);
+          else if (slot === "CT3" && ctCount >= 3) initCtScores[2] = String(pct);
+          else if (slot === "CP1" && cpCount >= 1) initCpScores[0] = String(pct);
+          else if (slot === "CP2" && cpCount >= 2) initCpScores[1] = String(pct);
+          else if (slot === "CP3" && cpCount >= 3) initCpScores[2] = String(pct);
+          else if (slot === "Assignment") initAssignmentScore = String(pct);
+          else if (slot === "Project") initProjectScore = String(pct);
+        });
+
+        // 3. Apply explicit saved marksheet overrides from localStorage
+        if (savedEntry) {
+          if (Array.isArray(savedEntry.ct_scores)) {
+            savedEntry.ct_scores.forEach((s: any, sIdx: number) => {
+              if (sIdx < ctCount && s !== "" && s !== null && s !== undefined && !isNaN(Number(s))) {
+                initCtScores[sIdx] = String(s);
+              }
+            });
+          }
+          if (Array.isArray(savedEntry.cp_scores)) {
+            savedEntry.cp_scores.forEach((s: any, sIdx: number) => {
+              if (sIdx < cpCount && s !== "" && s !== null && s !== undefined && !isNaN(Number(s))) {
+                initCpScores[sIdx] = String(s);
+              }
+            });
+          }
+          if (savedEntry.assignment_score !== undefined && savedEntry.assignment_score !== "" && !isNaN(Number(savedEntry.assignment_score)) && Number(savedEntry.assignment_score) > 0) {
+            initAssignmentScore = String(savedEntry.assignment_score);
+          }
+          if (savedEntry.project_score !== undefined && savedEntry.project_score !== "" && !isNaN(Number(savedEntry.project_score)) && Number(savedEntry.project_score) > 0) {
+            initProjectScore = String(savedEntry.project_score);
+          }
+        }
+
+        const theoryInputs = includeAssignment && initAssignmentScore !== ""
+          ? [...initCtScores, initAssignmentScore]
+          : initCtScores;
+        const ctAvg = calculateAverages(theoryInputs);
+        const cpAvg = calculateAverages(initCpScores);
+        const projVal = includeProject ? (parseFloat(String(initProjectScore || 0)) || 0) : 0;
+        const weightedMark = calculateWeighted(ctAvg, cpAvg, targetLevel, projVal);
+
+        return {
+          id: t.id,
+          sn: idx + 1,
+          regCode: t.regCode || (t.admNo ? `ITECH 6 MOD/${cleanAdm}` : `MTTI/2026/${String(idx + 1).padStart(3, "0")}`),
+          admNo: cleanAdm,
+          name: t.name,
+          ctScores: initCtScores,
+          cpScores: initCpScores,
+          assignmentScore: initAssignmentScore,
+          projectScore: initProjectScore,
+          ctAvg,
+          cpAvg,
+          weightedMark,
+        };
+      })
+    );
+  }, [selectedClass, trainees, uploads, submissions, exams, ctCount, cpCount, syncVersion]);
 
   // Recalculate everything when scores or level change
   useEffect(() => {
     setRows((prev) =>
       prev.map((row) => {
-        const ctAvg = calculateAverages(row.ctScores);
+        const theoryInputs = includeAssignment && row.assignmentScore !== undefined && row.assignmentScore !== ""
+          ? [...row.ctScores, row.assignmentScore]
+          : row.ctScores;
+        const ctAvg = calculateAverages(theoryInputs);
         const cpAvg = calculateAverages(row.cpScores);
-        const projVal = parseFloat(String(row.projectScore || 0)) || 0;
+        const projVal = includeProject ? (parseFloat(String(row.projectScore || 0)) || 0) : 0;
         const weightedMark = calculateWeighted(ctAvg, cpAvg, level, projVal);
         return { ...row, ctAvg, cpAvg, weightedMark };
       })
     );
-  }, [level, ctCount, cpCount, includeProject]);
+  }, [level, ctCount, cpCount, includeAssignment, includeProject]);
 
   const handleScoreChange = (rowId: string, type: 'ct' | 'cp', index: number, value: string) => {
     if (isLocked) {
@@ -215,14 +302,37 @@ export function AssessmentMarksSheet() {
         if (type === 'ct') {
           newRow.ctScores = [...row.ctScores];
           newRow.ctScores[index] = value;
-          newRow.ctAvg = calculateAverages(newRow.ctScores);
         } else {
           newRow.cpScores = [...row.cpScores];
           newRow.cpScores[index] = value;
           newRow.cpAvg = calculateAverages(newRow.cpScores);
         }
+        const theoryInputs = includeAssignment && newRow.assignmentScore !== undefined && newRow.assignmentScore !== ""
+          ? [...newRow.ctScores, newRow.assignmentScore]
+          : newRow.ctScores;
+        newRow.ctAvg = calculateAverages(theoryInputs);
         
-        const projVal = parseFloat(String(newRow.projectScore || 0)) || 0;
+        const projVal = includeProject ? (parseFloat(String(newRow.projectScore || 0)) || 0) : 0;
+        newRow.weightedMark = calculateWeighted(newRow.ctAvg, newRow.cpAvg, level, projVal);
+        return newRow;
+      })
+    );
+  };
+
+  const handleAssignmentScoreChange = (rowId: string, value: string) => {
+    if (isLocked) {
+      toast.warning("Assessment sheet is locked. Unlock first to edit marks.");
+      return;
+    }
+    setRows((prev) =>
+      prev.map((row) => {
+        if (row.id !== rowId) return row;
+        const newRow = { ...row, assignmentScore: value };
+        const theoryInputs = includeAssignment && value !== ""
+          ? [...newRow.ctScores, value]
+          : newRow.ctScores;
+        newRow.ctAvg = calculateAverages(theoryInputs);
+        const projVal = includeProject ? (parseFloat(String(newRow.projectScore || 0)) || 0) : 0;
         newRow.weightedMark = calculateWeighted(newRow.ctAvg, newRow.cpAvg, level, projVal);
         return newRow;
       })
@@ -238,7 +348,7 @@ export function AssessmentMarksSheet() {
       prev.map((row) => {
         if (row.id !== rowId) return row;
         const newRow = { ...row, projectScore: value };
-        const projVal = parseFloat(value) || 0;
+        const projVal = includeProject ? (parseFloat(value) || 0) : 0;
         newRow.weightedMark = calculateWeighted(newRow.ctAvg, newRow.cpAvg, level, projVal);
         return newRow;
       })
@@ -252,6 +362,7 @@ export function AssessmentMarksSheet() {
   ) => {
     const columns: string[] = [];
     for (let i = 0; i < ctCount; i++) columns.push(`ct-${i}`);
+    if (includeAssignment) columns.push("assignment");
     for (let i = 0; i < cpCount; i++) columns.push(`cp-${i}`);
     if (includeProject) columns.push("project");
 
@@ -379,11 +490,18 @@ export function AssessmentMarksSheet() {
       const payload = rows.map(r => ({
         unit_offering_id: unitOfferingId,
         trainee_id: r.id,
-        ct_scores: r.ctScores.map(score => parseFloat(score as any)).filter(score => !isNaN(score)),
+        ct_scores: r.ctScores.map(score => (score === "" ? null : parseFloat(score as any))),
         computed_average_theory: Math.round(r.ctAvg),
-        cp_scores: r.cpScores.map(score => parseFloat(score as any)).filter(score => !isNaN(score)),
+        cp_scores: r.cpScores.map(score => (score === "" ? null : parseFloat(score as any))),
         computed_average_practical: Math.round(r.cpAvg),
-        project_score: typeof r.projectScore === "number" ? r.projectScore : (parseFloat(String(r.projectScore || 0)) || 0),
+        assignment_score:
+          r.assignmentScore !== undefined && r.assignmentScore !== ""
+            ? parseFloat(String(r.assignmentScore)) || 0
+            : undefined,
+        project_score:
+          r.projectScore !== undefined && r.projectScore !== ""
+            ? parseFloat(String(r.projectScore)) || 0
+            : 0,
         weighted_mark: Math.round(r.weightedMark),
         is_locked: isLocked
       }));
@@ -401,8 +519,8 @@ export function AssessmentMarksSheet() {
         }
       } 
       
+      localStorage.setItem(`mtti_marks_${unitOfferingId}`, JSON.stringify(payload));
       if (!savedToSupabase) {
-        localStorage.setItem(`mtti_marks_${unitOfferingId}`, JSON.stringify(payload));
         toast.success("Assessment marks saved successfully.");
       }
     } catch (err: any) {
@@ -568,6 +686,16 @@ export function AssessmentMarksSheet() {
           <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground cursor-pointer ml-2">
             <input 
               type="checkbox" 
+              checked={includeAssignment} 
+              onChange={(e) => setIncludeAssignment(e.target.checked)}
+              className="rounded text-primary focus:ring-primary"
+            />
+            <span>Include Assignment</span>
+          </label>
+
+          <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground cursor-pointer ml-2">
+            <input 
+              type="checkbox" 
               checked={includeProject} 
               onChange={(e) => setIncludeProject(e.target.checked)}
               className="rounded text-primary focus:ring-primary"
@@ -577,6 +705,18 @@ export function AssessmentMarksSheet() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => {
+              setSyncVersion((v) => v + 1);
+              toast.success("Synchronized graded CATs (CT1–CT3), Practicals (CP1–CP3), Assignments & Projects.");
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#000953] hover:bg-[#000e7a] text-white rounded-lg text-xs font-bold transition shadow-sm"
+            title="Sync all graded CATs, Practicals, Assignments and Projects into the Marksheet"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Sync Graded Assessments
+          </button>
+
           <button
             onClick={addRow}
             disabled={isLocked}
@@ -799,20 +939,20 @@ export function AssessmentMarksSheet() {
 
         {/* Dynamic Landscape Continuous Assessment Table */}
         <div className="w-full overflow-x-auto mb-5 border-2 border-black rounded shadow-sm print:shadow-none print:rounded-none print:border-black print:overflow-visible">
-          <table className="w-full min-w-[1020px] text-left border-collapse text-[11px] text-black cdacc-table" style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif' }}>
+          <table className="w-full min-w-[1060px] text-left border-collapse text-[11px] text-black cdacc-table" style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif' }}>
             <thead>
               <tr className="bg-slate-100 print:bg-slate-100">
                 <th className="p-2 border border-black font-bold text-center w-10 min-w-[36px]" rowSpan={2}>S/N</th>
                 <th className="p-2 border border-black font-bold text-center w-40 min-w-[140px]" rowSpan={2}>Candidate’s Reg Code</th>
                 <th className="p-2 border border-black font-bold text-center w-28 min-w-[95px]" rowSpan={2}>ADM NO</th>
                 <th className="p-2 border border-black font-bold text-center min-w-[200px]" rowSpan={2}>Candidate’s Name</th>
-                <th className="p-2 border border-black font-bold text-center" colSpan={ctCount + 1}>
-                  Continuous Theory (CT) Marks (100%)
-                  <button onClick={() => addColumn('ct')} className="ml-2 font-bold hover:underline print:hidden text-blue-600" title="Add Theory Assessment Column">[+]</button>
+                <th className="p-2 border border-black font-bold text-center" colSpan={ctCount + (includeAssignment ? 2 : 1)}>
+                  Continuous Theory (CT / CAT &amp; Assignment) Marks (100%)
+                  <button onClick={() => addColumn('ct')} className="ml-2 font-bold hover:underline print:hidden text-[#000953]" title="Add Theory Assessment Column">[+]</button>
                 </th>
                 <th className="p-2 border border-black font-bold text-center" colSpan={cpCount + 1}>
                   Continuous Practical (CP) Marks (100%)
-                  <button onClick={() => addColumn('cp')} className="ml-2 font-bold hover:underline print:hidden text-blue-600" title="Add Practical Assessment Column">[+]</button>
+                  <button onClick={() => addColumn('cp')} className="ml-2 font-bold hover:underline print:hidden text-[#000953]" title="Add Practical Assessment Column">[+]</button>
                 </th>
                 {includeProject && (
                   <th className="p-2 border border-black font-bold text-center w-20 min-w-[70px]" rowSpan={2}>PROJECT<br/>(40%)</th>
@@ -823,8 +963,17 @@ export function AssessmentMarksSheet() {
               </tr>
               <tr className="bg-slate-100 print:bg-slate-100">
                 {Array.from({ length: ctCount }).map((_, i) => (
-                  <th key={`cth-${i}`} className="p-1.5 border border-black text-center font-bold w-14 min-w-[48px]">CT {i + 1}</th>
+                  <th key={`cth-${i}`} className="p-1.5 border border-black text-center font-bold w-14 min-w-[54px]">
+                    CT {i + 1}
+                    <span className="block text-[9px] font-semibold text-slate-600 print:text-black">(CAT {i + 1})</span>
+                  </th>
                 ))}
+                {includeAssignment && (
+                  <th className="p-1.5 border border-black text-center font-bold w-16 min-w-[58px]">
+                    ASSIGN.
+                    <span className="block text-[9px] font-semibold text-slate-600 print:text-black">(100%)</span>
+                  </th>
+                )}
                 <th className="p-1.5 border border-black text-center font-bold bg-[#e5e5e5] w-20 min-w-[65px]">AVERAGE</th>
                 
                 {Array.from({ length: cpCount }).map((_, i) => (
@@ -835,9 +984,12 @@ export function AssessmentMarksSheet() {
             </thead>
             <tbody>
               {rows.map((row, rowIdx) => {
-                const hasScores = row.ctScores.some(s => s !== "" && !isNaN(Number(s))) || 
+                const hasTheoryScores =
+                  row.ctScores.some(s => s !== "" && !isNaN(Number(s))) ||
+                  (includeAssignment && row.assignmentScore !== undefined && row.assignmentScore !== "" && !isNaN(Number(row.assignmentScore)));
+                const hasScores = hasTheoryScores || 
                                   row.cpScores.some(s => s !== "" && !isNaN(Number(s))) || 
-                                  (row.projectScore !== undefined && row.projectScore !== "");
+                                  (includeProject && row.projectScore !== undefined && row.projectScore !== "");
                 const verdict = hasScores ? (row.weightedMark >= 50 ? "COMPETENT" : "NOT YET COMPETENT") : "";
 
                 return (
@@ -895,8 +1047,28 @@ export function AssessmentMarksSheet() {
                         />
                       </td>
                     ))}
+
+                    {/* Assignment Score (if enabled) */}
+                    {includeAssignment && (
+                      <td className="p-1 border border-black text-center">
+                        <input
+                          id={`cell-${rowIdx}-assignment`}
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="1"
+                          placeholder=""
+                          readOnly={isLocked}
+                          className="w-full h-7 outline-none text-center bg-transparent font-bold text-xs text-black focus:bg-amber-50 rounded disabled:opacity-50 print:border-none"
+                          value={row.assignmentScore !== undefined ? row.assignmentScore : ""}
+                          onChange={(e) => handleAssignmentScoreChange(row.id, e.target.value)}
+                          onKeyDown={(e) => handleMatrixKeyDown(e, rowIdx, "assignment")}
+                        />
+                      </td>
+                    )}
+
                     <td className="p-1.5 border border-black text-center font-bold bg-[#e5e5e5] text-black text-xs">
-                      {row.ctScores.some(s => s !== "" && !isNaN(Number(s))) ? Math.round(row.ctAvg) : ""}
+                      {hasTheoryScores ? Math.round(row.ctAvg) : ""}
                     </td>
                     
                     {/* CP Scores */}
@@ -1099,7 +1271,14 @@ export function AssessmentMarksSheet() {
         unitTitle={unitTitle}
         onSave={(total, pct, comp, feed) => {
           if (selectedCandidateForPractical) {
-            handleScoreChange(selectedCandidateForPractical.id, 'cp', 0, String(total));
+            handleScoreChange(selectedCandidateForPractical.id, 'cp', 0, String(pct));
+            syncScoreToContinuousMarksheet({
+              traineeId: selectedCandidateForPractical.id,
+              taskCode: "CP1",
+              percentageScore: pct,
+              unitOfferingId,
+              level,
+            });
             toast.success(`Recorded ${total}/50 (${pct}%) on CP1 for ${selectedCandidateForPractical.name}`);
           }
         }}

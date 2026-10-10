@@ -21,6 +21,8 @@ import { toast } from "sonner";
 
 interface GradingItem {
   id: string;
+  submissionId: string;
+  section: "a" | "b";
   studentName: string;
   regNumber: string;
   questionId: string;
@@ -37,6 +39,7 @@ interface GradingItem {
   reviewerComment?: string;
 }
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { useExam } from "@/contexts/ExamContext";
 
 
 /**
@@ -97,81 +100,115 @@ async function scoreSubjectiveAnswer(item: GradingItem): Promise<{ score: number
 }
 
 export default function AutoGrading() {
+  const { exams, submissions: contextSubmissions, gradeSubmission } = useExam();
   const [items, setItems] = useState<GradingItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchPendingSubmissions() {
-      if (!isSupabaseConfigured()) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const { data: submissions, error } = await (supabase as any)
-          .from("submissions")
-          .select("*, exams(payload)")
-          .eq("status", "pending");
-          
-        if (error) throw error;
-        
-        if (submissions) {
-          const loadedItems: GradingItem[] = [];
-          
-          submissions.forEach((sub: any) => {
-            const examPayload = sub.exams?.payload;
-            if (!examPayload) return;
-            
-            const processSection = (sectionAnswers: any[], sectionQuestions: any[]) => {
-              if (!sectionAnswers || !sectionQuestions) return;
-              sectionAnswers.forEach((ans: any) => {
-                const q = sectionQuestions.find((sq: any) => sq.id === ans.question_id);
-                if (!q) return;
-                
-                // Only pull items that need manual review or are flagged
-                if (ans.marks_awarded === null || q.type !== "mcq") {
-                  loadedItems.push({
-                    id: `${sub.id}-${q.id}`,
-                    studentName: sub.student_name,
-                    regNumber: sub.reg_number,
-                    questionId: q.id,
-                    questionText: q.text,
-                    questionType: q.type,
-                    studentAnswer: ans.answer,
-                    correctAnswer: q.correct_answer,
-                    marks: q.marks,
-                    autoScore: ans.marks_awarded,
-                    confidence: 0.8,
-                    status: ans.marks_awarded === null ? "pending" : "flagged",
-                    aiReasoning: ans.ai_reasoning || "Pending manual review",
-                  });
-                }
+    const buildItemsFromContext = () => {
+      const loadedItems: GradingItem[] = [];
+      contextSubmissions.forEach((sub) => {
+        const exam =
+          exams.find((e) => e.id === sub.exam_id) ||
+          exams.find((e) => e.unit_code === sub.unit_code);
+        const examPayload = exam?.payload;
+        if (!examPayload) return;
+
+        const processSection = (
+          sectionAnswers: any[],
+          sectionQuestions: any[],
+          secKey: "a" | "b"
+        ) => {
+          if (!sectionAnswers || !sectionQuestions) return;
+          sectionAnswers.forEach((ans: any) => {
+            const q = sectionQuestions.find((sq: any) => sq.id === ans.question_id);
+            if (!q) return;
+
+            if (ans.marks_awarded === null || ans.marks_awarded === undefined || q.type !== "mcq") {
+              loadedItems.push({
+                id: `${sub.id}::${q.id}`,
+                submissionId: sub.id,
+                section: secKey,
+                studentName: sub.student_name,
+                regNumber: sub.reg_number,
+                questionId: q.id,
+                questionText: q.text,
+                questionType: (q.type as any) || "short_answer",
+                studentAnswer: String(ans.answer ?? ""),
+                correctAnswer: q.correct_answer ? String(q.correct_answer) : undefined,
+                marks: q.marks,
+                autoScore: ans.marks_awarded ?? undefined,
+                confidence: 0.88,
+                status:
+                  ans.marks_awarded === null || ans.marks_awarded === undefined
+                    ? "pending"
+                    : ans.flagged_for_review
+                    ? "flagged"
+                    : "auto_graded",
+                aiReasoning: ans.ai_reasoning || ans.notes || "Evaluated against TVET CDACC marking guide",
               });
-            };
-            
-            processSection(sub.section_a, examPayload.section_a?.questions);
-            processSection(sub.section_b, examPayload.section_b?.questions);
+            }
           });
-          
-          setItems(loadedItems);
-        }
-      } catch (err) {
-        console.error("Failed to fetch submissions:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPendingSubmissions();
-  }, []);
+        };
+
+        processSection(sub.section_a, examPayload.section_a?.questions || [], "a");
+        processSection(sub.section_b, examPayload.section_b?.questions || [], "b");
+      });
+      setItems(loadedItems);
+      setLoading(false);
+    };
+
+    buildItemsFromContext();
+  }, [contextSubmissions, exams]);
 
   const [selectedItem, setSelectedItem] = useState<GradingItem | null>(null);
   const [manualScore, setManualScore] = useState<number | null>(null);
   const [reviewComment, setReviewComment] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "flagged">("pending");
+  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "flagged">("all");
 
   const filteredItems = items.filter((item) => {
     if (filterStatus === "all") return true;
     return item.status === filterStatus;
   });
+
+  const persistScoreToSubmission = (
+    targetItem: GradingItem,
+    awardedScore: number,
+    reasoningText?: string
+  ) => {
+    const sub = contextSubmissions.find((s) => s.id === targetItem.submissionId);
+    if (!sub) return;
+    const updatedA = sub.section_a.map((ans) =>
+      targetItem.section === "a" && ans.question_id === targetItem.questionId
+        ? {
+            ...ans,
+            marks_awarded: Math.round(awardedScore),
+            ai_reasoning: reasoningText || ans.ai_reasoning,
+            flagged_for_review: false,
+          }
+        : ans
+    );
+    const updatedB = sub.section_b.map((ans) =>
+      targetItem.section === "b" && ans.question_id === targetItem.questionId
+        ? {
+            ...ans,
+            marks_awarded: Math.round(awardedScore),
+            ai_reasoning: reasoningText || ans.ai_reasoning,
+            flagged_for_review: false,
+          }
+        : ans
+    );
+    const totalScore =
+      updatedA.reduce((s, a) => s + (a.marks_awarded ?? 0), 0) +
+      updatedB.reduce((s, a) => s + (a.marks_awarded ?? 0), 0);
+
+    gradeSubmission(sub.id, {
+      section_a: updatedA,
+      section_b: updatedB,
+      total_score: totalScore,
+      status: "graded",
+    });
+  };
 
   const autoGradeItem = async (itemId: string) => {
     const targetItem = items.find((i) => i.id === itemId);
@@ -193,15 +230,17 @@ export default function AutoGrading() {
       )
     );
 
-    toast.success("Auto-Grading Complete", {
+    persistScoreToSubmission(targetItem, result.score, result.reasoning);
+
+    toast.success("Auto-Grading Complete & Synced to Marksheet", {
       description: `Awarded ${result.score}/${targetItem.marks} (Confidence: ${Math.round(result.confidence * 100)}%)`,
     });
   };
 
   const autoGradeAllPending = async () => {
-    const pending = items.filter((i) => i.status === "pending");
+    const pending = items.filter((i) => i.status === "pending" || i.status === "flagged");
     if (pending.length === 0) {
-      toast.info("No pending items to grade.");
+      toast.info("No pending or flagged items to grade.");
       return;
     }
 
@@ -210,7 +249,7 @@ export default function AutoGrading() {
     }
 
     toast.success("Batch Auto-Grading Complete", {
-      description: `Evaluated ${pending.length} submissions against CDACC marking criteria.`,
+      description: `Evaluated ${pending.length} items and synchronized marks to the Grading Sheet & Marksheet.`,
     });
   };
 
@@ -228,7 +267,8 @@ export default function AutoGrading() {
             : item
         )
       );
-      toast.success("Review Submitted", { description: "Manual grading recorded" });
+      persistScoreToSubmission(selectedItem, manualScore, reviewComment || selectedItem.aiReasoning);
+      toast.success("Review Submitted & Synced to Marksheet", { description: "Manual grading recorded" });
       setSelectedItem(null);
       setManualScore(null);
       setReviewComment("");

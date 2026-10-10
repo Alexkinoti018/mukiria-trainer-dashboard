@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
-import { Exam, Submission, isSupabaseConfigured } from "@/lib/supabase";
+import { Exam, Submission, isSupabaseConfigured, normalizeAssessmentTaskSlot } from "@/lib/supabase";
 import { MOCK_EXAMS, MOCK_SUBMISSIONS } from "@/lib/mockData";
 import { useAuth } from "@/contexts/AuthContext";
+import { syncScoreToContinuousMarksheet } from "@/contexts/TraineeContext";
 import { nanoid } from "nanoid";
 
 interface ExamContextType {
@@ -51,7 +52,6 @@ export function ExamProvider({ children }: { children: ReactNode }) {
 
   // Load from database / localStorage
   useEffect(() => {
-    const isProd = import.meta.env.PROD;
     const storedExams = localStorage.getItem("mukiria_exams");
     const storedSubmissions = localStorage.getItem("mukiria_submissions");
 
@@ -124,6 +124,30 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     return exams;
   }, [exams, user]);
 
+  const syncSubmissionWithMarksheet = (sub: Submission, currentExams: Exam[]) => {
+    if (sub.total_score === null || sub.total_score === undefined) return;
+    const exam = currentExams.find((e) => e.unit_code === sub.unit_code || e.id === sub.exam_id);
+    const maxMarks = exam?.payload?.total_marks ?? 100;
+    const pct =
+      maxMarks !== 100 && maxMarks > 0 && sub.total_score <= maxMarks
+        ? Math.round((sub.total_score / maxMarks) * 100)
+        : Math.round(sub.total_score);
+    const slot = normalizeAssessmentTaskSlot(
+      sub.task_code || exam?.payload?.task_code,
+      sub.unit_code,
+      exam?.payload?.title,
+      exam?.payload?.type
+    );
+    syncScoreToContinuousMarksheet({
+      traineeId: sub.trainee_id,
+      regNumber: sub.reg_number,
+      studentName: sub.student_name,
+      taskCode: slot,
+      percentageScore: pct,
+      unitOfferingId: "uo_1",
+    });
+  };
+
   const addExam = (examPayload: Omit<Exam, "id" | "created_at">) => {
     const newExam: Exam = {
       ...examPayload,
@@ -157,14 +181,23 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     const updated = [...allSubmissions, newSubmission];
     setAllSubmissions(updated);
     localStorage.setItem("mukiria_submissions", JSON.stringify(updated));
+    syncSubmissionWithMarksheet(newSubmission, exams);
   };
 
   const gradeSubmission = (id: string, updates: Partial<Submission>) => {
-    const updated = allSubmissions.map((sub: Submission) => 
-      sub.id === id ? { ...sub, ...updates, updated_at: new Date().toISOString() } : sub
-    );
+    let targetUpdated: Submission | null = null;
+    const updated = allSubmissions.map((sub: Submission) => {
+      if (sub.id === id) {
+        targetUpdated = { ...sub, ...updates, updated_at: new Date().toISOString() };
+        return targetUpdated;
+      }
+      return sub;
+    });
     setAllSubmissions(updated);
     localStorage.setItem("mukiria_submissions", JSON.stringify(updated));
+    if (targetUpdated) {
+      syncSubmissionWithMarksheet(targetUpdated, exams);
+    }
   };
 
   return (

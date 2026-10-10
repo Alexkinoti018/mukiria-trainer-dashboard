@@ -55,6 +55,8 @@ export interface ExamPayload {
   unit_name?: string;
   time_allowed?: string;
   type?: "written" | "practical";
+  task_code?: string;
+  assessment_type?: string;
   class?: string;
   start_time?: string;
   end_time?: string;
@@ -84,11 +86,65 @@ export interface StudentAnswer {
   flagged_for_review?: boolean;
 }
 
+export type AssessmentTaskSlot =
+  | "CT1"
+  | "CT2"
+  | "CT3"
+  | "CP1"
+  | "CP2"
+  | "CP3"
+  | "Project"
+  | "Assignment";
+
+export function normalizeAssessmentTaskSlot(
+  rawTaskCode?: string,
+  unitCode?: string,
+  title?: string,
+  examType?: string
+): AssessmentTaskSlot {
+  const code = (rawTaskCode || "").trim().toUpperCase();
+  if (code === "CT1" || code === "CAT1" || code === "CAT 1" || code === "EXAM 1" || code === "WA1") return "CT1";
+  if (code === "CT2" || code === "CAT2" || code === "CAT 2" || code === "CAT" || code === "CATS" || code === "EXAM 2" || code === "WA2") return "CT2";
+  if (code === "CT3" || code === "CAT3" || code === "CAT 3" || code === "EXAM 3" || code === "WA3") return "CT3";
+  if (code === "CP1" || code === "PRAC 1" || code === "PRACTICAL 1" || code === "PA1" || code === "OBSERVATION CHECKLIST") return "CP1";
+  if (code === "CP2" || code === "PRAC 2" || code === "PRACTICAL 2" || code === "PA2") return "CP2";
+  if (code === "CP3" || code === "PRAC 3" || code === "PRACTICAL 3" || code === "PA3") return "CP3";
+  if (code.includes("PROJ")) return "Project";
+  if (code.includes("ASSIGN")) return "Assignment";
+
+  const combined = `${unitCode || ""} ${title || ""} ${rawTaskCode || ""}`.toUpperCase();
+  if (combined.includes("PROJECT")) return "Project";
+  if (combined.includes("ASSIGNMENT")) return "Assignment";
+
+  const isPractical =
+    examType === "practical" ||
+    combined.includes("PRAC") ||
+    combined.includes("PRACTICAL") ||
+    combined.includes("OBSERVATION") ||
+    combined.includes("CHECKLIST") ||
+    combined.includes("-PA") ||
+    combined.includes("CP1") ||
+    combined.includes("CP2") ||
+    combined.includes("CP3");
+
+  if (isPractical) {
+    if (combined.includes("3") || combined.includes("THREE") || combined.includes("CP3") || combined.includes("PA3")) return "CP3";
+    if (combined.includes("2") || combined.includes("TWO") || combined.includes("CP2") || combined.includes("PA2")) return "CP2";
+    return "CP1";
+  }
+
+  if (combined.includes("WA3") || combined.includes("ASSESSMENT 3") || combined.includes("EXAM 3") || combined.includes("CAT 3") || combined.includes("CT3")) return "CT3";
+  if (combined.includes("WA2") || combined.includes("ASSESSMENT 2") || combined.includes("EXAM 2") || combined.includes("CAT 2") || combined.includes("CT2")) return "CT2";
+  return "CT1";
+}
+
 export interface Submission {
   id: string;
   exam_id?: string;
   trainee_id?: string;
   unit_code: string;
+  task_code?: string;
+  assessment_type?: string;
   student_name: string;
   reg_number: string;
   student_email?: string;

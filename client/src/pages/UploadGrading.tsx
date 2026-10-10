@@ -28,6 +28,7 @@ import {
 } from "@/lib/evidenceStorage";
 import { motion, AnimatePresence } from "framer-motion";
 import { OFFICIAL_EXAM_PAPERS } from "./TraineeAssignments";
+import { normalizeAssessmentTaskSlot } from "@/lib/supabase";
 
 export default function UploadGrading() {
   const { uploads, updateUploadGrade, verifyUpload, awardUploadMark, deleteUpload } = useTrainees();
@@ -51,16 +52,13 @@ export default function UploadGrading() {
     setViewingUploadId(upload.id);
     setModalScore(upload.grade !== null ? String(upload.grade) : "");
     setModalComments(upload.comments || "");
-    const derivedTaskCode = upload.task_code || (() => {
-      const type = upload.uploadType || "";
-      if (type.includes("Practical 2")) return "CP2";
-      if (type.includes("Practical 3")) return "CP3";
-      if (type.includes("Practical")) return "CP1";
-      if (type.includes("Exam 2") || type.includes("CAT 2") || type.includes("Assignment 2")) return "CT2";
-      if (type.includes("Exam 3")) return "CT3";
-      if (type.includes("Exam") || type.includes("CAT") || type.includes("Assignment")) return "CT1";
-      return "CP1";
-    })();
+    const derivedTaskCode =
+      normalizeAssessmentTaskSlot(
+        upload.task_code,
+        upload.unit_code,
+        upload.filename,
+        upload.uploadType
+      ) || "CP1";
     setModalTaskCode(derivedTaskCode);
     setImageZoom(1);
   };
@@ -539,9 +537,10 @@ export default function UploadGrading() {
                         <option value="CP1">CP1 — Continuous Practical Task 1</option>
                         <option value="CP2">CP2 — Continuous Practical Task 2</option>
                         <option value="CP3">CP3 — Continuous Practical Task 3</option>
-                        <option value="CT1">CT1 — Continuous Theory Assessment 1</option>
-                        <option value="CT2">CT2 — Continuous Theory Assessment 2</option>
-                        <option value="CT3">CT3 — Continuous Theory Assessment 3</option>
+                        <option value="CT1">CT1 — CAT 1 / Written Assessment 1</option>
+                        <option value="CT2">CT2 — CAT 2 / Written Assessment 2</option>
+                        <option value="CT3">CT3 — CAT 3 / Written Assessment 3</option>
+                        <option value="Assignment">Assignment — Continuous Theory Assignment (100%)</option>
                         <option value="Project">Project — Course Project / Practical Checklist (40%)</option>
                       </select>
                     </div>

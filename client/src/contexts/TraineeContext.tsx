@@ -24,6 +24,7 @@ export interface Upload {
   id: string;
   traineeId: string;
   student_name: string;
+  reg_number?: string;
   filename: string;
   uploadType: string;
   submitted_at: string;
@@ -34,7 +35,7 @@ export interface Upload {
   file_data?: string;
   mime_type?: string;
   file_size?: number;
-  task_code?: string; // "CP1", "CP2", "CP3", "CT1", "CT2", "CT3"
+  task_code?: string; // "CP1", "CP2", "CP3", "CT1", "CT2", "CT3", "Project", "Assignment"
   unit_offering_id?: string;
   unit_code?: string;
   unit_title?: string;
@@ -210,6 +211,111 @@ function getInitialUploads(): Upload[] {
       verified_by_name: "Alexander Kinoti",
     },
     {
+      id: "up_1_cp2",
+      traineeId: "tr_it6_01",
+      student_name: "Nthiga Gakii Doris",
+      filename: "OS_Installation_And_Partitioning_Practical_2.pdf",
+      uploadType: "Practical 2",
+      task_code: "CP2",
+      unit_offering_id: "uo_1",
+      unit_code: "IT/CU/ICTA/CR/01/6/MA",
+      unit_title: "Perform Computer Essentials",
+      file_data: pdf1Base64,
+      mime_type: "application/pdf",
+      file_size: pdf1Size,
+      submitted_at: new Date(Date.now() - 72000000).toISOString(),
+      status: "graded",
+      grade: 92,
+      comments: "Clean GPT disk partitioning, driver installation, and peripheral configuration.",
+      verified_by_trainer: true,
+      verified_at: new Date(Date.now() - 3200000).toISOString(),
+      verified_by_name: "Alexander Kinoti",
+    },
+    {
+      id: "up_1_cp3",
+      traineeId: "tr_it6_01",
+      student_name: "Nthiga Gakii Doris",
+      filename: "System_Maintenance_And_Archiving_Practical_3.pdf",
+      uploadType: "Practical 3",
+      task_code: "CP3",
+      unit_offering_id: "uo_1",
+      unit_code: "IT/CU/ICTA/CR/01/6/MA",
+      unit_title: "Perform Computer Essentials",
+      file_data: pdf1Base64,
+      mime_type: "application/pdf",
+      file_size: pdf1Size,
+      submitted_at: new Date(Date.now() - 64000000).toISOString(),
+      status: "graded",
+      grade: 90,
+      comments: "Excellent command-line disk maintenance (chkdsk / sfc) and 7-Zip archiving.",
+      verified_by_trainer: true,
+      verified_at: new Date(Date.now() - 3000000).toISOString(),
+      verified_by_name: "Alexander Kinoti",
+    },
+    {
+      id: "up_1_ct2",
+      traineeId: "tr_it6_01",
+      student_name: "Nthiga Gakii Doris",
+      filename: "Computer_Systems_Architecture_CAT_2.pdf",
+      uploadType: "CAT 2",
+      task_code: "CT2",
+      unit_offering_id: "uo_1",
+      unit_code: "IT/CU/ICTA/CR/01/6/MA",
+      unit_title: "Perform Computer Essentials",
+      file_data: pdf1Base64,
+      mime_type: "application/pdf",
+      file_size: pdf1Size,
+      submitted_at: new Date(Date.now() - 60000000).toISOString(),
+      status: "graded",
+      grade: 86,
+      comments: "Thorough comparison of CPU instruction cycle, primary vs secondary memory, and bus architectures.",
+      verified_by_trainer: true,
+      verified_at: new Date(Date.now() - 2800000).toISOString(),
+      verified_by_name: "Alexander Kinoti",
+    },
+    {
+      id: "up_1_assign",
+      traineeId: "tr_it6_01",
+      student_name: "Nthiga Gakii Doris",
+      filename: "Enterprise_Backup_And_Security_Assignment.docx",
+      uploadType: "Assignment",
+      task_code: "Assignment",
+      unit_offering_id: "uo_1",
+      unit_code: "IT/CU/ICTA/CR/01/6/MA",
+      unit_title: "Perform Computer Essentials",
+      file_data: "UEsDBBQABgAIAAAAIQAAAAAAAAA=",
+      mime_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      file_size: 58400,
+      submitted_at: new Date(Date.now() - 54000000).toISOString(),
+      status: "graded",
+      grade: 91,
+      comments: "Well-researched data security policy and 3-2-1 enterprise backup strategy.",
+      verified_by_trainer: true,
+      verified_at: new Date(Date.now() - 2500000).toISOString(),
+      verified_by_name: "Alexander Kinoti",
+    },
+    {
+      id: "up_1_proj",
+      traineeId: "tr_it6_01",
+      student_name: "Nthiga Gakii Doris",
+      filename: "Workstation_Preventive_Maintenance_Project.pdf",
+      uploadType: "Project",
+      task_code: "Project",
+      unit_offering_id: "uo_1",
+      unit_code: "IT/CU/ICTA/CR/01/6/MA",
+      unit_title: "Perform Computer Essentials",
+      file_data: pdf1Base64,
+      mime_type: "application/pdf",
+      file_size: pdf1Size,
+      submitted_at: new Date(Date.now() - 48000000).toISOString(),
+      status: "graded",
+      grade: 93,
+      comments: "Comprehensive ICT lab audit, workstation assembly logbook, and preventive maintenance schedule.",
+      verified_by_trainer: true,
+      verified_at: new Date(Date.now() - 2100000).toISOString(),
+      verified_by_name: "Alexander Kinoti",
+    },
+    {
       id: "up_2",
       traineeId: "tr_it6_02",
       student_name: "Kaumbuthu Belinda Mukiri",
@@ -223,10 +329,33 @@ function getInitialUploads(): Upload[] {
       mime_type: "image/svg+xml",
       file_size: 42100,
       submitted_at: new Date(Date.now() - 43200000).toISOString(),
-      status: "pending",
-      grade: null,
-      comments: "",
-      verified_by_trainer: false,
+      status: "graded",
+      grade: 78,
+      comments: "Good component identification and motherboard POST diagnostic verification.",
+      verified_by_trainer: true,
+      verified_at: new Date(Date.now() - 1800000).toISOString(),
+      verified_by_name: "Alexander Kinoti",
+    },
+    {
+      id: "up_2_cp1",
+      traineeId: "tr_it6_02",
+      student_name: "Kaumbuthu Belinda Mukiri",
+      filename: "Port_Identification_And_BIOS_Setup_CP1.pdf",
+      uploadType: "Practical 1",
+      task_code: "CP1",
+      unit_offering_id: "uo_1",
+      unit_code: "IT/CU/ICTA/CR/01/6/MA",
+      unit_title: "Perform Computer Essentials",
+      file_data: pdf1Base64,
+      mime_type: "application/pdf",
+      file_size: pdf1Size,
+      submitted_at: new Date(Date.now() - 50000000).toISOString(),
+      status: "graded",
+      grade: 80,
+      comments: "Accurate external port mapping and CMOS configuration.",
+      verified_by_trainer: true,
+      verified_at: new Date(Date.now() - 1900000).toISOString(),
+      verified_by_name: "Alexander Kinoti",
     },
     {
       id: "up_3",
@@ -234,19 +363,40 @@ function getInitialUploads(): Upload[] {
       student_name: "Wanjau Alvin Gatere",
       filename: "Computer_Hardware_Assignment.docx",
       uploadType: "Assignment",
-      task_code: "CT1",
+      task_code: "Assignment",
       unit_offering_id: "uo_1",
       unit_code: "IT/CU/ICT/CC/01/4/MA",
       unit_title: "Perform Computer Essentials",
-      file_data: "UEsDBBQABgAIAAAAIQAAAAAAAAA=", // Lightweight DOCX base64 header
+      file_data: "UEsDBBQABgAIAAAAIQAAAAAAAAA=",
       mime_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       file_size: 64200,
       submitted_at: new Date(Date.now() - 172800000).toISOString(),
       status: "graded",
       grade: 85,
-      comments: "Excellent hardware identification.",
+      comments: "Excellent hardware identification and peripheral classification.",
       verified_by_trainer: true,
       verified_at: new Date(Date.now() - 86400000).toISOString(),
+      verified_by_name: "Alexander Kinoti",
+    },
+    {
+      id: "up_3_cp1",
+      traineeId: "tr_it4_01",
+      student_name: "Wanjau Alvin Gatere",
+      filename: "Workstation_Cabling_And_Safety_CP1.pdf",
+      uploadType: "Practical 1",
+      task_code: "CP1",
+      unit_offering_id: "uo_1",
+      unit_code: "IT/CU/ICT/CC/01/4/MA",
+      unit_title: "Perform Computer Essentials",
+      file_data: pdf1Base64,
+      mime_type: "application/pdf",
+      file_size: pdf1Size,
+      submitted_at: new Date(Date.now() - 120000000).toISOString(),
+      status: "graded",
+      grade: 84,
+      comments: "Proper ESD wrist-strap usage and peripheral cabling demonstrated.",
+      verified_by_trainer: true,
+      verified_at: new Date(Date.now() - 80000000).toISOString(),
       verified_by_name: "Alexander Kinoti",
     },
     {
@@ -263,12 +413,145 @@ function getInitialUploads(): Upload[] {
       mime_type: "application/pdf",
       file_size: pdf3Size,
       submitted_at: new Date(Date.now() - 12000000).toISOString(),
-      status: "pending",
-      grade: null,
-      comments: "",
-      verified_by_trainer: false,
+      status: "graded",
+      grade: 74,
+      comments: "Solid RJ-45 termination and LAN ping connectivity test.",
+      verified_by_trainer: true,
+      verified_at: new Date(Date.now() - 1500000).toISOString(),
+      verified_by_name: "Alexander Kinoti",
     },
   ];
+}
+
+export function findMatchingTrainee(
+  trainees: Trainee[],
+  query: { traineeId?: string; regNumber?: string; studentName?: string }
+): Trainee | undefined {
+  if (query.traineeId) {
+    const byId = trainees.find((t) => t.id === query.traineeId);
+    if (byId) return byId;
+  }
+  if (query.regNumber) {
+    const rawReg = query.regNumber.trim().toUpperCase();
+    const cleanReg = rawReg.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD|FBS\s*5\s*MOD|FBS6\s*MOD|FBP6\s*MOD|LS5\s*MOD|LS6\s*MOD)\//i, "");
+    const byReg = trainees.find((t) => {
+      const tAdm = (t.admNo || "").trim().toUpperCase();
+      const tReg = (t.regCode || "").trim().toUpperCase();
+      return (
+        tAdm === rawReg ||
+        tReg === rawReg ||
+        tAdm === cleanReg ||
+        (cleanReg.length >= 4 && (tReg.includes(cleanReg) || tAdm.includes(cleanReg)))
+      );
+    });
+    if (byReg) return byReg;
+  }
+  if (query.studentName) {
+    const normName = query.studentName.trim().toLowerCase();
+    const byName = trainees.find((t) => t.name.trim().toLowerCase() === normName);
+    if (byName) return byName;
+  }
+  return undefined;
+}
+
+export function syncScoreToContinuousMarksheet(params: {
+  traineeId?: string;
+  regNumber?: string;
+  studentName?: string;
+  taskCode: string;
+  percentageScore: number;
+  unitOfferingId?: string;
+  level?: number;
+}) {
+  if (typeof window === "undefined") return;
+  const unitOfferingId = params.unitOfferingId || "uo_1";
+  const level = params.level || 6;
+  const score = Math.round(Math.max(0, Math.min(100, params.percentageScore)));
+
+  let resolvedTraineeId = params.traineeId;
+  if (!resolvedTraineeId) {
+    let roster: Trainee[] = OFFICIAL_MTTI_TRAINEES;
+    try {
+      const savedRoster = localStorage.getItem("mtti_trainees");
+      if (savedRoster) roster = JSON.parse(savedRoster);
+    } catch {}
+    const matched = findMatchingTrainee(roster, {
+      traineeId: params.traineeId,
+      regNumber: params.regNumber,
+      studentName: params.studentName,
+    });
+    resolvedTraineeId = matched?.id;
+  }
+  if (!resolvedTraineeId) return;
+
+  try {
+    const marksStorageKey = `mtti_marks_${unitOfferingId}`;
+    const saved = localStorage.getItem(marksStorageKey);
+    const marksData: any[] = saved ? JSON.parse(saved) : [];
+
+    let entry = marksData.find((m: any) => m.trainee_id === resolvedTraineeId);
+    if (entry && entry.is_locked) {
+      return;
+    }
+
+    if (!entry) {
+      entry = {
+        unit_offering_id: unitOfferingId,
+        trainee_id: resolvedTraineeId,
+        ct_scores: ["", "", ""],
+        computed_average_theory: 0,
+        cp_scores: ["", "", ""],
+        computed_average_practical: 0,
+        project_score: "",
+        assignment_score: "",
+        weighted_mark: 0,
+        is_locked: false,
+      };
+      marksData.push(entry);
+    }
+
+    if (!Array.isArray(entry.ct_scores)) entry.ct_scores = ["", "", ""];
+    if (!Array.isArray(entry.cp_scores)) entry.cp_scores = ["", "", ""];
+
+    const task = (params.taskCode || "CT1").trim().toUpperCase();
+    if (task.startsWith("CP") || task.includes("PRAC") || task.includes("OBSERVATION") || task.includes("CHECKLIST")) {
+      const match = task.match(/\d+/);
+      const idx = match ? Math.max(0, parseInt(match[0], 10) - 1) : 0;
+      while (entry.cp_scores.length <= idx) {
+        entry.cp_scores.push("");
+      }
+      entry.cp_scores[idx] = score;
+    } else if (task.includes("PROJ")) {
+      entry.project_score = score;
+    } else if (task.includes("ASSIGN")) {
+      entry.assignment_score = score;
+    } else {
+      // CT1, CT2, CT3, CAT 1, CAT 2, CAT 3, WA1, WA2, WA3
+      const match = task.match(/\d+/);
+      const idx = match ? Math.max(0, parseInt(match[0], 10) - 1) : 0;
+      while (entry.ct_scores.length <= idx) {
+        entry.ct_scores.push("");
+      }
+      entry.ct_scores[idx] = score;
+    }
+
+    const theoryInputs = [
+      ...entry.ct_scores,
+      entry.assignment_score !== undefined && entry.assignment_score !== "" ? entry.assignment_score : "",
+    ];
+    entry.computed_average_theory = calculateAverages(theoryInputs);
+    entry.computed_average_practical = calculateAverages(entry.cp_scores);
+    entry.weighted_mark = calculateWeightedMark(
+      entry.computed_average_theory,
+      entry.computed_average_practical,
+      level
+    );
+
+    localStorage.setItem(marksStorageKey, JSON.stringify(marksData));
+    window.dispatchEvent(new CustomEvent("mtti-marks-updated", { detail: { traineeId: resolvedTraineeId, taskCode: params.taskCode, score } }));
+  } catch (err) {
+    console.error("Failed to sync assessment score to marksheet:", err);
+  }
 }
 
 const TraineeContext = createContext<TraineeContextType | undefined>(undefined);
@@ -332,8 +615,7 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Enrich with generated binary data if previously empty
-          return parsed.map((item: Upload) => {
+          const enriched = parsed.map((item: Upload) => {
             const match = initial.find((i) => i.id === item.id);
             return {
               ...item,
@@ -342,8 +624,14 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
               task_code: item.task_code || match?.task_code || "CP1",
               unit_offering_id: item.unit_offering_id || match?.unit_offering_id || "uo_1",
               verified_by_trainer: item.verified_by_trainer ?? match?.verified_by_trainer ?? false,
+              status: item.status === "pending" && match?.status === "graded" ? "graded" : item.status,
+              grade: item.grade === null && match?.grade !== null && match?.grade !== undefined ? match.grade : item.grade,
+              comments: item.comments || match?.comments || "",
             };
           });
+          const existingIds = new Set(enriched.map((u: Upload) => u.id));
+          const missingInitial = initial.filter((u) => !existingIds.has(u.id));
+          return [...enriched, ...missingInitial];
         }
       } catch {}
     }
@@ -509,75 +797,18 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
       )
     );
 
-    // Synchronize with continuous assessment marks sheet
     const unitOfferingId = params.unitOfferingId || targetUpload?.unit_offering_id || "uo_1";
     const traineeId = targetUpload?.traineeId;
-    if (!traineeId) return;
 
-    try {
-      const marksStorageKey = `mtti_marks_${unitOfferingId}`;
-      const saved = localStorage.getItem(marksStorageKey);
-      let marksData: any[] = saved ? JSON.parse(saved) : [];
+    syncScoreToContinuousMarksheet({
+      traineeId,
+      studentName: targetUpload?.student_name,
+      taskCode: params.taskCode,
+      percentageScore: params.grade,
+      unitOfferingId,
+    });
 
-      let entry = marksData.find((m: any) => m.trainee_id === traineeId);
-      if (entry && entry.is_locked) {
-        toast.error("Marks locked: Assessment marksheet is finalized and locked");
-        return;
-      }
-
-      if (!entry) {
-        entry = {
-          unit_offering_id: unitOfferingId,
-          trainee_id: traineeId,
-          ct_scores: [],
-          computed_average_theory: 0,
-          cp_scores: [],
-          computed_average_practical: 0,
-          weighted_mark: 0,
-          is_locked: false,
-        };
-        marksData.push(entry);
-      }
-
-      const task = (params.taskCode || "CP1").toUpperCase();
-      if (task.startsWith("CP")) {
-        const match = task.match(/\d+/);
-        const idx = match ? Math.max(0, parseInt(match[0], 10) - 1) : 0;
-        while (entry.cp_scores.length <= idx) {
-          entry.cp_scores.push(0);
-        }
-        entry.cp_scores[idx] = params.grade;
-        entry.computed_average_practical = calculateAverages(entry.cp_scores);
-      } else {
-        const match = task.match(/\d+/);
-        const idx = match ? Math.max(0, parseInt(match[0], 10) - 1) : 0;
-        while (entry.ct_scores.length <= idx) {
-          entry.ct_scores.push(0);
-        }
-        entry.ct_scores[idx] = params.grade;
-        entry.computed_average_theory = calculateAverages(entry.ct_scores);
-      }
-
-      entry.weighted_mark = calculateWeightedMark(
-        entry.computed_average_theory,
-        entry.computed_average_practical,
-        6
-      );
-
-      localStorage.setItem(marksStorageKey, JSON.stringify(marksData));
-
-      if (isSupabaseConfigured()) {
-        supabase
-          .from("assessment_marks")
-          .upsert([entry] as any, { onConflict: "unit_offering_id, trainee_id" })
-          .then(({ error }) => {
-            if (error) console.warn("Supabase mark sync error:", error);
-          });
-      }
-      toast.success(`Mark (${params.grade}%) awarded and synced to ${params.taskCode} marksheet!`);
-    } catch (err) {
-      console.error("Failed to sync mark with marksheet:", err);
-    }
+    toast.success(`Mark (${params.grade}%) awarded and synced to ${params.taskCode} marksheet!`);
   };
 
   const updateUploadGrade = (uploadId: string, grade: number, comments: string) => {

@@ -35,8 +35,18 @@ import TrainerLayout from "@/components/TrainerLayout";
 import MarkedExamScriptModal from "@/components/MarkedExamScriptModal";
 import ObservationChecklistMarkingModal from "@/components/ObservationChecklistMarkingModal";
 import { AssessmentMarksSheet } from "@/components/AssessmentMarksSheet";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import {
+  supabase,
+  isSupabaseConfigured,
+  normalizeAssessmentTaskSlot,
+  type AssessmentTaskSlot,
+} from "@/lib/supabase";
 import { useExam } from "@/contexts/ExamContext";
+import {
+  useTrainees,
+  findMatchingTrainee,
+  syncScoreToContinuousMarksheet,
+} from "@/contexts/TraineeContext";
 import type { Exam, Submission, StudentAnswer, ExamQuestion } from "@/lib/supabase";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -52,11 +62,24 @@ const getLevelFromUnitCode = (code: string): number => {
   return 6; // default Level 6
 };
 
+const TASK_SLOT_LABELS: Record<AssessmentTaskSlot, string> = {
+  CT1: "CT1 (CAT 1)",
+  CT2: "CT2 (CAT 2)",
+  CT3: "CT3 (CAT 3)",
+  CP1: "CP1 (Prac 1)",
+  CP2: "CP2 (Prac 2)",
+  CP3: "CP3 (Prac 3)",
+  Assignment: "Assignment",
+  Project: "Project (40%)",
+};
+
 export default function Grading() {
   const { exams, submissions, gradeSubmission } = useExam();
+  const { trainees, uploads, awardUploadMark } = useTrainees();
   const [loading, setLoading] = useState(true);
   const [selectedUnit, setSelectedUnit] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [taskFilter, setTaskFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSub, setExpandedSub] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
@@ -76,6 +99,8 @@ export default function Grading() {
     unitCode?: string;
   } | null>(null);
   const [viewMode, setViewMode] = useState<"submissions" | "batch_marksheet">("submissions");
+  const [uploadQuickScore, setUploadQuickScore] = useState<Record<string, string>>({});
+  const [uploadQuickTask, setUploadQuickTask] = useState<Record<string, AssessmentTaskSlot>>({});
 
   // Set loading to false once context submissions are ready
   useEffect(() => {
@@ -97,7 +122,20 @@ export default function Grading() {
   );
 
   const getExamForSub = (sub: Submission) =>
+    exams.find((e) => e.id === sub.exam_id) ||
     exams.find((e) => e.unit_code === sub.unit_code);
+
+  const getSubmissionTaskSlot = (sub: Submission): AssessmentTaskSlot => {
+    const exam = getExamForSub(sub);
+    return (
+      normalizeAssessmentTaskSlot(
+        sub.task_code || exam?.payload?.task_code,
+        sub.unit_code,
+        exam?.payload?.title || exam?.course_name,
+        sub.assessment_type || exam?.payload?.assessment_type
+      ) || "CT1"
+    );
+  };
 
   function downloadBase64File(base64Data: string, filename: string, mimeType: string) {
     const byteCharacters = atob(base64Data);
@@ -400,17 +438,42 @@ export default function Grading() {
     }
   };
 
-  // ── Filtered submissions ──────────────────────────────────
+  // ── Filtered submissions & uploaded assessments ───────────
   const filtered = submissions.filter((s) => {
+    const slot = getSubmissionTaskSlot(s);
     if (selectedUnit !== "all" && s.unit_code !== selectedUnit) return false;
     if (statusFilter !== "all" && s.status !== statusFilter) return false;
+    if (taskFilter !== "all" && slot !== taskFilter) return false;
     if (showUngradedOnly && s.status !== "pending") return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       return (
         s.student_name.toLowerCase().includes(q) ||
         s.reg_number.toLowerCase().includes(q) ||
-        s.unit_code.toLowerCase().includes(q)
+        s.unit_code.toLowerCase().includes(q) ||
+        slot.toLowerCase().includes(q)
+      );
+    }
+    return true;
+  });
+
+  const filteredUploads = uploads.filter((u) => {
+    const slot =
+      normalizeAssessmentTaskSlot(u.task_code, u.unit_code, u.filename, u.uploadType) || "CP1";
+    const mappedStatus = u.verified_by_trainer ? "reviewed" : u.status;
+    if (selectedUnit !== "all" && !(u.unit_code || "").includes(selectedUnit.split(" ")[0])) return false;
+    if (statusFilter !== "all" && mappedStatus !== statusFilter && u.status !== statusFilter) return false;
+    if (taskFilter !== "all" && slot !== taskFilter) return false;
+    if (showUngradedOnly && u.status !== "pending") return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const regNo = u.reg_number || trainees.find(t => t.id === u.traineeId)?.admNo || u.traineeId;
+      return (
+        u.student_name.toLowerCase().includes(q) ||
+        regNo.toLowerCase().includes(q) ||
+        (u.unit_code || "").toLowerCase().includes(q) ||
+        u.filename.toLowerCase().includes(q) ||
+        slot.toLowerCase().includes(q)
       );
     }
     return true;
@@ -433,15 +496,23 @@ export default function Grading() {
     return "F";
   };
 
-  // Calculate grade distribution
+  // Calculate grade distribution across both online submissions and graded assessment tasks
   const calculateDistribution = () => {
     const gradedSubs = filtered.filter(s => s.total_score !== null);
+    const gradedUps = filteredUploads.filter(u => typeof u.grade === "number");
     const distribution = { A: 0, B: 0, C: 0, D: 0, F: 0 };
     gradedSubs.forEach(s => {
-      const grade = getGrade(s.total_score);
+      const exam = getExamForSub(s);
+      const maxM = exam?.payload?.total_marks ?? 100;
+      const pct = maxM > 0 && maxM !== 100 ? Math.round(((s.total_score ?? 0) / maxM) * 100) : (s.total_score ?? 0);
+      const grade = getGrade(pct);
       if (grade in distribution) distribution[grade as keyof typeof distribution]++;
     });
-    return { distribution, total: gradedSubs.length };
+    gradedUps.forEach(u => {
+      const grade = getGrade(u.grade);
+      if (grade in distribution) distribution[grade as keyof typeof distribution]++;
+    });
+    return { distribution, total: gradedSubs.length + gradedUps.length };
   };
 
   // Export grades to CSV
@@ -449,25 +520,50 @@ export default function Grading() {
     setExporting(true);
     try {
       const gradedSubs = filtered.filter(s => s.total_score !== null);
+      const gradedUps = filteredUploads.filter(u => typeof u.grade === "number");
       const csvRows = [
-        ['Student Name', 'Registration Number', 'Unit Code', 'Total Score', 'Grade', 'Status', 'Submitted', 'Section A Score', 'Section B Score', 'Trainer Comments'].join(','),
+        ['Student Name', 'Registration Number', 'Unit Code', 'Assessment Slot', 'Total Score (%)', 'Grade', 'Status', 'Submitted', 'Section A Score', 'Section B Score', 'Trainer Comments'].join(','),
       ];
 
       gradedSubs.forEach(sub => {
+        const exam = getExamForSub(sub);
+        const maxM = exam?.payload?.total_marks ?? 100;
+        const pct = maxM > 0 && maxM !== 100 ? Math.round(((sub.total_score ?? 0) / maxM) * 100) : (sub.total_score ?? 0);
+        const slot = getSubmissionTaskSlot(sub);
         const sectionAScore = sub.section_a.reduce((sum, a) => sum + (a.marks_awarded ?? 0), 0);
         const sectionBScore = sub.section_b.reduce((sum, a) => sum + (a.marks_awarded ?? 0), 0);
-        const comments = trainerComments[sub.id] || '';
+        const comments = trainerComments[sub.id] || sub.trainer_comments || '';
         const row = [
           `"${sub.student_name}"`,
           `"${sub.reg_number}"`,
           `"${sub.unit_code}"`,
-          sub.total_score ?? 0,
-          getGrade(sub.total_score),
+          `"${slot}"`,
+          pct,
+          getGrade(pct),
           sub.status,
           format(new Date(sub.created_at), 'dd/MM/yyyy HH:mm'),
           sectionAScore,
           sectionBScore,
           `"${comments.replace(/"/g, '""')}"`,
+        ].join(',');
+        csvRows.push(row);
+      });
+
+      gradedUps.forEach(up => {
+        const slot = normalizeAssessmentTaskSlot(up.task_code, up.unit_code, up.filename, up.uploadType) || 'CP1';
+        const regNo = up.reg_number || trainees.find(t => t.id === up.traineeId)?.admNo || up.traineeId;
+        const row = [
+          `"${up.student_name}"`,
+          `"${regNo}"`,
+          `"${up.unit_code || ''}"`,
+          `"${slot}"`,
+          up.grade ?? 0,
+          getGrade(up.grade),
+          up.status,
+          `"${up.submitted_at}"`,
+          0,
+          up.grade ?? 0,
+          `"${(up.comments || up.filename).replace(/"/g, '""')}"`,
         ].join(',');
         csvRows.push(row);
       });
@@ -482,8 +578,7 @@ export default function Grading() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success('Grades Exported', { description: `${gradedSubs.length} submissions exported to CSV` });
-      console.log('✅ [MTTI Grading] Exported', gradedSubs.length, 'graded submissions');
+      toast.success('Grades Exported', { description: `${gradedSubs.length + gradedUps.length} graded assessments exported to CSV` });
     } catch (err: any) {
       toast.error('Export Failed', { description: err.message });
     } finally {
@@ -491,8 +586,16 @@ export default function Grading() {
     }
   };
 
+  const totalItemsCount = submissions.length + uploads.length;
+  const pendingItemsCount =
+    submissions.filter((s) => s.status === "pending").length +
+    uploads.filter((u) => u.status === "pending").length;
+  const gradedItemsCount =
+    submissions.filter((s) => s.status !== "pending").length +
+    uploads.filter((u) => u.status !== "pending").length;
+
   return (
-    <TrainerLayout title="Grading Interface" subtitle="Review and grade student submissions">
+    <TrainerLayout title="Grading Interface" subtitle="Review and grade CATs (CT1–CT3), Practicals (CP1–CP3), Assignments & Projects">
       {/* Top View Mode Switcher */}
       <div className="flex items-center gap-3 mb-6 border-b border-border pb-3 print:hidden">
         <button
@@ -504,7 +607,7 @@ export default function Grading() {
           }`}
         >
           <FileText className="w-4 h-4" />
-          Exam Submissions
+          Grading Sheet (CATs, CT1–3, CP1–3, Project, Assignment)
         </button>
         <button
           onClick={() => setViewMode("batch_marksheet")}
@@ -530,7 +633,7 @@ export default function Grading() {
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search student, reg number..."
+            placeholder="Search student, reg number, CT1, CP1, Project..."
             className="bg-transparent text-sm flex-1 outline-none text-[#0f172a] placeholder-slate-400"
           />
         </div>
@@ -546,6 +649,22 @@ export default function Grading() {
           <Clock className="w-4 h-4" />
           Ungraded Only
         </button>
+
+        <select
+          value={taskFilter}
+          onChange={(e) => setTaskFilter(e.target.value)}
+          className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 text-[#0f172a] shadow-sm focus:outline-none focus:border-[#000953]"
+        >
+          <option value="all">All Assessment Slots</option>
+          <option value="CT1">CT1 (CAT 1)</option>
+          <option value="CT2">CT2 (CAT 2)</option>
+          <option value="CT3">CT3 (CAT 3)</option>
+          <option value="CP1">CP1 (Practical 1)</option>
+          <option value="CP2">CP2 (Practical 2)</option>
+          <option value="CP3">CP3 (Practical 3)</option>
+          <option value="Assignment">Assignment</option>
+          <option value="Project">Project (40%)</option>
+        </select>
 
         <select
           value={selectedUnit}
@@ -568,16 +687,8 @@ export default function Grading() {
           <option value="all">All Status</option>
           <option value="pending">Pending</option>
           <option value="graded">Graded</option>
-          <option value="reviewed">Reviewed</option>
+          <option value="reviewed">Reviewed / Verified</option>
         </select>
-
-        <button
-          onClick={() => window.location.reload()}
-          className="px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-sm transition"
-          title="Refresh submissions"
-        >
-          <RefreshCw className="w-4 h-4" />
-        </button>
 
         <button
           onClick={() => setShowDistribution(!showDistribution)}
@@ -593,7 +704,7 @@ export default function Grading() {
 
         <button
           onClick={handleExportGrades}
-          disabled={exporting || filtered.filter(s => s.total_score !== null).length === 0}
+          disabled={exporting || (filtered.filter(s => s.total_score !== null).length + filteredUploads.filter(u => typeof u.grade === "number").length) === 0}
           className="px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-sm disabled:opacity-50"
         >
           <Download className="w-4 h-4 text-[#000953]" />
@@ -626,7 +737,7 @@ export default function Grading() {
           >
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-[#000953]">
-                Grade Distribution ({total} graded)
+                Grade Distribution ({total} graded assessments)
               </h3>
               <button
                 onClick={() => setShowDistribution(false)}
@@ -675,9 +786,9 @@ export default function Grading() {
       {/* Stats row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
         {[
-          { label: "Total Candidates", value: submissions.length, color: "text-[#000953]" },
-          { label: "Pending Review", value: submissions.filter((s) => s.status === "pending").length, color: "text-[#c48820]" },
-          { label: "Graded & Verified", value: submissions.filter((s) => s.status !== "pending").length, color: "text-emerald-700" },
+          { label: "Total Assessments (CATs, CP, Project, Assign.)", value: totalItemsCount, color: "text-[#000953]" },
+          { label: "Pending Review", value: pendingItemsCount, color: "text-[#c48820]" },
+          { label: "Graded & Reflected in Marksheet", value: gradedItemsCount, color: "text-emerald-700" },
         ].map((stat) => (
           <div key={stat.label} className="bg-white border border-slate-300 shadow-sm p-4 rounded-2xl flex items-center justify-between">
             <div>
@@ -699,11 +810,11 @@ export default function Grading() {
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-20 rounded-xl animate-pulse bg-slate-200 border border-slate-300" />
           ))
-        ) : filtered.length === 0 ? (
+        ) : filtered.length === 0 && filteredUploads.length === 0 ? (
           <div className="bg-white border border-slate-300 rounded-2xl shadow-sm py-16 flex flex-col items-center gap-3">
             <BookOpen className="w-10 h-10 text-slate-300" />
             <p className="text-sm font-medium text-slate-500">
-              No submissions match your filters
+              No assessments match your filters
             </p>
           </div>
         ) : (
@@ -712,6 +823,14 @@ export default function Grading() {
             const isExpanded = expandedSub === sub.id;
             const isSaving = saving === sub.id;
             const subEdits = editedScores[sub.id] ?? {};
+            const slot = getSubmissionTaskSlot(sub);
+            const maxMarks = exam?.payload?.total_marks ?? 100;
+            const pctScore =
+              sub.total_score !== null
+                ? maxMarks > 0 && maxMarks !== 100
+                  ? Math.round((sub.total_score / maxMarks) * 100)
+                  : Math.round(sub.total_score)
+                : null;
 
             return (
               <motion.div
@@ -738,11 +857,19 @@ export default function Grading() {
                       <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
                         {sub.reg_number}
                       </span>
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-[#000953] text-white border border-[#000953]">
+                        {TASK_SLOT_LABELS[slot]}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-3 mt-1">
+                    <div className="flex items-center gap-3 mt-1 flex-wrap">
                       <span className="text-xs font-mono font-bold text-[#000953]">
                         {sub.unit_code}
                       </span>
+                      {exam?.payload?.title && (
+                        <span className="text-xs font-semibold text-slate-600">
+                          • {exam.payload.title}
+                        </span>
+                      )}
                       <span className="text-xs text-slate-500">
                         {format(new Date(sub.created_at), "dd MMM yyyy, HH:mm")}
                       </span>
@@ -750,20 +877,21 @@ export default function Grading() {
                   </div>
 
                   <div className="flex items-center gap-3 shrink-0">
-                    {sub.total_score !== null && (
+                    {sub.total_score !== null && pctScore !== null && (
                       <div className="text-right">
                         <div className="text-lg font-bold font-mono text-[#000953]">
                           {Math.round(sub.total_score)}
-                          <span className="text-xs font-normal text-slate-500">/{exam?.payload?.total_marks ?? 100}</span>
+                          <span className="text-xs font-normal text-slate-500">/{maxMarks}</span>
+                          <span className="ml-1.5 text-xs font-bold text-[#c48820]">({pctScore}%)</span>
                         </div>
                         <div className="text-xs font-bold flex items-center justify-end gap-1.5 mt-1 text-slate-700">
-                          Grade {getGrade(sub.total_score)}
+                          Grade {getGrade(pctScore)}
                           <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider border ${
-                            sub.total_score >= 50
+                            pctScore >= 50
                               ? "bg-emerald-50 text-emerald-700 border-emerald-300"
                               : "bg-rose-50 text-rose-700 border-rose-300"
                           }`}>
-                            {sub.total_score >= 50 ? "PASS" : "FAIL"}
+                            {pctScore >= 50 ? "PASS" : "FAIL"}
                           </span>
                         </div>
                       </div>
@@ -796,8 +924,9 @@ export default function Grading() {
                       className="overflow-hidden"
                     >
                       <div className="px-5 pb-5 pt-3 space-y-5 border-t border-slate-200 bg-slate-50/40">
-                        {/* Action buttons */}
-                        <div className="flex flex-wrap items-center gap-2 pt-2">
+                        {/* Action buttons + Marksheet Slot Mapping */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
+                          <div className="flex flex-wrap items-center gap-2">
                           {sub.status === "pending" && exam && (
                             <button
                               onClick={() => handleAutoGrade(sub)}
@@ -851,6 +980,29 @@ export default function Grading() {
                               Mark as Reviewed
                             </button>
                           )}
+                          </div>
+
+                          {/* Marksheet Assessment Slot Selector */}
+                          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-300 shadow-sm">
+                            <span className="text-[11px] font-bold uppercase text-slate-600">
+                              Marksheet Column:
+                            </span>
+                            <select
+                              value={slot}
+                              onChange={(e) => {
+                                const newSlot = e.target.value as AssessmentTaskSlot;
+                                gradeSubmission(sub.id, { task_code: newSlot });
+                                toast.success(`Mapped ${sub.student_name} to ${TASK_SLOT_LABELS[newSlot]} in Continuous Assessment Marksheet`);
+                              }}
+                              className="text-xs font-bold text-[#000953] bg-transparent outline-none cursor-pointer"
+                            >
+                              {(Object.keys(TASK_SLOT_LABELS) as AssessmentTaskSlot[]).map((k) => (
+                                <option key={k} value={k}>
+                                  {TASK_SLOT_LABELS[k]}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
 
                         {/* Section A — Core Concepts & Short Answers */}
@@ -1151,6 +1303,189 @@ export default function Grading() {
             );
           })
         )}
+
+        {/* Graded & Pending Continuous Assessment Tasks (CATs/CT1-3, Practicals/CP1-3, Assignments, Projects) */}
+        {!loading && filteredUploads.length > 0 && (
+          <div className="pt-4 space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-5 bg-[#c48820] rounded-full" />
+                <h3 className="text-sm font-bold text-[#000953] uppercase tracking-wider">
+                  Continuous Assessment Tasks — CATs (CT1–CT3), Practicals (CP1–CP3), Assignments &amp; Projects ({filteredUploads.length})
+                </h3>
+              </div>
+              <button
+                onClick={() => setViewMode("batch_marksheet")}
+                className="text-xs font-bold text-[#000953] hover:underline flex items-center gap-1"
+              >
+                <Award className="w-3.5 h-3.5 text-[#c48820]" />
+                View in Continuous Assessment Mark Sheet →
+              </button>
+            </div>
+
+            {filteredUploads.map((up, idx) => {
+              const resolvedSlot =
+                uploadQuickTask[up.id] ||
+                normalizeAssessmentTaskSlot(up.task_code, up.unit_code, up.filename, up.uploadType) ||
+                "CP1";
+              const currentScoreStr =
+                uploadQuickScore[up.id] !== undefined
+                  ? uploadQuickScore[up.id]
+                  : up.grade !== null && up.grade !== undefined
+                  ? String(up.grade)
+                  : "";
+              const numericScore = currentScoreStr !== "" ? Number(currentScoreStr) : null;
+
+              return (
+                <motion.div
+                  key={up.id}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.03 }}
+                  className="bg-white border border-slate-300 rounded-2xl shadow-sm px-5 py-4 flex flex-wrap items-center justify-between gap-4 hover:border-[#000953]/60 transition-colors"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 bg-[#000953] text-white shadow-sm">
+                      {up.student_name.charAt(0)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-bold text-[#0f172a]">
+                          {up.student_name}
+                        </span>
+                        <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                          {up.reg_number || trainees.find(t => t.id === up.traineeId)?.admNo || up.traineeId}
+                        </span>
+                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-[#000953] text-white border border-[#000953]">
+                          {TASK_SLOT_LABELS[resolvedSlot]}
+                        </span>
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-[#c48820] border border-amber-200">
+                          {up.uploadType}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2.5 mt-1 flex-wrap">
+                        <span className="text-xs font-semibold text-[#0f172a]">
+                          {up.filename}
+                        </span>
+                        {up.unit_code && (
+                          <span className="text-xs font-mono text-slate-600">
+                            • {up.unit_code}
+                          </span>
+                        )}
+                        <span className="text-xs text-slate-500">
+                          • {format(new Date(up.submitted_at), "dd MMM yyyy, HH:mm")}
+                        </span>
+                      </div>
+                      {up.comments && (
+                        <p className="text-xs text-slate-600 mt-1 line-clamp-1">
+                          <span className="font-bold text-[#000953]">Assessor Remarks:</span> {up.comments}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Quick Slot & Score Controls synced with Continuous Assessment Marksheet */}
+                  <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+                    <select
+                      value={resolvedSlot}
+                      onChange={(e) => {
+                        const nextSlot = e.target.value as AssessmentTaskSlot;
+                        setUploadQuickTask((prev) => ({ ...prev, [up.id]: nextSlot }));
+                        if (typeof up.grade === "number") {
+                          awardUploadMark(up.id, {
+                            grade: up.grade,
+                            comments: up.comments || "",
+                            taskCode: nextSlot,
+                            unitOfferingId: up.unit_offering_id || "uo_1",
+                            trainerName: "Alexander Kinoti",
+                          });
+                        }
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-50 border border-slate-300 text-[#000953] outline-none focus:border-[#000953] cursor-pointer"
+                      title="Assessment Marksheet Slot"
+                    >
+                      {(Object.keys(TASK_SLOT_LABELS) as AssessmentTaskSlot[]).map((slotKey) => (
+                        <option key={slotKey} value={slotKey}>
+                          {TASK_SLOT_LABELS[slotKey]}
+                        </option>
+                      ))}
+                    </select>
+
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        placeholder="Score %"
+                        value={currentScoreStr}
+                        onChange={(e) =>
+                          setUploadQuickScore((prev) => ({ ...prev, [up.id]: e.target.value }))
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && currentScoreStr !== "") {
+                            const val = Math.min(100, Math.max(0, Math.round(Number(currentScoreStr))));
+                            awardUploadMark(up.id, {
+                              grade: val,
+                              comments: up.comments || "Verified and graded in Grading Sheet.",
+                              taskCode: resolvedSlot,
+                              unitOfferingId: up.unit_offering_id || "uo_1",
+                              trainerName: "Alexander Kinoti",
+                            });
+                          }
+                        }}
+                        className="w-20 text-center px-2 py-1.5 rounded-lg text-sm font-mono font-bold bg-white text-[#000953] border border-slate-300 focus:border-[#000953] outline-none"
+                      />
+                      <span className="text-xs font-mono font-bold text-slate-600">%</span>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        const val =
+                          currentScoreStr !== ""
+                            ? Math.min(100, Math.max(0, Math.round(Number(currentScoreStr))))
+                            : 75;
+                        setUploadQuickScore((prev) => ({ ...prev, [up.id]: String(val) }));
+                        awardUploadMark(up.id, {
+                          grade: val,
+                          comments: up.comments || "Verified and graded in Grading Sheet.",
+                          taskCode: resolvedSlot,
+                          unitOfferingId: up.unit_offering_id || "uo_1",
+                          trainerName: "Alexander Kinoti",
+                        });
+                      }}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition flex items-center gap-1.5"
+                    >
+                      <Save className="w-3.5 h-3.5 text-[#c48820]" />
+                      {up.status === "pending" ? "Grade & Sync" : "Update Mark"}
+                    </button>
+
+                    {numericScore !== null && !isNaN(numericScore) && (
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider border ${
+                          numericScore >= 50
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                            : "bg-rose-50 text-rose-700 border-rose-300"
+                        }`}
+                      >
+                        {numericScore >= 50 ? "COMPETENT" : "NYC"} ({getGrade(numericScore)})
+                      </span>
+                    )}
+
+                    <span
+                      className={`text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider border ${
+                        up.status === "graded" || up.verified_by_trainer
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          : "bg-amber-50 text-[#c48820] border-amber-200"
+                      }`}
+                    >
+                      {up.verified_by_trainer && up.status === "graded" ? "verified" : up.status}
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
         </>
       )}
@@ -1175,8 +1510,22 @@ export default function Grading() {
         qualificationCode="061006T4ICT - ICT TECHNICIAN LEVEL 6"
         assessorName="MR Muthomi"
         onSave={(total, pct, comp, feed) => {
-          toast.success("Practical Assessment Saved Online", {
-            description: `${selectedPracticalCandidate?.name || "Candidate"}: ${total}/50 (${pct}%) — ${comp ? "COMPETENT [✓]" : "NOT YET COMPETENT"}`
+          const candName = selectedPracticalCandidate?.name || "Nthiga Gakii Doris";
+          const candReg = selectedPracticalCandidate?.regCode || "14179/S2026";
+          const matched = findMatchingTrainee(trainees, {
+            regNumber: candReg,
+            studentName: candName,
+          });
+          if (matched) {
+            syncScoreToContinuousMarksheet({
+              traineeId: matched.id,
+              taskCode: "CP1",
+              percentageScore: pct,
+              unitOfferingId: "uo_1",
+            });
+          }
+          toast.success("Practical Assessment Saved & Synced to Marksheet", {
+            description: `${candName}: ${total}/50 (${pct}%) on CP1 — ${comp ? "COMPETENT [✓]" : "NOT YET COMPETENT"}`
           });
         }}
       />
