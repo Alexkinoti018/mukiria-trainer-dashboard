@@ -16,6 +16,7 @@ import {
   Search,
   Filter,
   User,
+  Users,
   BookOpen,
   Award,
   RefreshCw,
@@ -308,40 +309,49 @@ export default function Grading() {
           ansDisplay = `${String.fromCharCode(65 + optIdx)}: ${q.options[optIdx] ?? ansDisplay}`;
         }
         return {
-          q_num: idx + 1,
+          q_num: q?.q_num || idx + 1,
           text: q?.text || `Question ${idx + 1}`,
           answer: ansDisplay,
           marks_awarded: ans.marks_awarded ?? 0,
           max_marks: q?.marks ?? 2,
+          breakdown: q?.breakdown,
+          ai_reasoning: ans.notes || ans.ai_reasoning || "",
         };
       });
 
       const secB = (sub.section_b || []).map((ans, idx) => {
         const q = exam?.payload?.section_b?.questions?.find((item) => item.id === ans.question_id);
         return {
-          q_num: idx + 1,
+          q_num: q?.q_num || (idx + 11),
           text: q?.text || `Task ${idx + 1}`,
           answer: String(ans.answer ?? "No response"),
           marks_awarded: ans.marks_awarded ?? 0,
           max_marks: q?.marks ?? 20,
+          breakdown: q?.breakdown,
+          sub_parts: q?.sub_parts,
+          ai_reasoning: ans.notes || ans.ai_reasoning || "",
         };
       });
 
       const payload = {
         student_name: sub.student_name,
         reg_number: sub.reg_number,
-        unit_name: exam?.course_name || "Apply Digital Literacy",
+        department: exam?.payload?.department || "HOSPITALITY DEPARTMENT\nBUILDING DEPARTMENT",
+        course_name: exam?.payload?.course_name || "OFFICE ADMINISTRATION LEVEL 5 & 6, LAND SURVEY LEVEL 5 & 6",
+        course_code: exam?.payload?.course_code || sub.unit_code,
+        unit_name: exam?.payload?.unit_name || exam?.course_name || "APPLY DIGITAL LITERACY",
         unit_code: sub.unit_code,
         class_code: exam?.payload?.class || "FBS5/6/J/25, LS5/6/S/25",
-        series: "SEP - NOV 2026",
-        exam_title: exam?.payload?.title || "Digital Literacy Assessment",
+        series: exam?.payload?.series || "SEP - NOV 2026",
+        time_allowed: exam?.payload?.time_allowed || "2 HOURS",
+        exam_title: exam?.payload?.title || "WRITTEN ASSESSMENT 1",
         evaluated_at: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
         total_score: currentTotal,
         total_marks: totalMarks,
         percentage: percentage,
         grade: percentage >= 80 ? "DISTINCTION" : percentage >= 65 ? "CREDIT" : percentage >= 50 ? "PASS" : "REFER",
         status: percentage >= 50 ? "COMPETENT (PASS)" : "NOT YET COMPETENT (REFER)",
-        trainer_comments: trainerComments[sub.id] || sub.trainer_comments || "The candidate demonstrates competent foundational digital skills with solid adherence to workplace ICT standards.",
+        trainer_comments: trainerComments[sub.id] || sub.trainer_comments || "The candidate demonstrates exceptional competence in digital literacy principles, practical workplace computer procedures, and software applications.",
         trainer_name: "Alexander Kinoti",
         section_a: secA,
         section_b: secB,
@@ -407,11 +417,11 @@ export default function Grading() {
   });
 
   const getScoreColor = (score: number | null) => {
-    if (score === null) return "oklch(0.58 0.012 240)";
-    if (score >= 80) return "oklch(0.72 0.18 160)";
-    if (score >= 65) return "oklch(0.65 0.15 200)";
-    if (score >= 50) return "oklch(0.75 0.14 80)";
-    return "oklch(0.65 0.22 25)";
+    if (score === null) return "#a1a1aa";
+    if (score >= 80) return "#34d399";
+    if (score >= 65) return "#6ee7b7";
+    if (score >= 50) return "#fbbf24";
+    return "#f87171";
   };
 
   const getGrade = (score: number | null) => {
@@ -515,28 +525,23 @@ export default function Grading() {
         <>
           {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-5">
-        <div
-          className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-48"
-          style={{ background: "oklch(1 0 0 / 0.05)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-        >
-          <Search className="w-4 h-4 shrink-0" style={{ color: "oklch(0.50 0.010 240)" }} />
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl flex-1 min-w-48 bg-white border border-slate-300 shadow-sm">
+          <Search className="w-4 h-4 shrink-0 text-slate-400" />
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search student, reg number..."
-            className="bg-transparent text-sm flex-1 outline-none"
-            style={{ color: "oklch(0.94 0.005 240)" }}
+            className="bg-transparent text-sm flex-1 outline-none text-[#0f172a] placeholder-slate-400"
           />
         </div>
 
         <button
           onClick={() => setShowUngradedOnly(!showUngradedOnly)}
-          className="px-3 py-2 rounded-xl flex items-center gap-2 text-sm font-medium transition-all"
-          style={{
-            background: showUngradedOnly ? "oklch(0.75 0.14 80 / 0.2)" : "oklch(1 0 0 / 0.05)",
-            border: showUngradedOnly ? "1px solid oklch(0.75 0.14 80 / 0.4)" : "1px solid oklch(1 0 0 / 0.08)",
-            color: showUngradedOnly ? "oklch(0.75 0.14 80)" : "oklch(0.58 0.012 240)",
-          }}
+          className={`px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all border shadow-sm ${
+            showUngradedOnly
+              ? "bg-amber-50 border-[#c48820] text-[#c48820]"
+              : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50"
+          }`}
         >
           <Clock className="w-4 h-4" />
           Ungraded Only
@@ -545,12 +550,7 @@ export default function Grading() {
         <select
           value={selectedUnit}
           onChange={(e) => setSelectedUnit(e.target.value)}
-          className="px-3 py-2 rounded-xl text-sm"
-          style={{
-            background: "oklch(1 0 0 / 0.05)",
-            border: "1px solid oklch(1 0 0 / 0.08)",
-            color: "oklch(0.80 0.008 240)",
-          }}
+          className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 text-[#0f172a] shadow-sm focus:outline-none focus:border-[#000953]"
         >
           <option value="all">All Units</option>
           {exams.map((e) => (
@@ -563,12 +563,7 @@ export default function Grading() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 rounded-xl text-sm"
-          style={{
-            background: "oklch(1 0 0 / 0.05)",
-            border: "1px solid oklch(1 0 0 / 0.08)",
-            color: "oklch(0.80 0.008 240)",
-          }}
+          className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 text-[#0f172a] shadow-sm focus:outline-none focus:border-[#000953]"
         >
           <option value="all">All Status</option>
           <option value="pending">Pending</option>
@@ -578,24 +573,19 @@ export default function Grading() {
 
         <button
           onClick={() => window.location.reload()}
-          className="px-3 py-2 rounded-xl flex items-center gap-2 text-sm"
-          style={{
-            background: "oklch(1 0 0 / 0.05)",
-            border: "1px solid oklch(1 0 0 / 0.08)",
-            color: "oklch(0.58 0.012 240)",
-          }}
+          className="px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-sm transition"
+          title="Refresh submissions"
         >
           <RefreshCw className="w-4 h-4" />
         </button>
 
         <button
           onClick={() => setShowDistribution(!showDistribution)}
-          className="px-3 py-2 rounded-xl flex items-center gap-2 text-sm font-medium transition-all"
-          style={{
-            background: showDistribution ? "oklch(0.65 0.15 200 / 0.2)" : "oklch(1 0 0 / 0.05)",
-            border: showDistribution ? "1px solid oklch(0.65 0.15 200 / 0.4)" : "1px solid oklch(1 0 0 / 0.08)",
-            color: showDistribution ? "oklch(0.65 0.15 200)" : "oklch(0.58 0.012 240)",
-          }}
+          className={`px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all border shadow-sm ${
+            showDistribution
+              ? "bg-[#000953] text-white border-[#000953]"
+              : "bg-white hover:bg-slate-50 text-slate-700 border-slate-300"
+          }`}
         >
           <BarChart3 className="w-4 h-4" />
           Distribution
@@ -604,14 +594,9 @@ export default function Grading() {
         <button
           onClick={handleExportGrades}
           disabled={exporting || filtered.filter(s => s.total_score !== null).length === 0}
-          className="px-3 py-2 rounded-xl flex items-center gap-2 text-sm font-medium transition-all disabled:opacity-50"
-          style={{
-            background: "oklch(0.72 0.18 160 / 0.15)",
-            border: "1px solid oklch(0.72 0.18 160 / 0.3)",
-            color: "oklch(0.72 0.18 160)",
-          }}
+          className="px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-sm disabled:opacity-50"
         >
-          <Download className="w-4 h-4" />
+          <Download className="w-4 h-4 text-[#000953]" />
           {exporting ? "Exporting..." : "Export CSV"}
         </button>
 
@@ -620,10 +605,10 @@ export default function Grading() {
             setSelectedPracticalCandidate(null);
             setIsObservationModalOpen(true);
           }}
-          className="px-3.5 py-2 rounded-xl flex items-center gap-2 text-sm font-semibold transition-all shadow-sm bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/40"
+          className="px-4 py-2 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm"
           title="Open TVET CDACC Practical Observation Checklist (Simulated Red Pen Marking)"
         >
-          <PenTool className="w-4 h-4 text-red-400" />
+          <PenTool className="w-4 h-4 text-[#c48820]" />
           <span>Mark Practical (Observation Checklist)</span>
         </button>
       </div>
@@ -637,19 +622,15 @@ export default function Grading() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="glass-card p-4 mb-5 space-y-3"
+            className="bg-white border border-slate-300 rounded-2xl shadow-sm p-5 mb-5 space-y-3"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold" style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.65 0.15 200)" }}>
+              <h3 className="text-sm font-bold text-[#000953]">
                 Grade Distribution ({total} graded)
               </h3>
               <button
                 onClick={() => setShowDistribution(false)}
-                className="text-xs px-2 py-1 rounded-lg"
-                style={{
-                  background: "oklch(1 0 0 / 0.1)",
-                  color: "oklch(0.50 0.010 240)",
-                }}
+                className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold"
               >
                 Close
               </button>
@@ -659,11 +640,11 @@ export default function Grading() {
                 const count = distribution[grade];
                 const height = total > 0 ? (count / maxCount) * 100 : 0;
                 const gradeColor = {
-                  A: "oklch(0.72 0.18 160)",
-                  B: "oklch(0.65 0.15 200)",
-                  C: "oklch(0.75 0.14 80)",
-                  D: "oklch(0.65 0.22 25)",
-                  F: "oklch(0.50 0.010 240)",
+                  A: "#059669",
+                  B: "#000953",
+                  C: "#c48820",
+                  D: "#d97706",
+                  F: "#e11d48",
                 }[grade];
                 return (
                   <div key={grade} className="flex-1 flex flex-col items-center gap-2">
@@ -672,14 +653,14 @@ export default function Grading() {
                       style={{
                         height: `${Math.max(height, 5)}%`,
                         background: gradeColor,
-                        opacity: 0.8,
+                        opacity: 0.85,
                       }}
                     />
                     <div className="text-center">
                       <div className="text-sm font-bold" style={{ color: gradeColor }}>
                         {grade}
                       </div>
-                      <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+                      <div className="text-xs text-slate-500 font-mono">
                         {count}
                       </div>
                     </div>
@@ -692,22 +673,22 @@ export default function Grading() {
       })()}
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
         {[
-          { label: "Total", value: submissions.length, color: "oklch(0.65 0.15 200)" },
-          { label: "Pending", value: submissions.filter((s) => s.status === "pending").length, color: "oklch(0.75 0.14 80)" },
-          { label: "Graded", value: submissions.filter((s) => s.status !== "pending").length, color: "oklch(0.72 0.18 160)" },
+          { label: "Total Candidates", value: submissions.length, color: "text-[#000953]" },
+          { label: "Pending Review", value: submissions.filter((s) => s.status === "pending").length, color: "text-[#c48820]" },
+          { label: "Graded & Verified", value: submissions.filter((s) => s.status !== "pending").length, color: "text-emerald-700" },
         ].map((stat) => (
-          <div key={stat.label} className="glass-card p-3 flex items-center gap-3">
-            <span
-              className="text-xl font-bold font-mono"
-              style={{ color: stat.color }}
-            >
-              {stat.value}
-            </span>
-            <span className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
-              {stat.label}
-            </span>
+          <div key={stat.label} className="bg-white border border-slate-300 shadow-sm p-4 rounded-2xl flex items-center justify-between">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-0.5">{stat.label}</span>
+              <span className={`text-2xl font-bold font-mono ${stat.color}`}>
+                {stat.value}
+              </span>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-[#000953]">
+              <Users className="w-5 h-5" />
+            </div>
           </div>
         ))}
       </div>
@@ -716,12 +697,12 @@ export default function Grading() {
       <div className="space-y-3">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-20 rounded-xl animate-pulse" style={{ background: "oklch(1 0 0 / 0.05)" }} />
+            <div key={i} className="h-20 rounded-xl animate-pulse bg-slate-200 border border-slate-300" />
           ))
         ) : filtered.length === 0 ? (
-          <div className="glass-card py-16 flex flex-col items-center gap-3">
-            <BookOpen className="w-10 h-10 opacity-20" style={{ color: "oklch(0.72 0.18 160)" }} />
-            <p className="text-sm" style={{ color: "oklch(0.50 0.010 240)" }}>
+          <div className="bg-white border border-slate-300 rounded-2xl shadow-sm py-16 flex flex-col items-center gap-3">
+            <BookOpen className="w-10 h-10 text-slate-300" />
+            <p className="text-sm font-medium text-slate-500">
               No submissions match your filters
             </p>
           </div>
@@ -738,38 +719,31 @@ export default function Grading() {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
-                className="glass-card overflow-hidden"
+                className="bg-white border border-slate-300 rounded-2xl shadow-sm overflow-hidden hover:border-[#000953]/60 transition-colors"
               >
                 {/* Header row */}
                 <div
-                  className="flex items-center gap-4 px-5 py-4 cursor-pointer"
+                  className="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-slate-50/70 transition-colors"
                   onClick={() => setExpandedSub(isExpanded ? null : sub.id)}
                 >
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
-                    style={{
-                      background: "oklch(0.65 0.15 200 / 0.15)",
-                      color: "oklch(0.65 0.15 200)",
-                      fontFamily: "Syne, sans-serif",
-                    }}
-                  >
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 bg-[#000953] text-white shadow-sm">
                     {sub.student_name.charAt(0)}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-semibold" style={{ color: "oklch(0.94 0.005 240)" }}>
+                      <span className="text-sm font-bold text-[#0f172a]">
                         {sub.student_name}
                       </span>
-                      <span className="text-xs font-mono" style={{ color: "oklch(0.50 0.010 240)" }}>
+                      <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
                         {sub.reg_number}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 mt-0.5">
-                      <span className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-xs font-mono font-bold text-[#000953]">
                         {sub.unit_code}
                       </span>
-                      <span className="text-xs" style={{ color: "oklch(0.45 0.010 240)" }}>
+                      <span className="text-xs text-slate-500">
                         {format(new Date(sub.created_at), "dd MMM yyyy, HH:mm")}
                       </span>
                     </div>
@@ -778,33 +752,35 @@ export default function Grading() {
                   <div className="flex items-center gap-3 shrink-0">
                     {sub.total_score !== null && (
                       <div className="text-right">
-                        <div
-                          className="text-lg font-bold font-mono"
-                          style={{ color: getScoreColor(sub.total_score) }}
-                        >
+                        <div className="text-lg font-bold font-mono text-[#000953]">
                           {Math.round(sub.total_score)}
-                          <span className="text-xs font-normal opacity-60">/{exam?.payload?.total_marks ?? 100}</span>
+                          <span className="text-xs font-normal text-slate-500">/{exam?.payload?.total_marks ?? 100}</span>
                         </div>
-                        <div
-                          className="text-xs font-bold flex items-center justify-end gap-1.5 mt-1"
-                          style={{ color: getScoreColor(sub.total_score) }}
-                        >
+                        <div className="text-xs font-bold flex items-center justify-end gap-1.5 mt-1 text-slate-700">
                           Grade {getGrade(sub.total_score)}
-                          <span className="px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider" style={{ background: sub.total_score >= 50 ? "oklch(0.65 0.15 160 / 0.15)" : "oklch(0.65 0.22 25 / 0.15)", color: sub.total_score >= 50 ? "oklch(0.65 0.15 160)" : "oklch(0.65 0.22 25)" }}>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider border ${
+                            sub.total_score >= 50
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                              : "bg-rose-50 text-rose-700 border-rose-300"
+                          }`}>
                             {sub.total_score >= 50 ? "PASS" : "FAIL"}
                           </span>
                         </div>
                       </div>
                     )}
 
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium status-${sub.status}`}>
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider border ${
+                      sub.status === "graded" || sub.status === "reviewed"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : "bg-amber-50 text-[#c48820] border-amber-200"
+                    }`}>
                       {sub.status}
                     </span>
 
                     {isExpanded ? (
-                      <ChevronUp className="w-4 h-4" style={{ color: "oklch(0.50 0.010 240)" }} />
+                      <ChevronUp className="w-4 h-4 text-slate-500" />
                     ) : (
-                      <ChevronDown className="w-4 h-4" style={{ color: "oklch(0.50 0.010 240)" }} />
+                      <ChevronDown className="w-4 h-4 text-slate-500" />
                     )}
                   </div>
                 </div>
@@ -819,58 +795,35 @@ export default function Grading() {
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <div
-                        className="px-5 pb-5 pt-2 space-y-5"
-                        style={{ borderTop: "1px solid oklch(1 0 0 / 0.08)" }}
-                      >
+                      <div className="px-5 pb-5 pt-3 space-y-5 border-t border-slate-200 bg-slate-50/40">
                         {/* Action buttons */}
-                        <div className="flex flex-wrap gap-2 pt-2">
+                        <div className="flex flex-wrap items-center gap-2 pt-2">
                           {sub.status === "pending" && exam && (
                             <button
                               onClick={() => handleAutoGrade(sub)}
                               disabled={isSaving}
-                              className="btn-emerald flex items-center gap-2 px-4 py-2 rounded-xl text-xs"
+                              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm"
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" />
                               {isSaving ? "Grading..." : "Auto-Grade MCQ"}
-                            </button>
-                          )}
-                          {sub.status === "graded" && (
-                            <button
-                              onClick={() => handleMarkReviewed(sub)}
-                              disabled={isSaving}
-                              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold"
-                              style={{
-                                background: "oklch(0.65 0.15 200 / 0.15)",
-                                border: "1px solid oklch(0.65 0.15 200 / 0.3)",
-                                color: "oklch(0.65 0.15 200)",
-                              }}
-                            >
-                              <Award className="w-3.5 h-3.5" />
-                              Mark as Reviewed
                             </button>
                           )}
                           {Object.keys(subEdits).length > 0 && (
                             <button
                               onClick={() => handleSaveAllScores(sub)}
                               disabled={isSaving}
-                              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold"
-                              style={{
-                                background: "oklch(0.75 0.14 80 / 0.15)",
-                                border: "1px solid oklch(0.75 0.14 80 / 0.3)",
-                                color: "oklch(0.75 0.14 80)",
-                              }}
+                              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#000953] hover:bg-[#000e7a] text-white transition shadow-sm"
                             >
-                              <Save className="w-3.5 h-3.5" />
-                              Save All Modified Marks
+                              <Save className="w-3.5 h-3.5 text-[#c48820]" />
+                              {isSaving ? "Saving..." : "Save All Modified Marks"}
                             </button>
                           )}
                           <button
                             onClick={() => setMarkedScriptSub(sub)}
-                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/40 transition shadow-sm"
+                            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition"
                             title="Open simulated red pen marked exam paper"
                           >
-                            <PenTool className="w-3.5 h-3.5 text-red-400" />
+                            <PenTool className="w-3.5 h-3.5 text-[#c48820]" />
                             View Marked Script (Red Pen)
                           </button>
                           <button
@@ -882,28 +835,38 @@ export default function Grading() {
                               });
                               setIsObservationModalOpen(true);
                             }}
-                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/40 transition shadow-sm"
+                            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-[#000953] border border-[#000953] shadow-sm transition"
                             title="Open CDACC Practical Observation Checklist for this trainee"
                           >
-                            <FileCheck className="w-3.5 h-3.5 text-amber-400" />
+                            <FileCheck className="w-3.5 h-3.5 text-[#000953]" />
                             Mark Practical Checklist
                           </button>
+                          {sub.status === "graded" && (
+                            <button
+                              onClick={() => handleMarkReviewed(sub)}
+                              disabled={isSaving}
+                              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-sm transition"
+                            >
+                              <Award className="w-3.5 h-3.5 text-[#c48820]" />
+                              Mark as Reviewed
+                            </button>
+                          )}
                         </div>
 
                         {/* Section A — Core Concepts & Short Answers */}
                         {exam && sub.section_a.length > 0 && (
                           <div>
-                            <div className="flex items-center justify-between mb-3">
-                              <h4
-                                className="text-xs font-bold"
-                                style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.72 0.18 160)" }}
-                              >
-                                Section A — Core Concepts & Objective/Short Answer
-                                <span className="font-mono ml-2 font-normal" style={{ color: "oklch(0.50 0.010 240)" }}>
-                                  {sub.section_a.reduce((s, a) => s + (a.marks_awarded ?? 0), 0)} /{" "}
-                                  {exam.payload?.section_a?.total_marks ?? 30} marks
-                                </span>
-                              </h4>
+                            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
+                              <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-4 bg-[#c48820] rounded-full" />
+                                <h4 className="text-xs font-bold text-[#000953] uppercase tracking-wide">
+                                  Section A — Core Concepts & Objective/Short Answer
+                                </h4>
+                              </div>
+                              <span className="font-mono text-xs font-bold text-[#000953]">
+                                {sub.section_a.reduce((s, a) => s + (a.marks_awarded ?? 0), 0)} /{" "}
+                                {exam.payload?.section_a?.total_marks ?? 30} marks
+                              </span>
                             </div>
                             <div className="space-y-3">
                               {sub.section_a.map((ans, qi) => {
@@ -922,36 +885,30 @@ export default function Grading() {
                                 return (
                                   <div
                                     key={ans.question_id}
-                                    className="p-3.5 rounded-xl space-y-2.5"
-                                    style={{
-                                      background: "oklch(1 0 0 / 0.04)",
-                                      border: ans.flagged_for_review
-                                        ? "1px solid rgba(245, 158, 11, 0.4)"
-                                        : "1px solid oklch(1 0 0 / 0.08)",
-                                    }}
+                                    className="p-4 rounded-xl space-y-2.5 bg-white border border-slate-300 shadow-sm"
                                   >
                                     <div className="flex items-start justify-between gap-3">
                                       <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                          <span className="text-xs font-bold" style={{ color: "oklch(0.72 0.18 160)" }}>
+                                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                          <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-[#000953] text-white">
                                             Q{qi + 1}
                                           </span>
-                                          <span className="text-[10px] px-1.5 py-0.5 rounded uppercase font-mono bg-white/5 text-slate-300">
+                                          <span className="text-[10px] px-2 py-0.5 rounded uppercase font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200">
                                             {question?.type || "objective"}
                                           </span>
                                           {ans.flagged_for_review && (
-                                            <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                                            <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-amber-50 text-[#c48820] border border-amber-300 flex items-center gap-1">
                                               <AlertCircle className="w-3 h-3" />
                                               Needs Review
                                             </span>
                                           )}
                                         </div>
-                                        <p className="text-xs font-medium leading-snug mb-1.5 text-slate-200">
+                                        <p className="text-sm font-semibold leading-snug mb-2 text-[#0f172a]">
                                           {question?.text}
                                         </p>
-                                        <div className="text-xs p-2 rounded-lg bg-black/20 text-slate-300 border border-white/5">
-                                          <span className="text-[11px] text-slate-400 block mb-0.5">Candidate Response:</span>
-                                          {ansDisplay || <em className="text-slate-500">No response provided</em>}
+                                        <div className="text-xs p-3 rounded-lg bg-slate-50 text-[#0f172a] border border-slate-200">
+                                          <span className="text-[11px] text-slate-500 block mb-0.5 font-bold uppercase tracking-wider">Candidate Response:</span>
+                                          {ansDisplay || <em className="text-slate-400">No response provided</em>}
                                         </div>
                                       </div>
 
@@ -980,34 +937,31 @@ export default function Grading() {
                                           onKeyDown={(e) => {
                                             if (e.key === "Enter") handleScoreBlur(sub, ans.question_id, currentMarks, "a");
                                           }}
-                                          className="w-16 text-center px-2 py-1.5 rounded-lg text-sm font-mono transition-all font-bold"
-                                          style={{
-                                            background: "oklch(0.72 0.18 160 / 0.1)",
-                                            border: autoSaveStatus[ans.question_id] === "saved"
-                                              ? "1px solid oklch(0.72 0.18 160 / 0.5)"
+                                          className={`w-16 text-center px-2 py-1.5 rounded-lg text-sm font-mono font-bold transition-all bg-white text-[#000953] border ${
+                                            autoSaveStatus[ans.question_id] === "saved"
+                                              ? "border-emerald-500 ring-2 ring-emerald-500/20"
                                               : autoSaveStatus[ans.question_id] === "saving"
-                                              ? "1px solid oklch(0.75 0.14 80 / 0.5)"
-                                              : "1px solid oklch(0.72 0.18 160 / 0.3)",
-                                            color: "oklch(0.72 0.18 160)",
-                                          }}
+                                              ? "border-[#c48820] ring-2 ring-[#c48820]/20"
+                                              : "border-slate-300 focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/20"
+                                          }`}
                                         />
-                                        <span className="text-xs font-mono" style={{ color: "oklch(0.50 0.010 240)" }}>
+                                        <span className="text-xs font-mono font-bold text-slate-600">
                                           / {question?.marks ?? 2}
                                         </span>
                                       </div>
                                     </div>
 
                                     {ans.ai_reasoning && (
-                                      <div className="flex items-center gap-1.5 text-[11px] text-blue-300 bg-blue-500/10 px-2.5 py-1 rounded-md border border-blue-500/20">
-                                        <Sparkles className="w-3 h-3 shrink-0 text-blue-400" />
+                                      <div className="flex items-center gap-1.5 text-[11px] text-[#000953] bg-blue-50 px-2.5 py-1.5 rounded-md border border-blue-200 font-medium">
+                                        <Sparkles className="w-3 h-3 shrink-0 text-[#c48820]" />
                                         <span>Auto-Grader: {ans.ai_reasoning}</span>
                                       </div>
                                     )}
 
                                     {question?.correct_answer && (
-                                      <div className="text-[11px] px-2.5 py-1.5 rounded-md bg-emerald-500/5 text-emerald-300/90 border border-emerald-500/15">
-                                        <span className="font-semibold text-emerald-400">Marking Guide: </span>
-                                        {String(question.correct_answer)}
+                                      <div className="text-[11px] px-3 py-2 rounded-md bg-amber-50/70 text-slate-800 border border-amber-200">
+                                        <span className="font-bold text-[#000953]">Marking Guide: </span>
+                                        <span>{String(question.correct_answer)}</span>
                                       </div>
                                     )}
                                   </div>
@@ -1020,16 +974,16 @@ export default function Grading() {
                         {/* Section B — Structured Practical & Application */}
                         {exam && sub.section_b.length > 0 && (
                           <div>
-                            <div className="flex items-center justify-between mb-3">
-                              <h4
-                                className="text-xs font-bold"
-                                style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.65 0.15 200)" }}
-                              >
-                                Section B — Structured Practical Tasks
-                                <span className="font-mono ml-2 font-normal" style={{ color: "oklch(0.50 0.010 240)" }}>
-                                  {sub.section_b.reduce((s, a) => s + (a.marks_awarded ?? 0), 0)} /{exam.payload?.section_b?.total_marks ?? 40} marks
-                                </span>
-                              </h4>
+                            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
+                              <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-4 bg-[#c48820] rounded-full" />
+                                <h4 className="text-xs font-bold text-[#000953] uppercase tracking-wide">
+                                  Section B — Structured Practical Tasks
+                                </h4>
+                              </div>
+                              <span className="font-mono text-xs font-bold text-[#000953]">
+                                {sub.section_b.reduce((s, a) => s + (a.marks_awarded ?? 0), 0)} /{exam.payload?.section_b?.total_marks ?? 40} marks
+                              </span>
                             </div>
                             <div className="space-y-3">
                               {sub.section_b.map((ans, qi) => {
@@ -1040,35 +994,29 @@ export default function Grading() {
                                 return (
                                   <div
                                     key={ans.question_id}
-                                    className="p-4 rounded-xl space-y-3"
-                                    style={{
-                                      background: "oklch(1 0 0 / 0.04)",
-                                      border: ans.flagged_for_review
-                                        ? "1px solid rgba(245, 158, 11, 0.4)"
-                                        : "1px solid oklch(1 0 0 / 0.08)",
-                                    }}
+                                    className="p-4 rounded-xl space-y-3 bg-white border border-slate-300 shadow-sm"
                                   >
                                     <div className="flex items-start justify-between gap-3">
                                       <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                          <span className="text-xs font-bold" style={{ color: "oklch(0.65 0.15 200)" }}>
+                                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                          <span className="text-xs font-bold font-mono px-2.5 py-0.5 rounded bg-[#000953] text-white">
                                             Task {qi + 1}
                                           </span>
                                           {ans.flagged_for_review && (
-                                            <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                                            <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-amber-50 text-[#c48820] border border-amber-300 flex items-center gap-1">
                                               <AlertCircle className="w-3 h-3" />
                                               Needs Review
                                             </span>
                                           )}
                                         </div>
-                                        <p className="text-xs font-semibold whitespace-pre-line mb-2 text-slate-200">
+                                        <p className="text-sm font-semibold whitespace-pre-line mb-2 text-[#0f172a]">
                                           {question?.text}
                                         </p>
-                                        <div className="text-xs p-3 rounded-lg bg-black/25 text-slate-200 border border-white/5 whitespace-pre-line">
-                                          <span className="text-[11px] text-slate-400 block mb-1 font-mono">Candidate Work / Written Submission:</span>
+                                        <div className="text-xs p-3 rounded-lg bg-slate-50 text-[#0f172a] border border-slate-200 whitespace-pre-line">
+                                          <span className="text-[11px] text-slate-500 block mb-1 font-bold uppercase tracking-wider">Candidate Work / Written Submission:</span>
                                           {typeof ans.answer === "string" && ans.answer.trim()
                                             ? ans.answer
-                                            : <em className="text-slate-500">No response provided</em>}
+                                            : <em className="text-slate-400">No response provided</em>}
                                         </div>
                                       </div>
                                       <div className="flex items-center gap-2 shrink-0 pt-1">
@@ -1099,34 +1047,31 @@ export default function Grading() {
                                               handleScoreBlur(sub, ans.question_id, currentMarks, "b");
                                             }
                                           }}
-                                          className="w-16 text-center px-2 py-1.5 rounded-lg text-sm font-mono transition-all font-bold"
-                                          style={{
-                                            background: "oklch(0.65 0.15 200 / 0.1)",
-                                            border: autoSaveStatus[ans.question_id] === "saved" 
-                                              ? "1px solid oklch(0.72 0.18 160 / 0.5)"
+                                          className={`w-16 text-center px-2 py-1.5 rounded-lg text-sm font-mono font-bold transition-all bg-white text-[#000953] border ${
+                                            autoSaveStatus[ans.question_id] === "saved"
+                                              ? "border-emerald-500 ring-2 ring-emerald-500/20"
                                               : autoSaveStatus[ans.question_id] === "saving"
-                                              ? "1px solid oklch(0.75 0.14 80 / 0.5)"
-                                              : "1px solid oklch(0.65 0.15 200 / 0.3)",
-                                            color: "oklch(0.65 0.15 200)",
-                                          }}
+                                              ? "border-[#c48820] ring-2 ring-[#c48820]/20"
+                                              : "border-slate-300 focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/20"
+                                          }`}
                                         />
-                                        <span className="text-xs font-mono" style={{ color: "oklch(0.50 0.010 240)" }}>
+                                        <span className="text-xs font-mono font-bold text-slate-600">
                                           / {question?.marks ?? 20}
                                         </span>
                                       </div>
                                     </div>
 
                                     {ans.ai_reasoning && (
-                                      <div className="flex items-center gap-1.5 text-[11px] text-blue-300 bg-blue-500/10 px-2.5 py-1 rounded-md border border-blue-500/20">
-                                        <Sparkles className="w-3 h-3 shrink-0 text-blue-400" />
+                                      <div className="flex items-center gap-1.5 text-[11px] text-[#000953] bg-blue-50 px-2.5 py-1.5 rounded-md border border-blue-200 font-medium">
+                                        <Sparkles className="w-3 h-3 shrink-0 text-[#c48820]" />
                                         <span>Auto-Grader: {ans.ai_reasoning}</span>
                                       </div>
                                     )}
 
                                     {question?.correct_answer && (
-                                      <div className="text-[11px] px-3 py-2 rounded-lg bg-emerald-500/5 text-emerald-300/90 border border-emerald-500/15">
-                                        <span className="font-semibold text-emerald-400">Marking Rubric: </span>
-                                        {String(question.correct_answer)}
+                                      <div className="text-[11px] px-3 py-2 rounded-lg bg-amber-50/70 text-slate-800 border border-amber-200">
+                                        <span className="font-bold text-[#000953]">Marking Rubric: </span>
+                                        <span>{String(question.correct_answer)}</span>
                                       </div>
                                     )}
                                   </div>
@@ -1137,10 +1082,10 @@ export default function Grading() {
                         )}
 
                         {/* Trainer Feedback Remarks */}
-                        <div className="p-4 rounded-xl space-y-2 bg-white/[0.02] border border-white/10">
+                        <div className="p-4 rounded-xl space-y-2.5 bg-white border border-slate-300 shadow-sm">
                           <div className="flex items-center justify-between">
-                            <label className="flex items-center gap-2 text-xs font-bold text-amber-400">
-                              <MessageSquare className="w-3.5 h-3.5" />
+                            <label className="flex items-center gap-2 text-xs font-bold text-[#000953]">
+                              <MessageSquare className="w-3.5 h-3.5 text-[#c48820]" />
                               Assessor / Trainer Examination Feedback & Remarks
                             </label>
                             <button
@@ -1149,7 +1094,7 @@ export default function Grading() {
                                 gradeSubmission(sub.id, { trainer_comments: val });
                                 toast.success("Feedback remarks saved");
                               }}
-                              className="text-xs px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30 font-medium transition-colors"
+                              className="text-xs px-3 py-1.5 rounded-lg bg-[#000953] hover:bg-[#000e7a] text-white font-bold transition-colors shadow-sm"
                             >
                               Save Feedback
                             </button>
@@ -1162,38 +1107,38 @@ export default function Grading() {
                             }}
                             placeholder="Enter overall competency remarks, constructive feedback, or recommendations for trainee..."
                             rows={3}
-                            className="w-full text-xs p-3 rounded-lg resize-y bg-black/20 border border-white/10 text-slate-100"
+                            className="w-full text-xs p-3 rounded-lg resize-y bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
                           />
                         </div>
 
                         {/* Export Official Documents */}
-                        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10">
-                          <div className="text-xs text-slate-400">
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200">
+                          <div className="text-xs font-medium text-slate-600">
                             Generate and download official assessment report document for this candidate:
                           </div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <button
                               onClick={() => setMarkedScriptSub(sub)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600/20 text-red-300 border border-red-500/30 hover:bg-red-600/30 transition-all"
+                              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition"
                               title="View visual marked exam sheet with red pen annotations"
                             >
-                              <PenTool className="w-3.5 h-3.5 text-red-400" />
-                              View Marked Script (Red Pen)
+                              <PenTool className="w-3.5 h-3.5 text-[#c48820]" />
+                              View Marked Script
                             </button>
                             <button
                               onClick={() => handleExportDocument(sub, "docx")}
                               disabled={exporting}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600/20 text-blue-300 border border-blue-500/30 hover:bg-blue-600/30 transition-all"
+                              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-slate-50 text-[#000953] border border-slate-300 shadow-sm transition"
                             >
-                              {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+                              {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5 text-[#000953]" />}
                               Export DOCX
                             </button>
                             <button
                               onClick={() => handleExportDocument(sub, "pdf")}
                               disabled={exporting}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-600/20 text-amber-300 border border-amber-500/30 hover:bg-amber-600/30 transition-all"
+                              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-slate-50 text-[#000953] border border-slate-300 shadow-sm transition"
                             >
-                              {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                              {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 text-[#000953]" />}
                               Export PDF
                             </button>
                           </div>

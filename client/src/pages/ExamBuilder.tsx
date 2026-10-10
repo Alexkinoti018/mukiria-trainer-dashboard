@@ -27,6 +27,7 @@ import type { Exam, ExamPayload, ExamQuestion } from "@/lib/supabase";
 import { getCurriculumUnits, CurriculumUnit } from "@/lib/curriculumDatabase";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
+import { EXAM_THEME_TOKENS } from "@/lib/examThemeTokens";
 
 const getLevelFromUnitCode = (code: string): number => {
   const match = code.match(/\/(\d)\//);
@@ -518,23 +519,23 @@ export default function ExamBuilder() {
     <TrainerLayout title="Exam Builder & Assessment" subtitle="Create and manage standardized assessment payloads and marks">
       
       {/* Tab Navigation */}
-      <div className="flex gap-2 border-b border-border mb-6 px-1 print:hidden">
+      <div className="flex gap-2 border-b border-slate-300 mb-6 px-1 print:hidden">
         <button
           onClick={() => setActiveTab("builder")}
-          className={`px-4 py-2 text-sm font-bold border-b-2 transition-all ${
+          className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${
             activeTab === "builder"
-              ? "border-[#c48820] text-[#000953] dark:text-[#f8fafc]"
-              : "border-transparent text-muted-foreground hover:text-foreground"
+              ? "border-[#000953] text-[#000953]"
+              : "border-transparent text-slate-500 hover:text-[#000953]"
           }`}
         >
           Exam Builder
         </button>
         <button
           onClick={() => setActiveTab("marks")}
-          className={`px-4 py-2 text-sm font-bold border-b-2 transition-all ${
+          className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${
             activeTab === "marks"
-              ? "border-[#c48820] text-[#000953] dark:text-[#f8fafc]"
-              : "border-transparent text-muted-foreground hover:text-foreground"
+              ? "border-[#000953] text-[#000953]"
+              : "border-transparent text-slate-500 hover:text-[#000953]"
           }`}
         >
           Assessment Marks
@@ -542,58 +543,54 @@ export default function ExamBuilder() {
       </div>
 
       {activeTab === "builder" ? (
-        <div className="flex gap-6 h-[calc(100%-4rem)]">
+        <div className="flex flex-col lg:flex-row gap-6 h-[calc(100%-4rem)]">
         {/* Left: Exam List */}
-        <div className="w-72 shrink-0 space-y-3">
+        <div className="w-full lg:w-80 shrink-0 space-y-3">
           <button
             onClick={startNew}
-            className="btn-emerald w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#000953] hover:bg-[#000e7a] text-white transition active:scale-[0.98] shadow-sm"
           >
-            <Plus className="w-4 h-4" />
-            New Exam
+            <Plus className="w-4 h-4 text-[#c48820]" />
+            New Exam Paper
           </button>
 
           {loading ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-20 rounded-xl animate-pulse" style={{ background: "oklch(1 0 0 / 0.05)" }} />
+              <div key={i} className="h-20 rounded-xl animate-pulse bg-slate-200 border border-slate-300" />
             ))
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {exams.map((exam) => (
                 <div
                   key={exam.id}
-                  className="glass-card p-4 cursor-pointer"
-                  style={{
-                    border: activeExam?.id === exam.id
-                      ? "1px solid oklch(0.72 0.18 160 / 0.5)"
-                      : undefined,
-                  }}
+                  className={`p-4 rounded-xl cursor-pointer transition-all border ${
+                    activeExam?.id === exam.id
+                      ? "bg-blue-50/80 border-2 border-[#000953] shadow-sm"
+                      : "bg-white border-slate-300 hover:border-[#000953] hover:shadow-sm"
+                  }`}
                   onClick={() => editExam(exam)}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div
-                        className="text-sm font-bold truncate"
-                        style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-                      >
+                      <div className="text-sm font-bold truncate text-[#000953]">
                         {exam.unit_code}
                       </div>
-                      <div className="text-xs truncate mt-0.5" style={{ color: "oklch(0.50 0.010 240)" }}>
+                      <div className="text-xs truncate mt-0.5 text-slate-600 font-medium">
                         {exam.course_name}
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs font-mono" style={{ color: "oklch(0.72 0.18 160)" }}>
+                      <div className="flex items-center gap-2 mt-2.5">
+                        <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-50 text-[#c48820] border border-amber-200">
                           {exam.payload.total_marks} marks
                         </span>
-                        <span className="text-xs" style={{ color: "oklch(0.45 0.010 240)" }}>
-                          {exam.payload.duration_minutes}min
+                        <span className="text-xs font-mono text-slate-500 font-medium">
+                          {exam.payload.duration_minutes} min
                         </span>
                       </div>
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); deleteExam(exam); }}
-                      className="opacity-40 hover:opacity-100 transition-opacity shrink-0"
-                      style={{ color: "oklch(0.65 0.22 25)" }}
+                      className="text-slate-400 hover:text-rose-600 transition-colors shrink-0 p-1"
+                      title="Delete Exam"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -607,13 +604,15 @@ export default function ExamBuilder() {
         {/* Right: Editor */}
         <div className="flex-1 min-w-0">
           {!isCreating ? (
-            <div className="glass-card h-64 flex flex-col items-center justify-center gap-3">
-              <BookOpen className="w-10 h-10 opacity-20" style={{ color: "oklch(0.72 0.18 160)" }} />
-              <p className="text-sm" style={{ color: "oklch(0.50 0.010 240)" }}>
-                Select an exam to edit or create a new one
+            <div className="h-72 flex flex-col items-center justify-center gap-3 rounded-2xl bg-white border border-slate-300 shadow-sm p-8 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-[#000953]/10 flex items-center justify-center text-[#000953]">
+                <BookOpen className="w-6 h-6 text-[#000953]" />
+              </div>
+              <p className="text-sm font-semibold text-slate-700">
+                Select an examination paper from the left list to edit, or create a new assessment paper
               </p>
-              <button onClick={startNew} className="btn-emerald flex items-center gap-2 px-4 py-2 rounded-xl text-sm">
-                <Plus className="w-4 h-4" /> Create First Exam
+              <button onClick={startNew} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition">
+                <Plus className="w-4 h-4 text-[#c48820]" /> Create First Exam
               </button>
             </div>
           ) : (
@@ -622,56 +621,49 @@ export default function ExamBuilder() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-4"
             >
-              <div className="flex flex-col items-center justify-center space-y-3 mb-6 mt-2">
-                <img src="/mtti-logo.jpg" alt="Mukiria TTI Logo" className="w-20 h-20 object-contain" />
-                <h2 className="font-bold text-center" style={{ fontFamily: "Maiandra GD, sans-serif", color: "oklch(0.95 0.005 240)" }}>
+              <div className="flex flex-col items-center justify-center space-y-2 mb-4 p-5 bg-white rounded-2xl border border-slate-300 shadow-sm">
+                <img src="/mtti-logo.jpg" alt="Mukiria TTI Logo" className="w-16 h-16 object-contain" />
+                <h2 className="font-bold text-center tracking-wide text-[#000953] text-lg">
                   MUKIRIA TECHNICAL TRAINING INSTITUTE
                 </h2>
+                <p className="text-xs text-slate-500 font-medium">Official TVET CDACC Examination Blueprint & Paper Editor</p>
               </div>
               
               {/* CDACC Compliance Status Banner */}
               <div
-                className="p-4 rounded-xl backdrop-blur-xl flex flex-col gap-2 transition-all duration-300 animate-fade-in"
-                style={{
-                  background: liveComplianceErrors.length === 0 
-                    ? "oklch(0.72 0.18 160 / 0.08)" 
-                    : "oklch(0.65 0.22 25 / 0.08)",
-                  border: liveComplianceErrors.length === 0 
-                    ? "1px solid oklch(0.72 0.18 160 / 0.2)" 
-                    : "1px solid oklch(0.65 0.22 25 / 0.2)",
-                }}
+                className={`p-4 rounded-xl flex flex-col gap-2 transition-all duration-300 border ${
+                  liveComplianceErrors.length === 0
+                    ? "bg-emerald-50 border-emerald-300 text-emerald-800"
+                    : "bg-rose-50 border-rose-300 text-rose-800"
+                }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {liveComplianceErrors.length === 0 ? (
-                      <CheckCircle2 className="w-5 h-5 animate-pulse" style={{ color: "oklch(0.72 0.18 160)" }} />
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                     ) : (
-                      <AlertCircle className="w-5 h-5" style={{ color: "oklch(0.65 0.22 25)" }} />
+                      <AlertCircle className="w-5 h-5 text-rose-600" />
                     )}
-                    <span className="font-sans font-bold text-sm" style={{ color: "oklch(0.95 0.005 240)" }}>
+                    <span className="font-bold text-sm text-[#0f172a]">
                       CDACC Compliance Monitor (KNQF Level {unitLevel})
                     </span>
                   </div>
                   <span
-                    className="text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider"
-                    style={{
-                      background: liveComplianceErrors.length === 0 
-                        ? "oklch(0.72 0.18 160 / 0.2)" 
-                        : "oklch(0.65 0.22 25 / 0.2)",
-                      color: liveComplianceErrors.length === 0 
-                        ? "oklch(0.72 0.18 160)" 
-                        : "oklch(0.65 0.22 25)",
-                    }}
+                    className={`text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider border ${
+                      liveComplianceErrors.length === 0
+                        ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                        : "bg-rose-100 text-rose-800 border-rose-300"
+                    }`}
                   >
                     {liveComplianceErrors.length === 0 ? "Compliant" : "Non-Compliant"}
                   </span>
                 </div>
                 
                 {liveComplianceErrors.length > 0 && (
-                  <ul className="text-xs space-y-1 mt-1 font-sans" style={{ color: "oklch(0.85 0.01 240)" }}>
+                  <ul className="text-xs space-y-1 mt-1 text-rose-900 font-medium">
                     {liveComplianceErrors.map((err, idx) => (
                       <li key={idx} className="flex items-start gap-1.5">
-                        <span style={{ color: "oklch(0.65 0.22 25)" }}>•</span>
+                        <span className="text-rose-600 font-bold">•</span>
                         <span>{err}</span>
                       </li>
                     ))}
@@ -681,57 +673,49 @@ export default function ExamBuilder() {
 
               {/* AI-Assisted Ingestion Panel */}
               {!activeExam && (
-                <div className="glass-card p-5 space-y-3">
+                <div className="bg-white border border-slate-300 shadow-sm p-5 rounded-2xl space-y-3">
                   <div className="flex items-center gap-2 mb-1">
-                    <Library className="w-5 h-5" style={{ color: "var(--accent)" }} />
-                    <span className="font-bold text-sm" style={{ color: "var(--accent)" }}>
+                    <Library className="w-4 h-4 text-[#c48820]" />
+                    <span className="font-bold text-sm text-[#000953]">
                       AI Exam Creator (Upload Curriculum / Session Plan)
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600">
                     Upload a Word document (.docx) containing your curriculum mapping, topics, or outcomes. The AI engine will parse the document, enforce CDACC compliance criteria, and auto-build your exam blueprint.
                   </p>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <input
                       type="file"
                       accept=".docx"
                       onChange={(e) => setAiFile(e.target.files?.[0] || null)}
-                      className="text-xs text-slate-300 bg-slate-900/40 p-2 rounded-lg border border-slate-850"
+                      className="text-xs text-slate-700 bg-slate-50 p-2 rounded-lg border border-slate-300 focus:outline-none focus:border-[#000953]"
                     />
                     <button
                       onClick={() => handleAiGenerate(false)}
                       disabled={generatingAi || !aiFile}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-150 disabled:opacity-50 hover:brightness-110"
-                      style={{
-                        background: "var(--accent)",
-                        color: "#ffffff"
-                      }}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm active:scale-[0.98]"
                     >
                       {generatingAi ? "Parsing..." : "Compile Exam Draft"}
                     </button>
                     <button
                       onClick={() => handleAiGenerate(true)}
                       disabled={generatingAi || !aiFile}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-150 disabled:opacity-50 hover:brightness-110"
-                      style={{
-                        background: "oklch(0.65 0.15 200)",
-                        color: "#ffffff"
-                      }}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 bg-white hover:bg-slate-50 border border-slate-300 text-[#000953]"
                     >
                       {generatingAi ? "Parsing..." : "Compile Practical Draft"}
                     </button>
                   </div>
 
-                  {/* Institutional CDACC Repository (D:\Curriculum and OS) */}
-                  <div className="pt-3 border-t border-slate-700/60 flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+                  {/* Institutional CDACC Repository */}
+                  <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-[#000953]">
                       <Library className="w-3.5 h-3.5 text-[#c48820]" />
                       <span>Institutional CDACC Repository:</span>
                     </div>
                     <select
                       value={selectedRepoCode}
                       onChange={(e) => setSelectedRepoCode(e.target.value)}
-                      className="text-xs text-slate-200 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 focus:outline-none max-w-sm"
+                      className="text-xs text-[#0f172a] bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#000953] max-w-sm"
                     >
                       {repoUnits.map((u) => (
                         <option key={u.unit_code} value={u.unit_code}>
@@ -745,7 +729,7 @@ export default function ExamBuilder() {
                         if (target) handleCompileFromUnit(target, false);
                       }}
                       disabled={generatingAi || !selectedRepoCode}
-                      className="px-3 py-1.5 bg-[#000953] hover:bg-[#000953]/80 border border-blue-400/40 text-white rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
+                      className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-300 text-[#000953] rounded-lg text-xs font-bold transition-all disabled:opacity-50"
                     >
                       Draft Theory (CT)
                     </button>
@@ -755,7 +739,7 @@ export default function ExamBuilder() {
                         if (target) handleCompileFromUnit(target, true);
                       }}
                       disabled={generatingAi || !selectedRepoCode}
-                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
+                      className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-300 text-[#000953] rounded-lg text-xs font-bold transition-all disabled:opacity-50"
                     >
                       Draft Practical (CP)
                     </button>
@@ -766,50 +750,47 @@ export default function ExamBuilder() {
               {/* Header fields */}
               {generatingAi ? (
                 <div className="space-y-4 animate-pulse">
-                  <div className="glass-card p-5 space-y-4">
-                    <div className="h-6 w-1/3 rounded bg-slate-800/50"></div>
+                  <div className="bg-white border border-slate-300 rounded-2xl p-5 space-y-4">
+                    <div className="h-6 w-1/3 rounded bg-slate-200"></div>
                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                      <div className="h-10 rounded bg-slate-800/50"></div>
-                      <div className="h-10 rounded bg-slate-800/50"></div>
-                      <div className="h-10 rounded bg-slate-800/50"></div>
+                      <div className="h-10 rounded bg-slate-200"></div>
+                      <div className="h-10 rounded bg-slate-200"></div>
+                      <div className="h-10 rounded bg-slate-200"></div>
                     </div>
                   </div>
-                  <div className="glass-card p-5 h-48 bg-slate-800/20"></div>
-                  <div className="glass-card p-5 h-48 bg-slate-800/20"></div>
+                  <div className="bg-white border border-slate-300 rounded-2xl p-5 h-48"></div>
+                  <div className="bg-white border border-slate-300 rounded-2xl p-5 h-48"></div>
                 </div>
               ) : (
                 <>
-              <div className="glass-card p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-sm flex items-center gap-2" style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}>
-                    {activeExam ? "Edit Exam" : "New Exam"}
+              <div className="bg-white border border-slate-300 rounded-2xl shadow-sm p-5 space-y-4">
+                <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-200">
+                  <h3 className="font-bold text-base text-[#000953] flex items-center gap-2">
+                    {activeExam ? "Edit Examination Paper" : "New Examination Paper"}
                     {isSavingDraft ? (
-                      <span className="text-[10px] text-slate-400 font-normal animate-pulse flex items-center gap-1">☁️ Saving draft...</span>
+                      <span className="text-[11px] text-slate-500 font-normal animate-pulse flex items-center gap-1">☁️ Saving draft...</span>
                     ) : lastSaved ? (
-                      <span className="text-[10px] text-emerald-500 font-normal flex items-center gap-1">✅ Saved {lastSaved.toLocaleTimeString()}</span>
+                      <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">✓ Saved {lastSaved.toLocaleTimeString()}</span>
                     ) : null}
                   </h3>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => setShowJson(!showJson)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-                      style={{ background: "oklch(1 0 0 / 0.06)", color: "oklch(0.65 0.15 200)" }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:text-[#000953] hover:bg-slate-50 transition"
                     >
                       <Code className="w-3.5 h-3.5" />
                       {showJson ? "Hide" : "View"} JSON
                     </button>
                     <button
                       onClick={copyJson}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
-                      style={{ background: "oklch(1 0 0 / 0.06)", color: "oklch(0.58 0.012 240)" }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:text-[#000953] hover:bg-slate-50 transition"
                     >
                       <Copy className="w-3.5 h-3.5" />
                       Copy
                     </button>
                     <button
                       onClick={() => setShowQuestionBank(!showQuestionBank)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
-                      style={{ background: "oklch(1 0 0 / 0.06)", color: "oklch(0.65 0.15 200)" }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:text-[#000953] hover:bg-slate-50 transition"
                       title="Open question bank"
                     >
                       <Library className="w-3.5 h-3.5" />
@@ -819,8 +800,7 @@ export default function ExamBuilder() {
                       <>
                         <button
                           onClick={() => duplicateExam(activeExam)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
-                          style={{ background: "oklch(1 0 0 / 0.06)", color: "oklch(0.65 0.15 200)" }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:text-[#000953] hover:bg-slate-50 transition"
                           title="Clone this exam"
                         >
                           <Copy className="w-3.5 h-3.5" />
@@ -828,8 +808,7 @@ export default function ExamBuilder() {
                         </button>
                         <button
                           onClick={() => exportExamAsJSON(activeExam)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
-                          style={{ background: "oklch(1 0 0 / 0.06)", color: "oklch(0.72 0.18 160)" }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:text-[#000953] hover:bg-slate-50 transition"
                           title="Export as JSON"
                         >
                           <Download className="w-3.5 h-3.5" />
@@ -840,8 +819,7 @@ export default function ExamBuilder() {
                     <button
                       onClick={exportExamAsDocx}
                       disabled={exportingDocx}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold hover:brightness-110"
-                      style={{ background: "var(--accent)", color: "#ffffff" }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:text-[#000953] hover:bg-slate-50 transition disabled:opacity-50"
                     >
                       <Download className="w-3.5 h-3.5" />
                       {exportingDocx ? "Exporting..." : "Export Word"}
@@ -849,33 +827,28 @@ export default function ExamBuilder() {
                     <button
                       onClick={saveExam}
                       disabled={saving}
-                      className="btn-emerald flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs"
+                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-[#000953] hover:bg-[#000e7a] text-white transition active:scale-[0.98] shadow-sm disabled:opacity-50"
                     >
-                      <Save className="w-3.5 h-3.5" />
+                      <Save className="w-3.5 h-3.5 text-[#c48820]" />
                       {saving ? "Saving..." : "Save Exam"}
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3.5">
                   <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
+                    <label className="block text-xs font-bold mb-1.5 text-slate-700">
                       Course Name (Optional)
                     </label>
                     <input
                       value={courseName}
                       onChange={(e) => setCourseName(e.target.value)}
                       placeholder="e.g. ICT TECHNICIAN LEVEL 6"
-                      className="w-full px-3 py-2 rounded-lg text-sm"
-                      style={{
-                        background: "oklch(1 0 0 / 0.06)",
-                        border: "1px solid oklch(1 0 0 / 0.10)",
-                        color: "oklch(0.94 0.005 240)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
+                    <label className="block text-xs font-bold mb-1.5 text-slate-700">
                       Course Code (Unit Code) *
                     </label>
                     <input
@@ -883,108 +856,73 @@ export default function ExamBuilder() {
                       onChange={(e) => setUnitCode(e.target.value.toUpperCase())}
                       placeholder="e.g. 061006T91CT"
                       disabled={!!activeExam}
-                      className="w-full px-3 py-2 rounded-lg text-sm font-mono disabled:opacity-50"
-                      style={{
-                        background: "oklch(1 0 0 / 0.06)",
-                        border: "1px solid oklch(1 0 0 / 0.10)",
-                        color: "oklch(0.94 0.005 240)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm font-mono bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15 disabled:bg-slate-100 disabled:text-slate-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
+                    <label className="block text-xs font-bold mb-1.5 text-slate-700">
                       Unit Name (Optional)
                     </label>
                     <input
                       value={unitName}
                       onChange={(e) => setUnitName(e.target.value)}
                       placeholder="e.g. ENVIRONMENTAL STUDIES"
-                      className="w-full px-3 py-2 rounded-lg text-sm"
-                      style={{
-                        background: "oklch(1 0 0 / 0.06)",
-                        border: "1px solid oklch(1 0 0 / 0.10)",
-                        color: "oklch(0.94 0.005 240)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
+                    <label className="block text-xs font-bold mb-1.5 text-slate-700">
                       Class (Optional)
                     </label>
                     <input
                       value={classCode}
                       onChange={(e) => setClassCode(e.target.value)}
                       placeholder="e.g. ITECH6/M/24"
-                      className="w-full px-3 py-2 rounded-lg text-sm"
-                      style={{
-                        background: "oklch(1 0 0 / 0.06)",
-                        border: "1px solid oklch(1 0 0 / 0.10)",
-                        color: "oklch(0.94 0.005 240)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
+                    <label className="block text-xs font-bold mb-1.5 text-slate-700">
                       Series (Optional)
                     </label>
                     <input
                       value={series}
                       onChange={(e) => setSeries(e.target.value)}
                       placeholder="e.g. Jan./April 2026"
-                      className="w-full px-3 py-2 rounded-lg text-sm"
-                      style={{
-                        background: "oklch(1 0 0 / 0.06)",
-                        border: "1px solid oklch(1 0 0 / 0.10)",
-                        color: "oklch(0.94 0.005 240)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
+                    <label className="block text-xs font-bold mb-1.5 text-slate-700">
                       Exam Title *
                     </label>
                     <input
                       value={payload.title}
                       onChange={(e) => setPayload((p) => ({ ...p, title: e.target.value }))}
                       placeholder="e.g. Computer Science — CAT 1"
-                      className="w-full px-3 py-2 rounded-lg text-sm"
-                      style={{
-                        background: "oklch(1 0 0 / 0.06)",
-                        border: "1px solid oklch(1 0 0 / 0.10)",
-                        color: "oklch(0.94 0.005 240)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
+                    <label className="block text-xs font-bold mb-1.5 text-slate-700">
                       Duration (minutes)
                     </label>
                     <input
                       type="number"
                       value={payload.duration_minutes}
                       onChange={(e) => setPayload((p) => ({ ...p, duration_minutes: +e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg text-sm font-mono"
-                      style={{
-                        background: "oklch(1 0 0 / 0.06)",
-                        border: "1px solid oklch(1 0 0 / 0.10)",
-                        color: "oklch(0.94 0.005 240)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm font-mono bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
+                    <label className="block text-xs font-bold mb-1.5 text-slate-700">
                       General Instructions
                     </label>
                     <textarea
                       value={payload.instructions}
                       onChange={(e) => setPayload((p) => ({ ...p, instructions: e.target.value }))}
                       rows={2}
-                      className="w-full px-3 py-2 rounded-lg text-sm resize-none"
-                      style={{
-                        background: "oklch(1 0 0 / 0.06)",
-                        border: "1px solid oklch(1 0 0 / 0.10)",
-                        color: "oklch(0.94 0.005 240)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm resize-none bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
                     />
                   </div>
                 </div>
@@ -997,9 +935,9 @@ export default function ExamBuilder() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="glass-card p-4 overflow-auto max-h-64"
+                    className="p-4 rounded-xl bg-slate-900 border border-slate-700 overflow-auto max-h-64"
                   >
-                    <pre className="text-xs font-mono" style={{ color: "oklch(0.72 0.18 160)" }}>
+                    <pre className="text-xs font-mono text-slate-100">
                       {JSON.stringify({ unit_code: unitCode, course_name: courseName, payload }, null, 2)}
                     </pre>
                   </motion.div>
@@ -1008,33 +946,33 @@ export default function ExamBuilder() {
 
               {/* Practical Assessment Layout */}
               {payload.type === "practical" ? (
-                <div className="glass-card p-5 space-y-4">
+                <div className="p-5 rounded-2xl bg-white border border-slate-300 shadow-sm space-y-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Library className="w-5 h-5" style={{ color: "var(--accent)" }} />
-                    <span className="font-bold text-sm" style={{ color: "var(--accent)" }}>
+                    <Library className="w-4 h-4 text-[#c48820]" />
+                    <span className="font-bold text-sm text-[#000953]">
                       Practical Assessment Layout (Read-Only Preview)
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600">
                     This practical assessment has been generated and configured by the AI. The exported Word document will contain the Project Brief, Tasks, and Tabular Grading Rubrics.
                   </p>
                   
-                  <div className="mt-4 p-4 rounded-xl space-y-3" style={{ background: "oklch(1 0 0 / 0.04)" }}>
+                  <div className="mt-4 p-4 rounded-xl space-y-3 bg-slate-50 border border-slate-200">
                     <div>
-                      <span className="text-xs font-bold" style={{ color: "oklch(0.65 0.15 200)" }}>Project Brief: </span>
-                      <span className="text-xs" style={{ color: "oklch(0.94 0.005 240)" }}>{payload.project_brief}</span>
+                      <span className="text-xs font-bold text-[#000953]">Project Brief: </span>
+                      <span className="text-xs text-slate-800">{payload.project_brief}</span>
                     </div>
                     <div>
-                      <span className="text-xs font-bold" style={{ color: "oklch(0.65 0.15 200)" }}>Elements Covered: </span>
-                      <span className="text-xs" style={{ color: "oklch(0.94 0.005 240)" }}>{payload.elements_covered?.join(", ")}</span>
+                      <span className="text-xs font-bold text-[#000953]">Elements Covered: </span>
+                      <span className="text-xs text-slate-800">{payload.elements_covered?.join(", ")}</span>
                     </div>
                     <div>
-                      <span className="text-xs font-bold" style={{ color: "oklch(0.65 0.15 200)" }}>Tasks: </span>
-                      <span className="text-xs" style={{ color: "oklch(0.94 0.005 240)" }}>{payload.tasks?.length} Generated</span>
+                      <span className="text-xs font-bold text-[#000953]">Tasks: </span>
+                      <span className="text-xs text-slate-800">{payload.tasks?.length} Generated</span>
                     </div>
                     <div>
-                      <span className="text-xs font-bold" style={{ color: "oklch(0.65 0.15 200)" }}>Rubric Categories: </span>
-                      <span className="text-xs" style={{ color: "oklch(0.94 0.005 240)" }}>{payload.rubric?.length} Generated</span>
+                      <span className="text-xs font-bold text-[#000953]">Rubric Categories: </span>
+                      <span className="text-xs text-slate-800">{payload.rubric?.length} Generated</span>
                     </div>
                   </div>
                 </div>
@@ -1043,7 +981,7 @@ export default function ExamBuilder() {
                   {/* Section A */}
                   <SectionEditor
                     section="a"
-                    title="Section A — Multiple Choice"
+                    title="Section A — Multiple Choice / Short Answer"
                     questions={payload.section_a?.questions || []}
                     sectionInstructions={payload.section_a?.instructions || ""}
                     expanded={expandedSection === "a"}
@@ -1122,34 +1060,26 @@ function SectionEditor({
   const totalMarks = questions.reduce((s, q) => s + q.marks, 0);
 
   return (
-    <div className="glass-card overflow-hidden">
+    <div className="rounded-2xl bg-white border border-slate-300 shadow-sm overflow-hidden">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-5 py-4 text-left sticky top-0 z-10 backdrop-blur-xl"
-        style={{ borderBottom: expanded ? "1px solid oklch(1 0 0 / 0.08)" : undefined, background: "rgba(0,0,0,0.2)" }}
+        className="w-full flex items-center justify-between px-5 py-4 text-left sticky top-0 z-10 bg-slate-50 border-b border-slate-200 hover:bg-slate-100/80 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div
-            className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold"
-            style={{
-              background: "oklch(0.72 0.18 160 / 0.15)",
-              color: "oklch(0.72 0.18 160)",
-              fontFamily: "Syne, sans-serif",
-            }}
-          >
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold font-mono bg-[#000953] text-white shadow-sm">
             {section.toUpperCase()}
           </div>
-          <span className="font-bold text-sm" style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}>
+          <span className="font-bold text-sm text-[#000953]">
             {title}
           </span>
-          <span className="text-xs font-mono" style={{ color: "oklch(0.72 0.18 160)" }}>
+          <span className="text-xs font-mono font-semibold text-[#c48820] bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
             {questions.length} questions · {totalMarks} marks
           </span>
         </div>
         {expanded ? (
-          <ChevronUp className="w-4 h-4" style={{ color: "oklch(0.58 0.012 240)" }} />
+          <ChevronUp className="w-4 h-4 text-slate-500" />
         ) : (
-          <ChevronDown className="w-4 h-4" style={{ color: "oklch(0.58 0.012 240)" }} />
+          <ChevronDown className="w-4 h-4 text-slate-500" />
         )}
       </button>
 
@@ -1164,19 +1094,14 @@ function SectionEditor({
           >
             <div className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
+                <label className="block text-xs font-bold mb-1.5 text-slate-700">
                   Section Instructions
                 </label>
                 <textarea
                   value={sectionInstructions}
                   onChange={(e) => onInstructionsChange(e.target.value)}
                   rows={2}
-                  className="w-full px-3 py-2 rounded-lg text-sm resize-none"
-                  style={{
-                    background: "oklch(1 0 0 / 0.06)",
-                    border: "1px solid oklch(1 0 0 / 0.10)",
-                    color: "oklch(0.94 0.005 240)",
-                  }}
+                  className="w-full px-3 py-2 rounded-lg text-sm resize-none bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
                 />
               </div>
 
@@ -1195,14 +1120,9 @@ function SectionEditor({
 
               <button
                 onClick={onAddQuestion}
-                className="w-full py-2.5 rounded-xl border-dashed border text-sm font-medium flex items-center justify-center gap-2 transition-all hover:opacity-80"
-                style={{
-                  borderColor: "oklch(0.72 0.18 160 / 0.4)",
-                  color: "oklch(0.72 0.18 160)",
-                  background: "oklch(0.72 0.18 160 / 0.05)",
-                }}
+                className="w-full py-2.5 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-blue-50/50 hover:border-[#000953] text-xs font-bold uppercase tracking-wider text-[#000953] flex items-center justify-center gap-2 transition active:scale-[0.99]"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 text-[#c48820]" />
                 Add Question
               </button>
             </div>
@@ -1227,33 +1147,19 @@ interface QuestionEditorProps {
 
 function QuestionEditor({ question, index, section, onUpdate, onRemove, canRemove, unitLevel }: QuestionEditorProps) {
   return (
-    <div
-      className="p-4 rounded-xl space-y-3"
-      style={{
-        background: "oklch(1 0 0 / 0.04)",
-        border: "1px solid oklch(1 0 0 / 0.08)",
-      }}
-    >
+    <div className="p-4 rounded-xl space-y-3 bg-slate-50/80 border border-slate-300 hover:border-[#000953]/50 transition">
       <div className="flex items-center justify-between">
-        <span
-          className="text-xs font-bold"
-          style={{ fontFamily: "JetBrains Mono, monospace", color: "oklch(0.72 0.18 160)" }}
-        >
+        <span className="px-2.5 py-0.5 rounded text-xs font-bold font-mono bg-[#000953] text-white shadow-sm">
           Q{index + 1}
         </span>
         <div className="flex items-center gap-2">
           {unitLevel >= 4 && question.type === "true_false" && (
-            <span className="text-[10px] text-red-500 font-bold">⚠️ Level {unitLevel} CDACC prohibits True/False</span>
+            <span className="text-[10px] text-rose-600 font-bold">⚠️ Level {unitLevel} CDACC prohibits True/False</span>
           )}
           <select
             value={question.type}
             onChange={(e) => onUpdate({ type: e.target.value as ExamQuestion["type"] })}
-            className="text-xs px-2 py-1 rounded-lg"
-            style={{
-              background: "oklch(1 0 0 / 0.08)",
-              border: "1px solid oklch(1 0 0 / 0.12)",
-              color: "oklch(0.80 0.008 240)",
-            }}
+            className="text-xs px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-[#0f172a] font-medium focus:outline-none focus:border-[#000953]"
           >
             {unitLevel < 5 && <option value="mcq">MCQ</option>}
             <option value="short_answer">Short Answer</option>
@@ -1263,17 +1169,16 @@ function QuestionEditor({ question, index, section, onUpdate, onRemove, canRemov
             type="number"
             value={question.marks}
             onChange={(e) => onUpdate({ marks: +e.target.value })}
-            className="w-16 text-xs px-2 py-1 rounded-lg font-mono text-center"
-            style={{
-              background: "oklch(1 0 0 / 0.08)",
-              border: "1px solid oklch(1 0 0 / 0.12)",
-              color: "oklch(0.72 0.18 160)",
-            }}
+            className="w-16 text-xs px-2 py-1.5 rounded-lg font-mono font-bold text-center bg-white border border-slate-300 text-[#000953] focus:outline-none focus:border-[#000953]"
             min={1}
           />
-          <span className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>marks</span>
+          <span className="text-xs font-semibold text-slate-600">marks</span>
           {canRemove && (
-            <button onClick={onRemove} style={{ color: "oklch(0.65 0.22 25 / 0.7)" }}>
+            <button
+              onClick={onRemove}
+              className="text-slate-400 hover:text-rose-600 transition-colors p-1"
+              title="Remove Question"
+            >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           )}
@@ -1285,16 +1190,11 @@ function QuestionEditor({ question, index, section, onUpdate, onRemove, canRemov
         onChange={(e) => onUpdate({ text: e.target.value })}
         placeholder={`Question ${index + 1} text...`}
         rows={2}
-        className="w-full px-3 py-2 rounded-lg text-sm resize-none"
-        style={{
-          background: "oklch(1 0 0 / 0.06)",
-          border: "1px solid oklch(1 0 0 / 0.10)",
-          color: "oklch(0.94 0.005 240)",
-        }}
+        className="w-full px-3 py-2 rounded-lg text-sm resize-none bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
       />
 
       <div className="flex gap-2 items-center">
-        <label className="text-[10px] uppercase font-bold tracking-wider shrink-0" style={{ color: "oklch(0.50 0.010 240)" }}>
+        <label className="text-[10px] uppercase font-bold tracking-wider shrink-0 text-[#000953]">
           CDACC Critical Aspect:
         </label>
         <input
@@ -1302,18 +1202,13 @@ function QuestionEditor({ question, index, section, onUpdate, onRemove, canRemov
           value={question.critical_aspect ?? ""}
           onChange={(e) => onUpdate({ critical_aspect: e.target.value })}
           placeholder="e.g. Map to performance criterion 2.1..."
-          className="flex-1 text-xs px-2.5 py-1.5 rounded-lg"
-          style={{
-            background: "oklch(1 0 0 / 0.05)",
-            border: "1px solid oklch(1 0 0 / 0.08)",
-            color: "oklch(0.94 0.005 240)",
-          }}
+          className="flex-1 text-xs px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953]"
         />
       </div>
 
       {question.type === "mcq" && (
         <div className="space-y-2">
-          <p className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+          <p className="text-xs font-semibold text-slate-600">
             Options (click radio to set correct answer):
           </p>
           {(question.options ?? ["", "", "", ""]).map((opt, oi) => (
@@ -1323,7 +1218,7 @@ function QuestionEditor({ question, index, section, onUpdate, onRemove, canRemov
                 name={`correct-${question.id}`}
                 checked={question.correct_answer === oi}
                 onChange={() => onUpdate({ correct_answer: oi })}
-                className="accent-emerald-500"
+                className="accent-[#000953]"
               />
               <input
                 value={opt}
@@ -1333,17 +1228,14 @@ function QuestionEditor({ question, index, section, onUpdate, onRemove, canRemov
                   onUpdate({ options: opts });
                 }}
                 placeholder={`Option ${String.fromCharCode(65 + oi)}`}
-                className="flex-1 px-2 py-1.5 rounded-lg text-sm"
-                style={{
-                  background: question.correct_answer === oi ? "oklch(0.72 0.18 160 / 0.1)" : "oklch(1 0 0 / 0.05)",
-                  border: question.correct_answer === oi
-                    ? "1px solid oklch(0.72 0.18 160 / 0.4)"
-                    : "1px solid oklch(1 0 0 / 0.08)",
-                  color: "oklch(0.94 0.005 240)",
-                }}
+                className={`flex-1 px-2.5 py-1.5 rounded-lg text-sm bg-white border transition ${
+                  question.correct_answer === oi
+                    ? "border-[#000953] bg-blue-50/60 text-[#000953] font-semibold"
+                    : "border-slate-300 text-[#0f172a] placeholder-slate-400 focus:border-[#000953]"
+                }`}
               />
               {question.correct_answer === oi && (
-                <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: "oklch(0.72 0.18 160)" }} />
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
               )}
             </div>
           ))}
@@ -1353,14 +1245,15 @@ function QuestionEditor({ question, index, section, onUpdate, onRemove, canRemov
       {question.type === "true_false" && (
         <div className="flex gap-3">
           {["True", "False"].map((opt, oi) => (
-            <label key={opt} className="flex items-center gap-2 cursor-pointer">
+            <label key={opt} className="flex items-center gap-2 cursor-pointer text-[#0f172a] font-medium">
               <input
                 type="radio"
                 name={`tf-${question.id}`}
                 checked={question.correct_answer === oi}
                 onChange={() => onUpdate({ correct_answer: oi })}
+                className="accent-[#000953]"
               />
-              <span className="text-sm" style={{ color: "oklch(0.80 0.008 240)" }}>{opt}</span>
+              <span className="text-sm">{opt}</span>
             </label>
           ))}
         </div>
@@ -1368,7 +1261,7 @@ function QuestionEditor({ question, index, section, onUpdate, onRemove, canRemov
 
       {question.type === "short_answer" && (
         <div>
-          <label className="block text-xs mb-1" style={{ color: "oklch(0.50 0.010 240)" }}>
+          <label className="block text-xs font-bold text-slate-700 mb-1">
             Model Answer / Marking Guide (for trainer reference):
           </label>
           <textarea
@@ -1376,12 +1269,7 @@ function QuestionEditor({ question, index, section, onUpdate, onRemove, canRemov
             onChange={(e) => onUpdate({ correct_answer: e.target.value })}
             placeholder="Key points to award marks..."
             rows={2}
-            className="w-full px-3 py-2 rounded-lg text-sm resize-none"
-            style={{
-              background: "oklch(0.72 0.18 160 / 0.05)",
-              border: "1px solid oklch(0.72 0.18 160 / 0.2)",
-              color: "oklch(0.80 0.008 240)",
-            }}
+            className="w-full px-3 py-2 rounded-lg text-sm resize-none bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
           />
         </div>
       )}

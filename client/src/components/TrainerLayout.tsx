@@ -25,7 +25,8 @@ import {
   ChevronRight,
   CheckSquare,
   Wrench,
-  Calendar
+  Calendar,
+  Terminal
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -78,6 +79,7 @@ const NAV_ITEMS: NavItem[] = [
       { icon: TrendingUp, label: "Performance Insights", path: "/trainer/performance-insights" },
       { icon: Download, label: "Official Reports", path: "/trainer/reports" },
       { icon: Settings, label: "System Setup", path: "/trainer/setup" },
+      { icon: Terminal, label: "Admin & Dev Command", path: "/admin" },
     ]
   }
 ];

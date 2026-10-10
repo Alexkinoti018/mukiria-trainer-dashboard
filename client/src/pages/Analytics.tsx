@@ -36,27 +36,20 @@ import { useExam } from "@/contexts/ExamContext";
 import type { Exam, Submission } from "@/lib/supabase";
 
 const CHART_COLORS = {
-  emerald: "oklch(0.72 0.18 160)",
-  teal: "oklch(0.65 0.15 200)",
-  amber: "oklch(0.75 0.14 80)",
-  red: "oklch(0.65 0.22 25)",
-  violet: "oklch(0.70 0.16 290)",
+  emerald: "#047857",
+  teal: "#000953",
+  amber: "#c48820",
+  red: "#be123c",
+  violet: "#1e3a8a",
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div
-        className="px-3 py-2 rounded-xl text-xs"
-        style={{
-          background: "oklch(0.16 0.012 240)",
-          border: "1px solid oklch(1 0 0 / 0.15)",
-          color: "oklch(0.94 0.005 240)",
-        }}
-      >
-        <p className="font-bold mb-1">{label}</p>
+      <div className="px-3 py-2 rounded-xl text-xs bg-white border border-slate-300 text-[#0f172a] shadow-lg">
+        <p className="font-bold mb-1 text-[#000953]">{label}</p>
         {payload.map((p: any) => (
-          <p key={p.name} style={{ color: p.color }}>
+          <p key={p.name} className="font-semibold" style={{ color: p.color }}>
             {p.name}: {typeof p.value === "number" ? p.value.toFixed(1) : p.value}
             {p.name.toLowerCase().includes("rate") || p.name.toLowerCase().includes("score") ? "%" : ""}
           </p>
@@ -130,29 +123,29 @@ export default function Analytics() {
             label: "Overall Average",
             value: `${overallAvg}%`,
             icon: BarChart3,
-            color: CHART_COLORS.emerald,
-            bg: "oklch(0.72 0.18 160 / 0.12)",
+            color: "#000953",
+            bg: "rgba(0, 9, 83, 0.08)",
           },
           {
             label: "Pass Rate",
             value: `${overallPassRate}%`,
             icon: Target,
-            color: CHART_COLORS.teal,
-            bg: "oklch(0.65 0.15 200 / 0.12)",
+            color: "#047857",
+            bg: "rgba(4, 120, 87, 0.1)",
           },
           {
             label: "Total Students",
             value: new Set(submissions.map((s) => s.reg_number)).size,
             icon: Users,
-            color: CHART_COLORS.amber,
-            bg: "oklch(0.75 0.14 80 / 0.12)",
+            color: "#c48820",
+            bg: "rgba(196, 136, 32, 0.12)",
           },
           {
             label: "Top Score",
             value: `${topScore}%`,
             icon: Award,
-            color: CHART_COLORS.violet,
-            bg: "oklch(0.70 0.16 290 / 0.12)",
+            color: "#000953",
+            bg: "rgba(0, 9, 83, 0.08)",
           },
         ].map((kpi, i) => (
           <motion.div
@@ -160,7 +153,7 @@ export default function Analytics() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
-            className="glass-card p-5"
+            className="bg-white border border-slate-300 rounded-xl shadow-sm p-5"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: kpi.bg }}>
@@ -170,7 +163,7 @@ export default function Analytics() {
             <div className="text-2xl font-bold font-mono mb-0.5" style={{ color: kpi.color }}>
               {loading ? "—" : kpi.value}
             </div>
-            <div className="text-xs" style={{ color: "oklch(0.58 0.012 240)" }}>
+            <div className="text-xs font-bold text-slate-600">
               {kpi.label}
             </div>
           </motion.div>
@@ -183,37 +176,34 @@ export default function Analytics() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="glass-card p-5"
+          className="bg-white border border-slate-300 rounded-xl shadow-sm p-5"
         >
-          <h3
-            className="font-bold text-sm mb-4"
-            style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-          >
+          <h3 className="font-bold text-sm mb-4 text-[#000953]">
             Average Score by Unit
           </h3>
           {loading || unitStats.length === 0 ? (
-            <div className="h-48 flex items-center justify-center text-sm" style={{ color: "oklch(0.50 0.010 240)" }}>
+            <div className="h-48 flex items-center justify-center text-sm text-slate-500">
               No data available
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={unitStats} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis
                   dataKey="unit"
-                  tick={{ fill: "oklch(0.58 0.012 240)", fontSize: 11 }}
+                  tick={{ fill: "#334155", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fill: "oklch(0.58 0.012 240)", fontSize: 11 }}
+                  tick={{ fill: "#334155", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                   domain={[0, 100]}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="average" name="Avg Score" fill={CHART_COLORS.emerald} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="passRate" name="Pass Rate" fill={CHART_COLORS.teal} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="average" name="Avg Score" fill={CHART_COLORS.teal} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="passRate" name="Pass Rate" fill={CHART_COLORS.amber} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -224,30 +214,27 @@ export default function Analytics() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="glass-card p-5"
+          className="bg-white border border-slate-300 rounded-xl shadow-sm p-5"
         >
-          <h3
-            className="font-bold text-sm mb-4"
-            style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-          >
+          <h3 className="font-bold text-sm mb-4 text-[#000953]">
             Score Distribution
           </h3>
           {loading || gradedSubs.length === 0 ? (
-            <div className="h-48 flex items-center justify-center text-sm" style={{ color: "oklch(0.50 0.010 240)" }}>
+            <div className="h-48 flex items-center justify-center text-sm text-slate-500">
               No graded submissions
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={scoreDistribution} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis
                   dataKey="range"
-                  tick={{ fill: "oklch(0.58 0.012 240)", fontSize: 10 }}
+                  tick={{ fill: "#334155", fontSize: 10 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fill: "oklch(0.58 0.012 240)", fontSize: 11 }}
+                  tick={{ fill: "#334155", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />
@@ -269,16 +256,13 @@ export default function Analytics() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          className="glass-card p-5"
+          className="bg-white border border-slate-300 rounded-xl shadow-sm p-5"
         >
-          <h3
-            className="font-bold text-sm mb-4"
-            style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-          >
+          <h3 className="font-bold text-sm mb-4 text-[#000953]">
             Submission Status
           </h3>
           {loading || statusData.length === 0 ? (
-            <div className="h-40 flex items-center justify-center text-sm" style={{ color: "oklch(0.50 0.010 240)" }}>
+            <div className="h-40 flex items-center justify-center text-sm text-slate-500">
               No data
             </div>
           ) : (
@@ -300,7 +284,7 @@ export default function Analytics() {
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
                   formatter={(value) => (
-                    <span style={{ color: "oklch(0.80 0.008 240)", fontSize: "11px" }}>{value}</span>
+                    <span className="text-[#0f172a] font-semibold text-[11px]">{value}</span>
                   )}
                 />
               </PieChart>
@@ -313,64 +297,57 @@ export default function Analytics() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="glass-card p-5 lg:col-span-2"
+          className="bg-white border border-slate-300 rounded-xl shadow-sm p-5 lg:col-span-2"
         >
-          <h3
-            className="font-bold text-sm mb-4"
-            style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-          >
+          <h3 className="font-bold text-sm mb-4 text-[#000953]">
             Unit Performance Summary
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ borderBottom: "1px solid oklch(1 0 0 / 0.08)" }}>
+                <tr className="border-b border-slate-200">
                   {["Unit Code", "Course", "Students", "Avg Score", "Pass Rate"].map((h) => (
                     <th
                       key={h}
-                      className="text-left pb-2 pr-4 text-xs font-semibold"
-                      style={{ color: "oklch(0.50 0.010 240)" }}
+                      className="text-left pb-2 pr-4 text-xs font-bold text-slate-600 uppercase tracking-wider"
                     >
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-200">
                 {loading ? (
                   Array.from({ length: 3 }).map((_, i) => (
                     <tr key={i}>
                       {Array.from({ length: 5 }).map((_, j) => (
                         <td key={j} className="py-2 pr-4">
-                          <div className="h-4 rounded animate-pulse" style={{ background: "oklch(1 0 0 / 0.08)" }} />
+                          <div className="h-4 rounded animate-pulse bg-slate-200" />
                         </td>
                       ))}
                     </tr>
                   ))
                 ) : unitStats.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+                    <td colSpan={5} className="py-8 text-center text-xs text-slate-500">
                       No data available
                     </td>
                   </tr>
                 ) : (
                   unitStats.map((unit) => (
-                    <tr key={unit.unit} className="data-table-row">
+                    <tr key={unit.unit} className="hover:bg-slate-50 transition-colors">
                       <td className="py-2.5 pr-4">
-                        <span
-                          className="font-mono text-xs font-bold"
-                          style={{ color: "oklch(0.72 0.18 160)" }}
-                        >
+                        <span className="font-mono text-xs font-bold text-[#000953]">
                           {unit.unit}
                         </span>
                       </td>
                       <td className="py-2.5 pr-4">
-                        <span className="text-xs truncate max-w-32 block" style={{ color: "oklch(0.80 0.008 240)" }}>
+                        <span className="text-xs truncate max-w-32 block text-[#0f172a] font-medium">
                           {unit.course}
                         </span>
                       </td>
                       <td className="py-2.5 pr-4">
-                        <span className="text-xs font-mono" style={{ color: "oklch(0.65 0.15 200)" }}>
+                        <span className="text-xs font-mono font-bold text-slate-700">
                           {unit.submissions}
                         </span>
                       </td>

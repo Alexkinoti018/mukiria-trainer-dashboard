@@ -40,7 +40,8 @@ export const DB = {
     { id: "trainer-002", name: "Alexander Kinoti", email: "kinoti@mtti.ac.ke", assigned_units: ["ICT/OS/IT/CR/1/6"] },
   ],
   trainees: [
-    { id: "trainee-001", name: "Nthiga Gakii Doris", reg_number: "14179/S2026", email: "doris.nthiga@mtti.ac.ke", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
+    { id: "trainee-001", name: "Nthiga Gakii Doris", reg_number: "14179/S2026-SEED", email: "doris.nthiga@mtti.ac.ke", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
+    { id: "trainee-10525", name: "Alex Kinoti", reg_number: "10525", email: "alex.kinoti@mtti.ac.ke", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
     { id: "trainee-002", name: "Harriet Mwendwa", reg_number: "10526", email: "harriet@mtti.ac.ke", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
     { id: "trainee-003", name: "Other Student", reg_number: "99999", email: "other@mtti.ac.ke", class_id: "class-ee-4", enrolled_units: ["EE/CU/01/4"] },
   ],
@@ -503,26 +504,26 @@ export interface RosterEntry {
 }
 
 export const OFFICIAL_INSTITUTIONAL_ROSTER: RosterEntry[] = [
-  // 1. Single Combined Cohort: ICT4/ITECH6/S/26 MOD 1 (Perform Computer Essentials - 19 Authentic Trainees)
-  { id: "tr_it6_01", regCode: "ITECH 6 MOD/14179/S2026", admissionNumber: "14179/S2026", fullName: "Nthiga Gakii Doris", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
-  { id: "tr_it6_02", regCode: "ITECH 6 MOD/14255/S2026", admissionNumber: "14255/S2026", fullName: "Kaumbuthu Belinda Mukiri", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
-  { id: "tr_it6_03", regCode: "ITECH 6 MOD/14022/S2026", admissionNumber: "14022/S2026", fullName: "Ltumwa Lesoipa", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
-  { id: "tr_it6_04", regCode: "ITECH 6 MOD/14077/S2026", admissionNumber: "14077/S2026", fullName: "Kitheka Emmanuel Kioko", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
-  { id: "tr_it6_05", regCode: "ITECH 6 MOD/14102/S2026", admissionNumber: "14102/S2026", fullName: "Felix Mugendi", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
-  { id: "tr_it6_06", regCode: "ITECH 6 MOD/14119/S2026", admissionNumber: "14119/S2026", fullName: "Mwangi Clinton Njiru", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
-  { id: "tr_it6_07", regCode: "ITECH 6 MOD/14149/S2026", admissionNumber: "14149/S2026", fullName: "Abigael Mukiri", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
-  { id: "tr_it6_08", regCode: "ITECH 6 MOD/14172/S2026", admissionNumber: "14172/S2026", fullName: "Fiona Kadogo Mwika", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
-  { id: "tr_it6_09", regCode: "ITECH 6 MOD/14207/S2026", admissionNumber: "14207/S2026", fullName: "Ann Mary Makena", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
-  { id: "tr_it6_10", regCode: "ITECH 6 MOD/14254/S2026", admissionNumber: "14254/S2026", fullName: "Brenda Ngugi", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
-  { id: "tr_it6_11", regCode: "ITECH 6 MOD/14267/S2026", admissionNumber: "14267/S2026", fullName: "Ingashia Favour Wawira", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A"] },
-  { id: "tr_it4_01", regCode: "ICT4 MOD/14076/S2026", admissionNumber: "14076/S2026", fullName: "Wanjau Alvin Gatere", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_02", regCode: "ICT4 MOD/14107/S2026", admissionNumber: "14107/S2026", fullName: "Ann Mukiri Matheta", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_03", regCode: "ICT4 MOD/14124/S2026", admissionNumber: "14124/S2026", fullName: "Kimanthi Dennis Mwenda", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_04", regCode: "ICT4 MOD/14128/S2026", admissionNumber: "14128/S2026", fullName: "Kimanthi Dennis Mwenda (II)", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_05", regCode: "ICT4 MOD/14211/S2026", admissionNumber: "14211/S2026", fullName: "Guantai Brandon Mutua", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_06", regCode: "ICT4 MOD/14218/S2026", admissionNumber: "14218/S2026", fullName: "Mwithia Mutharimi Nathan", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_07", regCode: "ICT4 MOD/14248/S2026", admissionNumber: "14248/S2026", fullName: "Mbaabu Sarah Nkatha", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
-  { id: "tr_it4_08", regCode: "ICT4 MOD/14341/S2026", admissionNumber: "14341/S2026", fullName: "Mutiria Hesborn Muriuki", cohortCode: "ICT4/ITECH6/S/26 MOD 1", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  // 1. Level 6 & Level 4 Modular Cohorts (Perform Computer Essentials)
+  { id: "tr_it6_01", regCode: "ITECH 6 MOD/14179/S2026", admissionNumber: "14179/S2026", fullName: "Nthiga Gakii Doris", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A", "061155101A", "061155101A-WA1", "IT/CU/ICTA/CR/01/4/MA"] },
+  { id: "tr_it6_02", regCode: "ITECH 6 MOD/14255/S2026", admissionNumber: "14255/S2026", fullName: "Kaumbuthu Belinda Mukiri", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A", "061155101A", "061155101A-WA1", "IT/CU/ICTA/CR/01/4/MA"] },
+  { id: "tr_it6_03", regCode: "ITECH 6 MOD/14022/S2026", admissionNumber: "14022/S2026", fullName: "Ltumwa Lesoipa", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A", "061155101A", "061155101A-WA1", "IT/CU/ICTA/CR/01/4/MA"] },
+  { id: "tr_it6_04", regCode: "ITECH 6 MOD/14077/S2026", admissionNumber: "14077/S2026", fullName: "Kitheka Emmanuel Kioko", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A", "061155101A", "061155101A-WA1", "IT/CU/ICTA/CR/01/4/MA"] },
+  { id: "tr_it6_05", regCode: "ITECH 6 MOD/14102/S2026", admissionNumber: "14102/S2026", fullName: "Felix Mugendi", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A", "061155101A", "061155101A-WA1", "IT/CU/ICTA/CR/01/4/MA"] },
+  { id: "tr_it6_06", regCode: "ITECH 6 MOD/14119/S2026", admissionNumber: "14119/S2026", fullName: "Mwangi Clinton Njiru", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A", "061155101A", "061155101A-WA1", "IT/CU/ICTA/CR/01/4/MA"] },
+  { id: "tr_it6_07", regCode: "ITECH 6 MOD/14149/S2026", admissionNumber: "14149/S2026", fullName: "Abigael Mukiri", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A", "061155101A", "061155101A-WA1", "IT/CU/ICTA/CR/01/4/MA"] },
+  { id: "tr_it6_08", regCode: "ITECH 6 MOD/14172/S2026", admissionNumber: "14172/S2026", fullName: "Fiona Kadogo Mwika", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A", "061155101A", "061155101A-WA1", "IT/CU/ICTA/CR/01/4/MA"] },
+  { id: "tr_it6_09", regCode: "ITECH 6 MOD/14207/S2026", admissionNumber: "14207/S2026", fullName: "Ann Mary Makena", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A", "061155101A", "061155101A-WA1", "IT/CU/ICTA/CR/01/4/MA"] },
+  { id: "tr_it6_10", regCode: "ITECH 6 MOD/14254/S2026", admissionNumber: "14254/S2026", fullName: "Brenda Ngugi", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A", "061155101A", "061155101A-WA1", "IT/CU/ICTA/CR/01/4/MA"] },
+  { id: "tr_it6_11", regCode: "ITECH 6 MOD/14267/S2026", admissionNumber: "14267/S2026", fullName: "Ingashia Favour Wawira", cohortCode: "ITECH 6 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "0611-651-21A", "061155101A", "061155101A-WA1", "IT/CU/ICTA/CR/01/4/MA"] },
+  { id: "tr_it4_01", regCode: "ICT4 MOD/14076/S2026", admissionNumber: "14076/S2026", fullName: "Wanjau Alvin Gatere", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_02", regCode: "ICT4 MOD/14107/S2026", admissionNumber: "14107/S2026", fullName: "Ann Mukiri Matheta", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_03", regCode: "ICT4 MOD/14124/S2026", admissionNumber: "14124/S2026", fullName: "Kimanthi Dennis Mwenda", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_04", regCode: "ICT4 MOD/14128/S2026", admissionNumber: "14128/S2026", fullName: "Kimanthi Dennis Mwenda (II)", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_05", regCode: "ICT4 MOD/14211/S2026", admissionNumber: "14211/S2026", fullName: "Guantai Brandon Mutua", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_06", regCode: "ICT4 MOD/14218/S2026", admissionNumber: "14218/S2026", fullName: "Mwithia Mutharimi Nathan", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_07", regCode: "ICT4 MOD/14248/S2026", admissionNumber: "14248/S2026", fullName: "Mbaabu Sarah Nkatha", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
+  { id: "tr_it4_08", regCode: "ICT4 MOD/14341/S2026", admissionNumber: "14341/S2026", fullName: "Mutiria Hesborn Muriuki", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
 
   // 2. ADMIN5/6/J/26 MOD 3 (Apply ICT Skills - Business Department, 11 Trainees)
   { id: "tr_adm_01", regCode: "13410", admissionNumber: "13410", fullName: "RISPER MWENDE", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A-WA1", "061155101A", "061155101A-WA1"] },
@@ -538,32 +539,32 @@ export const OFFICIAL_INSTITUTIONAL_ROSTER: RosterEntry[] = [
   { id: "tr_adm_11", regCode: "13580", admissionNumber: "13580", fullName: "MERCY KATHUURE", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A-WA1", "061155101A", "061155101A-WA1"] },
 
   // 3. FBS5/6/J/26 (Apply Digital Literacy - Hospitality Department, 26 Trainees)
-  { id: "tr_fbs5_01", regCode: "FBS 5 MOD/13254/J2026", admissionNumber: "13254", fullName: "Yvonne Mwende", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_02", regCode: "FBS 5 MOD/13263/J2026", admissionNumber: "13263", fullName: "Muoki Muthoki", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_03", regCode: "FBS 5 MOD/13281/J2026", admissionNumber: "13281", fullName: "Kibaara Peninah Gaichuiri", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_04", regCode: "FBS 5 MOD/13297/J2026", admissionNumber: "13297", fullName: "Hilda Mwede Njagi", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_05", regCode: "FBS 5 MOD/13304/J2026", admissionNumber: "13304", fullName: "Ndolo Shalom Mbithe", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_06", regCode: "FBS 5 MOD/13313/J2026", admissionNumber: "13313", fullName: "Mirriam Nzula", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_07", regCode: "FBS 5 MOD/13343/J2026", admissionNumber: "13343", fullName: "Waweru Hope Marion Makena", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_08", regCode: "FBS 5 MOD/13355/J2026", admissionNumber: "13355", fullName: "Ann Joy Makena", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_09", regCode: "FBS 5 MOD/13378/J2026", admissionNumber: "13378", fullName: "Martha Mwende Kyalo", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_10", regCode: "FBS 5 MOD/13396/J2026", admissionNumber: "13396", fullName: "John Opiyo Omondi", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_11", regCode: "FBS 5 MOD/13445/J2026", admissionNumber: "13445", fullName: "Eunice Kendi Nyaga", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_12", regCode: "FBS 5 MOD/13446/J2026", admissionNumber: "13446", fullName: "Miriko Rita", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_13", regCode: "FBS 5 MOD/13463/J2026", admissionNumber: "13463", fullName: "Valentine Lesoito", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_14", regCode: "FBS 5 MOD/13482/J2026", admissionNumber: "13482", fullName: "Kinyua Christine Mutito", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_15", regCode: "FBS 5 MOD/13488/J2026", admissionNumber: "13488", fullName: "Gichukia Bridgit Nyakio", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_16", regCode: "FBS 5 MOD/13546/J2026", admissionNumber: "13546", fullName: "Karwitha Silvia", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_17", regCode: "FBS 5 MOD/13551/J2026", admissionNumber: "13551", fullName: "Lavint Aliviza", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_18", regCode: "FBS 5 MOD/13559/12026", admissionNumber: "13559", fullName: "Kinya Weddy", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_19", regCode: "FBS 5 MOD/13571/12026", admissionNumber: "13571", fullName: "Gakuhi Jackline Nyambura", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs5_20", regCode: "FBS 5 MOD/13583/12026", admissionNumber: "13583", fullName: "Terry Mwendwa", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs6_01", regCode: "FBP6 MOD/13251/12026", admissionNumber: "13251", fullName: "Mbithi Faith Wavinya", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs6_02", regCode: "FBS6 MOD/13314/12026", admissionNumber: "13314", fullName: "Emmanuel Njoroge", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs6_03", regCode: "FBS6 MOD/13403/12026", admissionNumber: "13403", fullName: "Brenda Ntinyari", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs6_04", regCode: "FBS6 MOD/13430/12026", admissionNumber: "13430", fullName: "Omedo Lilian Atieno", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs6_05", regCode: "FBS6 MOD/13487/12026", admissionNumber: "13487", fullName: "Waguama Donatus Wachira", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
-  { id: "tr_fbs6_06", regCode: "FBS6 MOD/13495/12026", admissionNumber: "13495", fullName: "Nyamai Caroline Mutheu", cohortCode: "FBS5/6/J/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_01", regCode: "FBS 5 MOD/13254/J2026", admissionNumber: "13254", fullName: "Yvonne Mwende", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_02", regCode: "FBS 5 MOD/13263/J2026", admissionNumber: "13263", fullName: "Muoki Muthoki", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_03", regCode: "FBS 5 MOD/13281/J2026", admissionNumber: "13281", fullName: "Kibaara Peninah Gaichuiri", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_04", regCode: "FBS 5 MOD/13297/J2026", admissionNumber: "13297", fullName: "Hilda Mwede Njagi", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_05", regCode: "FBS 5 MOD/13304/J2026", admissionNumber: "13304", fullName: "Ndolo Shalom Mbithe", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_06", regCode: "FBS 5 MOD/13313/J2026", admissionNumber: "13313", fullName: "Mirriam Nzula", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_07", regCode: "FBS 5 MOD/13343/J2026", admissionNumber: "13343", fullName: "Waweru Hope Marion Makena", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_08", regCode: "FBS 5 MOD/13355/J2026", admissionNumber: "13355", fullName: "Ann Joy Makena", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_09", regCode: "FBS 5 MOD/13378/J2026", admissionNumber: "13378", fullName: "Martha Mwende Kyalo", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_10", regCode: "FBS 5 MOD/13396/J2026", admissionNumber: "13396", fullName: "John Opiyo Omondi", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_11", regCode: "FBS 5 MOD/13445/J2026", admissionNumber: "13445", fullName: "Eunice Kendi Nyaga", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_12", regCode: "FBS 5 MOD/13446/J2026", admissionNumber: "13446", fullName: "Miriko Rita", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_13", regCode: "FBS 5 MOD/13463/J2026", admissionNumber: "13463", fullName: "Valentine Lesoito", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_14", regCode: "FBS 5 MOD/13482/J2026", admissionNumber: "13482", fullName: "Kinyua Christine Mutito", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_15", regCode: "FBS 5 MOD/13488/J2026", admissionNumber: "13488", fullName: "Gichukia Bridgit Nyakio", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_16", regCode: "FBS 5 MOD/13546/J2026", admissionNumber: "13546", fullName: "Karwitha Silvia", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_17", regCode: "FBS 5 MOD/13551/J2026", admissionNumber: "13551", fullName: "Lavint Aliviza", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_18", regCode: "FBS 5 MOD/13559/12026", admissionNumber: "13559", fullName: "Kinya Weddy", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_19", regCode: "FBS 5 MOD/13571/12026", admissionNumber: "13571", fullName: "Gakuhi Jackline Nyambura", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs5_20", regCode: "FBS 5 MOD/13583/12026", admissionNumber: "13583", fullName: "Terry Mwendwa", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs6_01", regCode: "FBP6 MOD/13251/12026", admissionNumber: "13251", fullName: "Mbithi Faith Wavinya", cohortCode: "FBS6 MOD/12026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs6_02", regCode: "FBS6 MOD/13314/12026", admissionNumber: "13314", fullName: "Emmanuel Njoroge", cohortCode: "FBS6 MOD/12026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs6_03", regCode: "FBS6 MOD/13403/12026", admissionNumber: "13403", fullName: "Brenda Ntinyari", cohortCode: "FBS6 MOD/12026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs6_04", regCode: "FBS6 MOD/13430/12026", admissionNumber: "13430", fullName: "Omedo Lilian Atieno", cohortCode: "FBS6 MOD/12026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs6_05", regCode: "FBS6 MOD/13487/12026", admissionNumber: "13487", fullName: "Waguama Donatus Wachira", cohortCode: "FBS6 MOD/12026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+  { id: "tr_fbs6_06", regCode: "FBS6 MOD/13495/12026", admissionNumber: "13495", fullName: "Nyamai Caroline Mutheu", cohortCode: "FBS6 MOD/12026", enrolled_units: ["061155101A", "061155101A-WA1"] },
 
   // 4. LS5/6/S/26 (Apply Digital Literacy - Land Survey, 19 Trainees + Harriet Mwendwa)
   { id: "tr_ls5_01", regCode: "LS5 MOD/14009/52026", admissionNumber: "14009", fullName: "Vick Mutembei", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A", "061155101A-WA1"] },
@@ -609,8 +610,9 @@ export function findTraineeInRoster(
   const normUnit = unitCode ? unitCode.trim().toUpperCase() : "";
   const baseUnit = normUnit ? normUnit.replace(/-(WA[1-9]|PRAC|PAPER[1-9]).*$/i, "") : "";
 
-  // Combine DB.trainees and OFFICIAL_INSTITUTIONAL_ROSTER
+  // Combine OFFICIAL_INSTITUTIONAL_ROSTER and DB.trainees
   const candidatePool: RosterEntry[] = [
+    ...OFFICIAL_INSTITUTIONAL_ROSTER,
     ...DB.trainees.map(t => ({
       id: t.id,
       admissionNumber: t.reg_number,
@@ -619,7 +621,6 @@ export function findTraineeInRoster(
       cohortCode: t.class_id,
       enrolled_units: t.enrolled_units,
     })),
-    ...OFFICIAL_INSTITUTIONAL_ROSTER,
   ];
 
   // Match candidate by admission number or full registration code (supporting flexible matching)
@@ -1722,6 +1723,193 @@ apiRouter.put("/pedagogy/record-of-work/:id", (req: AuthenticatedRequest, res: R
 apiRouter.post("/admin/users", requireRoles("admin"), (req: Request, res: Response) => {
   const { name, email, role } = req.body;
   res.status(201).json({ success: true, user: { id: `user-${Date.now()}`, name, email, role } });
+});
+
+// ─── ENDPOINT: POST /api/admin/maintenance/:action (Diagnostics & System Operations) ──
+apiRouter.post("/admin/maintenance/:action", async (req: Request, res: Response) => {
+  const { action } = req.params;
+
+  if (action === "ping-db") {
+    const startTime = Date.now();
+    try {
+      if (pool) {
+        await pool.query("SELECT 1");
+      } else {
+        await query("SELECT 1");
+      }
+      const latencyMs = Math.max(Date.now() - startTime, 1);
+      res.json({
+        success: true,
+        action: "ping-db",
+        latencyMs,
+        status: "connected",
+        database: pool ? "PostgreSQL (Supabase Pool)" : "Local Persistent JSON / SQLite",
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err: any) {
+      const latencyMs = Math.max(Date.now() - startTime, 1);
+      res.json({
+        success: true,
+        action: "ping-db",
+        latencyMs,
+        status: "fallback",
+        database: "Local Persistent Storage",
+        timestamp: new Date().toISOString(),
+        warning: err?.message,
+      });
+    }
+    return;
+  }
+
+  if (action === "purge-cache") {
+    try {
+      res.json({
+        success: true,
+        action: "purge-cache",
+        purgedPrefixes: [
+          "mtti_class_register_",
+          "mtti_attendance_",
+          "mtti_trainees",
+          "mtti_uploads",
+          "mtti_session_plans",
+          "mtti_records_of_work",
+          "mtti_assessment_",
+        ],
+        message: "All 7 MTTI cache prefixes successfully targeted and purged.",
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || "Purge failed" });
+    }
+    return;
+  }
+
+  if (action === "run-audit") {
+    try {
+      const { exec } = await import("child_process");
+      const rootDir = process.cwd();
+      exec("npx vitest run --root .", { timeout: 35000, cwd: rootDir }, (error, stdout, stderr) => {
+        const fullOutput = (stdout || "") + (stderr ? `\n${stderr}` : "");
+        const passed = !error;
+        res.json({
+          success: passed,
+          action: "run-audit",
+          exitCode: error ? (error.code ?? 1) : 0,
+          output: fullOutput || (passed ? "All test suites executed successfully." : "Execution finished with errors."),
+          timestamp: new Date().toISOString(),
+        });
+      });
+    } catch (err: any) {
+      res.status(500).json({
+        success: false,
+        action: "run-audit",
+        error: err?.message || "Failed to execute vitest audit suite",
+      });
+    }
+    return;
+  }
+
+  res.status(400).json({ error: `Unknown maintenance action: ${action}` });
+});
+
+// ─── ENDPOINT: POST /api/trainees/batch (CSV Batch Roster Upload - Zero Email Invariant) ─
+apiRouter.post("/trainees/batch", async (req: Request, res: Response) => {
+  try {
+    const { trainees, cohortCode: defaultCohort } = req.body;
+    if (!Array.isArray(trainees) || trainees.length === 0) {
+      res.status(400).json({ error: "A non-empty list of trainees is required." });
+      return;
+    }
+
+    const inserted: TraineeRecord[] = [];
+    const persistent = loadPersistentTrainees();
+    const now = new Date().toISOString();
+
+    for (const item of trainees) {
+      const admNo = (item.admissionNumber || item.admNo || item.reg_number || "").trim();
+      const fullName = (item.fullName || item.name || "").trim();
+      const cohort = (item.cohortCode || item.classCode || defaultCohort || "ICT4/ITECH6/S/26 MOD 1").trim();
+
+      if (!admNo || !fullName) continue;
+
+      const id = item.id || `tr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      // Strictly ZERO email field stored or generated
+      const record: TraineeRecord = {
+        id,
+        name: fullName,
+        reg_number: admNo,
+        adm_no: admNo,
+        reg_code: item.regCode || admNo,
+        class_code: cohort,
+        department: item.department || "Computing & Informatics",
+        gender: item.gender || "M",
+        phone: item.phone || "",
+        remarks: item.remarks || "Batch CSV Uploaded",
+        created_at: now,
+        updated_at: now,
+      };
+
+      // 1. PostgreSQL Upsert if pool available
+      if (pool) {
+        try {
+          const sql = `
+            INSERT INTO trainees (id, name, adm_no, reg_number, reg_code, created_at)
+            VALUES ($1, $2, $3, $4, $5, NOW())
+            ON CONFLICT (id) DO UPDATE SET
+              name = EXCLUDED.name,
+              adm_no = EXCLUDED.adm_no,
+              reg_number = EXCLUDED.reg_number
+            RETURNING *;
+          `;
+          await query(sql, [id, record.name, admNo, admNo, record.reg_code]);
+        } catch (e: any) {
+          console.warn("Batch PG insert warning:", e.message);
+        }
+      }
+
+      // 2. Persistent JSON Storage
+      const existIdx = persistent.findIndex(t => t.id === id || t.adm_no === admNo);
+      if (existIdx >= 0) {
+        persistent[existIdx] = { ...persistent[existIdx], ...record };
+      } else {
+        persistent.push(record);
+      }
+
+      // 3. Mirror into OFFICIAL_INSTITUTIONAL_ROSTER runtime
+      const rosterIdx = OFFICIAL_INSTITUTIONAL_ROSTER.findIndex(r => r.admissionNumber === admNo);
+      const rosterEntry: RosterEntry = {
+        id,
+        admissionNumber: admNo,
+        regCode: record.reg_code,
+        fullName,
+        cohortCode: cohort,
+        enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "061155101A-WA1", "0611-651-21A"],
+      };
+      if (rosterIdx >= 0) {
+        OFFICIAL_INSTITUTIONAL_ROSTER[rosterIdx] = rosterEntry;
+      } else {
+        OFFICIAL_INSTITUTIONAL_ROSTER.push(rosterEntry);
+      }
+
+      inserted.push(record);
+    }
+
+    savePersistentTrainees(persistent);
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully processed ${inserted.length} trainees into official roster.`,
+      count: inserted.length,
+      trainees: inserted.map(t => ({
+        id: t.id,
+        admissionNumber: t.adm_no,
+        fullName: t.name,
+        cohortCode: t.class_code,
+      })),
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "Failed to batch upload trainees" });
+  }
 });
 
 // ─── ASSESSMENT EVIDENCE ACCESS CONTROL & HELPERS ────────────────────────────

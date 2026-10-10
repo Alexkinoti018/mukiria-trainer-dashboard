@@ -111,37 +111,37 @@
 }
 
 .dark {
-  /* ── Modern Premium UI (Dark Theme - MTTI Official) ── */
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #121214;
-  --card-foreground: #fafafa;
-  --popover: #121214;
-  --popover-foreground: #fafafa;
-  
-  --primary: #1e3a8a; /* Lighter blue for dark mode visibility */
-  --primary-foreground: #ffffff;
-  
-  --secondary: #1f2937;
-  --secondary-foreground: #fafafa;
-  
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
-  
-  --accent: #c48820;
-  --accent-foreground: #000000;
-  
-  --border: #27272a;
-  --input: #27272a;
-  --ring: rgba(30, 58, 138, 0.2);
+  /* ── Enforced MTTI Institutional Light Academic Palette ── */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
 
-  --sidebar: #121214;
-  --sidebar-foreground: #fafafa;
-  --sidebar-primary: #1e3a8a;
+  --primary: #000953;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f1f5f9;
+  --secondary-foreground: #000953;
+
+  --muted: #f1f5f9;
+  --muted-foreground: #475569;
+
+  --accent: #c48820;
+  --accent-foreground: #ffffff;
+
+  --border: #cbd5e1;
+  --input: #cbd5e1;
+  --ring: rgba(0, 9, 83, 0.2);
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #000953;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #27272a;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #27272a;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #000953;
+  --sidebar-border: #cbd5e1;
 }
 
 @layer base {
@@ -225,19 +225,40 @@
   }
 
   /**
-   * Cards: Clean, minimal borders with subtle shadows
+   * Cards: Clean white institutional surface with crisp academic borders
    */
-  .card-minimal {
-    @apply bg-card text-card-foreground rounded-lg border border-border shadow-sm;
+  .card-minimal,
+  .glass-card {
+    background-color: #ffffff;
+    color: #0f172a;
+    border-radius: 0.875rem;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
   }
 
   /**
-   * Buttons: Modern, minimal style
+   * Buttons: Institutional Navy & Gold
    */
-  .btn-primary {
-    @apply px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200;
-    @apply bg-primary text-primary-foreground hover:opacity-90 active:scale-95;
-    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  .btn-primary,
+  .btn-emerald {
+    @apply px-4 py-2 rounded-lg font-semibold text-xs transition-all duration-200;
+    background-color: #000953;
+    color: #ffffff;
+    box-shadow: 0 1px 2px 0 rgba(0, 9, 83, 0.15);
+  }
+  .btn-primary:hover,
+  .btn-emerald:hover {
+    background-color: #000e7a;
+  }
+
+  .btn-amber {
+    @apply px-4 py-2 rounded-lg font-semibold text-xs transition-all duration-200;
+    background-color: #c48820;
+    color: #ffffff;
+    box-shadow: 0 1px 2px 0 rgba(196, 136, 32, 0.2);
+  }
+  .btn-amber:hover {
+    background-color: #a87319;
   }
 
   .btn-secondary {
@@ -307,6 +328,51 @@
 
   .section-subtitle {
     @apply text-sm text-muted-foreground mb-3;
+  }
+
+  /**
+   * Exam System High-Contrast Typography & Brand Components (WCAG AAA)
+   */
+  .exam-inst-header {
+    font-size: 1.625rem; /* 26px */
+    line-height: 1.2;
+    font-weight: 700;
+    color: #000953;
+  }
+
+  .exam-paper-title {
+    font-size: 1.25rem; /* 20px */
+    line-height: 1.3;
+    font-weight: 700;
+    color: #000953;
+  }
+
+  .exam-section-heading {
+    font-size: 1.125rem; /* 18px */
+    line-height: 1.3;
+    font-weight: 600;
+    color: #000953;
+  }
+
+  .exam-question-prompt {
+    font-size: 1.0rem; /* 16px */
+    line-height: 1.55;
+    font-weight: 500;
+    color: #0f172a;
+  }
+
+  .exam-marks-badge {
+    font-size: 0.8125rem; /* 13px */
+    line-height: 1.0;
+    font-weight: 700;
+    color: #c48820;
+  }
+
+  .exam-footer-timestamp {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1.4;
+    font-weight: 400;
+    color: #64748b;
   }
 }
 
@@ -417,6 +483,85 @@
   tr, .avoid-break {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+  }
+
+  /* ── Standardized High-Contrast Print Typography Hierarchy (WCAG AAA) ── */
+  .exam-inst-header {
+    font-size: 18pt !important;
+    line-height: 1.2 !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+    font-family: "Helvetica Neue", Arial, Calibri, sans-serif !important;
+  }
+
+  .exam-paper-title {
+    font-size: 14pt !important;
+    line-height: 1.3 !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+    font-family: "Helvetica Neue", Arial, Calibri, sans-serif !important;
+  }
+
+  .exam-section-heading {
+    font-size: 12pt !important;
+    line-height: 1.3 !important;
+    font-weight: 600 !important;
+    color: #000000 !important;
+    font-family: "Helvetica Neue", Arial, Calibri, sans-serif !important;
+  }
+
+  .exam-question-prompt {
+    font-size: 11pt !important;
+    line-height: 1.55 !important;
+    font-weight: 500 !important;
+    color: #000000 !important;
+    font-family: "Helvetica Neue", Arial, Calibri, sans-serif !important;
+  }
+
+  .exam-marks-badge {
+    font-size: 10pt !important;
+    line-height: 1.0 !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+    font-family: "Helvetica Neue", Arial, Calibri, sans-serif !important;
+  }
+
+  .exam-footer-timestamp {
+    font-size: 9pt !important;
+    line-height: 1.3 !important;
+    font-weight: 400 !important;
+    color: #1f2937 !important;
+    font-family: "Helvetica Neue", Arial, Calibri, sans-serif !important;
+  }
+
+  /* When printing Marked Exam Script Modal */
+  body.printing-marked-exam {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.printing-marked-exam * {
+    visibility: hidden !important;
+  }
+
+  body.printing-marked-exam #printable-marked-exam,
+  body.printing-marked-exam #printable-marked-exam * {
+    visibility: visible !important;
+  }
+
+  body.printing-marked-exam #printable-marked-exam {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border: none !important;
+    color: #000000 !important;
   }
 }
 

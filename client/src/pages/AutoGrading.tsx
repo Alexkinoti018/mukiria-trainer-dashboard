@@ -238,13 +238,13 @@ export default function AutoGrading() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "auto_graded":
-        return <CheckCircle2 className="w-4 h-4" style={{ color: "oklch(0.65 0.22 120)" }} />;
+        return <CheckCircle2 className="w-4 h-4 text-emerald-600" />;
       case "reviewed":
-        return <ThumbsUp className="w-4 h-4" style={{ color: "oklch(0.65 0.22 120)" }} />;
+        return <ThumbsUp className="w-4 h-4 text-emerald-600" />;
       case "flagged":
-        return <AlertCircle className="w-4 h-4" style={{ color: "oklch(0.65 0.22 25)" }} />;
+        return <AlertCircle className="w-4 h-4 text-rose-600" />;
       default:
-        return <Clock className="w-4 h-4" style={{ color: "oklch(0.72 0.18 160)" }} />;
+        return <Clock className="w-4 h-4 text-slate-500" />;
     }
   };
 
@@ -257,45 +257,22 @@ export default function AutoGrading() {
       <div className="space-y-4">
         {/* Stats Row */}
         <div className="grid grid-cols-4 gap-3">
-          <div
-            className="glass-card p-4 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-          >
-            <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
-              Pending Review
-            </div>
-            <div className="text-2xl font-bold mt-2" style={{ color: "oklch(0.72 0.18 160)" }}>
-              {pendingCount}
-            </div>
+          <div className="bg-white border border-slate-300 shadow-sm p-4 rounded-xl">
+            <div className="text-xs font-semibold text-slate-600">Pending Review</div>
+            <div className="text-2xl font-bold mt-2 font-mono text-[#c48820]">{pendingCount}</div>
           </div>
-          <div
-            className="glass-card p-4 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-          >
-            <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
-              Flagged
-            </div>
-            <div className="text-2xl font-bold mt-2" style={{ color: "oklch(0.65 0.22 25)" }}>
-              {flaggedCount}
-            </div>
+          <div className="bg-white border border-slate-300 shadow-sm p-4 rounded-xl">
+            <div className="text-xs font-semibold text-slate-600">Flagged</div>
+            <div className="text-2xl font-bold mt-2 font-mono text-rose-600">{flaggedCount}</div>
           </div>
-          <div
-            className="glass-card p-4 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-          >
-            <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
-              Reviewed
-            </div>
-            <div className="text-2xl font-bold mt-2" style={{ color: "oklch(0.65 0.22 120)" }}>
-              {reviewedCount}
-            </div>
+          <div className="bg-white border border-slate-300 shadow-sm p-4 rounded-xl">
+            <div className="text-xs font-semibold text-slate-600">Reviewed</div>
+            <div className="text-2xl font-bold mt-2 font-mono text-emerald-700">{reviewedCount}</div>
           </div>
-          <div className="flex items-center justify-between p-4 rounded-xl" style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}>
-            <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
-              Total Items
-            </div>
-            <div className="text-2xl font-bold" style={{ color: "oklch(0.58 0.012 240)" }}>
-              {items.length}
+          <div className="bg-white border border-slate-300 shadow-sm p-4 rounded-xl flex items-center justify-between">
+            <div>
+              <div className="text-xs font-semibold text-slate-600">Total Items</div>
+              <div className="text-2xl font-bold mt-2 font-mono text-[#000953]">{items.length}</div>
             </div>
           </div>
         </div>
@@ -303,15 +280,15 @@ export default function AutoGrading() {
         {/* Filter Tabs & Batch Actions */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex gap-2">
-            {["all", "pending", "flagged"].map((status) => (
+            {(["all", "pending", "flagged"] as const).map((status) => (
               <button
                 key={status}
-                onClick={() => setFilterStatus(status as any)}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
-                style={{
-                  background: filterStatus === status ? "oklch(0.72 0.18 160)" : "oklch(1 0 0 / 0.06)",
-                  color: filterStatus === status ? "white" : "oklch(0.58 0.012 240)",
-                }}
+                onClick={() => setFilterStatus(status)}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${
+                  filterStatus === status
+                    ? "bg-[#000953] border-[#000953] text-white shadow-sm"
+                    : "bg-white border-slate-300 text-slate-600 hover:text-[#000953] hover:bg-slate-50"
+                }`}
               >
                 {status.charAt(0).toUpperCase() + status.slice(1)}
               </button>
@@ -320,13 +297,9 @@ export default function AutoGrading() {
           {pendingCount > 0 && (
             <button
               onClick={autoGradeAllPending}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-md hover:opacity-90"
-              style={{
-                background: "#c48820",
-                color: "#ffffff",
-              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-sm bg-[#000953] hover:bg-[#000e7a] text-white active:scale-[0.98]"
             >
-              <Zap className="w-4 h-4" />
+              <Zap className="w-3.5 h-3.5 text-[#c48820]" />
               Auto-Grade All Pending ({pendingCount})
             </button>
           )}
@@ -341,50 +314,50 @@ export default function AutoGrading() {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 8 }}
-                className="glass-card p-4 rounded-xl cursor-pointer transition-all hover:shadow-lg"
-                style={{
-                  background: "oklch(1 0 0 / 0.04)",
-                  border: `1px solid ${item.status === "flagged" ? "oklch(0.65 0.22 25 / 0.3)" : "oklch(1 0 0 / 0.08)"}`,
-                }}
+                className={`p-4 rounded-xl cursor-pointer transition-all hover:bg-slate-50 border shadow-sm ${
+                  item.status === "flagged"
+                    ? "bg-white border-rose-300 hover:border-rose-400"
+                    : "bg-white border-slate-300 hover:border-slate-400"
+                }`}
                 onClick={() => setSelectedItem(item)}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       {getStatusIcon(item.status)}
-                      <div className="font-bold text-sm" style={{ color: "oklch(0.94 0.005 240)" }}>
+                      <div className="font-bold text-sm text-[#0f172a]">
                         {item.studentName}
                       </div>
                     </div>
-                  <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
-                    {item.regNumber} • Q{item.questionId.slice(1)}
-                  </div>
-                  {item.reviewerComment && (
-                    <div className="text-xs mt-1" style={{ color: "oklch(0.72 0.18 160)" }}>
-                      {item.reviewerComment}
+                    <div className="text-xs font-mono text-slate-500">
+                      {item.regNumber} • Q{item.questionId.slice(1)}
                     </div>
-                  )}
+                    {item.reviewerComment && (
+                      <div className="text-xs mt-1 text-[#c48820] font-medium italic">
+                        {item.reviewerComment}
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
                     {item.autoScore !== undefined && (
-                      <div className="text-sm font-bold" style={{ color: "oklch(0.72 0.18 160)" }}>
+                      <div className="text-sm font-bold font-mono text-[#000953]">
                         {item.autoScore}/{item.marks}
                       </div>
                     )}
                     {item.manualScore !== undefined && (
-                      <div className="text-xs" style={{ color: "oklch(0.65 0.22 120)" }}>
+                      <div className="text-xs font-mono text-emerald-700 font-bold">
                         Manual: {item.manualScore}/{item.marks}
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="mb-2 text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+                <div className="mb-2 text-xs text-slate-700 font-medium">
                   {item.questionText}
                 </div>
 
-                <div className="mb-2 p-2 rounded-lg" style={{ background: "oklch(1 0 0 / 0.05)" }}>
-                  <div className="text-xs font-mono" style={{ color: "oklch(0.58 0.012 240)" }}>
+                <div className="mb-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="text-xs font-mono text-[#0f172a]">
                     {item.studentAnswer.substring(0, 100)}
                     {item.studentAnswer.length > 100 ? "..." : ""}
                   </div>
@@ -392,14 +365,8 @@ export default function AutoGrading() {
 
                 {item.confidence && (
                   <div className="flex items-center justify-between text-xs">
-                    <div style={{ color: "oklch(0.50 0.010 240)" }}>AI Confidence</div>
-                    <div
-                      className="px-2 py-1 rounded-lg font-mono"
-                      style={{
-                        background: `oklch(0.72 0.18 160 / ${item.confidence * 0.2})`,
-                        color: "oklch(0.72 0.18 160)",
-                      }}
-                    >
+                    <div className="text-slate-600 font-medium">AI Confidence</div>
+                    <div className="px-2 py-0.5 rounded font-mono text-xs bg-slate-100 border border-slate-300 text-[#000953] font-bold">
                       {Math.round(item.confidence * 100)}%
                     </div>
                   </div>
@@ -414,17 +381,15 @@ export default function AutoGrading() {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-6 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
+            className="p-6 rounded-xl bg-white border border-slate-300 shadow-lg"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold" style={{ color: "oklch(0.94 0.005 240)" }}>
+              <h3 className="font-bold text-base text-[#000953]">
                 Review: {selectedItem.studentName}
               </h3>
               <button
                 onClick={() => setSelectedItem(null)}
-                className="text-sm px-3 py-1 rounded-lg"
-                style={{ background: "oklch(1 0 0 / 0.06)", color: "oklch(0.58 0.012 240)" }}
+                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 hover:bg-slate-200 transition"
               >
                 Close
               </button>
@@ -432,35 +397,29 @@ export default function AutoGrading() {
 
             <div className="space-y-4 mb-4">
               <div>
-                <div className="text-xs mb-1" style={{ color: "oklch(0.50 0.010 240)" }}>
+                <div className="text-xs text-slate-600 mb-1 font-bold uppercase tracking-wider">
                   Question
                 </div>
-                <div className="text-sm" style={{ color: "oklch(0.58 0.012 240)" }}>
+                <div className="text-sm text-[#0f172a] font-medium">
                   {selectedItem.questionText}
                 </div>
               </div>
 
               <div>
-                <div className="text-xs mb-1" style={{ color: "oklch(0.50 0.010 240)" }}>
+                <div className="text-xs text-slate-600 mb-1 font-bold uppercase tracking-wider">
                   Student Answer
                 </div>
-                <div
-                  className="p-3 rounded-lg text-sm"
-                  style={{ background: "oklch(1 0 0 / 0.05)", color: "oklch(0.58 0.012 240)" }}
-                >
+                <div className="p-3 rounded-lg text-sm bg-slate-50 border border-slate-300 text-[#0f172a] font-mono">
                   {selectedItem.studentAnswer}
                 </div>
               </div>
 
               {selectedItem.aiReasoning && (
                 <div>
-                  <div className="text-xs mb-1" style={{ color: "oklch(0.50 0.010 240)" }}>
+                  <div className="text-xs text-slate-600 mb-1 font-bold uppercase tracking-wider">
                     AI Analysis
                   </div>
-                  <div
-                    className="p-3 rounded-lg text-sm"
-                    style={{ background: "oklch(0.72 0.18 160 / 0.1)", color: "oklch(0.72 0.18 160)" }}
-                  >
+                  <div className="p-3 rounded-lg text-xs bg-[#000953]/5 border border-[#000953]/20 text-[#0f172a] leading-relaxed">
                     {selectedItem.aiReasoning}
                   </div>
                 </div>
@@ -469,7 +428,7 @@ export default function AutoGrading() {
               {selectedItem.questionType !== "mcq" && (
                 <>
                   <div>
-                    <label className="text-xs block mb-2" style={{ color: "oklch(0.50 0.010 240)" }}>
+                    <label className="text-xs block mb-1.5 text-slate-700 font-bold uppercase tracking-wider">
                       Manual Score (out of {selectedItem.marks})
                     </label>
                     <input
@@ -478,17 +437,12 @@ export default function AutoGrading() {
                       max={selectedItem.marks}
                       value={manualScore ?? ""}
                       onChange={(e) => setManualScore(e.target.value ? parseInt(e.target.value) : null)}
-                      className="w-full px-3 py-2 rounded-lg text-sm"
-                      style={{
-                        background: "oklch(1 0 0 / 0.05)",
-                        border: "1px solid oklch(1 0 0 / 0.1)",
-                        color: "oklch(0.58 0.012 240)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm bg-white border border-slate-300 text-[#0f172a] focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15 font-mono"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs block mb-2" style={{ color: "oklch(0.50 0.010 240)" }}>
+                    <label className="text-xs block mb-1.5 text-slate-700 font-bold uppercase tracking-wider">
                       Reviewer Comment
                     </label>
                     <textarea
@@ -496,20 +450,14 @@ export default function AutoGrading() {
                       onChange={(e) => setReviewComment(e.target.value)}
                       placeholder="Add feedback for the student..."
                       rows={3}
-                      className="w-full px-3 py-2 rounded-lg text-sm resize-none"
-                      style={{
-                        background: "oklch(1 0 0 / 0.05)",
-                        border: "1px solid oklch(1 0 0 / 0.1)",
-                        color: "oklch(0.58 0.012 240)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm resize-none bg-white border border-slate-300 text-[#0f172a] focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15 placeholder-slate-400"
                     />
                   </div>
 
                   <button
                     onClick={submitManualReview}
                     disabled={manualScore === null}
-                    className="w-full px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40"
-                    style={{ background: "oklch(0.72 0.18 160)", color: "white" }}
+                    className="w-full px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition disabled:opacity-40 bg-[#000953] hover:bg-[#000e7a] text-white active:scale-[0.98]"
                   >
                     Submit Review
                   </button>

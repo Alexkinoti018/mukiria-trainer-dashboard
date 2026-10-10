@@ -85,12 +85,10 @@ class SyncEngine {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-      // We can ping the public Supabase REST health or standard endpoint
-      const pingUrl = isSupabaseConfigured()
-        ? `${(supabase as any).supabaseUrl}/rest/v1/`
-        : "/";
+      // Ping same-origin root endpoint to verify true network reachability
+      const pingUrl = "/";
 
-      const res = await fetch(pingUrl, {
+      await fetch(pingUrl, {
         method: "HEAD",
         mode: "no-cors",
         signal: controller.signal,

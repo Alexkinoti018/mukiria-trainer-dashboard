@@ -41,6 +41,7 @@ import {
 } from "@/lib/offlineStore";
 import { syncEngine } from "@/lib/syncEngine";
 import { useAutoDraft } from "@/hooks/useAutoDraft";
+import { EXAM_THEME_TOKENS } from "@/lib/examThemeTokens";
 
 type PortalState =
   | "loading"
@@ -782,8 +783,8 @@ export default function CandidatePortal() {
     return (
       <PortalShell>
         <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <Loader2 className="w-10 h-10 animate-spin" style={{ color: "oklch(0.72 0.18 160)" }} />
-          <p className="text-sm" style={{ color: "oklch(0.58 0.012 240)" }}>
+          <Loader2 className="w-10 h-10 animate-spin text-[#000953]" />
+          <p className="text-sm font-medium text-slate-600">
             Loading exam for {unitCode}...
           </p>
         </div>
@@ -796,13 +797,13 @@ export default function CandidatePortal() {
       <PortalShell>
         <div className="max-w-4xl mx-auto py-8 space-y-6">
           <div className="text-center space-y-2 mb-6">
-            <span className="px-3 py-1 text-xs font-bold font-mono rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+            <span className="px-3.5 py-1 text-xs font-bold font-mono rounded-full bg-[#000953]/10 text-[#000953] border border-[#000953]/20">
               OFFICIAL EXAMINATION PORTAL
             </span>
-            <h2 className="text-2xl font-bold" style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}>
+            <h2 className="text-2xl font-bold text-[#000953]">
               Available Online Examinations
             </h2>
-            <p className="text-xs" style={{ color: "oklch(0.58 0.012 240)" }}>
+            <p className="text-xs text-slate-600">
               Select your scheduled assessment paper below to register and launch the test runner.
             </p>
           </div>
@@ -811,27 +812,27 @@ export default function CandidatePortal() {
             {allAvailableExams.map((ex) => (
               <div
                 key={ex.id || ex.unit_code}
-                className="glass-card p-5 space-y-4 hover:border-amber-500/40 transition-all flex flex-col justify-between"
+                className="bg-white rounded-2xl border border-slate-300 p-6 space-y-4 shadow-sm hover:border-[#000953] hover:shadow-md transition-all flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-[#000953]/10 text-[#000953] border border-[#000953]/20">
                       {ex.unit_code}
                     </span>
-                    <span className="text-xs text-muted-foreground font-mono">
+                    <span className="text-xs text-slate-500 font-mono font-semibold">
                       {ex.payload?.duration_minutes ?? 120} Mins • {ex.payload?.total_marks ?? 70} Marks
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-slate-100 mb-1">
+                  <h3 className="text-base font-bold text-[#000953] mb-1">
                     {ex.payload?.title || ex.course_name}
                   </h3>
-                  <p className="text-xs text-slate-400 line-clamp-2">
+                  <p className="text-xs text-slate-600 line-clamp-2">
                     {ex.payload?.instructions || "Section A (30 Marks compulsory) and Section B (40 Marks structured questions)."}
                   </p>
                 </div>
 
-                <div className="pt-3 border-t border-white/5 flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400">
+                <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
+                  <span className="text-xs text-slate-500 font-medium">
                     Class: {ex.payload?.class || "L5/6 Combined"}
                   </span>
                   <button
@@ -839,7 +840,7 @@ export default function CandidatePortal() {
                       setExam(ex);
                       setState(ex.payload?.type === "practical" ? "practical" : "registration");
                     }}
-                    className="btn-emerald px-4 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5"
+                    className="px-4 py-2 text-xs font-bold rounded-lg flex items-center gap-1.5 bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition"
                   >
                     Select Exam
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -856,15 +857,15 @@ export default function CandidatePortal() {
   if (state === "error") {
     return (
       <PortalShell>
-        <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-          <AlertCircle className="w-12 h-12" style={{ color: "oklch(0.65 0.22 25)" }} />
-          <h2 className="text-xl font-bold" style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}>
+        <div className="flex flex-col items-center justify-center py-20 gap-4 text-center max-w-md mx-auto p-8 bg-white rounded-2xl border border-slate-300 shadow-md">
+          <AlertCircle className="w-12 h-12 text-rose-600" />
+          <h2 className="text-xl font-bold text-[#000953]">
             Connection Error
           </h2>
-          <p className="text-sm" style={{ color: "oklch(0.58 0.012 240)" }}>
+          <p className="text-sm text-slate-600">
             Could not connect to the exam server. Please check your internet connection.
           </p>
-          <button onClick={loadExam} className="btn-emerald px-6 py-2 rounded-xl text-sm">
+          <button onClick={loadExam} className="px-6 py-2.5 rounded-xl text-sm font-bold bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition">
             Retry
           </button>
         </div>
@@ -878,56 +879,48 @@ export default function CandidatePortal() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center justify-center py-16 gap-6 text-center"
+          className="flex flex-col items-center justify-center py-12 max-w-lg mx-auto p-8 bg-white rounded-2xl border border-slate-300 shadow-lg text-center"
         >
           <motion.div
-            className="w-20 h-20 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(196, 136, 32, 0.15)", border: "2px solid #c48820" }}
+            className="w-20 h-20 rounded-full flex items-center justify-center bg-emerald-50 border-2 border-emerald-600 mb-2"
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 200, damping: 15 }}
           >
-            <CheckCircle2 className="w-10 h-10" style={{ color: "#c48820" }} />
+            <CheckCircle2 className="w-10 h-10 text-emerald-600" />
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <h2
-              className="text-2xl font-bold mb-2"
-              style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-            >
-              Exam Submitted!
+            <h2 className="text-2xl font-bold mb-2 text-[#000953]">
+              Examination Submitted!
             </h2>
-            <p className="text-sm mb-1" style={{ color: "oklch(0.72 0.18 160)" }}>
+            <p className="text-base font-semibold mb-1 text-slate-800">
               {student.name}
             </p>
-            <p className="text-sm" style={{ color: "oklch(0.58 0.012 240)" }}>
-              Your answers for <strong>{exam?.unit_code}</strong> have been recorded.
+            <p className="text-xs text-slate-500 font-mono mb-4">
+              Reg No: {student.regNumber}
+            </p>
+            <p className="text-sm text-slate-600">
+              Your answers for <strong className="text-[#000953]">{exam?.unit_code}</strong> have been securely recorded.
             </p>
           </motion.div>
           {submissionId && (
-            <div
-              className="px-4 py-3 rounded-xl text-xs font-mono"
-              style={{
-                background: "oklch(1 0 0 / 0.05)",
-                border: "1px solid oklch(1 0 0 / 0.08)",
-                color: "oklch(0.58 0.012 240)",
-              }}
-            >
-              Reference: {submissionId}
+            <div className="mt-4 px-4 py-2.5 rounded-xl text-xs font-mono bg-slate-100 border border-slate-300 text-slate-700">
+              Submission Reference: {submissionId}
             </div>
           )}
-          <p className="text-xs max-w-sm" style={{ color: "oklch(0.45 0.010 240)" }}>
-            Your trainer will grade your submission and results will be communicated through official channels.
+          <p className="mt-6 text-xs max-w-sm text-slate-500">
+            Your certified trainer will grade your submission. Official results and marked scripts will be communicated through your student results portal.
           </p>
         </motion.div>
       </PortalShell>
     );
   }
 
-    if (state === "practical" && exam) {
+  if (state === "practical" && exam) {
     const checklist = exam.payload.checklist_items || [];
     return (
       <PortalShell>
@@ -936,50 +929,50 @@ export default function CandidatePortal() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-4xl mx-auto py-8 space-y-6"
         >
-          <div className="glass-card p-6">
+          <div className="bg-white rounded-2xl border border-slate-300 shadow-md p-6 sm:p-8 text-[#0f172a]">
             <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
               <div>
-                <span className="text-xs font-bold font-mono px-2.5 py-1 rounded-full" style={{ background: "rgba(196, 136, 32, 0.15)", color: "#c48820" }}>
+                <span className="text-xs font-bold font-mono px-2.5 py-1 rounded-full bg-[#000953]/10 text-[#000953] border border-[#000953]/20">
                   FORMATIVE PRACTICAL ASSESSMENT
                 </span>
-                <h2 className="text-xl font-bold mt-2" style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}>
+                <h2 className="text-xl font-bold mt-2 text-[#000953]">
                   {exam.payload.title}
                 </h2>
-                <p className="text-xs mt-1" style={{ color: "oklch(0.58 0.012 240)" }}>
+                <p className="text-xs mt-1 text-slate-600">
                   {exam.unit_code} — {exam.course_name} | Class: ADMIN5/6/J/26
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>Duration</div>
-                  <div className="text-sm font-bold font-mono" style={{ color: "oklch(0.94 0.005 240)" }}>{exam.payload.duration_minutes} Mins</div>
+                  <div className="text-xs text-slate-500">Duration</div>
+                  <div className="text-sm font-bold font-mono text-[#000953]">{exam.payload.duration_minutes} Mins</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>Total Marks</div>
-                  <div className="text-sm font-bold font-mono" style={{ color: "oklch(0.72 0.18 160)" }}>{exam.payload.total_marks} Marks</div>
+                  <div className="text-xs text-slate-500">Total Marks</div>
+                  <div className="text-sm font-bold font-mono text-[#c48820]">{exam.payload.total_marks} Marks</div>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 rounded-xl mb-6 text-sm leading-relaxed" style={{ background: "rgba(0, 9, 83, 0.5)", border: "1px solid rgba(255, 255, 255, 0.08)", color: "oklch(0.80 0.008 240)" }}>
-              <p className="font-bold mb-1" style={{ color: "#c48820" }}>Project Brief & Candidate Instructions:</p>
+            <div className="p-4 rounded-xl mb-6 text-sm leading-relaxed bg-slate-50 border border-slate-200 text-slate-800">
+              <p className="font-bold mb-1 text-[#000953]">Project Brief & Candidate Instructions:</p>
               {exam.payload.instructions}
             </div>
 
             {/* Observation Checklist */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold" style={{ color: "oklch(0.94 0.005 240)" }}>
+                <h3 className="text-sm font-bold text-[#000953]">
                   Observation Checklist ({checklist.length} Evaluation Items)
                 </h3>
-                <span className="text-xs font-mono" style={{ color: "oklch(0.50 0.010 240)" }}>
+                <span className="text-xs font-mono text-slate-500 font-semibold">
                   CDACC Compliant (10–25 Bounds)
                 </span>
               </div>
 
-              <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid oklch(1 0 0 / 0.08)" }}>
+              <div className="overflow-x-auto rounded-xl border border-slate-300">
                 <table className="w-full text-xs text-left">
-                  <thead style={{ background: "oklch(1 0 0 / 0.06)", color: "oklch(0.72 0.18 160)" }}>
+                  <thead className="bg-[#000953] text-white">
                     <tr>
                       <th className="p-3">#</th>
                       <th className="p-3">Task / Performance Criteria</th>
@@ -987,16 +980,16 @@ export default function CandidatePortal() {
                       <th className="p-3 text-right">Max Marks</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-slate-200">
                     {checklist.map((item: any, idx: number) => (
-                      <tr key={item.id || idx} style={{ background: idx % 2 === 0 ? "transparent" : "oklch(1 0 0 / 0.02)" }}>
-                        <td className="p-3 font-mono font-bold" style={{ color: "oklch(0.50 0.010 240)" }}>{idx + 1}</td>
+                      <tr key={item.id || idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/60"}>
+                        <td className="p-3 font-mono font-bold text-slate-500">{idx + 1}</td>
                         <td className="p-3">
-                          <div className="font-semibold" style={{ color: "oklch(0.94 0.005 240)" }}>{item.task}</div>
-                          <div className="text-[11px] mt-0.5" style={{ color: "oklch(0.70 0.008 240)" }}>{item.criteria}</div>
+                          <div className="font-semibold text-slate-900">{item.task}</div>
+                          <div className="text-[11px] mt-0.5 text-slate-600">{item.criteria}</div>
                         </td>
-                        <td className="p-3 font-mono text-[11px]" style={{ color: "oklch(0.65 0.15 200)" }}>{item.critical_aspect}</td>
-                        <td className="p-3 text-right font-mono font-bold" style={{ color: "oklch(0.72 0.18 160)" }}>{item.marks}m</td>
+                        <td className="p-3 font-mono text-[11px] text-[#000953] font-medium">{item.critical_aspect}</td>
+                        <td className="p-3 text-right font-mono font-bold text-[#000953]">{item.marks}m</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1004,14 +997,13 @@ export default function CandidatePortal() {
               </div>
             </div>
 
-            <div className="mt-8 flex items-center justify-between pt-4 border-t border-white/10 flex-wrap gap-4">
-              <p className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+            <div className="mt-8 flex items-center justify-between pt-4 border-t border-slate-200 flex-wrap gap-4">
+              <p className="text-xs text-slate-600">
                 Practical evidence and printouts are collected and graded by the certified trainer.
               </p>
               <button
                 onClick={() => window.print()}
-                className="px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover:opacity-90 flex items-center gap-2"
-                style={{ background: "#c48820", color: "#ffffff" }}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold transition-all bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm flex items-center gap-2"
               >
                 Print Assessment Tool / Checklist
               </button>
@@ -1030,22 +1022,16 @@ export default function CandidatePortal() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-md mx-auto py-8"
         >
-          <div className="glass-card p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: "oklch(0.72 0.18 160 / 0.15)" }}
-              >
-                <User className="w-5 h-5" style={{ color: "oklch(0.72 0.18 160)" }} />
+          <div className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-300 shadow-lg text-slate-900">
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#000953]/10 border border-[#000953]/20 text-[#000953]">
+                <User className="w-5 h-5 text-[#000953]" />
               </div>
               <div>
-                <h2
-                  className="text-lg font-bold"
-                  style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-                >
-                  Student Registration
+                <h2 className="text-lg font-bold text-[#000953]">
+                  Candidate Identification
                 </h2>
-                <p className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+                <p className="text-xs text-slate-500">
                   {exam?.unit_code} — {exam?.course_name}
                 </p>
               </div>
@@ -1053,7 +1039,7 @@ export default function CandidatePortal() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
+                <label className="block text-xs font-bold mb-1.5 text-slate-700">
                   Registration Number *
                 </label>
                 <div className="flex gap-2">
@@ -1077,32 +1063,28 @@ export default function CandidatePortal() {
                       }
                     }}
                     placeholder="e.g. 14179/S2026 or 13254"
-                    className="flex-1 px-3 py-2.5 rounded-xl text-sm font-mono"
-                    style={{
-                      background: "oklch(1 0 0 / 0.06)",
-                      border: isVerified 
-                        ? "1px solid rgba(16, 185, 129, 0.4)" 
-                        : verificationError 
-                        ? "1px solid rgba(239, 68, 68, 0.4)" 
-                        : "oklch(1 0 0 / 0.10)",
-                      color: "oklch(0.94 0.005 240)",
-                    }}
+                    className={`flex-1 px-3.5 py-2.5 rounded-xl text-sm font-mono bg-white border-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/20 ${
+                      isVerified
+                        ? "border-emerald-500"
+                        : verificationError
+                        ? "border-rose-500"
+                        : "border-slate-300"
+                    }`}
                   />
                   <button
                     type="button"
                     disabled={isVerifying || !student.regNumber.trim()}
                     onClick={() => handleVerifyRegNo(student.regNumber)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1.5 shrink-0"
-                    style={{
-                      background: isVerified ? "rgba(16, 185, 129, 0.2)" : "oklch(1 0 0 / 0.10)",
-                      border: isVerified ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid oklch(1 0 0 / 0.15)",
-                      color: isVerified ? "#34d399" : "oklch(0.94 0.005 240)",
-                    }}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1.5 shrink-0 border shadow-sm ${
+                      isVerified
+                        ? "bg-emerald-600 border-emerald-600 text-white"
+                        : "bg-[#000953] hover:bg-[#000e7a] border-[#000953] text-white"
+                    }`}
                   >
                     {isVerifying ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : isVerified ? (
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                     ) : (
                       <Search className="w-3.5 h-3.5" />
                     )}
@@ -1113,48 +1095,29 @@ export default function CandidatePortal() {
 
               {/* Status Badge: Verified in Class Register */}
               {isVerified && (
-                <div
-                  className="p-3 rounded-xl flex items-center gap-2.5 text-xs font-semibold"
-                  style={{
-                    background: "rgba(16, 185, 129, 0.12)",
-                    border: "1px solid rgba(16, 185, 129, 0.25)",
-                    color: "#34d399",
-                  }}
-                >
-                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                <div className="p-3 rounded-xl flex items-center gap-2.5 text-xs font-semibold bg-emerald-50 border border-emerald-300 text-emerald-800">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                   <span>Verified in class register ({student.cohortCode || verifiedCohort || "Active Cohort"})</span>
                 </div>
               )}
 
               {/* Status Alert: Not Found */}
               {verificationError && (
-                <div
-                  className="p-3 rounded-xl flex items-center gap-2.5 text-xs font-medium"
-                  style={{
-                    background: "rgba(239, 68, 68, 0.12)",
-                    border: "1px solid rgba(239, 68, 68, 0.25)",
-                    color: "#f87171",
-                  }}
-                >
-                  <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                <div className="p-3 rounded-xl flex items-center gap-2.5 text-xs font-semibold bg-rose-50 border border-rose-300 text-rose-800">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                   <span>{verificationError}</span>
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(0.58 0.012 240)" }}>
-                  Full Name *
+                <label className="block text-xs font-bold mb-1.5 text-slate-700">
+                  Candidate Full Name *
                 </label>
                 <input
                   readOnly
                   value={student.name}
-                  placeholder="Will auto-fill upon verification"
-                  className="w-full px-3 py-2.5 rounded-xl text-sm cursor-not-allowed opacity-90"
-                  style={{
-                    background: "oklch(1 0 0 / 0.03)",
-                    border: "1px solid oklch(1 0 0 / 0.08)",
-                    color: student.name ? "oklch(0.94 0.005 240)" : "oklch(0.45 0.010 240)",
-                  }}
+                  placeholder="Auto-filled upon verification"
+                  className="w-full px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 border border-slate-300 text-slate-800 cursor-not-allowed"
                 />
               </div>
             </div>
@@ -1168,14 +1131,10 @@ export default function CandidatePortal() {
                 }
                 setState("instructions");
               }}
-              className="w-full mt-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                background: isVerified ? "#c48820" : "oklch(1 0 0 / 0.10)",
-                color: isVerified ? "#fff" : "oklch(0.50 0.010 240)",
-              }}
+              className="w-full mt-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-[#000953] hover:bg-[#000e7a] text-white active:scale-[0.98] shadow-md"
             >
               Continue to Instructions
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 text-[#c48820]" />
             </button>
           </div>
         </motion.div>
@@ -1191,68 +1150,57 @@ export default function CandidatePortal() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-2xl mx-auto py-8"
         >
-          <div className="glass-card p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <BookOpen className="w-6 h-6" style={{ color: "oklch(0.72 0.18 160)" }} />
-              <h2
-                className="text-xl font-bold"
-                style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-              >
-                {exam?.payload.title}
-              </h2>
+          <div className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-300 shadow-lg text-slate-900">
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#000953]/10 text-[#000953]">
+                <BookOpen className="w-5 h-5 text-[#000953]" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[#000953]">
+                  {exam?.payload.title}
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Official Examination Guidelines & Rules
+                </p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="grid grid-cols-3 gap-3.5 mb-6">
               {[
                 { label: "Duration", value: `${exam?.payload.duration_minutes} min`, icon: Clock },
                 { label: "Total Marks", value: `${exam?.payload.total_marks}`, icon: Award },
-                { label: "Sections", value: "A + B", icon: BookOpen },
+                { label: "Structure", value: "Section A + B", icon: BookOpen },
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="p-3 rounded-xl text-center"
-                  style={{ background: "oklch(1 0 0 / 0.05)", border: "1px solid oklch(1 0 0 / 0.08)" }}
+                  className="p-3.5 rounded-xl text-center bg-slate-50 border border-slate-200"
                 >
-                  <item.icon className="w-4 h-4 mx-auto mb-1" style={{ color: "oklch(0.72 0.18 160)" }} />
-                  <div className="text-sm font-bold font-mono" style={{ color: "oklch(0.94 0.005 240)" }}>
+                  <item.icon className="w-5 h-5 mx-auto mb-1 text-[#c48820]" />
+                  <div className="text-sm font-bold font-mono text-[#000953]">
                     {item.value}
                   </div>
-                  <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>{item.label}</div>
+                  <div className="text-xs text-slate-600 font-medium">{item.label}</div>
                 </div>
               ))}
             </div>
 
-            <div
-              className="p-4 rounded-xl mb-4 text-sm leading-relaxed"
-              style={{
-                background: "oklch(0.72 0.18 160 / 0.08)",
-                border: "1px solid oklch(0.72 0.18 160 / 0.2)",
-                color: "oklch(0.80 0.008 240)",
-              }}
-            >
-              <p className="font-bold mb-2" style={{ color: "oklch(0.72 0.18 160)" }}>
+            <div className="p-4 rounded-xl mb-4 text-xs leading-relaxed bg-slate-50 border border-slate-200 text-slate-700">
+              <p className="font-bold mb-2 text-[#000953] text-sm">
                 General Instructions:
               </p>
               {exam?.payload.instructions}
             </div>
 
-            <div className="space-y-2 mb-6 text-xs" style={{ color: "oklch(0.58 0.012 240)" }}>
-              {exam?.payload.section_a && <p>• <strong>Section A:</strong> {exam?.payload.section_a.instructions}</p>}
-              {exam?.payload.section_b && <p>• <strong>Section B:</strong> {exam?.payload.section_b.instructions}</p>}
-              <p>• Your answers are saved automatically as you type.</p>
-              <p>• The timer starts when you click "Start Exam" and cannot be paused.</p>
+            <div className="space-y-2 mb-6 text-xs text-slate-600 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+              {exam?.payload.section_a && <p>• <strong className="text-[#000953]">Section A:</strong> {exam?.payload.section_a.instructions}</p>}
+              {exam?.payload.section_b && <p>• <strong className="text-[#000953]">Section B:</strong> {exam?.payload.section_b.instructions}</p>}
+              <p>• Your answers are automatically saved to local storage and sync safely.</p>
+              <p>• The exam countdown begins immediately when you click the start button below.</p>
             </div>
 
-            <div
-              className="flex items-center gap-2 p-3 rounded-xl mb-6 text-xs"
-              style={{
-                background: "oklch(0.75 0.14 80 / 0.1)",
-                border: "1px solid oklch(0.75 0.14 80 / 0.25)",
-                color: "oklch(0.75 0.14 80)",
-              }}
-            >
-              <Shield className="w-4 h-4 shrink-0" />
-              Attempting as: <strong>{student.name}</strong> ({student.regNumber})
+            <div className="flex items-center gap-2.5 p-3.5 rounded-xl mb-6 text-xs bg-slate-100 border border-slate-200 text-slate-800">
+              <Shield className="w-4 h-4 shrink-0 text-[#c48820]" />
+              <span>Candidate: <strong className="text-[#000953]">{student.name}</strong> (Reg No: <span className="font-mono">{student.regNumber}</span>)</span>
             </div>
 
             <button
@@ -1260,11 +1208,10 @@ export default function CandidatePortal() {
                 setState("exam");
                 startTimer();
               }}
-              className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90"
-              style={{ background: "#c48820", color: "#fff" }}
+              className="w-full py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all bg-[#000953] hover:bg-[#000e7a] text-white shadow-lg active:scale-[0.98]"
             >
-              <Timer className="w-4 h-4" />
-              Start Exam — Timer Begins Now
+              <Timer className="w-4 h-4 text-[#c48820]" />
+              Start Examination — Timer Begins Now
             </button>
           </div>
         </motion.div>
@@ -1281,25 +1228,25 @@ export default function CandidatePortal() {
     const currentQ = questions[currentQIndex];
 
     return (
-      <div
-        className="min-h-screen"
-        style={{ background: "#000953" }}
-      >
-        {/* Top bar */}
-        <header
-          className="sticky top-0 z-20 px-4 py-3 flex items-center gap-4"
-          style={{
-            background: "#000953ee",
-            backdropFilter: "blur(12px)",
-            borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-          }}
-        >
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-bold truncate" style={{ color: "oklch(0.94 0.005 240)", fontFamily: "Syne, sans-serif" }}>
-              {exam.unit_code} — {exam.course_name}
+      <div className="min-h-screen bg-slate-100 text-[#0f172a]">
+        {/* Official Institutional Exam Header */}
+        <header className="sticky top-0 z-20 px-4 sm:px-6 py-3.5 flex items-center gap-4 bg-[#000953] text-white shadow-md border-b-2 border-[#c48820]">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="w-9 h-9 rounded-full bg-white p-1 shrink-0 flex items-center justify-center shadow-sm">
+              <img
+                src="/mtti-logo.jpg"
+                alt="Mukiria TTI"
+                className="w-full h-full object-contain"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
             </div>
-            <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
-              {student.name} · {student.regNumber}
+            <div className="min-w-0">
+              <div className="text-xs sm:text-sm font-bold truncate text-white tracking-wide">
+                {exam.unit_code} — {exam.course_name}
+              </div>
+              <div className="text-xs text-slate-200 truncate">
+                Candidate: <strong className="text-white font-semibold">{student.name}</strong> · Reg No: <span className="font-mono">{student.regNumber}</span>
+              </div>
             </div>
           </div>
 
@@ -1310,81 +1257,60 @@ export default function CandidatePortal() {
             isOnline={typeof navigator !== "undefined" ? navigator.onLine : true}
           />
 
-          {/* Timer */}
+          {/* Countdown Timer */}
           <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl font-mono text-sm font-bold"
-            style={{
-              background: isCritical
-                ? "oklch(0.65 0.22 25 / 0.2)"
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-mono text-sm font-bold border transition-colors ${
+              isCritical
+                ? "bg-rose-600/30 border-rose-400 text-rose-200 animate-pulse"
                 : isWarning
-                ? "oklch(0.75 0.14 80 / 0.15)"
-                : "oklch(0.72 0.18 160 / 0.12)",
-              border: isCritical
-                ? "1px solid oklch(0.65 0.22 25 / 0.4)"
-                : isWarning
-                ? "1px solid oklch(0.75 0.14 80 / 0.3)"
-                : "1px solid oklch(0.72 0.18 160 / 0.25)",
-              color: isCritical
-                ? "oklch(0.65 0.22 25)"
-                : isWarning
-                ? "oklch(0.75 0.14 80)"
-                : "oklch(0.72 0.18 160)",
-            }}
+                ? "bg-amber-500/20 border-amber-300 text-amber-200"
+                : "bg-white/10 border-white/20 text-white"
+            }`}
+            title="Time Remaining"
           >
-            <Clock className="w-4 h-4" />
-            {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+            <Clock className="w-4 h-4 text-[#c48820]" />
+            <span>{String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}</span>
           </div>
 
-          {/* Progress */}
-          <div className="text-xs font-mono" style={{ color: "oklch(0.58 0.012 240)" }}>
+          {/* Progress Pill */}
+          <div className="text-xs font-mono font-semibold px-2.5 py-1 rounded-lg bg-white/15 text-white border border-white/20">
             {totalAnswered}/{totalQuestions}
           </div>
         </header>
 
-        {/* Timer Progress bar */}
-        <div className="h-1.5 w-full" style={{ background: "rgba(0, 0, 0, 0.3)" }}>
+        {/* Subtle Institutional Progress Line */}
+        <div className="h-1.5 w-full bg-slate-200">
           <div
-            className="h-full transition-all duration-1000 ease-linear"
-            style={{
-              width: `${(secondsLeft / ((exam.payload?.duration_minutes ?? 90) * 60)) * 100}%`,
-              background: isCritical ? "#ef4444" : isWarning ? "#f59e0b" : "#c48820",
-            }}
+            className="h-full transition-all duration-300 ease-out bg-[#c48820]"
+            style={{ width: `${progress}%` }}
           />
         </div>
 
-        {/* Form Progress bar */}
-        <div className="h-0.5" style={{ background: "oklch(1 0 0 / 0.06)" }}>
-          <div
-            className="h-full transition-all duration-300"
-            style={{
-              width: `${progress}%`,
-              background: "#c48820",
-            }}
-          />
-        </div>
-
-        <div className="max-w-3xl mx-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
           {/* Section tabs */}
-          <div className="flex gap-2 mb-4">
+          <div className="flex gap-2.5 mb-5">
             {(["a", "b"] as const).map((sec) => {
-              const secLabel = sec === "a" ? "Section A (Theory/Concepts)" : "Section B (Structured Practical)";
+              const secLabel = sec === "a" ? "Section A (Theory / Concepts)" : "Section B (Structured Practical)";
               const secQuestions = sec === "a" ? (exam.payload?.section_a?.questions || []) : (exam.payload?.section_b?.questions || []);
               const secAnswered = sec === "a"
                 ? Object.keys(sectionAAnswers).filter((k) => sectionAAnswers[k] !== undefined && sectionAAnswers[k] !== "").length
                 : Object.keys(sectionBAnswers).filter((k) => sectionBAnswers[k]?.trim()).length;
+              const isActive = currentSection === sec;
+
               return (
                 <button
                   key={sec}
                   onClick={() => { setCurrentSection(sec); setCurrentQIndex(0); }}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all"
-                  style={{
-                    background: currentSection === sec ? "oklch(0.72 0.18 160 / 0.15)" : "oklch(1 0 0 / 0.05)",
-                    border: currentSection === sec ? "1px solid oklch(0.72 0.18 160 / 0.4)" : "1px solid oklch(1 0 0 / 0.08)",
-                    color: currentSection === sec ? "oklch(0.72 0.18 160)" : "oklch(0.58 0.012 240)",
-                  }}
+                  className={`flex items-center gap-2.5 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border shadow-sm ${
+                    isActive
+                      ? "bg-[#000953] border-[#000953] text-white shadow"
+                      : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                  }`}
                 >
-                  {secLabel}
-                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-black/20">
+                  <span>{secLabel}</span>
+                  <span className={`text-xs font-mono px-2 py-0.5 rounded font-bold ${
+                    isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700 border border-slate-200"
+                  }`}>
                     {secAnswered}/{secQuestions.length}
                   </span>
                 </button>
@@ -1394,71 +1320,64 @@ export default function CandidatePortal() {
 
           {/* Section B Notice Banner */}
           {currentSection === "b" && (
-            <div className="mb-4 p-3 rounded-xl text-xs flex items-center gap-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-300">
-              <Info className="w-4 h-4 shrink-0 text-amber-400" />
+            <div className="mb-5 p-3.5 rounded-xl text-xs flex items-center gap-3 bg-amber-50 border border-amber-300 text-amber-900">
+              <Info className="w-4 h-4 shrink-0 text-[#c48820]" />
               <span>
                 <strong>Section B Instructions:</strong> Answer <strong>ANY TWO</strong> questions (20 marks each). You can switch between questions below.
               </span>
             </div>
           )}
 
-          {/* Question */}
+          {/* Question Booklet Paper */}
           <AnimatePresence mode="wait">
             <motion.div
               key={`${currentSection}-${currentQIndex}`}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.15 }}
-              className="glass-card p-6 mb-4"
+              className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-300 shadow-md mb-6"
             >
-              <div className="flex items-start gap-3 mb-5">
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-                  style={{
-                    background: "oklch(0.72 0.18 160 / 0.15)",
-                    color: "oklch(0.72 0.18 160)",
-                    fontFamily: "JetBrains Mono, monospace",
-                  }}
-                >
+              {/* Question Header */}
+              <div className="flex items-start gap-3.5 mb-5 pb-4 border-b border-slate-200">
+                <div className="px-2.5 py-1 rounded-lg flex items-center justify-center text-xs font-bold font-mono bg-[#000953] text-white shrink-0 shadow-sm">
                   {currentSection.toUpperCase()}{currentQIndex + 1}
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "oklch(0.94 0.005 240)" }}>
+                <div className="flex-1 min-w-0">
+                  <p className="text-base font-semibold leading-relaxed whitespace-pre-line text-[#0f172a]">
                     {currentQ?.text}
                   </p>
-                  <p className="text-xs mt-1 font-mono" style={{ color: "oklch(0.50 0.010 240)" }}>
-                    {currentQ?.marks} mark{currentQ?.marks !== 1 ? "s" : ""}
+                  <p className="text-xs mt-1.5 font-bold text-[#c48820]">
+                    [{currentQ?.marks} mark{currentQ?.marks !== 1 ? "s" : ""}]
                   </p>
                 </div>
               </div>
 
               {/* MCQ Options */}
               {currentQ?.type === "mcq" && (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {currentQ.options?.map((opt, oi) => {
                     const isSelected = String(sectionAAnswers[currentQ.id]) === String(oi) || sectionAAnswers[currentQ.id] === oi;
                     return (
                       <button
                         key={oi}
                         onClick={() => setSectionAAnswers((prev) => ({ ...prev, [currentQ.id]: oi }))}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-left transition-all"
-                        style={{
-                          background: isSelected ? "oklch(0.72 0.18 160 / 0.12)" : "oklch(1 0 0 / 0.04)",
-                          border: isSelected ? "1px solid oklch(0.72 0.18 160 / 0.5)" : "1px solid oklch(1 0 0 / 0.08)",
-                          color: isSelected ? "oklch(0.94 0.005 240)" : "oklch(0.80 0.008 240)",
-                        }}
+                        className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm text-left transition-all border-2 ${
+                          isSelected
+                            ? "bg-blue-50/70 border-[#000953] text-[#000953] font-semibold shadow-sm"
+                            : "bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:border-slate-300"
+                        }`}
                       >
                         <span
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                          style={{
-                            background: isSelected ? "oklch(0.72 0.18 160)" : "oklch(1 0 0 / 0.08)",
-                            color: isSelected ? "oklch(0.10 0.02 160)" : "oklch(0.58 0.012 240)",
-                          }}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${
+                            isSelected
+                              ? "bg-[#000953] text-white"
+                              : "bg-slate-100 border border-slate-300 text-slate-700"
+                          }`}
                         >
                           {String.fromCharCode(65 + oi)}
                         </span>
-                        {opt}
+                        <span className="flex-1">{opt}</span>
                       </button>
                     );
                   })}
@@ -1467,19 +1386,18 @@ export default function CandidatePortal() {
 
               {/* True/False */}
               {currentQ?.type === "true_false" && (
-                <div className="flex gap-3">
+                <div className="flex gap-4">
                   {["True", "False"].map((opt, oi) => {
                     const isSelected = sectionAAnswers[currentQ.id] === oi;
                     return (
                       <button
                         key={opt}
                         onClick={() => setSectionAAnswers((prev) => ({ ...prev, [currentQ.id]: oi }))}
-                        className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all"
-                        style={{
-                          background: isSelected ? "oklch(0.72 0.18 160 / 0.12)" : "oklch(1 0 0 / 0.04)",
-                          border: isSelected ? "1px solid oklch(0.72 0.18 160 / 0.5)" : "1px solid oklch(1 0 0 / 0.08)",
-                          color: isSelected ? "oklch(0.72 0.18 160)" : "oklch(0.80 0.008 240)",
-                        }}
+                        className={`flex-1 py-3.5 rounded-xl text-sm font-bold transition-all border-2 ${
+                          isSelected
+                            ? "bg-blue-50/70 border-[#000953] text-[#000953] shadow-sm"
+                            : "bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:border-slate-300"
+                        }`}
                       >
                         {opt}
                       </button>
@@ -1491,6 +1409,9 @@ export default function CandidatePortal() {
               {/* Short Answer / Practical / Essay / Open-ended text */}
               {(currentQ?.type === "short_answer" || currentQ?.type === "practical" || currentQ?.type === "essay" || !currentQ?.type) && (
                 <div className="space-y-2">
+                  <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                    Candidate Written Response:
+                  </div>
                   <textarea
                     value={
                       isInSectionA
@@ -1510,18 +1431,12 @@ export default function CandidatePortal() {
                         ? "Write your concise answer, definition, formula, or shortcut key here..."
                         : "Type your structured response, steps, procedures, or practical explanation here (e.g. Part a, Part b...)..."
                     }
-                    rows={isInSectionA ? 4 : 8}
-                    className="w-full px-4 py-3 rounded-xl text-sm resize-y"
-                    style={{
-                      background: "oklch(1 0 0 / 0.06)",
-                      border: "1px solid oklch(1 0 0 / 0.10)",
-                      color: "oklch(0.94 0.005 240)",
-                      lineHeight: "1.7",
-                    }}
+                    rows={isInSectionA ? 5 : 9}
+                    className="w-full px-4 py-3.5 rounded-xl text-sm resize-y bg-white border-2 border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-4 focus:ring-[#000953]/10 leading-relaxed font-sans shadow-inner"
                   />
-                  <div className="flex justify-between items-center text-[11px] text-slate-400 px-1">
+                  <div className="flex justify-between items-center text-xs text-slate-500 px-1 pt-1">
                     <span>{isInSectionA ? "Section A (Short Answer)" : "Section B (Practical & Structured)"}</span>
-                    <span>
+                    <span className="font-mono">
                       {(isInSectionA
                         ? String(sectionAAnswers[currentQ?.id] || "").length
                         : String(sectionBAnswers[currentQ?.id] || "").length)}{" "}
@@ -1533,44 +1448,40 @@ export default function CandidatePortal() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Navigation */}
-          <div className="flex items-center justify-between">
+          {/* Navigation Controls */}
+          <div className="flex items-center justify-between gap-4 flex-wrap bg-white p-4 rounded-xl border border-slate-300 shadow-sm">
             <button
               onClick={() => {
                 if (currentQIndex > 0) setCurrentQIndex((i) => i - 1);
                 else if (currentSection === "b") { setCurrentSection("a"); setCurrentQIndex((exam.payload?.section_a?.questions?.length || 1) - 1); }
               }}
               disabled={currentSection === "a" && currentQIndex === 0}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-30 transition-all"
-              style={{
-                background: "oklch(1 0 0 / 0.06)",
-                border: "1px solid oklch(1 0 0 / 0.08)",
-                color: "oklch(0.80 0.008 240)",
-              }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed transition-all bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-100"
             >
               <ChevronLeft className="w-4 h-4" />
               Previous
             </button>
 
-            {/* Question dots */}
-            <div className="flex gap-1.5 flex-wrap justify-center max-w-xs">
+            {/* Question numbers grid */}
+            <div className="flex gap-1.5 flex-wrap justify-center max-w-md">
               {questions.map((q, qi) => {
                 const isAnswered = currentSection === "a"
                   ? sectionAAnswers[q.id] !== undefined && sectionAAnswers[q.id] !== ""
                   : sectionBAnswers[q.id]?.trim();
+                const isCurrent = qi === currentQIndex;
+
                 return (
                   <button
                     key={q.id}
                     onClick={() => setCurrentQIndex(qi)}
-                    className="w-6 h-6 rounded-md text-xs font-mono transition-all"
-                    style={{
-                      background: qi === currentQIndex
-                        ? "oklch(0.72 0.18 160)"
+                    className={`w-8 h-8 rounded-lg text-xs font-mono font-bold transition-all border ${
+                      isCurrent
+                        ? "bg-[#000953] border-[#000953] text-white ring-2 ring-[#000953]/20 shadow"
                         : isAnswered
-                        ? "oklch(0.72 0.18 160 / 0.25)"
-                        : "oklch(1 0 0 / 0.08)",
-                      color: qi === currentQIndex ? "oklch(0.10 0.02 160)" : "oklch(0.58 0.012 240)",
-                    }}
+                        ? "bg-emerald-50 border-emerald-400 text-emerald-800"
+                        : "bg-white border-slate-300 text-slate-600 hover:bg-slate-100"
+                    }`}
+                    title={`Go to Question ${qi + 1}${isAnswered ? " (Answered)" : ""}`}
                   >
                     {qi + 1}
                   </button>
@@ -1578,32 +1489,33 @@ export default function CandidatePortal() {
               })}
             </div>
 
-            {currentSection === "b" && currentQIndex === questions.length - 1 ? (
+            {/* Next or Finish Section */}
+            {currentQIndex < questions.length - 1 ? (
               <button
-                onClick={() => {
-                  if (confirm("Submit your exam? This cannot be undone.")) handleSubmit();
-                }}
-                disabled={submitting}
-                className="btn-emerald flex items-center gap-2 px-5 py-2 rounded-xl text-sm"
+                onClick={() => setCurrentQIndex((i) => i + 1)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm"
               >
-                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                {submitting ? "Submitting..." : "Submit Exam"}
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            ) : currentSection === "a" ? (
+              <button
+                onClick={() => { setCurrentSection("b"); setCurrentQIndex(0); }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm"
+              >
+                Proceed to Section B
+                <ChevronRight className="w-4 h-4" />
               </button>
             ) : (
               <button
                 onClick={() => {
-                  if (currentQIndex < questions.length - 1) setCurrentQIndex((i) => i + 1);
-                  else if (currentSection === "a") { setCurrentSection("b"); setCurrentQIndex(0); }
+                  if (confirm("Submit your final exam? This cannot be undone.")) handleSubmit();
                 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all"
-                style={{
-                  background: "oklch(0.72 0.18 160 / 0.12)",
-                  border: "1px solid oklch(0.72 0.18 160 / 0.3)",
-                  color: "oklch(0.72 0.18 160)",
-                }}
+                disabled={submitting}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition active:scale-[0.98] disabled:opacity-50"
               >
-                Next
-                <ChevronRight className="w-4 h-4" />
+                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {submitting ? "Submitting..." : "Submit Final Exam"}
               </button>
             )}
           </div>
@@ -1618,35 +1530,26 @@ export default function CandidatePortal() {
 // ─── Shell wrapper for non-exam states ───────────────────────
 function PortalShell({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: "#000953" }}
-    >
-      <header
-        className="px-6 py-4 flex items-center gap-3"
-        style={{ borderBottom: "1px solid oklch(1 0 0 / 0.08)" }}
-      >
-        <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center"
-          style={{ background: "#c48820", border: "1px solid #d49830" }}
-        >
+    <div className="min-h-screen bg-slate-100 text-slate-900">
+      <header className="px-6 py-4 flex items-center gap-3 border-b-2 border-[#c48820] bg-[#000953] text-white shadow-md">
+        <div className="w-10 h-10 rounded-full bg-white p-1 flex items-center justify-center shrink-0 shadow-sm">
           <img
-            src="/manus-storage/mtti-logo-icon_31c70fcc.png"
-            alt="MTTI"
-            className="w-5 h-5 object-contain"
+            src="/mtti-logo.jpg"
+            alt="MTTI Logo"
+            className="w-full h-full object-contain"
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
           />
         </div>
         <div>
-          <div className="text-sm font-bold" style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}>
-            MTTI Candidate Portal
+          <div className="text-sm font-bold text-white tracking-wide">
+            MTTI Examination & Assessment Portal
           </div>
-          <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+          <div className="text-xs text-slate-200">
             Mukiria Technical Training Institute
           </div>
         </div>
       </header>
-      <div className="container py-4">{children}</div>
+      <div className="container py-6">{children}</div>
     </div>
   );
 }

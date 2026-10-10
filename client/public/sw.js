@@ -1,12 +1,11 @@
 /**
  * Mukiria Technical Training Institute (MTTI) Service Worker
  * Cache Strategy:
- * - App Shell: Network-First with Cache Fallback for navigation requests
- * - Static Assets (JS, CSS, images, fonts): Stale-While-Revalidate
- * - Offline Fallback page support for seamless campus network dropouts
+ * - App Shell & Static Assets: Network-First with Cache Fallback for offline resilience
+ * - Guarantees hot-reloads and institutional theme updates apply immediately when online
  */
 
-const CACHE_NAME = "mtti-pwa-v1";
+const CACHE_NAME = "mtti-pwa-v4";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
@@ -14,19 +13,19 @@ const STATIC_ASSETS = [
   "/mtti-logo.jpg",
 ];
 
-// 1. Install event: Cache critical app shell
+// 1. Install event: Cache critical app shell and activate immediately
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("[MTTI SW] Pre-caching offline app shell");
       return cache.addAll(STATIC_ASSETS).catch((err) => {
         console.warn("[MTTI SW] Pre-cache partial warning:", err);
       });
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
-// 2. Activate event: Clean up legacy caches & take immediate control
+// 2. Activate event: Clean up ALL legacy caches & take immediate control
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -42,13 +41,19 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// 3. Fetch event: Network-first for routes, Cache-first/SWR for static assets
+// 3. Fetch event: Always Network-First so code/style updates reflect immediately
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // Skip non-GET requests (e.g. POST to backend or Supabase)
-  if (request.method !== "GET") {
+  // Skip non-GET requests or Vite HMR / dev endpoints
+  if (
+    request.method !== "GET" ||
+    url.pathname.startsWith("/@") ||
+    url.pathname.startsWith("/node_modules/") ||
+    url.search.includes("t=") ||
+    url.search.includes("v=")
+  ) {
     return;
   }
 
@@ -64,7 +69,6 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(async () => {
-          console.log("[MTTI SW] Navigation offline fallback for:", url.pathname);
           const cached = await caches.match(request);
           if (cached) return cached;
           const fallback = await caches.match("/index.html");
@@ -75,40 +79,15 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Handle Static Assets (JS, CSS, images, fonts)
-  const isStatic =
-    url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|webp|woff2|woff|ttf|ico)$/) ||
-    url.hostname.includes("fonts.googleapis.com") ||
-    url.hostname.includes("fonts.gstatic.com");
-
-  if (isStatic) {
-    event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        const fetchPromise = fetch(request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              const clone = networkResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-            }
-            return networkResponse;
-          })
-          .catch(() => cachedResponse);
-
-        return cachedResponse || fetchPromise;
-      })
-    );
-    return;
-  }
-
-  // Default: Network with cache fallback
+  // Network-First with Cache Fallback for all other GET requests
   event.respondWith(
     fetch(request)
-      .then((response) => {
-        if (response && response.status === 200 && response.type === "basic") {
-          const clone = response.clone();
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === "basic") {
+          const clone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         }
-        return response;
+        return networkResponse;
       })
       .catch(() => caches.match(request))
   );
@@ -117,7 +96,6 @@ self.addEventListener("fetch", (event) => {
 // 4. Background Sync support
 self.addEventListener("sync", (event) => {
   if (event.tag === "mtti-sync-queue") {
-    console.log("[MTTI SW] Background sync event triggered");
     event.waitUntil(
       self.clients.matchAll().then((clients) => {
         clients.forEach((client) => {

@@ -699,16 +699,13 @@ export default function Reports() {
     <TrainerLayout title="Reports" subtitle="Generate official transcripts and class performance reports">
       {/* Class Reports */}
       <div className="mb-6">
-        <h3
-          className="text-sm font-bold mb-3"
-          style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-        >
+        <h3 className="text-sm font-bold mb-3 text-[#000953]">
           Class Reports
         </h3>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {loading
             ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-24 rounded-xl animate-pulse" style={{ background: "oklch(1 0 0 / 0.05)" }} />
+                <div key={i} className="h-24 rounded-xl animate-pulse bg-slate-100 border border-slate-200" />
               ))
             : exams.map((exam) => {
                 const unitSubs = submissions.filter((s) => s.unit_code === exam.unit_code);
@@ -719,41 +716,27 @@ export default function Reports() {
                     key={exam.id}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="glass-card p-4"
+                    className="bg-white border border-slate-300 rounded-xl shadow-sm p-4"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <div
-                          className="text-sm font-bold"
-                          style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-                        >
+                        <div className="text-sm font-bold text-[#000953]">
                           {exam.unit_code}
                         </div>
-                        <div className="text-xs mt-0.5" style={{ color: "oklch(0.50 0.010 240)" }}>
+                        <div className="text-xs mt-0.5 text-slate-600 font-medium">
                           {exam.course_name}
                         </div>
                       </div>
-                      <div
-                        className="text-xs font-mono px-2 py-0.5 rounded-full"
-                        style={{
-                          background: "oklch(0.72 0.18 160 / 0.12)",
-                          color: "oklch(0.72 0.18 160)",
-                        }}
-                      >
+                      <div className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-50 border border-[#c48820]/30 text-[#c48820]">
                         {gradedCount} graded
                       </div>
                     </div>
                     <button
                       onClick={() => generateClassReport(exam.unit_code)}
                       disabled={isGen || gradedCount === 0}
-                      className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-40"
-                      style={{
-                        background: "oklch(0.72 0.18 160 / 0.12)",
-                        border: "1px solid oklch(0.72 0.18 160 / 0.3)",
-                        color: "oklch(0.72 0.18 160)",
-                      }}
+                      className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-40 bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm"
                     >
-                      <Download className="w-3.5 h-3.5" />
+                      <Download className="w-3.5 h-3.5 text-[#c48820]" />
                       {isGen ? "Generating..." : "Download Class Report"}
                     </button>
                   </motion.div>
@@ -764,36 +747,24 @@ export default function Reports() {
 
       {/* Individual Transcripts */}
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3
-            className="text-sm font-bold"
-            style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-          >
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <h3 className="text-sm font-bold text-[#000953]">
             Individual Transcripts
           </h3>
           <div className="flex gap-2">
-            <div
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl"
-              style={{ background: "oklch(1 0 0 / 0.05)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-            >
-              <Search className="w-3.5 h-3.5" style={{ color: "oklch(0.50 0.010 240)" }} />
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-300 shadow-sm">
+              <Search className="w-3.5 h-3.5 text-slate-400" />
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search student..."
-                className="bg-transparent text-xs outline-none w-36"
-                style={{ color: "oklch(0.94 0.005 240)" }}
+                className="bg-transparent text-xs outline-none w-36 text-[#0f172a] placeholder-slate-400"
               />
             </div>
             <select
               value={selectedUnit}
               onChange={(e) => setSelectedUnit(e.target.value)}
-              className="px-3 py-1.5 rounded-xl text-xs"
-              style={{
-                background: "oklch(1 0 0 / 0.05)",
-                border: "1px solid oklch(1 0 0 / 0.08)",
-                color: "oklch(0.80 0.008 240)",
-              }}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-slate-300 text-[#0f172a] shadow-sm focus:outline-none focus:border-[#000953]"
             >
               <option value="all">All Units</option>
               {exams.map((e) => (
@@ -803,55 +774,54 @@ export default function Reports() {
           </div>
         </div>
 
-        <div className="glass-card overflow-hidden">
+        <div className="bg-white border border-slate-300 rounded-xl shadow-sm overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr style={{ borderBottom: "1px solid oklch(1 0 0 / 0.08)" }}>
+              <tr className="border-b border-slate-200 bg-slate-50">
                 {["Student", "Reg Number", "Unit", "Score", "Grade", "Status", "Action"].map((h) => (
                   <th
                     key={h}
-                    className="text-left px-4 py-3 text-xs font-semibold"
-                    style={{ color: "oklch(0.50 0.010 240)" }}
+                    className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-600"
                   >
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
                     {Array.from({ length: 7 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
-                        <div className="h-4 rounded animate-pulse" style={{ background: "oklch(1 0 0 / 0.08)" }} />
+                        <div className="h-4 rounded animate-pulse bg-slate-200" />
                       </td>
                     ))}
                   </tr>
                 ))
               ) : filteredSubs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-sm" style={{ color: "oklch(0.50 0.010 240)" }}>
+                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-500">
                     No submissions found
                   </td>
                 </tr>
               ) : (
-                filteredSubs.map((sub, i) => {
+                filteredSubs.map((sub) => {
                   const isGen = generating === sub.id;
                   return (
-                    <tr key={sub.id} className="data-table-row">
+                    <tr key={sub.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3">
-                        <div className="text-sm font-medium" style={{ color: "oklch(0.94 0.005 240)" }}>
+                        <div className="text-sm font-bold text-[#0f172a]">
                           {sub.student_name}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-xs font-mono" style={{ color: "oklch(0.65 0.15 200)" }}>
+                        <span className="text-xs font-mono font-semibold text-slate-600">
                           {sub.reg_number}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-xs font-mono" style={{ color: "oklch(0.72 0.18 160)" }}>
+                        <span className="text-xs font-mono font-bold text-[#000953]">
                           {sub.unit_code}
                         </span>
                       </td>
@@ -863,20 +833,18 @@ export default function Reports() {
                           return (
                             <div className="flex flex-col">
                               <span
-                                className="text-sm font-bold font-mono"
-                                style={{
-                                  color:
-                                    sub.total_score === null
-                                      ? "oklch(0.58 0.012 240)"
-                                      : (pct ?? 0) >= 50
-                                      ? "oklch(0.72 0.18 160)"
-                                      : "oklch(0.65 0.22 25)",
-                                }}
+                                className={`text-sm font-bold font-mono ${
+                                  sub.total_score === null
+                                    ? "text-slate-400"
+                                    : (pct ?? 0) >= 50
+                                    ? "text-emerald-700"
+                                    : "text-rose-600"
+                                }`}
                               >
                                 {sub.total_score !== null ? `${sub.total_score} / ${totalMarks}` : "—"}
                               </span>
                               {pct !== null && (
-                                <span className="text-[10px] font-mono text-muted-foreground">
+                                <span className="text-[10px] font-mono font-semibold text-slate-500">
                                   {pct}%
                                 </span>
                               )}
@@ -891,21 +859,13 @@ export default function Reports() {
                           const pct = sub.total_score !== null && totalMarks > 0 ? Math.round((sub.total_score / totalMarks) * 100) : null;
                           return (
                             <span
-                              className="text-xs font-bold px-2 py-0.5 rounded-full"
-                              style={{
-                                background:
-                                  sub.total_score === null
-                                    ? "oklch(1 0 0 / 0.05)"
-                                    : (pct ?? 0) >= 50
-                                    ? "oklch(0.72 0.18 160 / 0.15)"
-                                    : "oklch(0.65 0.22 25 / 0.15)",
-                                color:
-                                  sub.total_score === null
-                                    ? "oklch(0.58 0.012 240)"
-                                    : (pct ?? 0) >= 50
-                                    ? "oklch(0.72 0.18 160)"
-                                    : "oklch(0.65 0.22 25)",
-                              }}
+                              className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                                sub.total_score === null
+                                  ? "bg-slate-100 border-slate-300 text-slate-500"
+                                  : (pct ?? 0) >= 50
+                                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                                  : "bg-rose-50 border-rose-200 text-rose-700"
+                              }`}
                             >
                               {getGrade(pct)}
                             </span>
@@ -913,7 +873,7 @@ export default function Reports() {
                         })()}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium status-${sub.status}`}>
+                        <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider status-${sub.status}`}>
                           {sub.status}
                         </span>
                       </td>
@@ -921,14 +881,9 @@ export default function Reports() {
                         <button
                           onClick={() => generateTranscript(sub)}
                           disabled={isGen || sub.total_score === null}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-40"
-                          style={{
-                            background: "oklch(0.72 0.18 160 / 0.12)",
-                            border: "1px solid oklch(0.72 0.18 160 / 0.3)",
-                            color: "oklch(0.72 0.18 160)",
-                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-40 bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm"
                         >
-                          <Download className="w-3 h-3" />
+                          <Download className="w-3 h-3 text-[#c48820]" />
                           {isGen ? "..." : "PDF"}
                         </button>
                       </td>

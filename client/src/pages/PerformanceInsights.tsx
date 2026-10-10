@@ -128,13 +128,13 @@ export default function PerformanceInsights() {
   const getRiskColor = (risk: string) => {
     switch (risk) {
       case "low":
-        return { bg: "oklch(0.65 0.22 120 / 0.1)", text: "oklch(0.65 0.22 120)" };
+        return { bg: "rgba(16, 185, 129, 0.1)", text: "#047857", border: "rgba(16, 185, 129, 0.35)" };
       case "medium":
-        return { bg: "oklch(0.72 0.18 50 / 0.1)", text: "oklch(0.72 0.18 50)" };
+        return { bg: "rgba(196, 136, 32, 0.12)", text: "#92400e", border: "rgba(196, 136, 32, 0.4)" };
       case "high":
-        return { bg: "oklch(0.65 0.22 25 / 0.1)", text: "oklch(0.65 0.22 25)" };
+        return { bg: "rgba(225, 29, 72, 0.1)", text: "#be123c", border: "rgba(225, 29, 72, 0.35)" };
       default:
-        return { bg: "oklch(1 0 0 / 0.05)", text: "oklch(0.58 0.012 240)" };
+        return { bg: "#f1f5f9", text: "#334155", border: "#cbd5e1" };
     }
   };
 
@@ -165,74 +165,39 @@ export default function PerformanceInsights() {
       <div className="space-y-4">
         {/* Stats Row */}
         <div className="grid grid-cols-5 gap-3">
-          <div
-            className="glass-card p-4 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-          >
-            <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
-              Class Average
-            </div>
-            <div className="text-2xl font-bold mt-2" style={{ color: "oklch(0.72 0.18 160)" }}>
-              {stats.avgOverall}%
-            </div>
+          <div className="bg-white border border-slate-300 shadow-sm p-4 rounded-xl">
+            <div className="text-xs font-semibold text-slate-600">Class Average</div>
+            <div className="text-2xl font-bold font-mono mt-2 text-[#000953]">{stats.avgOverall}%</div>
           </div>
-          <div
-            className="glass-card p-4 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-          >
-            <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
-              Low Risk
-            </div>
-            <div className="text-2xl font-bold mt-2" style={{ color: "oklch(0.65 0.22 120)" }}>
-              {stats.lowRisk}
-            </div>
+          <div className="bg-white border border-slate-300 shadow-sm p-4 rounded-xl">
+            <div className="text-xs font-semibold text-slate-600">Low Risk</div>
+            <div className="text-2xl font-bold font-mono mt-2 text-emerald-700">{stats.lowRisk}</div>
           </div>
-          <div
-            className="glass-card p-4 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-          >
-            <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
-              Medium Risk
-            </div>
-            <div className="text-2xl font-bold mt-2" style={{ color: "oklch(0.72 0.18 50)" }}>
-              {stats.mediumRisk}
-            </div>
+          <div className="bg-white border border-slate-300 shadow-sm p-4 rounded-xl">
+            <div className="text-xs font-semibold text-slate-600">Medium Risk</div>
+            <div className="text-2xl font-bold font-mono mt-2 text-[#c48820]">{stats.mediumRisk}</div>
           </div>
-          <div
-            className="glass-card p-4 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-          >
-            <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
-              High Risk
-            </div>
-            <div className="text-2xl font-bold mt-2" style={{ color: "oklch(0.65 0.22 25)" }}>
-              {stats.highRisk}
-            </div>
+          <div className="bg-white border border-slate-300 shadow-sm p-4 rounded-xl">
+            <div className="text-xs font-semibold text-slate-600">High Risk</div>
+            <div className="text-2xl font-bold font-mono mt-2 text-rose-600">{stats.highRisk}</div>
           </div>
-          <div
-            className="glass-card p-4 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-          >
-            <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
-              Total Students
-            </div>
-            <div className="text-2xl font-bold mt-2" style={{ color: "oklch(0.58 0.012 240)" }}>
-              {students.length}
-            </div>
+          <div className="bg-white border border-slate-300 shadow-sm p-4 rounded-xl">
+            <div className="text-xs font-semibold text-slate-600">Total Students</div>
+            <div className="text-2xl font-bold font-mono mt-2 text-[#000953]">{students.length}</div>
           </div>
         </div>
 
         {/* Filter Tabs */}
         <div className="flex gap-2">
-          {["all", "low", "medium", "high"].map((risk) => (
+          {(["all", "low", "medium", "high"] as const).map((risk) => (
             <button
               key={risk}
-              onClick={() => setFilterRisk(risk as any)}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
-              style={{
-                background: filterRisk === risk ? "oklch(0.72 0.18 160)" : "oklch(1 0 0 / 0.06)",
-                color: filterRisk === risk ? "white" : "oklch(0.58 0.012 240)",
-              }}
+              onClick={() => setFilterRisk(risk)}
+              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${
+                filterRisk === risk
+                  ? "bg-[#000953] border-[#000953] text-white shadow-sm"
+                  : "bg-white border-slate-300 text-slate-600 hover:text-[#000953] hover:bg-slate-50"
+              }`}
             >
               {risk.charAt(0).toUpperCase() + risk.slice(1)}
             </button>
@@ -250,46 +215,38 @@ export default function PerformanceInsights() {
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 8 }}
-                  className="glass-card p-4 rounded-xl cursor-pointer transition-all hover:shadow-lg"
-                  style={{
-                    background: "oklch(1 0 0 / 0.04)",
-                    border: "1px solid oklch(1 0 0 / 0.08)",
-                  }}
+                  className="p-4 rounded-xl cursor-pointer transition-all hover:bg-slate-50 bg-white border border-slate-300 hover:border-slate-400 shadow-sm"
                   onClick={() => setSelectedStudent(student)}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <div className="font-bold text-sm" style={{ color: "oklch(0.94 0.005 240)" }}>
+                        <div className="font-bold text-sm text-[#0f172a]">
                           {student.name}
                         </div>
                         <div
-                          className="px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1"
-                          style={{ background: riskColor.bg, color: riskColor.text }}
+                          className="px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1 border"
+                          style={{ background: riskColor.bg, color: riskColor.text, borderColor: riskColor.border }}
                         >
                           {getRiskIcon(student.riskLevel)}
                           {student.riskLevel.charAt(0).toUpperCase() + student.riskLevel.slice(1)}
                         </div>
                       </div>
-                      <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+                      <div className="text-xs font-mono text-slate-500">
                         {student.regNumber}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-bold" style={{ color: "oklch(0.72 0.18 160)" }}>
+                      <div className="text-sm font-bold font-mono text-[#000953]">
                         {student.avgScore}%
                       </div>
-                      <div className="flex items-center gap-1 text-xs mt-1">
+                      <div className="flex items-center justify-end gap-1 text-xs mt-1 font-mono font-bold">
                         {student.trend > 0 ? (
-                          <ArrowUp className="w-3 h-3" style={{ color: "oklch(0.65 0.22 120)" }} />
+                          <ArrowUp className="w-3 h-3 text-emerald-600" />
                         ) : (
-                          <ArrowDown className="w-3 h-3" style={{ color: "oklch(0.65 0.22 25)" }} />
+                          <ArrowDown className="w-3 h-3 text-rose-600" />
                         )}
-                        <span
-                          style={{
-                            color: student.trend > 0 ? "oklch(0.65 0.22 120)" : "oklch(0.65 0.22 25)",
-                          }}
-                        >
+                        <span className={student.trend > 0 ? "text-emerald-700" : "text-rose-600"}>
                           {Math.abs(student.trend)}%
                         </span>
                       </div>
@@ -299,47 +256,26 @@ export default function PerformanceInsights() {
                   {/* Performance Bars */}
                   <div className="grid grid-cols-3 gap-2 text-xs mb-3">
                     <div>
-                      <div style={{ color: "oklch(0.50 0.010 240)" }} className="mb-1">
+                      <div className="text-[11px] font-semibold text-slate-600 mb-1">
                         Last Exam
                       </div>
-                      <div
-                        className="h-6 rounded-lg flex items-center justify-center text-xs font-bold"
-                        style={{
-                          background: "oklch(0.72 0.18 160 / 0.2)",
-                          color: "oklch(0.72 0.18 160)",
-                          width: "100%",
-                        }}
-                      >
+                      <div className="h-6 rounded-lg flex items-center justify-center text-xs font-mono font-bold bg-slate-100 border border-slate-300 text-[#0f172a] w-full">
                         {student.lastExamScore}%
                       </div>
                     </div>
                     <div>
-                      <div style={{ color: "oklch(0.50 0.010 240)" }} className="mb-1">
+                      <div className="text-[11px] font-semibold text-slate-600 mb-1">
                         Predicted
                       </div>
-                      <div
-                        className="h-6 rounded-lg flex items-center justify-center text-xs font-bold"
-                        style={{
-                          background: "oklch(0.65 0.22 120 / 0.2)",
-                          color: "oklch(0.65 0.22 120)",
-                          width: "100%",
-                        }}
-                      >
+                      <div className="h-6 rounded-lg flex items-center justify-center text-xs font-mono font-bold bg-emerald-50 border border-emerald-200 text-emerald-700 w-full">
                         {student.predictedScore}%
                       </div>
                     </div>
                     <div>
-                      <div style={{ color: "oklch(0.50 0.010 240)" }} className="mb-1">
+                      <div className="text-[11px] font-semibold text-slate-600 mb-1">
                         Potential
                       </div>
-                      <div
-                        className="h-6 rounded-lg flex items-center justify-center text-xs font-bold"
-                        style={{
-                          background: "oklch(0.72 0.18 50 / 0.2)",
-                          color: "oklch(0.72 0.18 50)",
-                          width: "100%",
-                        }}
-                      >
+                      <div className="h-6 rounded-lg flex items-center justify-center text-xs font-mono font-bold bg-amber-50 border border-amber-200 text-[#c48820] w-full">
                         +{student.improvementPotential}%
                       </div>
                     </div>
@@ -347,14 +283,11 @@ export default function PerformanceInsights() {
 
                   {/* Quick Stats */}
                   <div className="flex items-center justify-between text-xs">
-                    <div style={{ color: "oklch(0.50 0.010 240)" }}>
+                    <div className="text-slate-600 font-medium">
                       {student.examsAttempted} exams • {student.strengths.length} strengths
                     </div>
                     {student.riskLevel === "high" && (
-                      <div
-                        className="px-2 py-1 rounded-lg font-medium"
-                        style={{ background: "oklch(0.65 0.22 25 / 0.2)", color: "oklch(0.65 0.22 25)" }}
-                      >
+                      <div className="px-2 py-0.5 rounded text-xs font-bold bg-rose-50 border border-rose-200 text-rose-700">
                         Needs Support
                       </div>
                     )}
@@ -370,17 +303,15 @@ export default function PerformanceInsights() {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-6 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
+            className="p-6 rounded-xl bg-white border border-slate-300 shadow-lg"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-lg" style={{ color: "oklch(0.94 0.005 240)" }}>
+              <h3 className="font-bold text-base text-[#000953]">
                 {selectedStudent.name} - Performance Analysis
               </h3>
               <button
                 onClick={() => setSelectedStudent(null)}
-                className="text-sm px-3 py-1 rounded-lg"
-                style={{ background: "oklch(1 0 0 / 0.06)", color: "oklch(0.58 0.012 240)" }}
+                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 hover:bg-slate-200 transition"
               >
                 Close
               </button>
@@ -388,17 +319,16 @@ export default function PerformanceInsights() {
 
             <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
-                <div className="text-xs mb-2" style={{ color: "oklch(0.50 0.010 240)" }}>
+                <div className="text-xs font-bold uppercase tracking-wider mb-2 text-slate-600">
                   Strengths
                 </div>
                 <div className="space-y-2">
                   {selectedStudent.strengths.map((strength, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-2 p-2 rounded-lg text-sm"
-                      style={{ background: "oklch(0.65 0.22 120 / 0.1)", color: "oklch(0.65 0.22 120)" }}
+                      className="flex items-center gap-2 p-2.5 rounded-lg text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-800"
                     >
-                      <Award className="w-4 h-4" />
+                      <Award className="w-4 h-4 text-emerald-600" />
                       {strength}
                     </div>
                   ))}
@@ -406,7 +336,7 @@ export default function PerformanceInsights() {
               </div>
 
               <div>
-                <div className="text-xs mb-2" style={{ color: "oklch(0.50 0.010 240)" }}>
+                <div className="text-xs font-bold uppercase tracking-wider mb-2 text-slate-600">
                   Areas for Improvement
                 </div>
                 <div className="space-y-2">
@@ -414,15 +344,14 @@ export default function PerformanceInsights() {
                     selectedStudent.weaknesses.map((weakness, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-2 p-2 rounded-lg text-sm"
-                        style={{ background: "oklch(0.72 0.18 50 / 0.1)", color: "oklch(0.72 0.18 50)" }}
+                        className="flex items-center gap-2 p-2.5 rounded-lg text-xs font-bold bg-amber-50 border border-amber-200 text-amber-900"
                       >
-                        <Target className="w-4 h-4" />
+                        <Target className="w-4 h-4 text-[#c48820]" />
                         {weakness}
                       </div>
                     ))
                   ) : (
-                    <div className="text-sm" style={{ color: "oklch(0.50 0.010 240)" }}>
+                    <div className="text-xs text-slate-500">
                       No significant weaknesses identified
                     </div>
                   )}
@@ -431,18 +360,17 @@ export default function PerformanceInsights() {
             </div>
 
             <div>
-              <div className="text-xs mb-3" style={{ color: "oklch(0.50 0.010 240)" }}>
+              <div className="text-xs font-bold uppercase tracking-wider mb-3 text-slate-600">
                 Personalized Recommendations
               </div>
               <div className="space-y-2">
                 {selectedStudent.recommendations.map((rec, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-3 p-3 rounded-lg"
-                    style={{ background: "oklch(0.72 0.18 160 / 0.1)" }}
+                    className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-300 text-[#0f172a]"
                   >
-                    <Lightbulb className="w-4 h-4 mt-0.5" style={{ color: "oklch(0.72 0.18 160)" }} />
-                    <span className="text-sm" style={{ color: "oklch(0.72 0.18 160)" }}>
+                    <Lightbulb className="w-4 h-4 mt-0.5 text-[#c48820] shrink-0" />
+                    <span className="text-xs leading-relaxed font-medium">
                       {rec}
                     </span>
                   </div>
@@ -456,8 +384,7 @@ export default function PerformanceInsights() {
                   sendIntervention(selectedStudent.id);
                   setSelectedStudent(null);
                 }}
-                className="w-full mt-4 px-4 py-2 rounded-lg text-sm font-medium"
-                style={{ background: "oklch(0.65 0.22 25)", color: "white" }}
+                className="w-full mt-4 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-rose-600 hover:bg-rose-500 text-white transition active:scale-[0.98]"
               >
                 Schedule Intervention
               </button>

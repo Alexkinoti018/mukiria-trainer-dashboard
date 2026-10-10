@@ -20,7 +20,9 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === "hod") {
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else if (user.role === "hod") {
         navigate("/hod/dashboard");
       } else if (user.role === "trainee") {
         navigate("/trainee/dashboard");
@@ -46,7 +48,9 @@ export default function Login() {
       });
       
       // Route based on role
-      if (result.role === "hod") {
+      if (result.role === "admin") {
+        navigate("/admin");
+      } else if (result.role === "hod") {
         navigate("/hod/dashboard");
       } else if (result.role === "trainee") {
         navigate("/trainee/dashboard");
@@ -161,7 +165,7 @@ export default function Login() {
           {/* Footer note */}
           <div className="text-xs text-center text-muted-foreground space-y-1">
             <p>Demo PINs:</p>
-            <p>Trainer: <strong>1234</strong> | HOD: <strong>5678</strong> | Trainee: <strong>9012</strong></p>
+            <p>Admin: <strong>0000</strong> | Trainer: <strong>1234</strong> | HOD: <strong>5678</strong> | Trainee: <strong>9012</strong></p>
           </div>
         </div>
       </motion.div>

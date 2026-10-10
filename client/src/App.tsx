@@ -18,50 +18,83 @@ import { Loader2 } from "lucide-react";
 
 function PageFallback() {
   return (
-    <div className="min-h-screen bg-[#000953]/20 flex flex-col items-center justify-center gap-3 text-slate-300">
-      <Loader2 className="w-8 h-8 animate-spin text-[#c48820]" />
-      <span className="text-xs font-semibold tracking-wider text-slate-300">
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3 text-[#000953]">
+      <Loader2 className="w-8 h-8 animate-spin text-[#000953]" />
+      <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
         Loading MTTI Academic Module...
       </span>
     </div>
   );
 }
 
-const Login = lazy(() => import("./pages/Login"));
+/**
+ * Resilient dynamic module loader that recovers automatically from network interruptions,
+ * server restarts, or bundle version mismatches.
+ */
+function lazyWithRetry<T extends React.ComponentType<any>>(
+  factory: () => Promise<{ default: T }>
+) {
+  return lazy(async () => {
+    try {
+      return await factory();
+    } catch (error: any) {
+      const isDynamicImportError =
+        error?.message?.includes("Failed to fetch dynamically imported module") ||
+        error?.message?.includes("Importing a module script failed") ||
+        error?.name === "ChunkLoadError";
+
+      if (isDynamicImportError && typeof window !== "undefined") {
+        const key = `retry_import_${window.location.pathname}`;
+        const count = Number(sessionStorage.getItem(key) || "0");
+        if (count < 2) {
+          sessionStorage.setItem(key, String(count + 1));
+          window.location.reload();
+          return new Promise<{ default: T }>(() => {});
+        }
+      }
+      throw error;
+    }
+  });
+}
+
+const Login = lazyWithRetry(() => import("./pages/Login"));
 
 // Trainer pages
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const ExamBuilder = lazy(() => import("./pages/ExamBuilder"));
-const Grading = lazy(() => import("./pages/Grading"));
-const Analytics = lazy(() => import("./pages/Analytics"));
-const Reports = lazy(() => import("./pages/Reports"));
-const Setup = lazy(() => import("./pages/Setup"));
-const Proctoring = lazy(() => import("./pages/Proctoring"));
-const AutoGrading = lazy(() => import("./pages/AutoGrading"));
-const PerformanceInsights = lazy(() => import("./pages/PerformanceInsights"));
-const SessionPlans = lazy(() => import("./pages/SessionPlans"));
-const AcademicWorkspaceShell = lazy(() => import("./pages/AcademicWorkspaceShell"));
-const ClassRegister = lazy(() => import("./pages/ClassRegister"));
-const LearningPlan = lazy(() => import("./pages/LearningPlan"));
-const RecordsOfWork = lazy(() => import("./pages/RecordsOfWork"));
-const AssessmentPlan = lazy(() => import("./pages/AssessmentPlan"));
-const AssessmentMarks = lazy(() => import("./pages/AssessmentMarks"));
-const CurriculumParsingHub = lazy(() => import("./pages/CurriculumParsingHub"));
-const TraineeAssignments = lazy(() => import("./pages/TraineeAssignments"));
-const UploadGrading = lazy(() => import("./pages/UploadGrading"));
-const TimetablePage = lazy(() => import("./pages/TimetablePage"));
+const Dashboard = lazyWithRetry(() => import("./pages/Dashboard"));
+const ExamBuilder = lazyWithRetry(() => import("./pages/ExamBuilder"));
+const Grading = lazyWithRetry(() => import("./pages/Grading"));
+const Analytics = lazyWithRetry(() => import("./pages/Analytics"));
+const Reports = lazyWithRetry(() => import("./pages/Reports"));
+const Setup = lazyWithRetry(() => import("./pages/Setup"));
+const Proctoring = lazyWithRetry(() => import("./pages/Proctoring"));
+const AutoGrading = lazyWithRetry(() => import("./pages/AutoGrading"));
+const PerformanceInsights = lazyWithRetry(() => import("./pages/PerformanceInsights"));
+const SessionPlans = lazyWithRetry(() => import("./pages/SessionPlans"));
+const AcademicWorkspaceShell = lazyWithRetry(() => import("./pages/AcademicWorkspaceShell"));
+const ClassRegister = lazyWithRetry(() => import("./pages/ClassRegister"));
+const LearningPlan = lazyWithRetry(() => import("./pages/LearningPlan"));
+const RecordsOfWork = lazyWithRetry(() => import("./pages/RecordsOfWork"));
+const AssessmentPlan = lazyWithRetry(() => import("./pages/AssessmentPlan"));
+const AssessmentMarks = lazyWithRetry(() => import("./pages/AssessmentMarks"));
+const CurriculumParsingHub = lazyWithRetry(() => import("./pages/CurriculumParsingHub"));
+const TraineeAssignments = lazyWithRetry(() => import("./pages/TraineeAssignments"));
+const UploadGrading = lazyWithRetry(() => import("./pages/UploadGrading"));
+const TimetablePage = lazyWithRetry(() => import("./pages/TimetablePage"));
 
 // HOD pages
-const HODDashboard = lazy(() => import("./pages/HODDashboard"));
-const HODCompliance = lazy(() => import("./pages/HODCompliance"));
-const HODAnalytics = lazy(() => import("./pages/HODAnalytics"));
-const HODReports = lazy(() => import("./pages/HODReports"));
+const HODDashboard = lazyWithRetry(() => import("./pages/HODDashboard"));
+const HODCompliance = lazyWithRetry(() => import("./pages/HODCompliance"));
+const HODAnalytics = lazyWithRetry(() => import("./pages/HODAnalytics"));
+const HODReports = lazyWithRetry(() => import("./pages/HODReports"));
 
 // Trainee pages
-const TraineeDashboard = lazy(() => import("./pages/TraineeDashboard"));
-const CandidatePortal = lazy(() => import("./pages/CandidatePortal"));
-const StudentResults = lazy(() => import("./pages/StudentResults"));
-const StudentSessionView = lazy(() => import("./pages/StudentSessionView"));
+const TraineeDashboard = lazyWithRetry(() => import("./pages/TraineeDashboard"));
+const CandidatePortal = lazyWithRetry(() => import("./pages/CandidatePortal"));
+const StudentResults = lazyWithRetry(() => import("./pages/StudentResults"));
+const StudentSessionView = lazyWithRetry(() => import("./pages/StudentSessionView"));
+
+// Admin & Developer Command Center
+const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"));
 
 function Router() {
   return (
@@ -179,6 +212,15 @@ function Router() {
       <Route path="/dashboard">
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Dashboard /></ProtectedRoute>
       </Route>
+      <Route path="/admin">
+        <ProtectedRoute allowedRoles={["admin", "trainer", "hod"]}><AdminDashboard /></ProtectedRoute>
+      </Route>
+      <Route path="/class-register">
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><ClassRegister /></ProtectedRoute>
+      </Route>
+      <Route path="/assessment-marks">
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><AssessmentMarks /></ProtectedRoute>
+      </Route>
 
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
@@ -230,7 +272,7 @@ function IdleSessionWatcher() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider defaultTheme="light">
         <AuthProvider>
           <TraineeProvider>
             <ExamProvider>

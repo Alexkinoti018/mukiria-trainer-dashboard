@@ -44,6 +44,17 @@ import jsPDF from "jspdf";
 import { saveSessionPlanToOffline, getAllOfflineSessionPlans, enqueueSyncItem } from "@/lib/offlineStore";
 import { syncEngine } from "@/lib/syncEngine";
 
+const safeParseArray = (val: any): any[] => {
+  if (Array.isArray(val)) return val;
+  if (!val) return [];
+  try {
+    const parsed = typeof val === "string" ? JSON.parse(val) : val;
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 export default function SessionPlans() {
   const { user } = useAuth();
   const canEditPedagogical = user?.role === "trainer" || user?.role === "admin" || user?.role === "hod";
@@ -119,9 +130,9 @@ export default function SessionPlans() {
         if (plansRes.data && plansRes.data.length > 0) {
           const mapped: SessionPlan[] = plansRes.data.map((d: any) => ({
             ...d,
-            learning_outcomes: Array.isArray(d.learning_outcomes) ? d.learning_outcomes : JSON.parse(d.learning_outcomes || "[]"),
-            resources: Array.isArray(d.resources) ? d.resources : JSON.parse(d.resources || "[]"),
-            delivery_steps: Array.isArray(d.delivery_steps) ? d.delivery_steps : JSON.parse(d.delivery_steps || "[]"),
+            learning_outcomes: safeParseArray(d.learning_outcomes),
+            resources: safeParseArray(d.resources),
+            delivery_steps: safeParseArray(d.delivery_steps),
           }));
           setPlans(mapped);
           saveStoredSessionPlans(mapped);
@@ -138,8 +149,8 @@ export default function SessionPlans() {
         if (lpRes.data && lpRes.data.length > 0) {
           const mappedLp: LearningPlanWeek[] = lpRes.data.map((d: any) => ({
             ...d,
-            learning_outcomes: Array.isArray(d.learning_outcomes) ? d.learning_outcomes : JSON.parse(d.learning_outcomes || "[]"),
-            resources: Array.isArray(d.resources) ? d.resources : JSON.parse(d.resources || "[]"),
+            learning_outcomes: safeParseArray(d.learning_outcomes),
+            resources: safeParseArray(d.resources),
           }));
           setLearningPlans(mappedLp);
           saveStoredLearningPlans(mappedLp);
@@ -1136,8 +1147,8 @@ export default function SessionPlans() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 pb-3 text-sm font-semibold transition-all relative outline-none ${
-                isActive ? "text-emerald-400" : "text-muted-foreground hover:text-foreground"
+              className={`flex items-center gap-2 pb-3 text-sm font-bold transition-all relative outline-none ${
+                isActive ? "text-[#000953]" : "text-slate-500 hover:text-[#000953]"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -1145,7 +1156,7 @@ export default function SessionPlans() {
               {isActive && (
                 <motion.div
                   layoutId="activeTabUnderline"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#000953]"
                 />
               )}
             </button>
@@ -1157,29 +1168,20 @@ export default function SessionPlans() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         {/* Search & Filters */}
         <div className="flex flex-wrap items-center gap-3 flex-1">
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl flex-1 max-w-sm"
-            style={{ background: "oklch(1 0 0 / 0.05)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-          >
-            <Search className="w-3.5 h-3.5" style={{ color: "oklch(0.50 0.010 240)" }} />
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl flex-1 max-w-sm bg-white border border-slate-300 shadow-sm">
+            <Search className="w-3.5 h-3.5 text-slate-400" />
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search topics, unit codes, classrooms..."
-              className="bg-transparent text-xs outline-none w-full"
-              style={{ color: "oklch(0.94 0.005 240)" }}
+              className="bg-transparent text-xs outline-none w-full text-[#0f172a] placeholder-slate-400"
             />
           </div>
 
           <select
             value={filterUnit}
             onChange={(e) => setFilterUnit(e.target.value)}
-            className="px-3 py-1.5 rounded-xl text-xs max-w-xs truncate cursor-pointer"
-            style={{
-              background: "oklch(1 0 0 / 0.05)",
-              border: "1px solid oklch(1 0 0 / 0.08)",
-              color: "oklch(0.80 0.008 240)",
-            }}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold max-w-xs truncate cursor-pointer bg-white border border-slate-300 text-[#0f172a] shadow-sm focus:outline-none focus:border-[#000953]"
           >
             <option value="all">All Units ({uniqueUnits.length})</option>
             {uniqueUnits.map(code => (
@@ -1192,12 +1194,7 @@ export default function SessionPlans() {
           <select
             value={filterClass}
             onChange={(e) => setFilterClass(e.target.value)}
-            className="px-3 py-1.5 rounded-xl text-xs"
-            style={{
-              background: "oklch(1 0 0 / 0.05)",
-              border: "1px solid oklch(1 0 0 / 0.08)",
-              color: "oklch(0.80 0.008 240)",
-            }}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-slate-300 text-[#0f172a] shadow-sm focus:outline-none focus:border-[#000953]"
           >
             <option value="all">All Classes</option>
             {uniqueClasses.map(cls => (
@@ -1212,24 +1209,21 @@ export default function SessionPlans() {
             <>
               <button
                 onClick={() => setIsUploadOpen(true)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all"
-                style={{ background: "oklch(1 0 0 / 0.05)", border: "1px solid oklch(1 0 0 / 0.08)", color: "oklch(0.80 0.008 240)" }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white border border-slate-300 text-[#000953] hover:bg-slate-50 shadow-sm"
               >
-                <Upload className="w-3.5 h-3.5" /> Upload Plan
+                <Upload className="w-3.5 h-3.5 text-[#c48820]" /> Upload Plan
               </button>
               <button
                 onClick={exportAllJSON}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all"
-                style={{ background: "oklch(1 0 0 / 0.05)", border: "1px solid oklch(1 0 0 / 0.08)", color: "oklch(0.80 0.008 240)" }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white border border-slate-300 text-[#000953] hover:bg-slate-50 shadow-sm"
               >
-                <Download className="w-3.5 h-3.5" /> JSON Backup
+                <Download className="w-3.5 h-3.5 text-[#c48820]" /> JSON Backup
               </button>
               <button
                 onClick={handleOpenCreate}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all"
-                style={{ background: "#c48820", color: "white" }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm"
               >
-                <Plus className="w-3.5 h-3.5" /> Create Plan
+                <Plus className="w-3.5 h-3.5 text-[#c48820]" /> Create Plan
               </button>
             </>
           )}
@@ -1237,10 +1231,9 @@ export default function SessionPlans() {
           {activeTab === "record" && (
             <button
               onClick={generateCUR06PDF}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all"
-              style={{ background: "#c48820", color: "white" }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm"
             >
-              <Download className="w-3.5 h-3.5" /> Download CUR/06 Log
+              <Download className="w-3.5 h-3.5 text-[#c48820]" /> Download CUR/06 Log
             </button>
           )}
         </div>
@@ -1251,10 +1244,10 @@ export default function SessionPlans() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-44 rounded-xl animate-pulse bg-white/5" />
+              <div key={i} className="h-44 rounded-xl animate-pulse bg-slate-100 border border-slate-200" />
             ))
           ) : filteredLp.length === 0 ? (
-            <div className="col-span-full text-center py-10 text-sm text-muted-foreground">
+            <div className="col-span-full text-center py-10 text-sm text-slate-500">
               No Learning Plans match the selected unit filters.
             </div>
           ) : (
@@ -1266,32 +1259,32 @@ export default function SessionPlans() {
                 <motion.div
                   key={week.id}
                   layout
-                  className="glass-card p-4 flex flex-col justify-between"
+                  className="bg-white border border-slate-300 rounded-xl shadow-sm p-4 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-mono font-bold text-xs" style={{ color: "#c48820" }}>
+                      <span className="font-mono font-bold text-xs text-[#c48820]">
                         Week {week.week_number}
                       </span>
                       <span
-                        className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                        className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase border ${
                           isDelivered
-                            ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                             : hasPlan
-                            ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                            : "bg-white/5 text-muted-foreground border border-white/10"
+                            ? "bg-[#000953]/10 text-[#000953] border-[#000953]/20"
+                            : "bg-slate-100 text-slate-600 border-slate-300"
                         }`}
                       >
                         {isDelivered ? "Delivered" : hasPlan ? "Plan Active" : "No Session Plan"}
                       </span>
                     </div>
 
-                    <h4 className="text-sm font-bold text-foreground line-clamp-1">{week.topic}</h4>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{week.unit_code} • {week.class_code}</p>
+                    <h4 className="text-sm font-bold text-[#0f172a] line-clamp-1">{week.topic}</h4>
+                    <p className="text-[10px] font-mono text-slate-500 mt-0.5">{week.unit_code} • {week.class_code}</p>
 
                     <div className="mt-3 space-y-1">
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground">Learning Outcome:</p>
-                      <ul className="text-xs list-disc list-inside text-muted-foreground pl-1 space-y-0.5">
+                      <p className="text-[10px] uppercase font-bold text-slate-600">Learning Outcome:</p>
+                      <ul className="text-xs list-disc list-inside text-slate-600 pl-1 space-y-0.5">
                         {week.learning_outcomes.map((o, idx) => (
                           <li key={idx} className="line-clamp-1">{o}</li>
                         ))}
@@ -1299,7 +1292,7 @@ export default function SessionPlans() {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-white/5">
+                  <div className="mt-4 pt-3 border-t border-slate-200">
                     {hasPlan ? (
                       <button
                         onClick={() => {
@@ -1307,7 +1300,7 @@ export default function SessionPlans() {
                           if (plan) handleOpenEdit(plan);
                           else toast.error("Matching session plan not found locally.");
                         }}
-                        className="w-full text-center py-2 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-cyan-400 transition-all flex items-center justify-center gap-1"
+                        className="w-full text-center py-2 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-[#000953] border border-slate-300 transition-all flex items-center justify-center gap-1"
                       >
                         <FileText className="w-3.5 h-3.5" />
                         View Session Plan
@@ -1315,9 +1308,9 @@ export default function SessionPlans() {
                     ) : (
                       <button
                         onClick={() => generateSessionPlanFromLP(week)}
-                        className="w-full text-center py-2 rounded-lg text-xs font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition-all flex items-center justify-center gap-1 border border-emerald-500/20"
+                        className="w-full text-center py-2 rounded-lg text-xs font-bold bg-[#000953] hover:bg-[#000e7a] text-white transition-all flex items-center justify-center gap-1 shadow-sm"
                       >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus className="w-3.5 h-3.5 text-[#c48820]" />
                         Generate Session Plan
                       </button>
                     )}
@@ -1331,35 +1324,34 @@ export default function SessionPlans() {
 
       {/* Tab 2: Session Plans */}
       {activeTab === "session" && (
-        <div className="glass-card overflow-hidden">
+        <div className="bg-white border border-slate-300 rounded-xl shadow-sm overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr style={{ borderBottom: "1px solid oklch(1 0 0 / 0.08)" }}>
+              <tr className="border-b border-slate-200 bg-slate-50">
                 {["Week", "Unit Code", "Session Title", "Class", "Date", "Status", "Actions"].map((h) => (
                   <th
                     key={h}
-                    className="text-left px-4 py-3 text-xs font-semibold"
-                    style={{ color: "oklch(0.50 0.010 240)" }}
+                    className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-600"
                   >
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
                     {Array.from({ length: 7 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
-                        <div className="h-4 rounded animate-pulse bg-white/5" />
+                        <div className="h-4 rounded animate-pulse bg-slate-200" />
                       </td>
                     ))}
                   </tr>
                 ))
               ) : filteredPlans.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-500">
                     No active session plans. Generate one from the Learning Plans tab!
                   </td>
                 </tr>
@@ -1367,29 +1359,29 @@ export default function SessionPlans() {
                 filteredPlans.map((plan) => {
                   const isDelivered = plan.status === "delivered";
                   return (
-                    <tr key={plan.id} className="data-table-row">
-                      <td className="px-4 py-3 font-mono font-bold text-sm" style={{ color: "#c48820" }}>
+                    <tr key={plan.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3 font-mono font-bold text-sm text-[#c48820]">
                         W{plan.week_number}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{plan.unit_code}</td>
+                      <td className="px-4 py-3 font-mono text-xs font-bold text-[#000953]">{plan.unit_code}</td>
                       <td className="px-4 py-3">
-                        <div className="text-sm font-semibold text-foreground">
+                        <div className="text-sm font-bold text-[#0f172a]">
                           {plan.session_title}
                         </div>
-                        <div className="text-[10px] text-muted-foreground mt-0.5">{plan.unit_name}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">{plan.unit_name}</div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400">
+                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 border border-slate-300 text-[#000953]">
                           {plan.class_code}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-muted-foreground">{plan.date}</td>
+                      <td className="px-4 py-3 text-xs font-medium text-slate-600">{plan.date}</td>
                       <td className="px-4 py-3 text-xs">
                         <span
-                          className={`px-2 py-0.5 rounded-full font-bold text-[9px] uppercase ${
+                          className={`px-2 py-0.5 rounded-full font-bold text-[9px] uppercase border ${
                             isDelivered
-                              ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-                              : "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : "bg-amber-50 text-[#c48820] border-[#c48820]/30"
                           }`}
                         >
                           {isDelivered ? "Delivered" : "Planned"}
@@ -1400,49 +1392,49 @@ export default function SessionPlans() {
                           {!isDelivered ? (
                             <button
                               onClick={() => handleOpenRecordLog(plan)}
-                              className="flex items-center gap-1 px-2.5 py-1 rounded bg-purple-500/15 text-purple-300 border border-purple-500/20 hover:bg-purple-500/25 text-xs font-bold transition-all"
+                              className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#000953] text-white hover:bg-[#000e7a] text-xs font-bold transition-all shadow-sm"
                               title="Log Record of Work"
                             >
-                              <ClipboardCheck className="w-3.5 h-3.5" />
+                              <ClipboardCheck className="w-3.5 h-3.5 text-[#c48820]" />
                               Log Delivery
                             </button>
                           ) : (
-                            <span className="text-[11px] font-semibold text-muted-foreground px-2 py-1 flex items-center gap-1 bg-white/5 rounded">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Logged
+                            <span className="text-[11px] font-bold text-emerald-700 px-2 py-1 flex items-center gap-1 bg-emerald-50 border border-emerald-200 rounded">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Logged
                             </span>
                           )}
 
                           <button
                             onClick={() => handleOpenEdit(plan)}
-                            className="p-1.5 rounded-lg hover:bg-white/5 transition-all text-blue-400"
+                            className="p-1.5 rounded-lg hover:bg-slate-100 transition-all text-[#000953]"
                             title="Edit Plan"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDuplicate(plan)}
-                            className="p-1.5 rounded-lg hover:bg-white/5 transition-all text-emerald-400"
+                            className="p-1.5 rounded-lg hover:bg-slate-100 transition-all text-emerald-700"
                             title="Duplicate (Next Week)"
                           >
                             <Copy className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => generateCUR05PDF(plan)}
-                            className="p-1.5 rounded-lg hover:bg-white/5 transition-all text-purple-400"
+                            className="p-1.5 rounded-lg hover:bg-slate-100 transition-all text-[#000953]"
                             title="Download PDF"
                           >
                             <Download className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setQrModalPlan(plan)}
-                            className="p-1.5 rounded-lg hover:bg-[#c48820]/20 transition-all text-[#c48820]"
+                            className="p-1.5 rounded-lg hover:bg-amber-50 transition-all text-[#c48820]"
                             title="Generate Workshop Door QR Poster"
                           >
                             <QrCode className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDelete(plan.id)}
-                            className="p-1.5 rounded-lg hover:bg-white/5 transition-all text-red-400"
+                            className="p-1.5 rounded-lg hover:bg-rose-50 transition-all text-rose-600"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1470,11 +1462,11 @@ export default function SessionPlans() {
             ].map((stat, i) => {
               const Icon = stat.icon;
               return (
-                <div key={i} className="glass-card p-5 flex items-center justify-between">
+                <div key={i} className="bg-white border border-slate-300 rounded-xl shadow-sm p-5 flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase font-bold">{stat.label}</p>
-                    <p className="text-2xl font-bold font-mono mt-1 text-foreground">{stat.value}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{stat.desc}</p>
+                    <p className="text-xs text-slate-600 uppercase font-bold">{stat.label}</p>
+                    <p className="text-2xl font-bold font-mono mt-1 text-[#0f172a]">{stat.value}</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">{stat.desc}</p>
                   </div>
                   <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: `${stat.color}15` }}>
                     <Icon className="w-5 h-5" style={{ color: stat.color }} />
@@ -1485,58 +1477,57 @@ export default function SessionPlans() {
           </div>
 
           {/* Record Log Table */}
-          <div className="glass-card overflow-hidden">
+          <div className="bg-white border border-slate-300 rounded-xl shadow-sm overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr style={{ borderBottom: "1px solid oklch(1 0 0 / 0.08)" }}>
+                <tr className="border-b border-slate-200 bg-slate-50">
                   {["Week", "Date Delivered", "Unit / Code", "Class", "Work Covered", "Trainees", "Signoff", "Action"].map((h) => (
                     <th
                       key={h}
-                      className="text-left px-4 py-3 text-xs font-semibold"
-                      style={{ color: "oklch(0.50 0.010 240)" }}
+                      className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-600"
                     >
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-200">
                 {filteredRows.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    <td colSpan={8} className="px-4 py-10 text-center text-sm text-slate-500">
                       No Records of Work have been logged yet. Mark a Session Plan as Delivered to generate logs.
                     </td>
                   </tr>
                 ) : (
                   filteredRows.map((row) => (
-                    <tr key={row.id} className="data-table-row">
-                      <td className="px-4 py-3 font-mono font-bold text-xs" style={{ color: "#c48820" }}>
+                    <tr key={row.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3 font-mono font-bold text-xs text-[#c48820]">
                         Week {row.week_number}
                       </td>
-                      <td className="px-4 py-3 text-xs text-muted-foreground">{row.date_delivered}</td>
+                      <td className="px-4 py-3 text-xs font-medium text-slate-600">{row.date_delivered}</td>
                       <td className="px-4 py-3 text-xs">
-                        <div className="font-semibold text-foreground">{unitNameMap[row.unit_code] || row.unit_code}</div>
-                        <div className="font-mono text-[10px] text-muted-foreground">{row.unit_code}</div>
+                        <div className="font-bold text-[#0f172a]">{unitNameMap[row.unit_code] || row.unit_code}</div>
+                        <div className="font-mono text-[10px] text-slate-500">{row.unit_code}</div>
                       </td>
                       <td className="px-4 py-3 text-xs">
-                        <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 font-semibold">{row.class_code}</span>
+                        <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-300 text-[#000953] font-bold">{row.class_code}</span>
                       </td>
                       <td className="px-4 py-3 max-w-xs">
-                        <div className="text-xs font-medium text-foreground line-clamp-2" title={row.work_actually_covered}>
+                        <div className="text-xs font-medium text-[#0f172a] line-clamp-2" title={row.work_actually_covered}>
                           {row.work_actually_covered}
                         </div>
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-foreground font-semibold">
+                      <td className="px-4 py-3 font-mono text-xs text-[#0f172a] font-bold">
                         {row.trainees_present} present
                       </td>
                       <td className="px-4 py-3 text-xs">
-                        <div className="font-semibold text-foreground">{row.signature}</div>
-                        <div className="text-[10px] text-muted-foreground">{row.signature_date}</div>
+                        <div className="font-bold text-[#0f172a]">{row.signature}</div>
+                        <div className="text-[10px] text-slate-500">{row.signature_date}</div>
                       </td>
                       <td className="px-4 py-3 text-xs">
                         <button
                           onClick={() => handleDeleteRecord(row.id)}
-                          className="p-1.5 rounded-lg hover:bg-white/10 transition-all text-red-400"
+                          className="p-1.5 rounded-lg hover:bg-rose-50 transition-all text-rose-600"
                           title="Delete Record of Work Log"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1554,23 +1545,23 @@ export default function SessionPlans() {
       {/* Editor Modal Overlay */}
       <AnimatePresence>
         {isEditorOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-card w-full max-w-5xl rounded-2xl border border-border shadow-2xl flex flex-col max-h-[90vh]"
+              className="bg-white w-full max-w-5xl rounded-2xl border border-slate-300 shadow-2xl flex flex-col max-h-[90vh]"
             >
-              <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 rounded-t-2xl">
                 <div>
-                  <h3 className="font-bold text-lg" style={{ fontFamily: "Syne, sans-serif" }}>
+                  <h3 className="font-bold text-lg text-[#000953]">
                     {selectedPlan ? "Edit Session Plan" : "Create Session Plan"}
                   </h3>
-                  <p className="text-xs text-muted-foreground">Form MTTI/F/CUR/05 (TVET Pipeline Mode)</p>
+                  <p className="text-xs text-slate-600">Form MTTI/F/CUR/05 (TVET Pipeline Mode)</p>
                 </div>
                 <button
                   onClick={() => setIsEditorOpen(false)}
-                  className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground"
+                  className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-600"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1579,96 +1570,96 @@ export default function SessionPlans() {
               <div className="p-6 overflow-y-auto flex-1 space-y-6">
                 {/* 1. General Header */}
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3">1. General Information</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#000953] mb-3">1. General Information</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Trainer Name</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Trainer Name</label>
                       <input
                         type="text"
                         value={formTrainerName}
                         onChange={(e) => setFormTrainerName(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Department</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Department</label>
                       <input
                         type="text"
                         value={formDepartment}
                         onChange={(e) => setFormDepartment(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Unit of Competency</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Unit of Competency</label>
                       <input
                         type="text"
                         value={formUnitName}
                         onChange={(e) => setFormUnitName(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Unit Code</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Unit Code</label>
                       <input
                         type="text"
                         value={formUnitCode}
                         onChange={(e) => setFormUnitCode(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Class / Intake</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Class / Intake</label>
                       <input
                         type="text"
                         value={formClassCode}
                         onChange={(e) => setFormClassCode(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Level</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Level</label>
                       <input
                         type="text"
                         value={formLevel}
                         onChange={(e) => setFormLevel(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Trainees Count</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Trainees Count</label>
                       <input
                         type="number"
                         value={formTraineesCount}
                         onChange={(e) => setFormTraineesCount(Number(e.target.value))}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50 font-mono"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953] font-mono"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Week Number</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Week Number</label>
                       <input
                         type="number"
                         value={formWeekNumber}
                         onChange={(e) => setFormWeekNumber(Number(e.target.value))}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50 font-mono"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953] font-mono"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Date</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Date</label>
                       <input
                         type="text"
                         value={formDate}
                         onChange={(e) => setFormDate(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Time Range</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Time Range</label>
                       <input
                         type="text"
                         value={formTimeDuration}
                         onChange={(e) => setFormTimeDuration(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                       />
                     </div>
                   </div>
@@ -1676,54 +1667,54 @@ export default function SessionPlans() {
 
                 {/* 2. Curricular Content */}
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3">2. Curricular Content</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#000953] mb-3">2. Curricular Content</h4>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Session Title</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Session Title</label>
                       <input
                         type="text"
                         value={formSessionTitle}
                         onChange={(e) => setFormSessionTitle(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50 font-semibold"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953] font-semibold"
                         placeholder="e.g. Hardware Identification"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Learning Outcomes (One per line)</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Learning Outcomes (One per line)</label>
                       <textarea
                         rows={2}
                         value={formLearningOutcomes}
                         onChange={(e) => setFormLearningOutcomes(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50 font-mono"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953] font-mono"
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Resources (Comma separated)</label>
+                        <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Resources (Comma separated)</label>
                         <input
                           type="text"
                           value={formResources}
                           onChange={(e) => setFormResources(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                          className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Safety Requirements</label>
+                        <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Safety Requirements</label>
                         <input
                           type="text"
                           value={formSafetyRequirements}
                           onChange={(e) => setFormSafetyRequirements(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                          className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Session Presentation: Introduction Outline</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Session Presentation: Introduction Outline</label>
                       <textarea
                         rows={2}
                         value={formIntroduction}
                         onChange={(e) => setFormIntroduction(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                       />
                     </div>
                   </div>
@@ -1732,18 +1723,18 @@ export default function SessionPlans() {
                 {/* 3. Delivery Steps */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 font-bold">3. Session Delivery Stages</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#000953]">3. Session Delivery Stages</h4>
                     <button
                       type="button"
                       onClick={handleAddDeliveryStep}
-                      className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 hover:text-emerald-300"
+                      className="flex items-center gap-1 text-[11px] font-bold text-[#000953] hover:text-[#c48820]"
                     >
                       <Plus className="w-3.5 h-3.5" /> Add Stage
                     </button>
                   </div>
-                  <div className="border border-white/10 rounded-xl overflow-hidden">
+                  <div className="border border-slate-300 rounded-xl overflow-hidden">
                     <table className="w-full">
-                      <thead className="bg-white/5 text-[10px] uppercase font-bold text-muted-foreground">
+                      <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-600 border-b border-slate-200">
                         <tr>
                           <th className="px-4 py-2 text-left w-20">Time (min)</th>
                           <th className="px-4 py-2 text-left">Trainer Activity</th>
@@ -1752,15 +1743,15 @@ export default function SessionPlans() {
                           <th className="px-4 py-2 text-center w-12"></th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5">
+                      <tbody className="divide-y divide-slate-200">
                         {formDeliverySteps.map((step, idx) => (
-                          <tr key={idx} className="hover:bg-white/[0.01]">
+                          <tr key={idx} className="hover:bg-slate-50">
                             <td className="px-4 py-2">
                               <input
                                 type="number"
                                 value={step.time_minutes}
                                 onChange={(e) => handleDeliveryStepChange(idx, "time_minutes", e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-2 py-1 text-xs text-center font-mono"
+                                className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-center font-mono text-[#0f172a]"
                               />
                             </td>
                             <td className="px-4 py-2">
@@ -1768,7 +1759,7 @@ export default function SessionPlans() {
                                 type="text"
                                 value={step.trainer_activity}
                                 onChange={(e) => handleDeliveryStepChange(idx, "trainer_activity", e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-2 py-1 text-xs"
+                                className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-[#0f172a]"
                               />
                             </td>
                             <td className="px-4 py-2">
@@ -1776,7 +1767,7 @@ export default function SessionPlans() {
                                 type="text"
                                 value={step.learner_activity}
                                 onChange={(e) => handleDeliveryStepChange(idx, "learner_activity", e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-2 py-1 text-xs"
+                                className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-[#0f172a]"
                               />
                             </td>
                             <td className="px-4 py-2">
@@ -1784,14 +1775,14 @@ export default function SessionPlans() {
                                 type="text"
                                 value={step.assessment}
                                 onChange={(e) => handleDeliveryStepChange(idx, "assessment", e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-2 py-1 text-xs"
+                                className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-[#0f172a]"
                               />
                             </td>
                             <td className="px-4 py-2 text-center">
                               <button
                                 type="button"
                                 onClick={() => handleRemoveDeliveryStep(idx)}
-                                className="p-1 rounded hover:bg-red-500/10 text-red-400"
+                                className="p-1 rounded hover:bg-rose-50 text-rose-600"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -1805,72 +1796,71 @@ export default function SessionPlans() {
 
                 {/* 4. Signoff */}
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3">4. Signoff, Review & Reflection</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#000953] mb-3">4. Signoff, Review & Reflection</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Session Review Summary</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Session Review Summary</label>
                       <input
                         type="text"
                         value={formSessionReview}
                         onChange={(e) => setFormSessionReview(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Assignment Description</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Assignment Description</label>
                       <input
                         type="text"
                         value={formAssignment}
                         onChange={(e) => setFormAssignment(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Session Reflection</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Session Reflection</label>
                     <textarea
                       rows={2}
                       value={formReflection}
                       onChange={(e) => setFormReflection(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none"
+                      className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none"
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Signature Sign-off</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Signature Sign-off</label>
                       <input
                         type="text"
                         value={formSignature}
                         onChange={(e) => setFormSignature(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Sign-off Date</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Sign-off Date</label>
                       <input
                         type="text"
                         value={formSignatureDate}
                         onChange={(e) => setFormSignatureDate(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none"
                       />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="px-6 py-4 border-t border-border flex items-center justify-end gap-2 bg-white/[0.02]">
+              <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50 rounded-b-2xl">
                 <button
                   type="button"
                   onClick={() => setIsEditorOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold hover:bg-muted text-muted-foreground transition-all"
+                  className="px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-200 text-slate-700 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveSessionPlan}
-                  className="flex items-center gap-1 px-5 py-2 rounded-xl text-xs font-semibold transition-all"
-                  style={{ background: "#c48820", color: "white" }}
+                  className="flex items-center gap-1 px-5 py-2 rounded-xl text-xs font-bold transition-all bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm"
                 >
                   Save Session Plan
                 </button>
@@ -1883,23 +1873,23 @@ export default function SessionPlans() {
       {/* Log Record of Work Dialog */}
       <AnimatePresence>
         {isRecordLogOpen && logSessionPlan && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-card w-full max-w-xl rounded-2xl border border-border shadow-2xl p-6"
+              className="bg-white w-full max-w-xl rounded-2xl border border-slate-300 shadow-2xl p-6"
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="font-bold text-lg" style={{ fontFamily: "Syne, sans-serif" }}>
+                  <h3 className="font-bold text-lg text-[#000953]">
                     Log Record of Work Done
                   </h3>
-                  <p className="text-xs text-muted-foreground">Form MTTI/F/CUR/06 • Week {logSessionPlan.week_number} of {logSessionPlan.unit_code}</p>
+                  <p className="text-xs text-slate-600">Form MTTI/F/CUR/06 • Week {logSessionPlan.week_number} of {logSessionPlan.unit_code}</p>
                 </div>
                 <button
                   onClick={() => setIsRecordLogOpen(false)}
-                  className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1909,43 +1899,43 @@ export default function SessionPlans() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Date Delivered</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Date Delivered</label>
                     <input
                       type="text"
                       value={logDateDelivered}
                       onChange={(e) => setLogDateDelivered(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                      className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                       placeholder="DD/MM/YYYY"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Trainees Present</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Trainees Present</label>
                     <input
                       type="number"
                       value={logTraineesPresent}
                       onChange={(e) => setLogTraineesPresent(Number(e.target.value))}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50 font-mono"
+                      className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953] font-mono"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Hours Covered</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Hours Covered</label>
                     <input
                       type="number"
                       step="0.1"
                       value={logHoursCovered}
                       onChange={(e) => setLogHoursCovered(Number(e.target.value))}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50 font-mono"
+                      className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953] font-mono"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Delivery Status</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Delivery Status</label>
                     <select
                       value={logStatus}
                       onChange={(e) => setLogStatus(e.target.value as any)}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                      className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                     >
                       <option value="delivered">Delivered (Completed)</option>
                       <option value="partial">Partial Delivery</option>
@@ -1955,42 +1945,42 @@ export default function SessionPlans() {
                 </div>
 
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Work Actually Covered</label>
+                  <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Work Actually Covered</label>
                   <textarea
                     rows={3}
                     value={logWorkCovered}
                     onChange={(e) => setLogWorkCovered(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Remarks & Reflections</label>
+                  <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Remarks & Reflections</label>
                   <textarea
                     rows={2}
                     value={logReflection}
                     onChange={(e) => setLogReflection(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#000953]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Signature</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Signature</label>
                     <input
                       type="text"
                       value={logSignature}
                       onChange={(e) => setLogSignature(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none"
+                      className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Signature Date</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-600 block mb-1">Signature Date</label>
                     <input
                       type="text"
                       value={logSignatureDate}
                       onChange={(e) => setLogSignatureDate(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none"
+                      className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-[#0f172a] outline-none"
                     />
                   </div>
                 </div>
@@ -2000,14 +1990,13 @@ export default function SessionPlans() {
               <div className="mt-6 flex justify-end gap-2">
                 <button
                   onClick={() => setIsRecordLogOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold hover:bg-muted text-muted-foreground"
+                  className="px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-100 text-slate-600"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveRecordLog}
-                  className="px-5 py-2 rounded-xl text-xs font-semibold"
-                  style={{ background: "#c48820", color: "white" }}
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm"
                 >
                   Confirm Log
                 </button>
@@ -2020,23 +2009,23 @@ export default function SessionPlans() {
       {/* Upload Modal Overlay */}
       <AnimatePresence>
         {isUploadOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-card w-full max-w-lg rounded-2xl border border-border shadow-2xl p-6"
+              className="bg-white w-full max-w-lg rounded-2xl border border-slate-300 shadow-2xl p-6"
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="font-bold text-lg" style={{ fontFamily: "Syne, sans-serif" }}>
+                  <h3 className="font-bold text-lg text-[#000953]">
                     Upload Session Plan Document
                   </h3>
-                  <p className="text-xs text-muted-foreground">Supported formats: PDF (MTTI/F/CUR/05) or backup JSON</p>
+                  <p className="text-xs text-slate-600">Supported formats: PDF (MTTI/F/CUR/05) or backup JSON</p>
                 </div>
                 <button
                   onClick={() => setIsUploadOpen(false)}
-                  className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -2050,16 +2039,16 @@ export default function SessionPlans() {
                 onClick={() => fileInputRef.current?.click()}
                 className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${
                   dragActive
-                    ? "border-emerald-500 bg-emerald-500/5"
-                    : "border-white/10 hover:border-white/20 hover:bg-white/[0.02]"
+                    ? "border-[#000953] bg-[#000953]/5"
+                    : "border-slate-300 hover:border-[#000953] hover:bg-slate-50"
                 }`}
               >
-                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-[#000953]">
                   <Upload className="w-6 h-6" />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-semibold">Drag and drop file here</p>
-                  <p className="text-xs text-muted-foreground mt-1">or click to browse your files</p>
+                  <p className="text-sm font-bold text-[#0f172a]">Drag and drop file here</p>
+                  <p className="text-xs text-slate-500 mt-1">or click to browse your files</p>
                 </div>
                 <input
                   ref={fileInputRef}
@@ -2070,10 +2059,10 @@ export default function SessionPlans() {
                 />
               </div>
 
-              <div className="mt-4 p-3 bg-white/5 border border-white/10 rounded-xl flex items-start gap-2 text-[11px] text-muted-foreground leading-relaxed">
-                <FileCheck className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
+              <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-2 text-[11px] text-slate-600 leading-relaxed">
+                <FileCheck className="w-4 h-4 shrink-0 text-[#c48820] mt-0.5" />
                 <div>
-                  <span className="font-semibold text-foreground">Intelligent parsing: </span>
+                  <span className="font-bold text-[#000953]">Intelligent parsing: </span>
                   Uploading an official MTTI Session Plan PDF triggers high-fidelity metadata OCR analysis, extracting sections, title, week, and step intervals directly into the interactive dashboard.
                 </div>
               </div>

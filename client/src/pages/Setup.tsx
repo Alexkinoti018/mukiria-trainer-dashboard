@@ -370,27 +370,26 @@ export default function Setup() {
     <TrainerLayout title="Supabase Setup" subtitle="Configure the database backend for production use">
       {/* Status Banner */}
       <div
-        className="flex items-center gap-3 px-5 py-4 rounded-xl mb-6"
-        style={{
-          background: isConfigured
-            ? "oklch(0.72 0.18 160 / 0.1)"
-            : "oklch(0.75 0.14 80 / 0.1)",
-          border: `1px solid ${isConfigured ? "oklch(0.72 0.18 160 / 0.3)" : "oklch(0.75 0.14 80 / 0.3)"}`,
-        }}
+        className={`flex items-center gap-3 px-5 py-4 rounded-xl mb-6 border shadow-sm ${
+          isConfigured
+            ? "bg-emerald-50 border-emerald-300"
+            : "bg-amber-50 border-[#c48820]/40"
+        }`}
       >
         {isConfigured ? (
-          <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: "oklch(0.72 0.18 160)" }} />
+          <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-700" />
         ) : (
-          <Database className="w-5 h-5 shrink-0" style={{ color: "oklch(0.75 0.14 80)" }} />
+          <Database className="w-5 h-5 shrink-0 text-[#c48820]" />
         )}
         <div>
           <p
-            className="text-sm font-bold"
-            style={{ color: isConfigured ? "oklch(0.72 0.18 160)" : "oklch(0.75 0.14 80)" }}
+            className={`text-sm font-bold ${
+              isConfigured ? "text-emerald-800" : "text-[#000953]"
+            }`}
           >
             {isConfigured ? "Supabase Connected" : "Running in Demo Mode"}
           </p>
-          <p className="text-xs" style={{ color: "oklch(0.58 0.012 240)" }}>
+          <p className="text-xs text-slate-600 mt-0.5">
             {isConfigured
               ? "Your Supabase credentials are configured. The system is using live data."
               : "No Supabase credentials detected. Data is loaded from mock fixtures. Follow the steps below to connect a real database."}
@@ -404,31 +403,24 @@ export default function Setup() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="glass-card p-5"
+          className="bg-white border border-slate-300 rounded-xl shadow-sm p-5"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
-              style={{ background: "oklch(0.65 0.15 200 / 0.15)", color: "oklch(0.65 0.15 200)" }}
-            >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-[#000953] text-white">
               1
             </div>
-            <h3
-              className="font-bold text-sm"
-              style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-            >
+            <h3 className="font-bold text-sm text-[#000953]">
               Create a Supabase Project
             </h3>
           </div>
-          <p className="text-xs mb-4 leading-relaxed" style={{ color: "oklch(0.65 0.012 240)" }}>
-            Go to <strong>supabase.com</strong>, create a new project, and note your Project URL and Anon Key from the API settings.
+          <p className="text-xs mb-4 leading-relaxed text-slate-600">
+            Go to <strong className="text-[#0f172a]">supabase.com</strong>, create a new project, and note your Project URL and Anon Key from the API settings.
           </p>
           <a
             href="https://supabase.com/dashboard"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-xs font-semibold"
-            style={{ color: "oklch(0.65 0.15 200)" }}
+            className="inline-flex items-center gap-2 text-xs font-bold text-[#000953] hover:text-[#c48820] transition-colors"
           >
             Open Supabase Dashboard <ExternalLink className="w-3.5 h-3.5" />
           </a>
@@ -439,43 +431,29 @@ export default function Setup() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass-card p-5"
+          className="bg-white border border-slate-300 rounded-xl shadow-sm p-5"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
-              style={{ background: "oklch(0.72 0.18 160 / 0.15)", color: "oklch(0.72 0.18 160)" }}
-            >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-[#000953] text-white">
               2
             </div>
-            <h3
-              className="font-bold text-sm"
-              style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-            >
+            <h3 className="font-bold text-sm text-[#000953]">
               Set Environment Variables
             </h3>
           </div>
-          <p className="text-xs mb-3 leading-relaxed" style={{ color: "oklch(0.65 0.012 240)" }}>
-            Create a <code className="font-mono">.env</code> file in the project root with your credentials:
+          <p className="text-xs mb-3 leading-relaxed text-slate-600">
+            Create a <code className="font-mono font-bold text-[#000953]">.env</code> file in the project root with your credentials:
           </p>
           <div className="relative">
-            <pre
-              className="text-xs p-3 rounded-lg overflow-x-auto font-mono leading-relaxed"
-              style={{
-                background: "oklch(0.10 0.015 240)",
-                color: "oklch(0.72 0.18 160)",
-                border: "1px solid oklch(1 0 0 / 0.08)",
-              }}
-            >
+            <pre className="text-xs p-3 rounded-lg overflow-x-auto font-mono leading-relaxed bg-slate-50 text-[#0f172a] border border-slate-300">
               {ENV_TEMPLATE}
             </pre>
             <button
               onClick={() => copyToClipboard(ENV_TEMPLATE, "env")}
-              className="absolute top-2 right-2 p-1.5 rounded-lg transition-all"
-              style={{ background: "oklch(1 0 0 / 0.08)", color: "oklch(0.58 0.012 240)" }}
+              className="absolute top-2 right-2 p-1.5 rounded-lg transition-all bg-white border border-slate-300 text-slate-600 hover:text-[#000953] shadow-sm"
             >
               {copiedEnv ? (
-                <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "oklch(0.72 0.18 160)" }} />
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
               ) : (
                 <Copy className="w-3.5 h-3.5" />
               )}
@@ -488,52 +466,34 @@ export default function Setup() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="glass-card p-5 lg:col-span-2"
+          className="bg-white border border-slate-300 rounded-xl shadow-sm p-5 lg:col-span-2"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
-                style={{ background: "oklch(0.75 0.14 80 / 0.15)", color: "oklch(0.75 0.14 80)" }}
-              >
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-[#000953] text-white">
                 3
               </div>
               <div>
-                <h3
-                  className="font-bold text-sm"
-                  style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-                >
+                <h3 className="font-bold text-sm text-[#000953]">
                   Run the Database Schema
                 </h3>
-                <p className="text-xs" style={{ color: "oklch(0.58 0.012 240)" }}>
+                <p className="text-xs text-slate-600">
                   Copy and run this SQL in Supabase Dashboard → SQL Editor
                 </p>
               </div>
             </div>
             <button
               onClick={() => copyToClipboard(SCHEMA_SQL, "sql")}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all"
-              style={{
-                background: "oklch(0.75 0.14 80 / 0.12)",
-                border: "1px solid oklch(0.75 0.14 80 / 0.3)",
-                color: "oklch(0.75 0.14 80)",
-              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm"
             >
               {copiedSQL ? (
-                <><CheckCircle2 className="w-3.5 h-3.5" /> Copied!</>
+                <><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Copied!</>
               ) : (
-                <><Copy className="w-3.5 h-3.5" /> Copy SQL</>
+                <><Copy className="w-3.5 h-3.5 text-[#c48820]" /> Copy SQL</>
               )}
             </button>
           </div>
-          <pre
-            className="text-xs p-4 rounded-xl overflow-x-auto font-mono leading-relaxed max-h-96 overflow-y-auto"
-            style={{
-              background: "oklch(0.10 0.015 240)",
-              color: "oklch(0.80 0.008 240)",
-              border: "1px solid oklch(1 0 0 / 0.08)",
-            }}
-          >
+          <pre className="text-xs p-4 rounded-xl overflow-x-auto font-mono leading-relaxed max-h-96 overflow-y-auto bg-slate-50 text-[#0f172a] border border-slate-300">
             {SCHEMA_SQL}
           </pre>
         </motion.div>
@@ -543,27 +503,21 @@ export default function Setup() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="glass-card p-5"
+          className="bg-white border border-slate-300 rounded-xl shadow-sm p-5"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
-              style={{ background: "oklch(0.70 0.16 290 / 0.15)", color: "oklch(0.70 0.16 290)" }}
-            >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-[#000953] text-white">
               4
             </div>
-            <h3
-              className="font-bold text-sm"
-              style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-            >
+            <h3 className="font-bold text-sm text-[#000953]">
               Create Trainer Auth User
             </h3>
           </div>
-          <ol className="text-xs space-y-2 leading-relaxed" style={{ color: "oklch(0.65 0.012 240)" }}>
-            <li>1. Go to <strong>Supabase → Authentication → Users</strong></li>
-            <li>2. Click <strong>"Add User"</strong></li>
-            <li>3. Email: <code className="font-mono text-emerald-400">trainer@mtti.ac.ke</code></li>
-            <li>4. Password: <code className="font-mono text-emerald-400">your-4-digit-PIN</code></li>
+          <ol className="text-xs space-y-2 leading-relaxed text-slate-600">
+            <li>1. Go to <strong className="text-[#0f172a]">Supabase → Authentication → Users</strong></li>
+            <li>2. Click <strong className="text-[#0f172a]">"Add User"</strong></li>
+            <li>3. Email: <code className="font-mono font-bold text-[#000953] bg-slate-100 px-1.5 py-0.5 rounded">trainer@mtti.ac.ke</code></li>
+            <li>4. Password: <code className="font-mono font-bold text-[#c48820] bg-amber-50 px-1.5 py-0.5 rounded">your-4-digit-PIN</code></li>
             <li>5. The PIN you set here is what trainers use to log in</li>
           </ol>
         </motion.div>
@@ -573,37 +527,24 @@ export default function Setup() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="glass-card p-5"
+          className="bg-white border border-slate-300 rounded-xl shadow-sm p-5"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
-              style={{ background: "oklch(0.72 0.18 160 / 0.15)", color: "oklch(0.72 0.18 160)" }}
-            >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-[#000953] text-white">
               5
             </div>
-            <h3
-              className="font-bold text-sm"
-              style={{ fontFamily: "Syne, sans-serif", color: "oklch(0.94 0.005 240)" }}
-            >
+            <h3 className="font-bold text-sm text-[#000953]">
               Candidate Portal URL Format
             </h3>
           </div>
-          <p className="text-xs mb-3 leading-relaxed" style={{ color: "oklch(0.65 0.012 240)" }}>
-            Share this URL pattern with students. Replace <code className="font-mono">COMP-204</code> with the actual unit code:
+          <p className="text-xs mb-3 leading-relaxed text-slate-600">
+            Share this URL pattern with students. Replace <code className="font-mono font-bold text-[#000953]">COMP-204</code> with the actual unit code:
           </p>
-          <div
-            className="px-3 py-2.5 rounded-lg font-mono text-xs"
-            style={{
-              background: "oklch(0.10 0.015 240)",
-              border: "1px solid oklch(1 0 0 / 0.08)",
-              color: "oklch(0.72 0.18 160)",
-            }}
-          >
+          <div className="px-3 py-2.5 rounded-lg font-mono text-xs bg-slate-50 border border-slate-300 text-[#000953] font-bold">
             https://your-domain.com/exam?unitCode=COMP-204
           </div>
-          <p className="text-xs mt-3" style={{ color: "oklch(0.50 0.010 240)" }}>
-            Demo mode supports: <code className="font-mono">COMP-204</code>, <code className="font-mono">ELEC-101</code>, <code className="font-mono">MECH-301</code>
+          <p className="text-xs mt-3 text-slate-500">
+            Demo mode supports: <code className="font-mono font-semibold text-slate-700">COMP-204</code>, <code className="font-mono font-semibold text-slate-700">ELEC-101</code>, <code className="font-mono font-semibold text-slate-700">MECH-301</code>
           </p>
         </motion.div>
       </div>

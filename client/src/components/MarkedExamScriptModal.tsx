@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import type { Submission, Exam } from "@/lib/supabase";
 import { toast } from "sonner";
+import { EXAM_THEME_TOKENS } from "@/lib/examThemeTokens";
 
 interface MarkedExamScriptModalProps {
   isOpen: boolean;
@@ -40,6 +41,17 @@ export default function MarkedExamScriptModal({
   const [editingNotes, setEditingNotes] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<"all" | "section_a" | "section_b">("all");
   const [isExporting, setIsExporting] = useState(false);
+
+  const handlePrint = () => {
+    document.body.classList.add("printing-marked-exam");
+    const cleanup = () => {
+      document.body.classList.remove("printing-marked-exam");
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup);
+    window.print();
+    setTimeout(cleanup, 1500);
+  };
 
   if (!isOpen || !submission) return null;
 
@@ -70,40 +82,49 @@ export default function MarkedExamScriptModal({
           ansDisplay = `${String.fromCharCode(65 + optIdx)}: ${q.options[optIdx] ?? ansDisplay}`;
         }
         return {
-          q_num: idx + 1,
+          q_num: q?.q_num || idx + 1,
           text: q?.text || `Question ${idx + 1}`,
           answer: ansDisplay,
           marks_awarded: ans.marks_awarded ?? 0,
           max_marks: q?.marks ?? 2,
+          breakdown: q?.breakdown,
+          ai_reasoning: editingNotes[ans.question_id] || ans.ai_reasoning || "",
         };
       });
 
       const secB = (submission.section_b || []).map((ans, idx) => {
         const q = exam?.payload?.section_b?.questions?.find((item) => item.id === ans.question_id);
         return {
-          q_num: idx + 1,
+          q_num: q?.q_num || (idx + (submission.section_a?.length || 10) + 1),
           text: q?.text || `Task ${idx + 1}`,
           answer: String(ans.answer ?? "No response"),
           marks_awarded: ans.marks_awarded ?? 0,
           max_marks: q?.marks ?? 20,
+          breakdown: q?.breakdown,
+          sub_parts: q?.sub_parts,
+          ai_reasoning: editingNotes[ans.question_id] || ans.ai_reasoning || "",
         };
       });
 
       const payload = {
         student_name: submission.student_name,
         reg_number: submission.reg_number,
-        unit_name: exam?.course_name || "Apply Digital Literacy",
+        department: exam?.payload?.department || "HOSPITALITY DEPARTMENT\nBUILDING DEPARTMENT",
+        course_name: exam?.course_name || "OFFICE ADMINISTRATION LEVEL 5 & 6, LAND SURVEY LEVEL 5 & 6",
+        course_code: exam?.payload?.course_code || submission.unit_code,
+        unit_name: exam?.payload?.unit_name || exam?.course_name || "APPLY DIGITAL LITERACY",
         unit_code: submission.unit_code,
         class_code: exam?.payload?.class || "FBS5/6/J/25, LS5/6/S/25",
-        series: "SEP - NOV 2026",
-        exam_title: exam?.payload?.title || "Digital Literacy Assessment",
+        series: exam?.payload?.series || "SEP - NOV 2026",
+        time_allowed: exam?.payload?.time_allowed || "2 HOURS",
+        exam_title: exam?.payload?.title || "WRITTEN ASSESSMENT 1",
         evaluated_at: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
         total_score: currentTotal,
         total_marks: totalMarks,
         percentage: percentage,
-        grade: isPass ? "C" : "F",
-        status: isPass ? "PASS" : "FAIL",
-        trainer_comments: submission.trainer_comments || "The candidate demonstrates competent foundational digital skills with solid adherence to workplace ICT standards.",
+        grade: isPass ? "Pass" : "Referral",
+        status: isPass ? "COMPETENT (PASS)" : "NOT YET COMPETENT (REFER)",
+        trainer_comments: submission.trainer_comments || "The candidate demonstrates exceptional competence in digital literacy principles, practical workplace computer procedures, and software applications.",
         trainer_name: trainerName,
         section_a: secA,
         section_b: secB,
@@ -193,7 +214,7 @@ export default function MarkedExamScriptModal({
 
             {/* Print Marked Script */}
             <button
-              onClick={() => window.print()}
+              onClick={handlePrint}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
               title="Print official marked paper"
             >
@@ -234,9 +255,10 @@ export default function MarkedExamScriptModal({
         {/* Script Paper Workspace (Scrollable) */}
         <div className="flex-1 overflow-y-auto bg-[#e5e5e5] p-3 sm:p-6 print:p-0 print:bg-white">
           <div 
-            className="max-w-4xl mx-auto bg-[#fefcf8] text-slate-900 border-2 border-slate-400 shadow-xl rounded-sm p-6 sm:p-10 relative overflow-hidden print:border-none print:shadow-none print:p-0 print:bg-white"
+            id="printable-marked-exam"
+            className="max-w-4xl mx-auto bg-white text-slate-900 border-2 border-slate-300 shadow-xl rounded-sm p-6 sm:p-10 relative overflow-hidden print:border-none print:shadow-none print:p-0 print:bg-white"
             style={{ 
-              fontFamily: "'Inter', sans-serif",
+              fontFamily: EXAM_THEME_TOKENS.typography.fontFamilies.screen,
               backgroundImage: "linear-gradient(to bottom, transparent 96%, rgba(0, 0, 0, 0.02) 100%)"
             }}
           >
@@ -256,13 +278,13 @@ export default function MarkedExamScriptModal({
                     onError={(e) => { (e.target as any).style.display = 'none'; }}
                   />
                   <div>
-                    <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#000953]" style={{ fontFamily: "Maiandra GD, sans-serif" }}>
+                    <h1 className="exam-inst-header tracking-tight">
                       MUKIRIA TECHNICAL TRAINING INSTITUTE
                     </h1>
                     <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                       DEPARTMENT OF COMPUTING & INFORMATICS
                     </p>
-                    <p className="text-xs font-semibold text-amber-700">
+                    <p className="exam-paper-title text-[#c48820]">
                       OFFICIAL CANDIDATE EXAMINATION SCRIPT & EVALUATION
                     </p>
                   </div>
@@ -340,7 +362,7 @@ export default function MarkedExamScriptModal({
             {/* SECTION A: Core Concepts & Short Answers */}
             <div className="mb-8">
               <div className="flex items-center justify-between border-b-2 border-slate-800 pb-1 mb-4">
-                <h3 className="font-bold text-sm tracking-wide text-[#000953] uppercase">
+                <h3 className="exam-section-heading uppercase tracking-wide">
                   SECTION A: CORE CONCEPTS & SHORT ANSWERS (Compulsory — 30 Marks)
                 </h3>
                 {showRedPen && (
@@ -377,13 +399,13 @@ export default function MarkedExamScriptModal({
                         <div className="flex-1">
                           {/* Question header */}
                           <div className="flex items-baseline gap-2 mb-1">
-                            <span className="font-bold text-xs text-slate-900">
+                            <span className="exam-question-prompt font-bold">
                               Q{idx + 1}.
                             </span>
-                            <span className="text-xs font-semibold text-slate-800 leading-snug">
+                            <span className="exam-question-prompt leading-snug">
                               {q?.text || `Question ${idx + 1}`}
                             </span>
-                            <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                            <span className="exam-marks-badge shrink-0">
                               ({maxMarks} Marks)
                             </span>
                           </div>
@@ -489,7 +511,7 @@ export default function MarkedExamScriptModal({
             {/* SECTION B: Structured Practical Tasks */}
             <div className="mb-8">
               <div className="flex items-center justify-between border-b-2 border-slate-800 pb-1 mb-4">
-                <h3 className="font-bold text-sm tracking-wide text-[#000953] uppercase">
+                <h3 className="exam-section-heading uppercase tracking-wide">
                   SECTION B: STRUCTURED PRACTICAL TASKS (40 Marks)
                 </h3>
                 {showRedPen && (
@@ -516,13 +538,13 @@ export default function MarkedExamScriptModal({
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline gap-2 mb-2">
-                            <span className="font-bold text-xs text-slate-900">
+                            <span className="exam-question-prompt font-bold">
                               Task {idx + 1}.
                             </span>
-                            <span className="text-xs font-semibold text-slate-800 leading-snug whitespace-pre-line">
+                            <span className="exam-question-prompt leading-snug whitespace-pre-line">
                               {q?.text || `Task ${idx + 1}`}
                             </span>
-                            <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                            <span className="exam-marks-badge shrink-0">
                               ({maxMarks} Marks)
                             </span>
                           </div>
@@ -600,13 +622,13 @@ export default function MarkedExamScriptModal({
               <div className="grid grid-cols-2 gap-8 pt-4 text-xs font-bold text-slate-800">
                 <div className="border-t border-slate-400 pt-2">
                   <p>Internal Assessor: <span className="font-semibold text-red-700">{trainerName}</span></p>
-                  <p className="text-[10px] text-slate-500 mt-1">Signature: Alexander Kinoti (Digitally Signed via MTTI Portal)</p>
-                  <p className="text-[10px] text-slate-500">Date: 4 October 2026</p>
+                  <p className="exam-footer-timestamp mt-1">Signature: Alexander Kinoti (Digitally Signed via MTTI Portal)</p>
+                  <p className="exam-footer-timestamp">Date: 4 October 2026</p>
                 </div>
                 <div className="border-t border-slate-400 pt-2">
                   <p>Head of Department: <span className="font-semibold">Computing & Informatics</span></p>
-                  <p className="text-[10px] text-slate-500 mt-1">Signature: __________________________</p>
-                  <p className="text-[10px] text-slate-500">Official Stamp: Mukiria TTI Academic Verifier</p>
+                  <p className="exam-footer-timestamp mt-1">Signature: __________________________</p>
+                  <p className="exam-footer-timestamp">Official Stamp: Mukiria TTI Academic Verifier</p>
                 </div>
               </div>
             </div>

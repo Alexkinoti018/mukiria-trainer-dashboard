@@ -12,5 +12,33 @@
     "remarks": "Verification trainee",
     "created_at": "2026-10-04T23:12:58.578Z",
     "updated_at": "2026-10-04T23:12:58.578Z"
+  },
+  {
+    "id": "tr_1791576675220_xm5wbvuxz",
+    "name": "Alex  Teacher",
+    "reg_number": "TED/092/18",
+    "adm_no": "TED/092/18",
+    "reg_code": "TED/092/18",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "department": "Business Studies",
+    "gender": "M",
+    "phone": "",
+    "remarks": "",
+    "created_at": "2026-10-09T20:11:16.693Z",
+    "updated_at": "2026-10-09T20:11:16.693Z"
+  },
+  {
+    "id": "tr_1791577241020_4dqoi35vr",
+    "name": "Harriet Mwendwa",
+    "reg_number": "D/UPNUT/25042/069",
+    "adm_no": "D/UPNUT/25042/069",
+    "reg_code": "D/UPNUT/25042/069",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "department": "Business Studies",
+    "gender": "F",
+    "phone": "0114282240",
+    "remarks": "External learner",
+    "created_at": "2026-10-09T20:20:41.052Z",
+    "updated_at": "2026-10-09T20:20:41.052Z"
   }
 ]

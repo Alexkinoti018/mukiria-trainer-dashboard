@@ -7,188 +7,313 @@ export const DIGITAL_LITERACY_EXAMS: Exam[] = [
     course_name: "Apply Digital Literacy (Office Admin & Land Survey L5/L6)",
     created_at: "2026-09-01T08:00:00Z",
     payload: {
-      title: "Apply Digital Literacy — Written Assessment 1 (Internal Examination)",
+      title: "WRITTEN ASSESSMENT 1",
+      department: "HOSPITALITY DEPARTMENT / BUILDING DEPARTMENT",
+      course_name: "OFFICE ADMINISTRATION LEVEL 5 & 6, LAND SURVEY LEVEL 5 & 6",
+      course_code: "061155101A",
+      unit_name: "APPLY DIGITAL LITERACY",
       class: "FBS5/6/J/25, LS5/6/S/25",
       series: "SEP – NOV 2026",
+      time_allowed: "2 HOURS",
       duration_minutes: 120,
       total_marks: 70,
       type: "written",
-      instructions: "This paper consists of two sections: Section A (30 Marks, Compulsory) and Section B (40 Marks, Answer ANY TWO Questions).",
+      instructions: "1. This paper consists of two sections A and B;\n2. Answer ALL the question as guided in each section;\n3. Marks for each question are as indicated in the brackets;\n4. You are provided with a separate answer booklet to answer the questions;\n5. Do not write in this question paper.",
       section_a: {
-        title: "Section A — Core Concepts & Workplace Procedures (30 Marks)",
-        instructions: "Answer ALL questions in this section (Compulsory).",
+        title: "SECTION A (30 MARKS) — Answer ALL Questions",
+        instructions: "Answer ALL Questions (30 Marks total).",
         total_marks: 30,
         questions: [
           {
             id: "dl1_a1",
+            q_num: 1,
             text: "Define digital literacy and state its importance in a modern workplace.",
             type: "short_answer",
             marks: 2,
             critical_aspect: "Define digital literacy and workplace relevance",
             correct_answer: "Digital literacy is the ability to access, manage, evaluate, and create information safely and effectively using digital technologies and devices. In the workplace, it enables automated task completion, effective communication, and enhanced productivity.",
-            regex_pattern: "(?i)(digital\\s+literacy|technology|computer|skills|workplace|productivity|competenc)",
-            keywords: ["digital", "literacy", "technology", "skills", "workplace", "productivity"],
-            evaluation_mode: "semi_objective",
-            requires_trainer_review: false
+            breakdown: [
+              { criterion: "Definition of digital literacy", marks: 1 },
+              { criterion: "Workplace importance & productivity benefit", marks: 1 }
+            ]
           },
           {
             id: "dl1_a2",
-            text: "Which of the following contains ONLY computer input devices?",
-            type: "mcq",
-            options: [
-              "Monitor, Printer, and Speaker",
-              "Keyboard, Optical Scanner, and Mouse",
-              "Projector, Plotter, and Headphone",
-              "Hard Disk Drive, USB Drive, and SSD"
-            ],
-            correct_answer: "1",
-            marks: 2,
-            critical_aspect: "Input device identification",
-            evaluation_mode: "objective",
-            requires_trainer_review: false
-          },
-          {
-            id: "dl1_a3",
-            text: "List two input devices and two output devices commonly used in a professional office setting.",
+            q_num: 2,
+            text: "List two input devices and two output devices commonly used in a professional setting.",
             type: "short_answer",
             marks: 4,
             critical_aspect: "Identify standard office input and output peripherals",
-            correct_answer: "Input devices: Keyboard, Mouse, Document Scanner, Microphone. Output devices: Computer Monitor (Display), Laser Printer, Multimedia Projector, Speakers.",
-            regex_pattern: "(?i)(keyboard|mouse|scanner|mic).*?(monitor|printer|speaker|projector)",
-            keywords: ["keyboard", "mouse", "scanner", "monitor", "printer", "projector"],
-            evaluation_mode: "semi_objective",
-            requires_trainer_review: false
+            correct_answer: "Input devices: Keyboard, Optical Mouse, Document Scanner. Output devices: Computer Monitor (Display), Laser Printer, Multimedia Projector.",
+            breakdown: [
+              { criterion: "Two professional input devices listed (1 mk each)", marks: 2 },
+              { criterion: "Two professional output devices listed (1 mk each)", marks: 2 }
+            ]
           },
           {
-            id: "dl1_a4",
+            id: "dl1_a3",
+            q_num: 3,
             text: "Explain the correct sequence of steps to safely shut down a computer device as per workplace procedure.",
             type: "short_answer",
             marks: 3,
             critical_aspect: "Safe OS shutdown procedure",
-            correct_answer: "1. Save all open working files. 2. Close all active running applications. 3. Click the Start button on the taskbar. 4. Select the Power icon and click 'Shut down'. 5. Wait for the system unit to completely power off before turning off the monitor and wall socket.",
-            keywords: ["save", "close", "start", "power", "shut down", "switch off"],
-            evaluation_mode: "semi_objective",
-            requires_trainer_review: false
+            correct_answer: "1. Save all open working files. 2. Close all active running applications. 3. Click the Start button on the taskbar, select Power icon, and click 'Shut down'. 4. Wait for system unit to power off before switching off monitor and wall socket.",
+            breakdown: [
+              { criterion: "Step 1: Saving active work and open files", marks: 1 },
+              { criterion: "Step 2: Gracefully closing active software applications", marks: 1 },
+              { criterion: "Step 3: Executing Start > Power > Shut Down command", marks: 1 }
+            ]
           },
           {
-            id: "dl1_a5",
+            id: "dl1_a4",
+            q_num: 4,
             text: "Describe two keyboard techniques that enhance efficiency when typing a report.",
             type: "short_answer",
             marks: 2,
             critical_aspect: "Ergonomic and efficient keyboard techniques",
-            correct_answer: "1. Touch typing: Placing fingers on the home row keys (ASDF JKL;) without looking at the keyboard. 2. Utilizing keyboard shortcuts (e.g., Ctrl+C, Ctrl+V, Ctrl+S) to perform formatting and editing commands quickly.",
-            keywords: ["touch typing", "home row", "shortcuts", "posture", "fingers"],
-            evaluation_mode: "semi_objective",
-            requires_trainer_review: false
+            correct_answer: "1. Touch typing: Placing fingers on home row keys (ASDF JKL;) without looking at keyboard. 2. Utilizing keyboard shortcuts (e.g. Ctrl+C, Ctrl+V, Ctrl+S) for rapid editing.",
+            breakdown: [
+              { criterion: "Technique 1: Touch typing on home row keys", marks: 1 },
+              { criterion: "Technique 2: Use of productivity shortcut keys", marks: 1 }
+            ]
+          },
+          {
+            id: "dl1_a5",
+            q_num: 5,
+            text: "You have just completed drafting a confidential report. Outline the steps you would take to create a new folder, save the report into it, and then password protect the folder, ensuring data security.",
+            type: "short_answer",
+            marks: 4,
+            critical_aspect: "Folder creation, file saving, and password protection",
+            correct_answer: "1. Create folder: Right-click desktop/drive > New > Folder > name it appropriately > press Enter. 2. Save report: In application, click File > Save As > Browse to new folder > save file. 3. Password protect: In Save As dialog, click Tools > General Options (or File > Info > Protect Document > Encrypt with Password) > set strong password > confirm.",
+            breakdown: [
+              { criterion: "Step 1: New folder creation procedure", marks: 1 },
+              { criterion: "Step 2: Saving confidential report into target folder", marks: 1 },
+              { criterion: "Step 3: Setting password encryption / access protection", marks: 2 }
+            ]
           },
           {
             id: "dl1_a6",
-            text: "You have just completed drafting a confidential report. Outline the steps you would take to create a new folder, save the report into it, and protect the document from unauthorized access.",
-            type: "practical",
-            marks: 4,
-            critical_aspect: "File organization and document password protection",
-            correct_answer: "1. Create Folder: Right-click on desktop/directory > New > Folder > name it appropriately > Enter. 2. Save Report: In Word, click File > Save As > Browse to the new folder > Name document. 3. Protect Document: In Save As dialog, click Tools > General Options (or File > Info > Protect Document > Encrypt with Password) > Set strong password > Confirm and Save.",
-            keywords: ["right click", "new folder", "save as", "password", "encrypt", "protect"],
-            evaluation_mode: "subjective",
-            requires_trainer_review: true
+            q_num: 6,
+            text: "Identify three common areas where computers are used",
+            type: "short_answer",
+            marks: 3,
+            critical_aspect: "Common societal and enterprise computing areas",
+            correct_answer: "1. Healthcare / Hospitals: Patient records, diagnostic equipment, appointment scheduling. 2. Banking & Finance: Electronic fund transfers, ATM transactions, accounting records. 3. Education / Schools: Computer-assisted learning, digital research, trainee administration.",
+            breakdown: [
+              { criterion: "Area 1 identified with application context", marks: 1 },
+              { criterion: "Area 2 identified with application context", marks: 1 },
+              { criterion: "Area 3 identified with application context", marks: 1 }
+            ]
           },
           {
             id: "dl1_a7",
-            text: "State four areas in an organization where computers are extensively used and explain the role they play in each.",
+            q_num: 7,
+            text: "A colleague needs to present a document from their laptop to a large screen. Describe the steps to connect an external projector to a laptop.",
             type: "short_answer",
-            marks: 4,
-            critical_aspect: "Enterprise computing applications across departments",
-            correct_answer: "1. Accounting/Finance: Budgeting, payroll processing, ledger tracking. 2. Human Resource Management: Employee recordkeeping, recruitment, attendance logs. 3. Marketing/Sales: Digital campaigns, customer relationship management (CRM), invoicing. 4. Operations/Inventory: Stock tracking, supply chain monitoring, automated scheduling.",
-            keywords: ["accounting", "finance", "human resource", "marketing", "sales", "inventory", "operations"],
-            evaluation_mode: "semi_objective",
-            requires_trainer_review: false
+            marks: 3,
+            critical_aspect: "External display / projector configuration",
+            correct_answer: "1. Connect HDMI or VGA cable between laptop video port and projector input, then power on projector. 2. On laptop, press Windows Key + P to open display projection menu. 3. Select 'Duplicate' (or 'Extend') to mirror the screen, then adjust projector focus.",
+            breakdown: [
+              { criterion: "Step 1: Physical video cable connection and power on", marks: 1 },
+              { criterion: "Step 2: Windows display shortcut (Win + P > Duplicate)", marks: 1 },
+              { criterion: "Step 3: Screen calibration and projector focus adjustment", marks: 1 }
+            ]
           },
           {
             id: "dl1_a8",
-            text: "Outline the procedure for connecting and setting up a computer projector for an office presentation.",
+            q_num: 8,
+            text: "Differentiate between System Software and Application Software, providing two examples for each.",
             type: "short_answer",
-            marks: 3,
-            critical_aspect: "Peripheral setup and display projection",
-            correct_answer: "1. Connect HDMI or VGA cable from computer to projector input port. 2. Plug in projector power cable and power on both devices. 3. On Windows, press Windows Key + P to open Project menu and select 'Duplicate' or 'Extend'. 4. Adjust projector focus and keystone for a clear image.",
-            keywords: ["hdmi", "vga", "cable", "port", "windows key + p", "duplicate", "projector", "power"],
-            evaluation_mode: "semi_objective",
-            requires_trainer_review: false
+            marks: 4,
+            critical_aspect: "System vs application software distinction",
+            correct_answer: "System software manages and coordinates hardware resources and provides a base platform (e.g. Microsoft Windows 11, Linux OS). Application software is designed for end-users to perform specific productive tasks (e.g. Microsoft Word, Microsoft Excel).",
+            breakdown: [
+              { criterion: "Conceptual distinction (Hardware control vs End-user tasks)", marks: 2 },
+              { criterion: "Two system software examples (Windows, Linux)", marks: 1 },
+              { criterion: "Two application software examples (MS Word, MS Excel)", marks: 1 }
+            ]
           },
           {
             id: "dl1_a9",
-            text: "Differentiate between system software and application software, providing one example of each.",
+            q_num: 9,
+            text: "Explain the concept of 'drag and drop' in the context of file management",
             type: "short_answer",
-            marks: 3,
-            critical_aspect: "System vs application software distinction",
-            correct_answer: "System software manages and controls computer hardware resources and provides a platform for applications (e.g., Microsoft Windows 11, Linux, macOS). Application software enables users to perform specific end-user tasks and productivity activities (e.g., Microsoft Word, Excel, Adobe Photoshop).",
-            keywords: ["system software", "application software", "hardware", "user tasks", "operating system", "windows", "word", "excel"],
-            evaluation_mode: "semi_objective",
-            requires_trainer_review: false
+            marks: 2,
+            critical_aspect: "Drag and drop GUI operation in file management",
+            correct_answer: "Drag and drop is a graphical user interface operation where the user points to a file, holds down the primary mouse button, drags the pointer to a target folder or directory, and releases the button to move or copy the item.",
+            breakdown: [
+              { criterion: "Explanation of mouse action (Click, hold, move, release)", marks: 1 },
+              { criterion: "File management context (Moving/copying files into folders)", marks: 1 }
+            ]
           },
           {
             id: "dl1_a10",
-            text: "Explain the concept of 'drag and drop' and state two common scenarios where it is used.",
-            type: "short_answer",
-            marks: 2,
-            critical_aspect: "GUI manipulation using mouse drag and drop",
-            correct_answer: "Drag and drop is a GUI action where a user clicks and holds an on-screen object, moves the pointer to a target location, and releases the mouse button. Common scenarios: 1. Moving files or folders between directories. 2. Dragging an image or text block into a document or presentation.",
-            keywords: ["click", "hold", "move", "release", "files", "folder", "desktop"],
-            evaluation_mode: "semi_objective",
-            requires_trainer_review: false
-          },
-          {
-            id: "dl1_a11",
-            text: "Explain why an organization should establish policies regarding computer usage by employees.",
+            q_num: 10,
+            text: "State two workplace policies or regulations that guide the operation of computer devices.",
             type: "short_answer",
             marks: 3,
-            critical_aspect: "Workplace acceptable use policy (AUP)",
-            correct_answer: "1. Protect organizational data and cybersecurity against breaches and malware. 2. Ensure compliance with data privacy regulations (e.g. Kenya Data Protection Act). 3. Prevent workplace liability and unproductive non-work-related computer activities.",
-            keywords: ["policy", "security", "data protection", "productivity", "compliance", "acceptable use"],
-            evaluation_mode: "semi_objective",
-            requires_trainer_review: false
+            critical_aspect: "Workplace ICT policies and regulatory compliance",
+            correct_answer: "1. Acceptable Use Policy (AUP): Defines allowable hardware and internet usage, prohibiting unauthorized downloads or non-work activities. 2. Password & Data Security Policy: Mandates regular password updates, screen locking when unattended, and adherence to confidentiality rules.",
+            breakdown: [
+              { criterion: "Workplace Policy 1 (Acceptable Use / Internet Policy)", marks: 1.5 },
+              { criterion: "Workplace Policy 2 (Password Security / Data Confidentiality)", marks: 1.5 }
+            ]
           }
         ]
       },
       section_b: {
-        title: "Section B — Structured Practical & Application Questions (40 Marks)",
-        instructions: "Answer ANY TWO questions from this section. Each question carries 20 marks.",
+        title: "SECTION B (40 MARKS) - Answer ANY TWO Questions",
+        instructions: "Answer ANY TWO Questions from this section. Each question carries 20 marks.",
         total_marks: 40,
         questions: [
           {
-            id: "dl1_b1",
-            text: "a) Describe the primary function of a word processing application and list two features that differentiate it from a plain text editor (4 Marks).\nb) You are tasked with creating a newsletter in a word processing application. List four formatting options you would apply to make it visually appealing and easy to read (4 Marks).\nc) What is the function of the following key combinations in MS Office? (6 Marks)\n   i. CTRL + Z\n   ii. CTRL + X\n   iii. CTRL + V\nd) Describe three differences between a calculator and a computer (6 Marks).",
-            type: "practical",
+            id: "dl1_b11",
+            q_num: 11,
+            text: "11.\na) Describe the primary function of a word processing application and list two features that differentiate it from a plain text editor. (4 Marks)\nb) You are tasked with creating a newsletter in a word processing application. List four formatting options you would apply to make it visually appealing and easy to read. (4 Marks)\nc) What is the function of the following key combinations in Ms Office? (6 Marks)\n   i. CTRL + Z\n   ii. CTRL + X\n   iii. CTRL + V\nd) Describe three differences between a calculator and a computer (6 Marks)",
+            type: "structured",
             marks: 20,
-            critical_aspect: "Word processing capabilities, shortcuts, and computational device architecture",
-            correct_answer: "a) Word processor creates, edits, formats, and prints rich text documents. Differentiators from plain text: WYSIWYG text formatting (bold/fonts/colors) and support for tables/graphics/spellcheck. b) Newsletter formatting: Multi-column layout, drop caps, header/footer branding, callout boxes/borders, styled headings. c) i. CTRL+Z: Undo last action. ii. CTRL+X: Cut selected text/item to clipboard. iii. CTRL+V: Paste item from clipboard. d) Differences: Computer is general-purpose programmable device while calculator is dedicated arithmetic device; Computer possesses large secondary storage while calculator has minimal memory; Computer supports rich peripheral input/output while calculator has fixed keypad and numeric LCD display.",
-            regex_pattern: "(?i)(undo).*?(cut).*?(paste)",
-            keywords: ["undo", "cut", "paste", "columns", "formatting", "word processor", "calculator", "programmable", "general purpose"],
-            evaluation_mode: "subjective",
-            requires_trainer_review: true
+            critical_aspect: "Word processing capabilities, office shortcuts, and computer architecture",
+            sub_parts: [
+              {
+                part: "a",
+                prompt: "Describe the primary function of a word processing application and list two features that differentiate it from a plain text editor.",
+                marks: 4,
+                breakdown: [
+                  { criterion: "Primary function of word processor", marks: 2 },
+                  { criterion: "Two differentiating features (WYSIWYG styling, graphics/tables)", marks: 2 }
+                ]
+              },
+              {
+                part: "b",
+                prompt: "You are tasked with creating a newsletter in a word processing application. List four formatting options you would apply to make it visually appealing and easy to read.",
+                marks: 4,
+                breakdown: [
+                  { criterion: "Formatting option 1: Multi-column layout", marks: 1 },
+                  { criterion: "Formatting option 2: Drop caps on leading text", marks: 1 },
+                  { criterion: "Formatting option 3: Callout boxes / borders", marks: 1 },
+                  { criterion: "Formatting option 4: Styled headings and header/footer branding", marks: 1 }
+                ]
+              },
+              {
+                part: "c",
+                prompt: "What is the function of the following key combinations in Ms Office? i. CTRL + Z, ii. CTRL + X, iii. CTRL + V",
+                marks: 6,
+                breakdown: [
+                  { criterion: "i. CTRL + Z: Undo the previous action", marks: 2 },
+                  { criterion: "ii. CTRL + X: Cut selected item to clipboard", marks: 2 },
+                  { criterion: "iii. CTRL + V: Paste item from clipboard", marks: 2 }
+                ]
+              },
+              {
+                part: "d",
+                prompt: "Describe three differences between a calculator and a computer",
+                marks: 6,
+                breakdown: [
+                  { criterion: "Difference 1: General purpose programmability vs dedicated arithmetic", marks: 2 },
+                  { criterion: "Difference 2: Storage architecture (large secondary storage vs registers)", marks: 2 },
+                  { criterion: "Difference 3: Diverse peripheral inputs/outputs vs fixed keypad display", marks: 2 }
+                ]
+              }
+            ]
           },
           {
-            id: "dl1_b2",
-            text: "a) Outline the step-by-step procedure to insert a 4-column, 5-row table in Microsoft Word and enter data into the cells (5 Marks).\nb) Outline the steps required to save a spreadsheet workbook to a specific drive and print pages 1 to 2 (5 Marks).\nc) A department prepares a monthly equipment maintenance budget in Excel. State the formulas to compute: (5 Marks)\n   i. Total Cost for Item 1 = Quantity * Unit Cost\n   ii. Overall Total Expenditure\n   iii. Variance = Allocated Budget - Total Expenditure\nd) Identify five laboratory safety rules that must be observed when operating computers and peripherals in an office or workshop (5 Marks).",
-            type: "practical",
+            id: "dl1_b12",
+            q_num: 12,
+            text: "12.\na) Explain the steps to insert a pre-designed table into a Word document to organize monthly sales data. (6 Marks)\nb) You have completed a critical financial report in a spreadsheet. Describe how you would save it to a specific network drive and then print only the first page. (4 Marks)\nc) A manager asks you to create a simple budget in a spreadsheet application. List four essential components of a spreadsheet you would use to build and organize this data. (4 Marks)\nd) When using the computer laboratory, several measures can be put in place to ensure computers are safe. Explain three measures. (6 Marks)",
+            type: "structured",
             marks: 20,
-            critical_aspect: "Table insertion, spreadsheet printing/budget formulas, and computer lab safety",
-            correct_answer: "a) In Word: Insert tab > Table > Click and drag grid for 4 columns by 5 rows (or Insert Table > specify 4 cols, 5 rows) > Click first cell and type text, use Tab key to advance between cells. b) Save: File > Save As > Browse > Select drive/folder > Enter file name > Save. Print: File > Print > Under Settings select 'Custom Print' > Enter '1-2' in Pages box > Select printer and click Print. c) i. =B2*C2 (Qty * Cost). ii. =SUM(D2:D10). iii. =F1-D11 (Budget - Total Exp). d) Safety rules: Keep liquids and food away from workstations; Ensure proper cable management to prevent tripping; Power off and unplug equipment before servicing; Maintain adequate ventilation; Use surge protectors and anti-static precautions.",
-            regex_pattern: "(?i)=\\s*(sum|[a-z0-9]+\\s*[*\\-\\+])",
-            keywords: ["insert table", "save as", "print", "pages 1-2", "=sum", "quantity", "unit cost", "safety", "liquids", "cables"],
-            evaluation_mode: "subjective",
-            requires_trainer_review: true
+            critical_aspect: "Word tables, spreadsheet file operations, budget modeling, and computer lab safety",
+            sub_parts: [
+              {
+                part: "a",
+                prompt: "Explain the steps to insert a pre-designed table into a Word document to organize monthly sales data.",
+                marks: 6,
+                breakdown: [
+                  { criterion: "Step 1: Navigating to Insert tab > Table group", marks: 2 },
+                  { criterion: "Step 2: Selecting Quick Tables or grid dimension (columns/rows)", marks: 2 },
+                  { criterion: "Step 3: Entering monthly sales figures and formatting headers", marks: 2 }
+                ]
+              },
+              {
+                part: "b",
+                prompt: "You have completed a critical financial report in a spreadsheet. Describe how you would save it to a specific network drive and then print only the first page.",
+                marks: 4,
+                breakdown: [
+                  { criterion: "Save to network drive (File > Save As > Browse mapped drive)", marks: 2 },
+                  { criterion: "Print page 1 only (File > Print > Custom Pages: 1)", marks: 2 }
+                ]
+              },
+              {
+                part: "c",
+                prompt: "A manager asks you to create a simple budget in a spreadsheet application. List four essential components of a spreadsheet you would use to build and organize this data.",
+                marks: 4,
+                breakdown: [
+                  { criterion: "Component 1: Cells with coordinates (Row/Column intersections)", marks: 1 },
+                  { criterion: "Component 2: Mathematical formulas & functions (e.g. =SUM)", marks: 1 },
+                  { criterion: "Component 3: Row and column headers/labels", marks: 1 },
+                  { criterion: "Component 4: Worksheet tabs / workbook pages", marks: 1 }
+                ]
+              },
+              {
+                part: "d",
+                prompt: "When using the computer laboratory, several measures can be put in place to ensure computers are safe. Explain three measures.",
+                marks: 6,
+                breakdown: [
+                  { criterion: "Measure 1: Environmental protection (no liquids/food, dust covers, ventilation)", marks: 2 },
+                  { criterion: "Measure 2: Electrical safety (surge suppressors, UPS units, safe cable trunking)", marks: 2 },
+                  { criterion: "Measure 3: Physical & cyber access controls (antivirus, locked lab doors, password authentication)", marks: 2 }
+                ]
+              }
+            ]
           },
           {
-            id: "dl1_b3",
-            text: "a) Explain the difference between a formula and a function in Microsoft Excel, providing a practical example for each (4 Marks).\nb) Outline the steps to sort a list of 50 employee records alphabetically by surname from A to Z in Excel (4 Marks).\nc) Explain four essential formatting techniques and features you would use in a word processor to design a professional two-page Curriculum Vitae (CV) (6 Marks).\nd) Discuss three critical technical factors an organization must evaluate before procuring an Operating System for its administrative offices (6 Marks).",
-            type: "practical",
+            id: "dl1_b13",
+            q_num: 13,
+            text: "13.\na) In a spreadsheet, explain the difference between a formula and a function, and provide an example of each. (6 Marks)\nb) Outline the steps to sort a column of customer names alphabetically in a spreadsheet. (4 Marks)\nc) Your company requires you to develop a job application package. Describe how you would use a word processing application to prepare a professional resume/CV, ensuring it meets typical job advertisement requirements. (6 Marks)\nd) Mary wanted to procure an operating system for use in the computer laboratory. State four factors she should consider before making the purchase. (4 Marks)",
+            type: "structured",
             marks: 20,
-            critical_aspect: "Excel formulas vs functions, data sorting, CV styling, and OS procurement evaluation",
-            correct_answer: "a) Formula is a user-defined mathematical expression starting with an equal sign (e.g., =A1+B1+C1). Function is a built-in preprogrammed routine in Excel designed to perform calculations automatically (e.g., =SUM(A1:C1) or =AVERAGE(A1:C1)). b) Sort steps: Highlight the entire employee data range (including headers) > Navigate to Data tab > Click 'Sort' > Check 'My data has headers' > Choose 'Surname' in Sort By dropdown > Select Order 'A to Z' > Click OK. c) CV techniques: Professional font pairing with consistent hierarchy (14pt bold headings, 11pt body); Clean table or borderless tab stops for aligned dates/organizations; Bullet points for achievements; Header with contact details and page numbering. d) OS procurement factors: Hardware compatibility (RAM, CPU architecture); Software application compatibility with existing business software; Total licensing and support costs; Security features and regular vendor update lifecycle.",
-            regex_pattern: "(?i)(formula).*?(function).*?(=\\s*sum|average)",
-            keywords: ["formula", "function", "=sum", "sort", "a to z", "cv", "headings", "compatibility", "licensing", "security"],
-            evaluation_mode: "subjective",
-            requires_trainer_review: true
+            critical_aspect: "Spreadsheet calculation methods, sorting, CV formatting, and OS procurement evaluation",
+            sub_parts: [
+              {
+                part: "a",
+                prompt: "In a spreadsheet, explain the difference between a formula and a function, and provide an example of each.",
+                marks: 6,
+                breakdown: [
+                  { criterion: "Formula definition and mathematical example (e.g. =A1+B1)", marks: 3 },
+                  { criterion: "Function definition and built-in routine example (e.g. =SUM(A1:B1))", marks: 3 }
+                ]
+              },
+              {
+                part: "b",
+                prompt: "Outline the steps to sort a column of customer names alphabetically in a spreadsheet.",
+                marks: 4,
+                breakdown: [
+                  { criterion: "Step 1: Selecting dataset including customer column headers", marks: 2 },
+                  { criterion: "Step 2: Navigating to Data > Sort > selecting Customer Name > Order A to Z", marks: 2 }
+                ]
+              },
+              {
+                part: "c",
+                prompt: "Your company requires you to develop a job application package. Describe how you would use a word processing application to prepare a professional resume/CV, ensuring it meets typical job advertisement requirements.",
+                marks: 6,
+                breakdown: [
+                  { criterion: "Document structure & section hierarchy (Profile, Experience, Skills)", marks: 2 },
+                  { criterion: "Visual styling (Consistent font sizing, clean bullet points, page layout)", marks: 2 },
+                  { criterion: "Document review and PDF export for job submission", marks: 2 }
+                ]
+              },
+              {
+                part: "d",
+                prompt: "Mary wanted to procure an operating system for use in the computer laboratory. State four factors she should consider before making the purchase.",
+                marks: 4,
+                breakdown: [
+                  { criterion: "Factor 1: Hardware system requirements and device compatibility", marks: 1 },
+                  { criterion: "Factor 2: Software application compatibility with training curriculum", marks: 1 },
+                  { criterion: "Factor 3: Educational licensing costs and affordability", marks: 1 },
+                  { criterion: "Factor 4: Ongoing vendor security patches and technical support", marks: 1 }
+                ]
+              }
+            ]
           }
         ]
       }

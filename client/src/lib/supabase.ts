@@ -21,8 +21,9 @@ const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || (typeof windo
 
 export interface ExamQuestion {
   id: string;
+  q_num?: number;
   text: string;
-  type: "mcq" | "short_answer" | "true_false" | "practical" | "essay";
+  type: "mcq" | "short_answer" | "true_false" | "practical" | "essay" | "structured" | "oral";
   options?: string[];
   correct_answer?: string | number;
   marks: number;
@@ -31,6 +32,8 @@ export interface ExamQuestion {
   keywords?: string[];
   evaluation_mode?: "objective" | "semi_objective" | "subjective";
   requires_trainer_review?: boolean;
+  breakdown?: Array<{ criterion: string; marks: number }>;
+  sub_parts?: any[];
 }
 
 export interface ExamSection {
@@ -46,6 +49,11 @@ export interface ExamPayload {
   total_marks: number;
   instructions: string;
   series?: string;
+  department?: string;
+  course_code?: string;
+  course_name?: string;
+  unit_name?: string;
+  time_allowed?: string;
   type?: "written" | "practical";
   class?: string;
   start_time?: string;
@@ -72,6 +80,7 @@ export interface StudentAnswer {
   answer: string | number;
   marks_awarded?: number;
   ai_reasoning?: string;
+  notes?: string;
   flagged_for_review?: boolean;
 }
 

@@ -144,13 +144,13 @@ export default function Proctoring() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "oklch(0.72 0.18 160)";
+        return "#047857";
       case "flagged":
-        return "oklch(0.65 0.22 25)";
+        return "#be123c";
       case "completed":
-        return "oklch(0.65 0.22 120)";
+        return "#000953";
       default:
-        return "oklch(0.50 0.010 240)";
+        return "#475569";
     }
   };
 
@@ -162,50 +162,41 @@ export default function Proctoring() {
       <div className="space-y-4">
         {/* Stats Row */}
         <div className="grid grid-cols-4 gap-3">
-          <div
-            className="glass-card p-4 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-          >
-            <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+          <div className="bg-white border border-slate-300 shadow-sm p-4 rounded-xl">
+            <div className="text-xs font-semibold text-slate-600">
               Active Sessions
             </div>
-            <div className="text-2xl font-bold mt-2" style={{ color: "oklch(0.72 0.18 160)" }}>
+            <div className="text-2xl font-bold font-mono mt-2 text-emerald-700">
               {activeCount}
             </div>
           </div>
-          <div
-            className="glass-card p-4 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-          >
-            <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+          <div className="bg-white border border-slate-300 shadow-sm p-4 rounded-xl">
+            <div className="text-xs font-semibold text-slate-600">
               Flagged
             </div>
-            <div className="text-2xl font-bold mt-2" style={{ color: "oklch(0.65 0.22 25)" }}>
+            <div className="text-2xl font-bold font-mono mt-2 text-rose-600">
               {flaggedCount}
             </div>
           </div>
-          <div
-            className="glass-card p-4 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
-          >
-            <div className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+          <div className="bg-white border border-slate-300 shadow-sm p-4 rounded-xl">
+            <div className="text-xs font-semibold text-slate-600">
               Total Sessions
             </div>
-            <div className="text-2xl font-bold mt-2" style={{ color: "oklch(0.58 0.012 240)" }}>
+            <div className="text-2xl font-bold font-mono mt-2 text-[#000953]">
               {sessions.length}
             </div>
           </div>
-          <div className="flex items-center justify-between p-4 rounded-xl" style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}>
-            <label className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+          <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-slate-300 shadow-sm">
+            <label className="text-xs font-bold text-slate-700">
               Auto-Refresh
             </label>
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
-              className="px-3 py-1 rounded-lg text-xs font-medium transition-all"
-              style={{
-                background: autoRefresh ? "oklch(0.72 0.18 160)" : "oklch(1 0 0 / 0.06)",
-                color: autoRefresh ? "white" : "oklch(0.58 0.012 240)",
-              }}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                autoRefresh
+                  ? "bg-[#000953] text-white"
+                  : "bg-slate-100 text-slate-600 border border-slate-300"
+              }`}
             >
               {autoRefresh ? "ON" : "OFF"}
             </button>
@@ -221,25 +212,23 @@ export default function Proctoring() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="glass-card p-4 rounded-xl cursor-pointer transition-all hover:shadow-lg"
-                style={{
-                  background: "oklch(1 0 0 / 0.04)",
-                  border: `1px solid ${session.status === "flagged" ? "oklch(0.65 0.22 25 / 0.3)" : "oklch(1 0 0 / 0.08)"}`,
-                }}
+                className={`bg-white p-4 rounded-xl cursor-pointer transition-all hover:shadow-md border ${
+                  session.status === "flagged" ? "border-rose-300" : "border-slate-300"
+                }`}
                 onClick={() => setSelectedSession(session)}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="min-w-0">
-                    <div className="font-bold text-sm" style={{ color: "oklch(0.94 0.005 240)" }}>
+                    <div className="font-bold text-sm text-[#0f172a]">
                       {session.name}
                     </div>
-                    <div className="text-xs mt-0.5" style={{ color: "oklch(0.50 0.010 240)" }}>
+                    <div className="text-xs font-mono mt-0.5 text-slate-500">
                       {session.regNumber}
                     </div>
                   </div>
                   <div
-                    className="px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1"
-                    style={{ background: `${getStatusColor(session.status)}20`, color: getStatusColor(session.status) }}
+                    className="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1"
+                    style={{ background: `${getStatusColor(session.status)}15`, color: getStatusColor(session.status) }}
                   >
                     {session.status === "flagged" && <AlertTriangle className="w-3 h-3" />}
                     {session.status === "active" && <Zap className="w-3 h-3" />}
@@ -248,27 +237,23 @@ export default function Proctoring() {
                   </div>
                 </div>
 
-                <div className="text-xs mb-2" style={{ color: "oklch(0.50 0.010 240)" }}>
+                <div className="text-xs mb-2 font-medium text-slate-600">
                   {session.examTitle}
                 </div>
 
                 {/* Progress Bar */}
                 <div className="mb-3">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+                    <span className="text-xs font-semibold text-slate-600">
                       Progress
                     </span>
-                    <span className="text-xs font-mono" style={{ color: "oklch(0.72 0.18 160)" }}>
+                    <span className="text-xs font-mono font-bold text-[#000953]">
                       {Math.round(session.progress)}%
                     </span>
                   </div>
-                  <div
-                    className="h-2 rounded-full overflow-hidden"
-                    style={{ background: "oklch(1 0 0 / 0.1)" }}
-                  >
+                  <div className="h-2 rounded-full overflow-hidden bg-slate-200">
                     <motion.div
-                      className="h-full"
-                      style={{ background: "oklch(0.72 0.18 160)" }}
+                      className="h-full bg-[#000953]"
                       initial={{ width: 0 }}
                       animate={{ width: `${session.progress}%` }}
                       transition={{ duration: 0.5 }}
@@ -277,14 +262,14 @@ export default function Proctoring() {
                 </div>
 
                 {/* Time Remaining */}
-                <div className="flex items-center justify-between mb-3 p-2 rounded-lg" style={{ background: "oklch(1 0 0 / 0.05)" }}>
+                <div className="flex items-center justify-between mb-3 p-2.5 rounded-lg bg-slate-50 border border-slate-200">
                   <div className="flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5" style={{ color: "oklch(0.72 0.18 160)" }} />
-                    <span className="text-xs font-mono" style={{ color: "oklch(0.58 0.012 240)" }}>
+                    <Clock className="w-3.5 h-3.5 text-[#c48820]" />
+                    <span className="text-xs font-mono font-bold text-[#0f172a]">
                       {Math.floor(session.timeRemaining / 60)}:{String(session.timeRemaining % 60).padStart(2, "0")}
                     </span>
                   </div>
-                  <span className="text-xs" style={{ color: "oklch(0.50 0.010 240)" }}>
+                  <span className="text-xs text-slate-500">
                     remaining
                   </span>
                 </div>
@@ -295,8 +280,7 @@ export default function Proctoring() {
                     {session.suspiciousFlags.map((flag, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-2 p-2 rounded-lg text-xs"
-                        style={{ background: "oklch(0.65 0.22 25 / 0.1)", color: "oklch(0.65 0.22 25)" }}
+                        className="flex items-center gap-2 p-2 rounded-lg text-xs font-bold bg-rose-50 border border-rose-200 text-rose-700"
                       >
                         <AlertCircle className="w-3 h-3" />
                         {flag}
@@ -307,21 +291,21 @@ export default function Proctoring() {
 
                 {/* Behavior Metrics */}
                 <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div className="p-2 rounded-lg" style={{ background: "oklch(1 0 0 / 0.05)" }}>
-                    <div style={{ color: "oklch(0.50 0.010 240)" }}>Tab Switches</div>
-                    <div className="font-bold mt-1" style={{ color: "oklch(0.72 0.18 160)" }}>
+                  <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                    <div className="text-slate-600 font-medium">Tab Switches</div>
+                    <div className="font-bold font-mono mt-1 text-[#000953]">
                       {session.tabSwitches}
                     </div>
                   </div>
-                  <div className="p-2 rounded-lg" style={{ background: "oklch(1 0 0 / 0.05)" }}>
-                    <div style={{ color: "oklch(0.50 0.010 240)" }}>Window Min</div>
-                    <div className="font-bold mt-1" style={{ color: "oklch(0.72 0.18 160)" }}>
+                  <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                    <div className="text-slate-600 font-medium">Window Min</div>
+                    <div className="font-bold font-mono mt-1 text-[#000953]">
                       {session.windowMinimizations}
                     </div>
                   </div>
-                  <div className="p-2 rounded-lg" style={{ background: "oklch(1 0 0 / 0.05)" }}>
-                    <div style={{ color: "oklch(0.50 0.010 240)" }}>Copy Attempts</div>
-                    <div className="font-bold mt-1" style={{ color: "oklch(0.72 0.18 160)" }}>
+                  <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                    <div className="text-slate-600 font-medium">Copy Attempts</div>
+                    <div className="font-bold font-mono mt-1 text-[#000953]">
                       {session.copyAttempts}
                     </div>
                   </div>
@@ -336,17 +320,15 @@ export default function Proctoring() {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-6 rounded-xl"
-            style={{ background: "oklch(1 0 0 / 0.04)", border: "1px solid oklch(1 0 0 / 0.08)" }}
+            className="bg-white border border-slate-300 shadow-lg p-6 rounded-xl"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold" style={{ color: "oklch(0.94 0.005 240)" }}>
+              <h3 className="font-bold text-[#000953]">
                 Session Details: {selectedSession.name}
               </h3>
               <button
                 onClick={() => setSelectedSession(null)}
-                className="text-sm px-3 py-1 rounded-lg"
-                style={{ background: "oklch(1 0 0 / 0.06)", color: "oklch(0.58 0.012 240)" }}
+                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 hover:bg-slate-200 transition"
               >
                 Close
               </button>
@@ -354,35 +336,35 @@ export default function Proctoring() {
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <div className="text-xs mb-1" style={{ color: "oklch(0.50 0.010 240)" }}>
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                   Registration Number
                 </div>
-                <div className="font-mono text-sm" style={{ color: "oklch(0.72 0.18 160)" }}>
+                <div className="font-mono text-sm font-bold text-[#000953]">
                   {selectedSession.regNumber}
                 </div>
               </div>
               <div>
-                <div className="text-xs mb-1" style={{ color: "oklch(0.50 0.010 240)" }}>
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                   Exam Title
                 </div>
-                <div className="text-sm" style={{ color: "oklch(0.58 0.012 240)" }}>
+                <div className="text-sm font-semibold text-[#0f172a]">
                   {selectedSession.examTitle}
                 </div>
               </div>
               <div>
-                <div className="text-xs mb-1" style={{ color: "oklch(0.50 0.010 240)" }}>
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                   Start Time
                 </div>
-                <div className="text-sm" style={{ color: "oklch(0.58 0.012 240)" }}>
+                <div className="text-sm font-semibold text-[#0f172a]">
                   {selectedSession.startTime}
                 </div>
               </div>
               <div>
-                <div className="text-xs mb-1" style={{ color: "oklch(0.50 0.010 240)" }}>
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                   Status
                 </div>
                 <div
-                  className="text-sm font-medium"
+                  className="text-sm font-bold"
                   style={{ color: getStatusColor(selectedSession.status) }}
                 >
                   {selectedSession.status.toUpperCase()}
@@ -398,16 +380,14 @@ export default function Proctoring() {
                     flagSession(selectedSession.id, "Manual review requested");
                     setSelectedSession(null);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
-                  style={{ background: "oklch(0.65 0.22 25)", color: "white" }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-rose-600 hover:bg-rose-500 text-white transition"
                 >
                   <Flag className="w-4 h-4" />
                   Flag for Review
                 </button>
                 <button
                   onClick={() => toast.success("Session ended", { description: "Student exam session terminated" })}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
-                  style={{ background: "oklch(1 0 0 / 0.06)", color: "oklch(0.58 0.012 240)" }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 transition"
                 >
                   End Session
                 </button>

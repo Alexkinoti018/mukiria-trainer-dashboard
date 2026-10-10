@@ -38,11 +38,24 @@ interface AuthContextValue {
 // ─── Demo PIN Credentials ─────────────────────────────────────
 // In production, use Supabase Auth with email/password.
 // For demo mode, PINs map to different roles:
+const DEMO_ADMIN_PIN = "0000";
 const DEMO_TRAINER_PIN = "1234";
 const DEMO_HOD_PIN = "5678";
 const DEMO_TRAINEE_PIN = "9012";
 
 const DEMO_USERS: Record<string, AuthUser> = {
+  [DEMO_ADMIN_PIN]: {
+    id: "demo-admin-001",
+    email: "admin@mtti.ac.ke",
+    name: "Alexander Kinoti",
+    role: "admin",
+  },
+  admin: {
+    id: "demo-admin-001",
+    email: "admin@mtti.ac.ke",
+    name: "Alexander Kinoti",
+    role: "admin",
+  },
   [DEMO_TRAINER_PIN]: {
     id: "demo-trainer-001",
     email: "trainer@mtti.ac.ke",
@@ -85,11 +98,16 @@ export function purgeMTTISessionCache(): void {
     sensitiveKeys.forEach((k) => localStorage.removeItem(k));
 
     const prefixKeys = [
+      "mtti_class_register_",
+      "mtti_attendance_",
+      "mtti_trainees",
+      "mtti_uploads",
+      "mtti_session_plans",
+      "mtti_records_of_work",
+      "mtti_assessment_",
       "mtti_marks_",
       "mtti_timer_",
       "mtti_exam_answers_",
-      "mtti_attendance_",
-      "mtti_class_register_",
       "mukiria_exams",
       "mukiria_submissions",
     ];
@@ -199,7 +217,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.warn("⚠️ [MTTI Auth] Invalid PIN attempt");
           return {
             success: false,
-            error: "Invalid PIN. Try 1234 (Trainer), 5678 (HOD), or 9012 (Trainee).",
+            error: "Invalid PIN. Try 0000 (Admin), 1234 (Trainer), 5678 (HOD), or 9012 (Trainee).",
           };
         }
       } catch (err) {

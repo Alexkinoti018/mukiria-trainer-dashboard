@@ -45,6 +45,10 @@ def clean_pdf_text(text):
         "”": '"',
         "‘": "'",
         "’": "'",
+        "\u2713": "[OK]",
+        "\u2714": "[OK]",
+        "\u2717": "[X]",
+        "\u2718": "[X]",
     }
     for orig, repl in replacements.items():
         text = text.replace(orig, repl)
@@ -766,73 +770,232 @@ def build_cdacc_practical(unit_code, course_name, level, topics, outcomes):
     return payload
 
 
+# Canonical standard mark breakdowns for Digital Literacy (061155101A-WA1)
+DEFAULT_BREAKDOWNS = {
+    1: [
+        {"criterion": "Definition of digital literacy (access, evaluate, create info)", "marks": 1},
+        {"criterion": "Importance in modern workplace (efficiency, automation, communication)", "marks": 1}
+    ],
+    2: [
+        {"criterion": "Input device 1 (Keyboard) and Input device 2 (Optical Mouse)", "marks": 2},
+        {"criterion": "Output device 1 (Display Monitor) and Output device 2 (Laser Printer)", "marks": 2}
+    ],
+    3: [
+        {"criterion": "Step 1: Saving active work and open files", "marks": 1},
+        {"criterion": "Step 2: Gracefully closing active software applications", "marks": 1},
+        {"criterion": "Step 3: Initiating Start > Power > Shut Down command sequence", "marks": 1}
+    ],
+    4: [
+        {"criterion": "Technique 1: Touch typing utilizing home row keys (ASDF JKL;)", "marks": 1},
+        {"criterion": "Technique 2: Effective application of keyboard shortcuts (Ctrl+C, Ctrl+V)", "marks": 1}
+    ],
+    5: [
+        {"criterion": "Step 1: New folder creation procedure (Right click > New > Folder)", "marks": 1},
+        {"criterion": "Step 2: Saving confidential report into target folder (File > Save As)", "marks": 1},
+        {"criterion": "Step 3: Setting password protection / document encryption", "marks": 2}
+    ],
+    6: [
+        {"criterion": "Area 1: Healthcare / Hospitals (Electronic medical records & diagnostics)", "marks": 1},
+        {"criterion": "Area 2: Banking & Finance (ATMs, ledger accounting & fund transfers)", "marks": 1},
+        {"criterion": "Area 3: Educational Institutions (Computer-assisted learning & administration)", "marks": 1}
+    ],
+    7: [
+        {"criterion": "Step 1: Physical video cable connection (HDMI/VGA) and power on", "marks": 1},
+        {"criterion": "Step 2: Display projection mode selection (Windows Key + P > Duplicate)", "marks": 1},
+        {"criterion": "Step 3: Screen calibration and projector lens focus adjustment", "marks": 1}
+    ],
+    8: [
+        {"criterion": "Conceptual distinction (System software manages hardware vs Application serves user tasks)", "marks": 2},
+        {"criterion": "Two system software examples (e.g. Windows 11, Linux)", "marks": 1},
+        {"criterion": "Two application software examples (e.g. MS Word, MS Excel)", "marks": 1}
+    ],
+    9: [
+        {"criterion": "Action definition (Click, hold, move cursor across screen, release)", "marks": 1},
+        {"criterion": "File management application (Relocating or copying files/folders)", "marks": 1}
+    ],
+    10: [
+        {"criterion": "Policy 1: Acceptable Use Policy (AUP) regulating internet and device activity", "marks": 1.5},
+        {"criterion": "Policy 2: Password Security & Data Protection rules safeguarding confidentiality", "marks": 1.5}
+    ],
+    11: [
+        {"criterion": "11(a) Word processor primary function & 2 differentiating features from plain text", "marks": 4},
+        {"criterion": "11(b) Four newsletter formatting options (columns, drop caps, borders, typography)", "marks": 4},
+        {"criterion": "11(c) Key combination functions: i. CTRL+Z, ii. CTRL+X, iii. CTRL+V", "marks": 6},
+        {"criterion": "11(d) Three technical differences between a calculator and a computer", "marks": 6}
+    ],
+    12: [
+        {"criterion": "12(a) Procedure to insert and format a pre-designed Word table for sales data", "marks": 6},
+        {"criterion": "12(b) Steps to save spreadsheet to specific network drive and print page 1 only", "marks": 4},
+        {"criterion": "12(c) Four essential components of a spreadsheet used to build a budget", "marks": 4},
+        {"criterion": "12(d) Three lab safety measures to protect computer equipment and personnel", "marks": 6}
+    ],
+    13: [
+        {"criterion": "13(a) Difference between a formula and a function in Excel with examples", "marks": 6},
+        {"criterion": "13(b) Steps to sort customer records alphabetically from A to Z", "marks": 4},
+        {"criterion": "13(c) Word processing features to design a professional two-page CV", "marks": 6},
+        {"criterion": "13(d) Four technical factors to consider when procuring an Operating System", "marks": 4}
+    ]
+}
+
+DEFAULT_EXAM_QUESTIONS = {
+    1: {
+        "text": "Define digital literacy and state its importance in a modern workplace.",
+        "max_marks": 2,
+        "breakdown": DEFAULT_BREAKDOWNS[1]
+    },
+    2: {
+        "text": "List two input devices and two output devices commonly used in a professional setting.",
+        "max_marks": 4,
+        "breakdown": DEFAULT_BREAKDOWNS[2]
+    },
+    3: {
+        "text": "Explain the correct sequence of steps to safely shut down a computer device as per workplace procedure.",
+        "max_marks": 3,
+        "breakdown": DEFAULT_BREAKDOWNS[3]
+    },
+    4: {
+        "text": "Describe two keyboard techniques that enhance efficiency when typing a report.",
+        "max_marks": 2,
+        "breakdown": DEFAULT_BREAKDOWNS[4]
+    },
+    5: {
+        "text": "You have just completed drafting a confidential report. Outline the steps you would take to create a new folder, save the report into it, and then password protect the folder, ensuring data security.",
+        "max_marks": 4,
+        "breakdown": DEFAULT_BREAKDOWNS[5]
+    },
+    6: {
+        "text": "Identify three common areas where computers are used",
+        "max_marks": 3,
+        "breakdown": DEFAULT_BREAKDOWNS[6]
+    },
+    7: {
+        "text": "A colleague needs to present a document from their laptop to a large screen. Describe the steps to connect an external projector to a laptop.",
+        "max_marks": 3,
+        "breakdown": DEFAULT_BREAKDOWNS[7]
+    },
+    8: {
+        "text": "Differentiate between System Software and Application Software, providing two examples for each.",
+        "max_marks": 4,
+        "breakdown": DEFAULT_BREAKDOWNS[8]
+    },
+    9: {
+        "text": "Explain the concept of 'drag and drop' in the context of file management",
+        "max_marks": 2,
+        "breakdown": DEFAULT_BREAKDOWNS[9]
+    },
+    10: {
+        "text": "State two workplace policies or regulations that guide the operation of computer devices.",
+        "max_marks": 3,
+        "breakdown": DEFAULT_BREAKDOWNS[10]
+    },
+    11: {
+        "text": "11.\na) Describe the primary function of a word processing application and list two features that differentiate it from a plain text editor. (4 Marks)\nb) You are tasked with creating a newsletter in a word processing application. List four formatting options you would apply to make it visually appealing and easy to read. (4 Marks)\nc) What is the function of the following key combinations in Ms Office? (6 Marks)\n   i. CTRL + Z\n   ii. CTRL + X\n   iii. CTRL + V\nd) Describe three differences between a calculator and a computer (6 Marks)",
+        "max_marks": 20,
+        "breakdown": DEFAULT_BREAKDOWNS[11]
+    },
+    12: {
+        "text": "12.\na) Explain the steps to insert a pre-designed table into a Word document to organize monthly sales data. (6 Marks)\nb) You have completed a critical financial report in a spreadsheet. Describe how you would save it to a specific network drive and then print only the first page. (4 Marks)\nc) A manager asks you to create a simple budget in a spreadsheet application. List four essential components of a spreadsheet you would use to build and organize this data. (4 Marks)\nd) When using the computer laboratory, several measures can be put in place to ensure computers are safe. Explain three measures. (6 Marks)",
+        "max_marks": 20,
+        "breakdown": DEFAULT_BREAKDOWNS[12]
+    },
+    13: {
+        "text": "13.\na) State the difference between a formula and a function in a spreadsheet application, giving an example of each. (6 Marks)\nb) Explain the procedure to sort customer records alphabetically from A to Z in a spreadsheet. (4 Marks)\nc) Highlight four word processing features that would be essential in designing a professional two-page curriculum vitae (CV). (6 Marks)\nd) Identify four technical factors to consider when choosing an Operating System for an office environment. (4 Marks)",
+        "max_marks": 20,
+        "breakdown": DEFAULT_BREAKDOWNS[13]
+    }
+}
+
+
 def generate_exam_results_docx(payload):
     doc = docx.Document()
     section = doc.sections[0]
-    section.top_margin = docx.shared.Inches(0.6)
-    section.bottom_margin = docx.shared.Inches(0.6)
-    section.left_margin = docx.shared.Inches(0.8)
-    section.right_margin = docx.shared.Inches(0.8)
+    section.top_margin = docx.shared.Inches(0.5)
+    section.bottom_margin = docx.shared.Inches(0.5)
+    section.left_margin = docx.shared.Inches(0.7)
+    section.right_margin = docx.shared.Inches(0.7)
 
     style = doc.styles['Normal']
     style.font.name = 'Maiandra GD'
-    style.font.size = docx.shared.Pt(10.5)
+    style.font.size = docx.shared.Pt(9.5)
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(current_dir)
     logo_path = os.path.join(project_root, "client", "public", "mtti-logo.jpg")
+    if not os.path.exists(logo_path):
+        logo_path = os.path.abspath("client/public/mtti-logo.jpg")
 
-    # Header
-    ph = doc.add_paragraph()
-    ph.alignment = 1
     if os.path.exists(logo_path):
-        ph.add_run().add_picture(logo_path, width=docx.shared.Inches(0.9))
-    
-    rh1 = ph.add_run("\nMUKIRIA TECHNICAL TRAINING INSTITUTE\n")
-    rh1.bold = True
-    rh1.font.size = docx.shared.Pt(14)
+        p_logo = doc.add_paragraph()
+        p_logo.alignment = 1
+        p_logo.paragraph_format.space_after = docx.shared.Pt(2)
+        try:
+            p_logo.add_run().add_picture(logo_path, width=docx.shared.Inches(0.95))
+        except Exception:
+            pass
+
+    p_hdr = doc.add_paragraph()
+    p_hdr.alignment = 1
+    p_hdr.paragraph_format.space_after = docx.shared.Pt(3)
+
+    r1 = p_hdr.add_run("MUKIRIA TECHNICAL TRAINING INSTITUTE\n")
+    r1.bold = True
+    r1.font.size = docx.shared.Pt(13)
     try:
-        rh1.font.color.rgb = docx.shared.RGBColor(0, 9, 83)
+        r1.font.color.rgb = docx.shared.RGBColor(0, 9, 83)
     except Exception:
         pass
 
-    dept = payload.get("department", "DEPARTMENT OF COMPUTING AND INFORMATICS").upper()
-    rh2 = ph.add_run(f"{dept}\n")
-    rh2.bold = True
-    rh2.font.size = docx.shared.Pt(10.5)
+    dept_str = str(payload.get('department') or "HOSPITALITY DEPARTMENT\nBUILDING DEPARTMENT").upper()
+    for d_line in dept_str.split("\n"):
+        if d_line.strip():
+            r_d = p_hdr.add_run(f"{d_line.strip()}\n")
+            r_d.bold = True
+            r_d.font.size = docx.shared.Pt(10)
 
-    rh3 = ph.add_run("OFFICIAL CANDIDATE EXAMINATION RESULTS TRANSCRIPT\n")
-    rh3.bold = True
-    rh3.underline = True
-    rh3.font.size = docx.shared.Pt(12)
+    r2 = p_hdr.add_run("INTERNAL EXAMINATION\n")
+    r2.bold = True
+    r2.font.size = docx.shared.Pt(10)
+
+    exam_title = str(payload.get('exam_title', 'WRITTEN ASSESSMENT 1')).upper()
+    r3 = p_hdr.add_run(f"{exam_title}\n")
+    r3.bold = True
+    r3.font.size = docx.shared.Pt(11)
     try:
-        rh3.font.color.rgb = docx.shared.RGBColor(196, 136, 32)
+        r3.font.color.rgb = docx.shared.RGBColor(196, 136, 32)
     except Exception:
         pass
 
-    # Candidate & Assessment Info Table (4 rows x 4 cols)
-    tbl_info = doc.add_table(rows=4, cols=4)
-    tbl_info.style = 'Table Grid'
-    info_data = [
-        ("Candidate Name:", payload.get("student_name", "N/A"), "Reg Number:", payload.get("reg_number", "N/A")),
-        ("Unit Name:", payload.get("unit_name", "Apply Digital Literacy"), "Unit Code:", payload.get("unit_code", "061155101A")),
-        ("Course / Class:", payload.get("class_code", "FBS5/6/J/25, LS5/6/S/25"), "Series:", payload.get("series", "SEP - NOV 2026")),
-        ("Assessment Title:", payload.get("exam_title", "Internal Examination"), "Date Evaluated:", payload.get("evaluated_at", "October 2026")),
+    time_allowed = str(payload.get('time_allowed', 'Time: 2 HOURS'))
+    if not time_allowed.lower().startswith('time'):
+        time_allowed = f"Time: {time_allowed}"
+    r4 = p_hdr.add_run(f"{time_allowed}\n")
+    r4.bold = True
+    r4.font.size = docx.shared.Pt(9.5)
+    try:
+        r4.font.color.rgb = docx.shared.RGBColor(0, 9, 83)
+    except Exception:
+        pass
+
+    # Metadata Paragraph
+    p_meta = doc.add_paragraph()
+    p_meta.paragraph_format.line_spacing = 1.15
+    p_meta.paragraph_format.space_after = docx.shared.Pt(4)
+
+    metadata = [
+        ("COURSE NAME", payload.get("course_name") or "OFFICE ADMINISTRATION LEVEL 5 & 6, LAND SURVEY LEVEL 5 & 6"),
+        ("COURSE CODE", payload.get("course_code") or payload.get("unit_code") or "061155101A"),
+        ("UNIT NAME", payload.get("unit_name") or "APPLY DIGITAL LITERACY"),
+        ("CLASS", payload.get("class_code") or "FBS5/6/J/25, LS5/6/S/25"),
+        ("SERIES", payload.get("series") or "SEP - NOV 2026"),
     ]
-    for r_idx, row_vals in enumerate(info_data):
-        for c_idx in range(4):
-            cell = tbl_info.rows[r_idx].cells[c_idx]
-            cell.text = str(row_vals[c_idx])
-            if c_idx % 2 == 0 and cell.paragraphs[0].runs:
-                cell.paragraphs[0].runs[0].bold = True
+    for label, val in metadata:
+        r_lbl = p_meta.add_run(f"{label}: ")
+        r_lbl.bold = True
+        r_lbl.font.size = docx.shared.Pt(8.5)
+        r_val = p_meta.add_run(f"{val}\n")
+        r_val.font.size = docx.shared.Pt(8.5)
 
-    p_sp = doc.add_paragraph()
-    p_sp.paragraph_format.space_before = docx.shared.Pt(6)
-
-    # Scorecard Banner (2 rows x 4 cols)
-    score_tbl = doc.add_table(rows=2, cols=4)
-    score_tbl.style = 'Table Grid'
-    score_headers = ["TOTAL SCORE", "PERCENTAGE", "OVERALL GRADE", "STATUS"]
+    # Red Pen Score Tally Stamp
     raw_total = payload.get("total_score", 0)
     try:
         total_score = round(float(raw_total), 1)
@@ -840,295 +1003,904 @@ def generate_exam_results_docx(payload):
             total_score = int(total_score)
     except Exception:
         total_score = raw_total
-
     total_marks = payload.get("total_marks", 70)
     pct = payload.get("percentage")
     if pct is None:
         pct = round((float(total_score) / float(total_marks) * 100) if total_marks else 0)
-    grade = payload.get("grade", "Pass")
-    status = payload.get("status", "PASS" if pct >= 50 else "FAIL")
-    score_vals = [f"{total_score} / {total_marks}", f"{pct}%", str(grade), str(status)]
+    grade = str(payload.get("grade", "Pass"))
+    status = str(payload.get("status", "COMPETENT (PASS)" if pct >= 50 else "NOT YET COMPETENT (REFER)"))
 
-    for c_idx in range(4):
-        h_cell = score_tbl.rows[0].cells[c_idx]
-        h_cell.text = score_headers[c_idx]
-        if h_cell.paragraphs[0].runs:
-            h_cell.paragraphs[0].runs[0].bold = True
-            h_cell.paragraphs[0].runs[0].font.size = docx.shared.Pt(9)
-        v_cell = score_tbl.rows[1].cells[c_idx]
-        v_cell.text = score_vals[c_idx]
-        if v_cell.paragraphs[0].runs:
-            v_cell.paragraphs[0].runs[0].bold = True
-            v_cell.paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
+    sec_a_items = payload.get("section_a") or payload.get("answers", {}).get("section_a", [])
+    sec_b_items = payload.get("section_b") or payload.get("answers", {}).get("section_b", [])
+    sec_a_subtotal = sum(float(it.get("marks_awarded", 0)) for it in sec_a_items)
+    if sec_a_subtotal.is_integer():
+        sec_a_subtotal = int(sec_a_subtotal)
+    sec_b_subtotal = sum(float(it.get("marks_awarded", 0)) for it in sec_b_items)
+    if sec_b_subtotal.is_integer():
+        sec_b_subtotal = int(sec_b_subtotal)
 
-    # Section A Table
-    p_a = doc.add_paragraph()
-    p_a.paragraph_format.space_before = docx.shared.Pt(10)
-    p_a.add_run("SECTION A: CORE CONCEPTS & PROCEDURES").bold = True
+    cand_name = str(payload.get('student_name', 'Alex Kinoti'))
+    cand_reg = str(payload.get('reg_number', '10525'))
+    trainer_n = str(payload.get('trainer_name', 'Alexander Kinoti'))
+    eval_date = str(payload.get('evaluated_at', '07/10/2026'))
 
-    sec_a_items = payload.get("section_a", [])
-    if sec_a_items:
-        t_a = doc.add_table(rows=len(sec_a_items) + 1, cols=4)
-        t_a.style = 'Table Grid'
-        t_a.rows[0].cells[0].text = "No."
-        t_a.rows[0].cells[1].text = "Question / Concept Evaluated"
-        t_a.rows[0].cells[2].text = "Candidate Response"
-        t_a.rows[0].cells[3].text = "Score"
-        for c in range(4):
-            if t_a.rows[0].cells[c].paragraphs[0].runs:
-                t_a.rows[0].cells[c].paragraphs[0].runs[0].bold = True
-
-        for idx, item in enumerate(sec_a_items):
-            row = t_a.rows[idx + 1]
-            row.cells[0].text = f"Q{item.get('q_num', idx + 1)}"
-            row.cells[1].text = str(item.get("text", f"Question {idx+1}"))[:75]
-            ans_str = str(item.get("answer", "No answer provided"))
-            row.cells[2].text = ans_str[:120] + ("..." if len(ans_str) > 120 else "")
-            
-            raw_awarded = item.get("marks_awarded", 0)
-            try:
-                awarded = round(float(raw_awarded), 1)
-                if awarded.is_integer():
-                    awarded = int(awarded)
-            except Exception:
-                awarded = raw_awarded
-            max_m = item.get("max_marks", 2)
-            row.cells[3].text = f"{awarded} / {max_m}"
-
-    # Section B Table
-    sec_b_items = payload.get("section_b", [])
-    if sec_b_items:
-        p_b = doc.add_paragraph()
-        p_b.paragraph_format.space_before = docx.shared.Pt(10)
-        p_b.add_run("SECTION B: STRUCTURED & APPLIED PRACTICAL TASKS").bold = True
-
-        t_b = doc.add_table(rows=len(sec_b_items) + 1, cols=4)
-        t_b.style = 'Table Grid'
-        t_b.rows[0].cells[0].text = "No."
-        t_b.rows[0].cells[1].text = "Practical Task Description"
-        t_b.rows[0].cells[2].text = "Candidate Work / Response"
-        t_b.rows[0].cells[3].text = "Score"
-        for c in range(4):
-            if t_b.rows[0].cells[c].paragraphs[0].runs:
-                t_b.rows[0].cells[c].paragraphs[0].runs[0].bold = True
-
-        for idx, item in enumerate(sec_b_items):
-            row = t_b.rows[idx + 1]
-            row.cells[0].text = f"Q{item.get('q_num', idx + 1)}"
-            row.cells[1].text = str(item.get("text", f"Task {idx+1}"))[:80]
-            ans_str = str(item.get("answer", "No answer provided"))
-            row.cells[2].text = ans_str[:160] + ("..." if len(ans_str) > 160 else "")
-            raw_awarded = item.get("marks_awarded", 0)
-            try:
-                awarded = round(float(raw_awarded), 1)
-                if awarded.is_integer():
-                    awarded = int(awarded)
-            except Exception:
-                awarded = raw_awarded
-            max_m = item.get("max_marks", 20)
-            row.cells[3].text = f"{awarded} / {max_m}"
-
-    # Trainer Feedback Remarks
-    p_rem = doc.add_paragraph()
-    p_rem.paragraph_format.space_before = docx.shared.Pt(12)
-    p_rem.add_run("ASSESSOR / TRAINER FEEDBACK REMARKS:").bold = True
-    
-    trainer_remarks = payload.get("trainer_comments") or "The candidate demonstrates competent foundational digital skills with solid adherence to workplace ICT standards."
-    p_rem_text = doc.add_paragraph(trainer_remarks)
-    p_rem_text.paragraph_format.left_indent = docx.shared.Inches(0.2)
-
-    # Verification and Signatures Table
-    doc.add_paragraph().paragraph_format.space_before = docx.shared.Pt(8)
-    sig_tbl = doc.add_table(rows=3, cols=2)
-    sig_tbl.style = 'Table Grid'
-    sig_tbl.rows[0].cells[0].text = "Assessor / Trainer: " + payload.get("trainer_name", "Alexander Kinoti")
-    sig_tbl.rows[0].cells[1].text = "Internal Verifier / HOD: Department of Computing"
-    sig_tbl.rows[1].cells[0].text = "Signature: ______________________"
-    sig_tbl.rows[1].cells[1].text = "Signature: ______________________"
-    sig_tbl.rows[2].cells[0].text = "Date: __________________________"
-    sig_tbl.rows[2].cells[1].text = "Official Stamp: _________________"
-
-    buf = io.BytesIO()
-    doc.save(buf)
-    return buf.getvalue()
-
-
-def generate_exam_results_pdf(payload):
-    pdf = FPDF(orientation='P', unit='mm', format='A4')
-    pdf.set_margins(12, 10, 12)
-    pdf.set_auto_page_break(True, margin=15)
-    pdf.add_page()
-
-    # Borders
-    pdf.set_draw_color(0, 9, 83)
-    pdf.set_line_width(0.8)
-    pdf.rect(8, 8, 194, 281)
-    pdf.set_draw_color(196, 136, 32)
-    pdf.set_line_width(0.4)
-    pdf.rect(9.5, 9.5, 191, 278)
-
-    # Header
-    pdf.set_font('Helvetica', 'B', 14)
-    pdf.set_text_color(0, 9, 83)
-    pdf.cell(186, 7, 'MUKIRIA TECHNICAL TRAINING INSTITUTE', ln=1, align='C')
-
-    dept = clean_pdf_text(payload.get("department", "DEPARTMENT OF COMPUTING AND INFORMATICS").upper())
-    pdf.set_font('Helvetica', 'B', 9.5)
-    pdf.set_text_color(80, 80, 80)
-    pdf.cell(186, 5, dept, ln=1, align='C')
-
-    pdf.set_font('Helvetica', 'B', 11)
-    pdf.set_text_color(196, 136, 32)
-    pdf.cell(186, 6, 'OFFICIAL CANDIDATE EXAMINATION RESULTS TRANSCRIPT', ln=1, align='C')
-    pdf.ln(2)
-
-    # Info Box
-    pdf.set_fill_color(248, 250, 252)
-    pdf.set_draw_color(200, 200, 200)
-    pdf.set_line_width(0.3)
-    box_y = pdf.get_y()
-    pdf.rect(12, box_y, 186, 26, 'DF')
-
-    pdf.set_font('Helvetica', '', 8.5)
-    pdf.set_text_color(20, 20, 20)
-    pdf.set_xy(15, box_y + 2)
-    s_name = clean_pdf_text(payload.get('student_name', 'N/A'))
-    r_no = clean_pdf_text(payload.get('reg_number', 'N/A'))
-    u_name = clean_pdf_text(payload.get('unit_name', 'Apply Digital Literacy'))
-    u_code = clean_pdf_text(payload.get('unit_code', '061155101A'))
-    c_code = clean_pdf_text(payload.get('class_code', 'FBS5/6/J/25, LS5/6/S/25'))
-    series = clean_pdf_text(payload.get('series', 'SEP - NOV 2026'))
-
-    pdf.cell(90, 5, f'Candidate Name: {s_name}', ln=0)
-    pdf.cell(90, 5, f'Reg Number: {r_no}', ln=1)
-    pdf.set_x(15)
-    pdf.cell(90, 5, f'Unit Name: {u_name}', ln=0)
-    pdf.cell(90, 5, f'Unit Code: {u_code}', ln=1)
-    pdf.set_x(15)
-    pdf.cell(90, 5, f'Class: {c_code}', ln=0)
-    pdf.cell(90, 5, f'Series: {series}', ln=1)
-    pdf.set_x(15)
-    e_title = clean_pdf_text(payload.get('exam_title', 'Internal Examination'))
-    pdf.cell(180, 5, f'Assessment: {e_title}', ln=1)
-
-    pdf.set_y(box_y + 29)
-
-    # Score Summary
-    raw_total = payload.get("total_score", 0)
+    tbl_stamp = doc.add_table(rows=3, cols=2)
+    tbl_stamp.style = 'Table Grid'
+    # Row 0: Banner
+    cell_top = tbl_stamp.rows[0].cells[0]
+    tbl_stamp.rows[0].cells[1].merge(cell_top)
+    p_bann = cell_top.paragraphs[0]
+    p_bann.alignment = 1
+    r_bann = p_bann.add_run("OFFICIAL EVALUATION SCORE TALLY -- SIMULATED RED PEN ASSESSMENT")
+    r_bann.bold = True
+    r_bann.font.size = docx.shared.Pt(8)
     try:
-        total_score = round(float(raw_total), 1)
-        if total_score.is_integer():
-            total_score = int(total_score)
+        r_bann.font.color.rgb = docx.shared.RGBColor(185, 28, 28)
     except Exception:
-        total_score = raw_total
+        pass
 
-    total_marks = payload.get("total_marks", 70)
-    pct = payload.get("percentage")
-    if pct is None:
-        pct = round((float(total_score) / float(total_marks) * 100) if total_marks else 0)
-    grade = clean_pdf_text(str(payload.get("grade", "Pass")))
-    status = clean_pdf_text(str(payload.get("status", "PASS" if pct >= 50 else "FAIL")))
+    # Row 1: Candidate & Assessor Details
+    c_r1_1 = tbl_stamp.rows[1].cells[0].paragraphs[0]
+    c_r1_1.add_run(f"Candidate: {cand_name} (Reg: {cand_reg})").font.size = docx.shared.Pt(8)
+    c_r1_2 = tbl_stamp.rows[1].cells[1].paragraphs[0]
+    c_r1_2.add_run(f"Assessor: {trainer_n} | Date: {eval_date}").font.size = docx.shared.Pt(8)
 
-    is_competent = ("PASS" in status.upper() or "COMPETENT" in status.upper()) and "NOT" not in status.upper() and "REFER" not in status.upper()
-    cards = [
-        ("ASSESSOR TALLY", f"{total_score} / {total_marks}", (220, 38, 38)),
-        ("PERCENTAGE", f"{pct}%", (196, 136, 32)),
-        ("FINAL GRADE", grade, (0, 9, 83)),
-        ("VERDICT", status, (34, 139, 34) if is_competent else (220, 38, 38))
+    # Row 2: Score Summary
+    cell_bot = tbl_stamp.rows[2].cells[0]
+    tbl_stamp.rows[2].cells[1].merge(cell_bot)
+    p_sc = cell_bot.paragraphs[0]
+    p_sc.alignment = 1
+    r_sc = p_sc.add_run(f"SECTION A: {sec_a_subtotal}/30  |  SECTION B: {sec_b_subtotal}/40  |  TOTAL: {total_score}/{total_marks} ({pct}%)  --  {status}")
+    r_sc.bold = True
+    r_sc.font.size = docx.shared.Pt(10)
+    try:
+        r_sc.font.color.rgb = docx.shared.RGBColor(220, 38, 38)
+    except Exception:
+        pass
+
+    for row in tbl_stamp.rows:
+        for cell in row.cells:
+            for p in cell.paragraphs:
+                p.paragraph_format.space_before = docx.shared.Pt(2)
+                p.paragraph_format.space_after = docx.shared.Pt(2)
+
+    # Instructions to Candidate
+    p_inst = doc.add_paragraph()
+    p_inst.paragraph_format.space_before = docx.shared.Pt(6)
+    p_inst.paragraph_format.space_after = docx.shared.Pt(2)
+    r_ih = p_inst.add_run("INSTRUCTIONS TO CANDIDATE")
+    r_ih.bold = True
+    r_ih.font.size = docx.shared.Pt(9)
+
+    instructions = [
+        "1. This paper consists of two sections A and B;",
+        "2. Answer ALL the question as guided in each section;",
+        "3. Marks for each question are as indicated in the brackets;",
+        "4. You are provided with a separate answer booklet to answer the questions;",
+        "5. Do not write in this question paper."
     ]
-    card_w = 186 / 4
-    for idx, (label, val, col) in enumerate(cards):
-        cx = 12 + idx * card_w
-        cy = pdf.get_y()
-        pdf.set_fill_color(245, 247, 250)
-        pdf.set_draw_color(col[0], col[1], col[2])
-        pdf.rect(cx, cy, card_w - 2, 14, 'DF')
-        pdf.set_xy(cx, cy + 1.5)
-        pdf.set_font('Helvetica', '', 7)
-        pdf.set_text_color(100, 100, 100)
-        pdf.cell(card_w - 2, 3.5, label, ln=1, align='C')
-        pdf.set_xy(cx, cy + 5.5)
-        pdf.set_font('Helvetica', 'B', 10)
-        pdf.set_text_color(col[0], col[1], col[2])
-        pdf.cell(card_w - 2, 6, val, ln=1, align='C')
+    for inst in instructions:
+        p_i = doc.add_paragraph(inst)
+        p_i.paragraph_format.space_after = docx.shared.Pt(1)
+        if p_i.runs:
+            p_i.runs[0].font.size = docx.shared.Pt(8)
 
-    pdf.set_y(pdf.get_y() + 16)
+    def render_docx_question(item, default_num, is_sec_b=False):
+        q_num = item.get("q_num", default_num)
+        default_meta = DEFAULT_EXAM_QUESTIONS.get(q_num, {})
+        q_text_raw = item.get("text")
+        if not q_text_raw or q_text_raw.lower() in [f"question {q_num}", f"task {q_num}", f"question {default_num}", f"task {default_num}"]:
+            q_text_raw = default_meta.get("text", f"Question {q_num}")
+        q_text = str(q_text_raw)
 
-    # Results Table Headers
-    pdf.set_font('Helvetica', 'B', 9)
-    pdf.set_text_color(0, 9, 83)
-    pdf.cell(186, 5, 'ITEMIZED ASSESSMENT BREAKDOWN (SIMULATED RED PEN EVALUATION)', ln=1)
-
-    pdf.set_fill_color(0, 9, 83)
-    pdf.set_text_color(255, 255, 255)
-    pdf.set_font('Helvetica', 'B', 8)
-    t_widths = [15, 80, 65, 26]
-    t_headers = ["Item", "Question / Criterion", "Candidate Response", "Red Pen Score"]
-    tx = 12
-    ty = pdf.get_y()
-    for w, h in zip(t_widths, t_headers):
-        pdf.rect(tx, ty, w, 5.5, 'F')
-        pdf.set_xy(tx, ty + 0.8)
-        pdf.cell(w, 4, h, align='C')
-        tx += w
-    pdf.set_y(ty + 6)
-
-    all_items = payload.get("section_a", []) + payload.get("section_b", [])
-    for idx, it in enumerate(all_items[:15]):
-        row_y = pdf.get_y()
-        if row_y > 240:
-            break
-        q_label = clean_pdf_text(f"Q{it.get('q_num', idx+1)}")
-        q_txt = clean_pdf_text(str(it.get("text", ""))[:45])
-        ans_txt = clean_pdf_text(str(it.get("answer", ""))[:35])
-        
-        raw_awarded = it.get('marks_awarded', 0)
+        raw_awarded = item.get("marks_awarded", 0)
         try:
             awarded = round(float(raw_awarded), 1)
             if awarded.is_integer():
                 awarded = int(awarded)
         except Exception:
             awarded = raw_awarded
-        max_m = it.get('max_marks', 2)
+        max_m = item.get("max_marks", default_meta.get("max_marks", 20 if is_sec_b else 2))
+        ans_text = str(item.get("answer", ""))
+        reasoning = str(item.get("ai_reasoning") or item.get("notes") or "")
 
-        bg = 250 if idx % 2 == 0 else 255
-        pdf.set_fill_color(bg, bg, bg)
-        pdf.rect(12, row_y, 186, 5.5, 'F')
+        p_q = doc.add_paragraph()
+        p_q.paragraph_format.space_before = docx.shared.Pt(5)
+        p_q.paragraph_format.space_after = docx.shared.Pt(1)
+        q_hdr = f"{q_num}. {q_text}" if not q_text.startswith(f"{q_num}.") else q_text
+        if not f"({max_m}" in q_hdr and not f"{max_m} Mark" in q_hdr:
+            q_hdr += f" ({max_m} Marks)"
+        r_q = p_q.add_run(q_hdr)
+        r_q.bold = True
+        r_q.font.size = docx.shared.Pt(8.5)
 
-        pdf.set_font('Helvetica', '', 7.5)
+        # Candidate response
+        p_ans = doc.add_paragraph()
+        p_ans.paragraph_format.left_indent = docx.shared.Inches(0.25)
+        p_ans.paragraph_format.space_after = docx.shared.Pt(1)
+        r_ans_lbl = p_ans.add_run("Candidate's Written Response:\n")
+        r_ans_lbl.bold = True
+        r_ans_lbl.font.size = docx.shared.Pt(7.5)
+        try:
+            r_ans_lbl.font.color.rgb = docx.shared.RGBColor(80, 80, 80)
+        except Exception:
+            pass
+        r_ans_val = p_ans.add_run(ans_text if ans_text.strip() else "[No candidate response entered]")
+        r_ans_val.font.size = docx.shared.Pt(8)
+
+        # Rubric breakdown
+        breakdown = item.get("breakdown") or default_meta.get("breakdown") or DEFAULT_BREAKDOWNS.get(q_num, [])
+        if breakdown:
+            p_rb_hdr = doc.add_paragraph()
+            p_rb_hdr.paragraph_format.left_indent = docx.shared.Inches(0.25)
+            p_rb_hdr.paragraph_format.space_after = docx.shared.Pt(1)
+            r_rb_lbl = p_rb_hdr.add_run("Official Assessor Mark Distribution & Rubric Breakdown:")
+            r_rb_lbl.bold = True
+            r_rb_lbl.font.size = docx.shared.Pt(7.5)
+            try:
+                r_rb_lbl.font.color.rgb = docx.shared.RGBColor(185, 28, 28)
+            except Exception:
+                pass
+
+            rem_marks = float(awarded) if isinstance(awarded, (int, float)) else 0.0
+            for crit_idx, crit in enumerate(breakdown):
+                c_desc = str(crit.get("criterion", f"Mark Component {crit_idx+1}"))
+                c_max = float(crit.get("marks", 1))
+                if isinstance(awarded, (int, float)):
+                    if awarded == max_m:
+                        c_awarded = c_max
+                    elif awarded == 0:
+                        c_awarded = 0.0
+                    else:
+                        c_awarded = min(c_max, max(0.0, rem_marks))
+                        rem_marks -= c_awarded
+                else:
+                    c_awarded = 0.0
+
+                c_awarded_disp = int(c_awarded) if c_awarded.is_integer() else round(c_awarded, 1)
+                c_max_disp = int(c_max) if c_max.is_integer() else round(c_max, 1)
+                is_crit_full = (c_awarded >= c_max)
+
+                p_crit = doc.add_paragraph()
+                p_crit.paragraph_format.left_indent = docx.shared.Inches(0.35)
+                p_crit.paragraph_format.space_after = docx.shared.Pt(1)
+                r_c_desc = p_crit.add_run(f"* {c_desc}: ")
+                r_c_desc.font.size = docx.shared.Pt(7.5)
+                if is_crit_full:
+                    r_c_tag = p_crit.add_run(f"[Awarded {c_awarded_disp} / {c_max_disp} Mark{'s' if c_max_disp > 1 else ''}]")
+                    r_c_tag.bold = True
+                    r_c_tag.font.size = docx.shared.Pt(7.5)
+                    try:
+                        r_c_tag.font.color.rgb = docx.shared.RGBColor(34, 139, 34)
+                    except Exception:
+                        pass
+                elif c_awarded > 0:
+                    r_c_tag = p_crit.add_run(f"[Partial {c_awarded_disp} / {c_max_disp} Marks]")
+                    r_c_tag.bold = True
+                    r_c_tag.font.size = docx.shared.Pt(7.5)
+                    try:
+                        r_c_tag.font.color.rgb = docx.shared.RGBColor(217, 119, 6)
+                    except Exception:
+                        pass
+                else:
+                    r_c_tag = p_crit.add_run(f"[0 / {c_max_disp} Marks]")
+                    r_c_tag.bold = True
+                    r_c_tag.font.size = docx.shared.Pt(7.5)
+                    try:
+                        r_c_tag.font.color.rgb = docx.shared.RGBColor(220, 38, 38)
+                    except Exception:
+                        pass
+
+        # Question Total Awarded Badge
+        p_badge = doc.add_paragraph()
+        p_badge.paragraph_format.left_indent = docx.shared.Inches(0.25)
+        p_badge.paragraph_format.space_after = docx.shared.Pt(2)
+        is_full = (isinstance(awarded, (int, float)) and awarded >= max_m)
+        is_zero = (awarded == 0)
+        verdict_tag = "FULL CREDIT" if is_full else ("NIL CREDIT" if is_zero else "PARTIAL CREDIT")
+        r_bdg = p_badge.add_run(f">> Question {q_num} Total Awarded: {awarded} / {max_m} Marks [{verdict_tag}]")
+        r_bdg.bold = True
+        r_bdg.font.size = docx.shared.Pt(8)
+        try:
+            r_bdg.font.color.rgb = docx.shared.RGBColor(220, 38, 38)
+        except Exception:
+            pass
+
+        if reasoning:
+            p_note = doc.add_paragraph()
+            p_note.paragraph_format.left_indent = docx.shared.Inches(0.35)
+            p_note.paragraph_format.space_after = docx.shared.Pt(2)
+            r_note = p_note.add_run(f"Assessor Note: {reasoning}")
+            r_note.italic = True
+            r_note.font.size = docx.shared.Pt(7.5)
+            try:
+                r_note.font.color.rgb = docx.shared.RGBColor(185, 28, 28)
+            except Exception:
+                pass
+
+    # Section A
+    p_a_hdr = doc.add_paragraph()
+    p_a_hdr.paragraph_format.space_before = docx.shared.Pt(8)
+    p_a_hdr.paragraph_format.space_after = docx.shared.Pt(2)
+    r_ah = p_a_hdr.add_run("SECTION A (30 MARKS) -- Answer ALL Questions")
+    r_ah.bold = True
+    r_ah.font.size = docx.shared.Pt(10)
+    try:
+        r_ah.font.color.rgb = docx.shared.RGBColor(0, 9, 83)
+    except Exception:
+        pass
+    r_asub = p_a_hdr.add_run(f"    (Subtotal: {sec_a_subtotal} / 30 Marks)")
+    r_asub.bold = True
+    r_asub.font.size = docx.shared.Pt(8.5)
+    try:
+        r_asub.font.color.rgb = docx.shared.RGBColor(220, 38, 38)
+    except Exception:
+        pass
+
+    for idx, item in enumerate(sec_a_items):
+        render_docx_question(item, idx + 1, is_sec_b=False)
+
+    # Section B
+    p_b_hdr = doc.add_paragraph()
+    p_b_hdr.paragraph_format.space_before = docx.shared.Pt(8)
+    p_b_hdr.paragraph_format.space_after = docx.shared.Pt(2)
+    r_bh = p_b_hdr.add_run("SECTION B (40 MARKS) -- Answer ANY TWO Questions")
+    r_bh.bold = True
+    r_bh.font.size = docx.shared.Pt(10)
+    try:
+        r_bh.font.color.rgb = docx.shared.RGBColor(0, 9, 83)
+    except Exception:
+        pass
+    r_bsub = p_b_hdr.add_run(f"    (Subtotal: {sec_b_subtotal} / 40 Marks)")
+    r_bsub.bold = True
+    r_bsub.font.size = docx.shared.Pt(8.5)
+    try:
+        r_bsub.font.color.rgb = docx.shared.RGBColor(220, 38, 38)
+    except Exception:
+        pass
+
+    for idx, item in enumerate(sec_b_items):
+        render_docx_question(item, idx + 11, is_sec_b=True)
+
+    # Overall Remarks
+    p_rem_hdr = doc.add_paragraph()
+    p_rem_hdr.paragraph_format.space_before = docx.shared.Pt(8)
+    p_rem_hdr.paragraph_format.space_after = docx.shared.Pt(2)
+    r_rh = p_rem_hdr.add_run("ASSESSOR / TRAINER EXAMINATION FEEDBACK REMARKS:")
+    r_rh.bold = True
+    r_rh.font.size = docx.shared.Pt(8.5)
+    try:
+        r_rh.font.color.rgb = docx.shared.RGBColor(0, 9, 83)
+    except Exception:
+        pass
+
+    comments = str(payload.get("trainer_comments") or "The candidate demonstrates exceptional competence in digital literacy principles, practical workplace computer procedures, and software applications.")
+    p_rem_txt = doc.add_paragraph(f'"{comments}"')
+    p_rem_txt.paragraph_format.left_indent = docx.shared.Inches(0.25)
+    p_rem_txt.paragraph_format.space_after = docx.shared.Pt(6)
+    if p_rem_txt.runs:
+        p_rem_txt.runs[0].italic = True
+        p_rem_txt.runs[0].font.size = docx.shared.Pt(8)
+
+    # Signatures Table
+    tbl_sig = doc.add_table(rows=3, cols=2)
+    tbl_sig.style = 'Table Grid'
+    tbl_sig.rows[0].cells[0].text = f"Assessor / Trainer: {trainer_n}"
+    tbl_sig.rows[0].cells[1].text = "Internal Verifier / HOD: Computing & Informatics"
+    tbl_sig.rows[1].cells[0].text = f"Signature: {trainer_n} (Digitally Certified Assessor)"
+    tbl_sig.rows[1].cells[1].text = "Signature: ____________________________________"
+    tbl_sig.rows[2].cells[0].text = f"Date: {eval_date}"
+    tbl_sig.rows[2].cells[1].text = "Official Stamp: Mukiria Assessment Center 01200004"
+    for row in tbl_sig.rows:
+        for cell in row.cells:
+            for p in cell.paragraphs:
+                p.paragraph_format.space_before = docx.shared.Pt(2)
+                p.paragraph_format.space_after = docx.shared.Pt(2)
+                if p.runs:
+                    p.runs[0].font.size = docx.shared.Pt(8)
+
+    buf = io.BytesIO()
+    doc.save(buf)
+    return buf.getvalue()
+
+
+class MukiriaMarkedExamPDF(FPDF):
+    def __init__(self):
+        super().__init__(orientation='P', unit='mm', format='A4')
+        self.alias_nb_pages()
+        self.set_margins(14, 12, 14)
+        self.set_auto_page_break(True, margin=15)
+
+    def header(self):
+        self.set_font('Helvetica', '', 8)
+        self.set_text_color(100, 100, 100)
+        self.cell(0, 5, f'Page {self.page_no()} of {{nb}}', 0, 1, 'L')
+        self.ln(1)
+
+    def footer(self):
+        self.set_y(-12)
+        self.set_font('Helvetica', 'I', 7)
+        self.set_text_color(120, 120, 120)
+        self.cell(0, 5, 'Mukiria Technical Training Institute -- Official Evaluated Examination Script', 0, 0, 'C')
+
+
+def generate_exam_results_pdf(payload):
+    pdf = MukiriaMarkedExamPDF()
+    pdf.add_page()
+
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(current_dir)
+    logo_path = os.path.join(project_root, "client", "public", "mtti-logo.jpg")
+    if not os.path.exists(logo_path):
+        logo_path = os.path.abspath("client/public/mtti-logo.jpg")
+
+    if os.path.exists(logo_path):
+        try:
+            pdf.image(logo_path, x=95, y=pdf.get_y(), w=20)
+            pdf.set_y(pdf.get_y() + 21)
+        except Exception:
+            pass
+
+    # Institution branding headers matching media_1790901424074.pdf
+    pdf.set_font('Helvetica', 'B', 13)
+    pdf.set_text_color(0, 9, 83)
+    pdf.cell(0, 5.5, 'MUKIRIA TECHNICAL TRAINING INSTITUTE', ln=1, align='C')
+
+    pdf.set_font('Helvetica', 'B', 10)
+    pdf.set_text_color(40, 40, 40)
+    dept_str = payload.get('department')
+    if not dept_str:
+        dept_str = "HOSPITALITY DEPARTMENT\nBUILDING DEPARTMENT"
+    for dept_line in dept_str.split("\n"):
+        if dept_line.strip():
+            pdf.cell(0, 4.8, clean_pdf_text(dept_line.strip().upper()), ln=1, align='C')
+
+    pdf.cell(0, 4.8, 'INTERNAL EXAMINATION', ln=1, align='C')
+
+    exam_title = clean_pdf_text(payload.get('exam_title', 'WRITTEN ASSESSMENT 1').upper())
+    pdf.set_font('Helvetica', 'B', 11)
+    pdf.set_text_color(196, 136, 32)
+    pdf.cell(0, 5.2, exam_title, ln=1, align='C')
+
+    time_allowed = clean_pdf_text(payload.get('time_allowed', 'Time: 2 HOURS'))
+    if not time_allowed.lower().startswith('time'):
+        time_allowed = f'Time: {time_allowed}'
+    pdf.set_font('Helvetica', 'B', 9.5)
+    pdf.set_text_color(0, 9, 83)
+    pdf.cell(0, 4.8, time_allowed, ln=1, align='C')
+    pdf.ln(1.5)
+
+    # Exam metadata block (Unaltered, exactly matching uploaded question paper)
+    metadata = [
+        ('COURSE NAME', clean_pdf_text(payload.get('course_name') or 'OFFICE ADMINISTRATION LEVEL 5 & 6, LAND SURVEY LEVEL 5 & 6')),
+        ('COURSE CODE', clean_pdf_text(payload.get('course_code') or payload.get('unit_code') or '061155101A')),
+        ('UNIT NAME', clean_pdf_text(payload.get('unit_name') or 'APPLY DIGITAL LITERACY')),
+        ('CLASS', clean_pdf_text(payload.get('class_code') or 'FBS5/6/J/25, LS5/6/S/25')),
+        ('SERIES', clean_pdf_text(payload.get('series') or 'SEP - NOV 2026')),
+    ]
+    for label, val in metadata:
+        pdf.set_font('Helvetica', 'B', 8.5)
+        pdf.set_text_color(0, 0, 0)
+        pdf.write(4.3, f'{label}: ')
+        pdf.set_font('Helvetica', '', 8.5)
+        pdf.write(4.3, f'{val}\n')
+    pdf.ln(2)
+
+    # Official Evaluation Score Tally Stamp Box
+    raw_total = payload.get("total_score", 0)
+    try:
+        total_score = round(float(raw_total), 1)
+        if total_score.is_integer():
+            total_score = int(total_score)
+    except Exception:
+        total_score = raw_total
+    total_marks = payload.get("total_marks", 70)
+    pct = payload.get("percentage")
+    if pct is None:
+        pct = round((float(total_score) / float(total_marks) * 100) if total_marks else 0)
+    grade = clean_pdf_text(str(payload.get("grade", "Pass")))
+    status = clean_pdf_text(str(payload.get("status", "COMPETENT (PASS)" if pct >= 50 else "NOT YET COMPETENT (REFER)")))
+
+    box_y = pdf.get_y()
+    pdf.set_fill_color(254, 242, 242)
+    pdf.set_draw_color(220, 38, 38)
+    pdf.set_line_width(0.6)
+    pdf.rect(14, box_y, 182, 22, 'DF')
+
+    pdf.set_xy(16, box_y + 1.2)
+    pdf.set_font('Helvetica', 'B', 8)
+    pdf.set_text_color(185, 28, 28)
+    pdf.cell(178, 3.5, "OFFICIAL EVALUATION SCORE TALLY -- SIMULATED RED PEN ASSESSMENT", ln=1)
+
+    pdf.set_xy(16, box_y + 5.5)
+    pdf.set_font('Helvetica', 'B', 8)
+    pdf.set_text_color(20, 20, 20)
+    cand_name = clean_pdf_text(payload.get('student_name', 'Alex Kinoti'))
+    cand_reg = clean_pdf_text(payload.get('reg_number', '10525'))
+    pdf.cell(90, 4, f"Candidate Name: {cand_name}", ln=0)
+    pdf.cell(88, 4, f"Admission / Reg No: {cand_reg}", ln=1)
+
+    sec_a_items = payload.get("section_a") or payload.get("answers", {}).get("section_a", [])
+    sec_b_items = payload.get("section_b") or payload.get("answers", {}).get("section_b", [])
+    sec_a_subtotal = sum(float(it.get("marks_awarded", 0)) for it in sec_a_items)
+    if sec_a_subtotal.is_integer():
+        sec_a_subtotal = int(sec_a_subtotal)
+    sec_b_subtotal = sum(float(it.get("marks_awarded", 0)) for it in sec_b_items)
+    if sec_b_subtotal.is_integer():
+        sec_b_subtotal = int(sec_b_subtotal)
+
+    pdf.set_xy(16, box_y + 10)
+    pdf.set_font('Helvetica', 'B', 8)
+    pdf.set_text_color(20, 20, 20)
+    trainer_n = clean_pdf_text(payload.get('trainer_name', 'Alexander Kinoti'))
+    eval_date = clean_pdf_text(payload.get('evaluated_at', '07/10/2026'))
+    pdf.cell(90, 4, f"Assessor / Trainer: {trainer_n}", ln=0)
+    pdf.cell(88, 4, f"Date Evaluated: {eval_date}", ln=1)
+
+    pdf.set_xy(16, box_y + 15)
+    pdf.set_font('Helvetica', 'B', 9.5)
+    pdf.set_text_color(220, 38, 38)
+    score_summary = f"SECTION A: {sec_a_subtotal}/30  |  SECTION B: {sec_b_subtotal}/40  |  TOTAL: {total_score}/{total_marks} ({pct}%)  --  {status}"
+    pdf.cell(178, 5, score_summary, ln=1)
+
+    pdf.set_y(box_y + 24)
+
+    # Instructions to candidate
+    pdf.set_font('Helvetica', 'B', 9)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 4.5, "INSTRUCTIONS TO CANDIDATE", ln=1)
+
+    instructions = [
+        "1. This paper consists of two sections A and B;",
+        "2. Answer ALL the question as guided in each section;",
+        "3. Marks for each question are as indicated in the brackets;",
+        "4. You are provided with a separate answer booklet to answer the questions;",
+        "5. Do not write in this question paper."
+    ]
+    pdf.set_font('Helvetica', '', 8)
+    pdf.set_text_color(30, 30, 30)
+    for inst in instructions:
+        pdf.cell(0, 3.8, clean_pdf_text(inst), ln=1)
+
+    pdf.set_font('Helvetica', 'B', 8)
+    pdf.cell(0, 4.2, "THIS PAPER CONSISTS OF {nb} PRINTED PAGES", ln=1)
+    pdf.ln(2)
+
+    # Helper function to render a question with student answer and distributed marks
+    def render_marked_question(item, default_num, is_section_b=False):
+        q_num = item.get("q_num", default_num)
+        default_meta = DEFAULT_EXAM_QUESTIONS.get(q_num, {})
+        q_text_raw = item.get("text")
+        if not q_text_raw or q_text_raw.lower() in [f"question {q_num}", f"task {q_num}", f"question {default_num}", f"task {default_num}"]:
+            q_text_raw = default_meta.get("text", f"Question {q_num}")
+        q_text = clean_pdf_text(str(q_text_raw))
+
+        raw_awarded = item.get("marks_awarded", 0)
+        try:
+            awarded = round(float(raw_awarded), 1)
+            if awarded.is_integer():
+                awarded = int(awarded)
+        except Exception:
+            awarded = raw_awarded
+        max_m = item.get("max_marks", default_meta.get("max_marks", 20 if is_section_b else 2))
+        ans_text = clean_pdf_text(str(item.get("answer", "")))
+        reasoning = clean_pdf_text(str(item.get("ai_reasoning") or item.get("notes") or ""))
+
+        # Check page break margin
+        if pdf.get_y() > 235:
+            pdf.add_page()
+
+        # Question Header (Unaltered from exam paper)
+        pdf.set_font('Helvetica', 'B', 8.5)
+        pdf.set_text_color(0, 0, 0)
+        q_header = f"{q_num}. {q_text}" if not q_text.startswith(f"{q_num}.") else q_text
+        if not f"({max_m}" in q_header and not f"{max_m} Mark" in q_header:
+            q_header += f" ({max_m} Marks)"
+        pdf.multi_cell(182, 4.2, q_header)
+
+        # Candidate's Written Response block
+        pdf.set_font('Helvetica', 'B', 7.5)
+        pdf.set_text_color(80, 80, 80)
+        pdf.set_x(18)
+        pdf.cell(178, 3.5, "Candidate's Written Response:", ln=1)
+
+        pdf.set_font('Helvetica', '', 8)
         pdf.set_text_color(30, 30, 30)
-        pdf.set_xy(12, row_y + 0.7)
-        pdf.cell(15, 4, q_label, align='C')
-        pdf.cell(80, 4, q_txt)
-        pdf.cell(65, 4, ans_txt)
+        ans_display = ans_text if ans_text.strip() else "[No candidate response entered]"
+        pdf.set_x(18)
+        pdf.multi_cell(176, 3.8, ans_display)
 
-        # Red Pen Overlay for Awarded Score in right column
-        pdf.set_draw_color(220, 38, 38)
-        pdf.set_line_width(0.3)
-        pdf.rect(172, row_y + 0.5, 24, 4.5)
+        # Assessor Mark Distribution & Rubric Breakdown block
+        breakdown = item.get("breakdown") or default_meta.get("breakdown") or DEFAULT_BREAKDOWNS.get(q_num, [])
+        pdf.set_x(18)
+        pdf.set_font('Helvetica', 'B', 7.5)
+        pdf.set_text_color(185, 28, 28)
+        pdf.cell(178, 3.5, "Official Assessor Mark Distribution & Rubric Breakdown:", ln=1)
+
+        # Distribute marks across criteria
+        if breakdown:
+            rem_marks = float(awarded) if isinstance(awarded, (int, float)) else 0.0
+            for crit_idx, crit in enumerate(breakdown):
+                c_desc = clean_pdf_text(crit.get("criterion", f"Mark Component {crit_idx+1}"))
+                c_max = float(crit.get("marks", 1))
+                if isinstance(awarded, (int, float)):
+                    if awarded == max_m:
+                        c_awarded = c_max
+                    elif awarded == 0:
+                        c_awarded = 0.0
+                    else:
+                        c_awarded = min(c_max, max(0.0, rem_marks))
+                        rem_marks -= c_awarded
+                else:
+                    c_awarded = 0.0
+
+                c_awarded_disp = int(c_awarded) if c_awarded.is_integer() else round(c_awarded, 1)
+                c_max_disp = int(c_max) if c_max.is_integer() else round(c_max, 1)
+                is_crit_full = (c_awarded >= c_max)
+
+                pdf.set_x(22)
+                pdf.set_font('Helvetica', '', 7.5)
+                pdf.set_text_color(40, 40, 40)
+                pdf.write(3.6, f"* {c_desc}: ")
+                pdf.set_font('Helvetica', 'B', 7.5)
+                if is_crit_full:
+                    pdf.set_text_color(34, 139, 34)
+                    pdf.write(3.6, f"[Awarded {c_awarded_disp} / {c_max_disp} Mark{'s' if c_max_disp > 1 else ''}]\n")
+                elif c_awarded > 0:
+                    pdf.set_text_color(217, 119, 6)
+                    pdf.write(3.6, f"[Partial {c_awarded_disp} / {c_max_disp} Marks]\n")
+                else:
+                    pdf.set_text_color(220, 38, 38)
+                    pdf.write(3.6, f"[0 / {c_max_disp} Marks]\n")
+
+        # Question Total Awarded Badge
+        is_full = (isinstance(awarded, (int, float)) and awarded >= max_m)
+        is_zero = (awarded == 0)
+        verdict_tag = "FULL CREDIT" if is_full else ("NIL CREDIT" if is_zero else "PARTIAL CREDIT")
+        mark_summary = f">> Question {q_num} Total Awarded: {awarded} / {max_m} Marks [{verdict_tag}]"
+
+        pdf.set_x(18)
         pdf.set_font('Helvetica', 'B', 8)
         pdf.set_text_color(220, 38, 38)
-        mark_symbol = "[OK]" if (isinstance(awarded, (int, float)) and awarded >= max_m) else ("[X]" if awarded == 0 else "(~)")
-        pdf.cell(26, 4, f"{mark_symbol} {awarded}/{max_m}", align='C', ln=1)
+        pdf.cell(178, 4, mark_summary, ln=1)
 
-    # Remarks & Signatures
-    pdf.ln(3)
+        if reasoning:
+            pdf.set_x(22)
+            pdf.set_font('Helvetica', 'I', 7.5)
+            pdf.set_text_color(185, 28, 28)
+            pdf.multi_cell(174, 3.6, f"Assessor Note: {reasoning}")
+
+        pdf.ln(2.5)
+
+    # ── Section A ─────────────────────────────────────────────────────────────
+    if pdf.get_y() > 225:
+        pdf.add_page()
+    else:
+        pdf.set_draw_color(0, 9, 83)
+        pdf.set_line_width(0.4)
+        pdf.line(14, pdf.get_y(), 196, pdf.get_y())
+        pdf.ln(2.5)
+
+    pdf.set_font('Helvetica', 'B', 10)
+    pdf.set_text_color(0, 9, 83)
+    pdf.cell(130, 5, "SECTION A (30 MARKS) -- Answer ALL Questions", ln=0)
+    pdf.set_font('Helvetica', 'B', 8.5)
+    pdf.set_text_color(220, 38, 38)
+    pdf.cell(52, 5, f"Subtotal: {sec_a_subtotal} / 30 Marks", ln=1, align='R')
+    pdf.ln(1.5)
+
+    for idx, item in enumerate(sec_a_items):
+        render_marked_question(item, idx + 1, is_section_b=False)
+
+    # ── Section B ─────────────────────────────────────────────────────────────
+    if pdf.get_y() > 215:
+        pdf.add_page()
+    else:
+        pdf.set_draw_color(0, 9, 83)
+        pdf.set_line_width(0.4)
+        pdf.line(14, pdf.get_y(), 196, pdf.get_y())
+        pdf.ln(2.5)
+
+    pdf.set_font('Helvetica', 'B', 10)
+    pdf.set_text_color(0, 9, 83)
+    pdf.cell(130, 5, "SECTION B (40 MARKS) -- Answer ANY TWO Questions", ln=0)
+    pdf.set_font('Helvetica', 'B', 8.5)
+    pdf.set_text_color(220, 38, 38)
+    pdf.cell(52, 5, f"Subtotal: {sec_b_subtotal} / 40 Marks", ln=1, align='R')
+    pdf.ln(1.5)
+
+    for idx, item in enumerate(sec_b_items):
+        render_marked_question(item, idx + 11, is_section_b=True)
+
+    # ── Overall Feedback & Signatures Footer ──────────────────────────────────
+    if pdf.get_y() > 220:
+        pdf.add_page()
+    else:
+        pdf.set_draw_color(0, 9, 83)
+        pdf.set_line_width(0.4)
+        pdf.line(14, pdf.get_y(), 196, pdf.get_y())
+        pdf.ln(3)
+
     pdf.set_font('Helvetica', 'B', 8.5)
     pdf.set_text_color(0, 9, 83)
-    pdf.cell(186, 4, 'TRAINER REMARKS:', ln=1)
-    pdf.set_font('Helvetica', '', 8)
-    pdf.set_text_color(40, 40, 40)
-    comments = clean_pdf_text(payload.get("trainer_comments") or "Competent understanding of digital literacy principles demonstrated.")
-    pdf.multi_cell(186, 4, comments)
+    pdf.cell(0, 4.5, "ASSESSOR / TRAINER EXAMINATION FEEDBACK REMARKS:", ln=1)
 
-    pdf.ln(3)
+    comments = clean_pdf_text(payload.get("trainer_comments") or "The candidate demonstrates exceptional competence in digital literacy principles, practical workplace computer procedures, and software applications.")
+    rem_y = pdf.get_y()
+    pdf.set_fill_color(255, 251, 235)
+    pdf.set_draw_color(217, 119, 6)
+    pdf.set_line_width(0.3)
+    pdf.rect(14, rem_y, 182, 12, 'DF')
+    pdf.set_xy(16, rem_y + 1.5)
+    pdf.set_font('Helvetica', 'I', 8)
+    pdf.set_text_color(60, 40, 0)
+    pdf.multi_cell(178, 3.8, f'"{comments}"')
+
+    pdf.set_y(rem_y + 14)
+    sig_y = pdf.get_y()
+    if sig_y > 245:
+        pdf.add_page()
+        sig_y = pdf.get_y()
+
+    pdf.set_fill_color(248, 250, 252)
+    pdf.set_draw_color(180, 190, 205)
+    pdf.rect(14, sig_y, 182, 22, 'DF')
+
+    pdf.set_xy(16, sig_y + 1.5)
+    pdf.set_font('Helvetica', 'B', 8)
+    pdf.set_text_color(0, 9, 83)
+    pdf.cell(90, 4, f"Assessor / Trainer: {trainer_n}", ln=0)
+    pdf.cell(90, 4, "Internal Verifier / HOD: Computing & Informatics", ln=1)
+
+    pdf.set_xy(16, sig_y + 6.5)
     pdf.set_font('Helvetica', '', 7.5)
-    pdf.cell(93, 4, f"Assessor: {clean_pdf_text(payload.get('trainer_name', 'Alexander Kinoti'))}", ln=0)
-    pdf.cell(93, 4, "Verified by HOD: _______________________", ln=1)
-    pdf.cell(93, 4, "Signature: ____________________________", ln=0)
-    pdf.cell(93, 4, "Date & Official Stamp: ________________", ln=1)
+    pdf.set_text_color(40, 40, 40)
+    pdf.cell(90, 4, f"Signature: {trainer_n} (Digitally Certified Assessor)", ln=0)
+    pdf.cell(90, 4, "Signature: ____________________________________", ln=1)
 
-    return pdf.output(dest='S').encode('latin-1')
+    pdf.set_xy(16, sig_y + 11.5)
+    pdf.cell(90, 4, f"Date: {eval_date}", ln=0)
+    pdf.cell(90, 4, "Official Stamp: Mukiria Assessment Center 01200004", ln=1)
+
+    out = pdf.output(dest='S')
+    return out.encode('latin1') if isinstance(out, str) else bytes(out)
+
+
+def generate_timetable_pdf(payload):
+    pdf = FPDF(orientation='L', unit='mm', format='A4')
+    pdf.set_margins(8, 8, 8)
+    pdf.set_auto_page_break(False)
+    pdf.add_page(orientation='L')
+
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(current_dir)
+    logo_path = os.path.join(project_root, "client", "public", "mtti-logo.jpg")
+    if not os.path.exists(logo_path):
+        logo_path = os.path.abspath("client/public/mtti-logo.jpg")
+
+    # Outer border (single page A4 landscape is 297mm x 210mm)
+    pdf.set_draw_color(0, 9, 83)
+    pdf.set_line_width(0.7)
+    pdf.rect(6, 6, 285, 198)
+    pdf.set_draw_color(196, 136, 32)
+    pdf.set_line_width(0.3)
+    pdf.rect(7.5, 7.5, 282, 195)
+
+    # Header section
+    y_hdr = 10
+    if os.path.exists(logo_path):
+        try:
+            pdf.image(logo_path, x=10, y=y_hdr, w=18)
+        except Exception:
+            pass
+
+    pdf.set_xy(31, y_hdr)
+    pdf.set_font('Helvetica', 'B', 15)
+    pdf.set_text_color(0, 9, 83)
+    pdf.cell(175, 5.5, 'MUKIRIA TECHNICAL TRAINING INSTITUTE', ln=0)
+
+    pdf.set_font('Helvetica', 'B', 8.5)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(78, 5.5, 'Assessment Center: 01200004', ln=1, align='R')
+
+    pdf.set_xy(31, y_hdr + 5.5)
+    pdf.set_font('Helvetica', 'B', 10.5)
+    pdf.set_text_color(40, 40, 40)
+    title_sub = clean_pdf_text(payload.get('schedule_title', 'MASTER ACADEMIC TIMETABLE'))
+    pdf.cell(175, 5, title_sub, ln=0)
+
+    pdf.set_font('Helvetica', '', 8)
+    pdf.set_text_color(80, 80, 80)
+    pdf.cell(78, 5, 'All lectures strictly 2-hour duration', ln=1, align='R')
+
+    pdf.set_xy(31, y_hdr + 11)
+    pdf.set_font('Helvetica', '', 8)
+    term = payload.get('term', 'Term 3, 2026')
+    week = payload.get('week', 6)
+    term_meta = clean_pdf_text(f"{term} | Week {week} | Effective: 31 Aug 2026 - 20 Nov 2026")
+    pdf.cell(175, 4.5, term_meta, ln=0)
+
+    pdf.set_font('Helvetica', 'B', 8)
+    pdf.set_text_color(34, 139, 34)
+    pdf.cell(78, 4.5, 'TVET CDACC CERTIFIED', ln=1, align='R')
+
+    # Table Geometry
+    # Widths: Day: 18, P1: 60, Tea: 12, P2: 60, Lunch: 12, P3: 60, Brk: 9, P4: 50 -> Sum = 281mm
+    col_widths = [18, 60, 12, 60, 12, 60, 9, 50]
+    headers = [
+        ('Day', ''),
+        ('Period 1', '08:00 - 10:00'),
+        ('TEA', '10:00'),
+        ('Period 2', '10:30 - 12:30'),
+        ('LUNCH', '12:30'),
+        ('Period 3', '13:30 - 15:30'),
+        ('BRK', '15:30'),
+        ('Period 4', '15:35 - 17:35')
+    ]
+
+    table_x = 8
+    table_y = 28
+    header_h = 10
+    row_h = 27.5 # 5 rows * 27.5 = 137.5mm + 10mm = 147.5mm
+
+    # Render Header Row
+    pdf.set_xy(table_x, table_y)
+    cur_x = table_x
+    for idx, ((h1, h2), w) in enumerate(zip(headers, col_widths)):
+        is_break = idx in [2, 4, 6]
+        pdf.set_fill_color(240, 243, 248) if not is_break else pdf.set_fill_color(254, 243, 199)
+        pdf.set_draw_color(0, 0, 0)
+        pdf.set_line_width(0.3)
+        pdf.rect(cur_x, table_y, w, header_h, 'DF')
+
+        pdf.set_xy(cur_x, table_y + 1)
+        pdf.set_font('Helvetica', 'B', 8.5 if not is_break else 7.5)
+        pdf.set_text_color(0, 9, 83) if not is_break else pdf.set_text_color(146, 64, 14)
+        pdf.cell(w, 4, h1, align='C', ln=1)
+
+        if h2:
+            pdf.set_xy(cur_x, table_y + 5)
+            pdf.set_font('Helvetica', '', 7)
+            pdf.set_text_color(80, 80, 80)
+            pdf.cell(w, 3.5, h2, align='C')
+
+        cur_x += w
+
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    schedule_data = payload.get('schedule', {})
+
+    cur_y = table_y + header_h
+    for day_idx, day in enumerate(days):
+        day_sessions = schedule_data.get(day, [])
+        p1 = next((s for s in day_sessions if s.get('period') == 1), None)
+        p2 = next((s for s in day_sessions if s.get('period') == 2), None)
+        p3 = next((s for s in day_sessions if s.get('period') == 3), None)
+        p4 = next((s for s in day_sessions if s.get('period') == 4), None)
+
+        cur_x = table_x
+
+        # Day cell
+        pdf.set_fill_color(248, 250, 252)
+        pdf.rect(cur_x, cur_y, col_widths[0], row_h, 'DF')
+        pdf.set_xy(cur_x, cur_y + (row_h / 2) - 3)
+        pdf.set_font('Helvetica', 'B', 10)
+        pdf.set_text_color(0, 9, 83)
+        pdf.cell(col_widths[0], 6, day[:3].upper(), align='C')
+        cur_x += col_widths[0]
+
+        # Function to render period cell
+        def draw_period_cell(x, y, w, h, sess):
+            pdf.set_fill_color(255, 255, 255)
+            pdf.set_draw_color(0, 0, 0)
+            pdf.rect(x, y, w, h, 'DF')
+            if not sess:
+                pdf.set_xy(x, y + (h / 2) - 2)
+                pdf.set_font('Helvetica', '', 9)
+                pdf.set_text_color(180, 180, 180)
+                pdf.cell(w, 4, '-', align='C')
+                return
+
+            pdf.set_xy(x + 1.5, y + 1.5)
+            # Unit title
+            pdf.set_font('Helvetica', 'B', 8)
+            pdf.set_text_color(10, 10, 10)
+            unit_t = clean_pdf_text(sess.get('unitTitle', ''))[:38]
+            pdf.cell(w - 3, 4, unit_t, ln=1)
+
+            # Class code (cleaned)
+            cohort = clean_pdf_text(sess.get('classCode', ''))
+            if unit_t and cohort.upper().startswith(unit_t.upper()):
+                cohort = cohort[len(unit_t):].strip()
+            cohort = re.sub(r'^(?:ICT\s*SKIL[LS]\s*(?:1\s*)?)', '', cohort, flags=re.IGNORECASE).strip()
+
+            pdf.set_x(x + 1.5)
+            pdf.set_font('Helvetica', 'B', 7.5)
+            pdf.set_text_color(60, 60, 60)
+            pdf.cell(w - 3, 3.8, cohort[:35], ln=1)
+
+            # Trainer name
+            trainer_n = clean_pdf_text(sess.get('trainerName') or sess.get('trainer') or '')
+            if trainer_n:
+                pdf.set_x(x + 1.5)
+                pdf.set_font('Helvetica', 'I', 7.5)
+                pdf.set_text_color(0, 40, 120)
+                pdf.cell(w - 3, 3.5, trainer_n[:35], ln=1)
+
+            # Venue pill
+            venue_str = clean_pdf_text(sess.get('venue', ''))
+            if venue_str:
+                pdf.set_xy(x + 1.5, y + h - 5.5)
+                pdf.set_fill_color(240, 240, 240)
+                pdf.set_draw_color(160, 160, 160)
+                pdf.rect(x + 1.5, y + h - 5.5, 22, 4, 'DF')
+                pdf.set_xy(x + 1.5, y + h - 5.5)
+                pdf.set_font('Helvetica', 'B', 7)
+                pdf.set_text_color(180, 20, 20)
+                pdf.cell(22, 4, f'RM: {venue_str}', align='C')
+
+        # Period 1
+        draw_period_cell(cur_x, cur_y, col_widths[1], row_h, p1)
+        cur_x += col_widths[1]
+
+        # Tea break
+        pdf.set_fill_color(254, 243, 199)
+        pdf.rect(cur_x, cur_y, col_widths[2], row_h, 'DF')
+        pdf.set_xy(cur_x, cur_y + (row_h / 2) - 3)
+        pdf.set_font('Helvetica', 'B', 6.5)
+        pdf.set_text_color(146, 64, 14)
+        pdf.cell(col_widths[2], 6, 'TEA', align='C')
+        cur_x += col_widths[2]
+
+        # Period 2
+        draw_period_cell(cur_x, cur_y, col_widths[3], row_h, p2)
+        cur_x += col_widths[3]
+
+        # Lunch
+        pdf.set_fill_color(254, 243, 199)
+        pdf.rect(cur_x, cur_y, col_widths[4], row_h, 'DF')
+        pdf.set_xy(cur_x, cur_y + (row_h / 2) - 3)
+        pdf.set_font('Helvetica', 'B', 6.5)
+        pdf.set_text_color(146, 64, 14)
+        pdf.cell(col_widths[4], 6, 'LUNCH', align='C')
+        cur_x += col_widths[4]
+
+        # Period 3
+        draw_period_cell(cur_x, cur_y, col_widths[5], row_h, p3)
+        cur_x += col_widths[5]
+
+        # Short break
+        pdf.set_fill_color(254, 243, 199)
+        pdf.rect(cur_x, cur_y, col_widths[6], row_h, 'DF')
+        pdf.set_xy(cur_x, cur_y + (row_h / 2) - 2)
+        pdf.set_font('Helvetica', '', 6)
+        pdf.set_text_color(146, 64, 14)
+        pdf.cell(col_widths[6], 4, '-', align='C')
+        cur_x += col_widths[6]
+
+        # Period 4
+        draw_period_cell(cur_x, cur_y, col_widths[7], row_h, p4)
+        cur_x += col_widths[7]
+
+        cur_y += row_h
+
+    # Official Endorsement Footer
+    y_ft = cur_y + 3.5
+    pdf.set_xy(table_x, y_ft)
+    pdf.set_font('Helvetica', 'B', 7.5)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(90, 3.5, 'Prepared by: Timetable Committee & Deputy Principal Academics', ln=0)
+    pdf.cell(100, 3.5, 'Academic Registrar Verification: _________________________', ln=0)
+    pdf.cell(91, 3.5, 'Official Institutional Stamp', ln=1, align='R')
+
+    pdf.set_xy(table_x, y_ft + 3.5)
+    pdf.set_font('Helvetica', '', 7)
+    pdf.set_text_color(90, 90, 90)
+    pdf.cell(90, 3.5, 'Software: aSc Timetables Institutional Edition 2026', ln=0)
+    pdf.cell(100, 3.5, 'Date: October 2026', ln=0)
+    pdf.cell(91, 3.5, 'Mukiria TTI Quality Assurance Directorate', ln=1, align='R')
+
+    out = pdf.output(dest='S')
+    return out.encode('latin1') if isinstance(out, str) else bytes(out)
 
 
 class APIHandler(BaseHTTPRequestHandler):
@@ -2478,6 +3250,25 @@ class APIHandler(BaseHTTPRequestHandler):
                     "filename": filename,
                     "file_data": doc_base64,
                     "data": doc_base64
+                }).encode("utf-8"))
+
+            elif path == "/api/export-timetable-pdf":
+                payload = json.loads(post_data.decode("utf-8"))
+                pdf_bytes = generate_timetable_pdf(payload)
+                pdf_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
+                title_slug = str(payload.get("schedule_title", "TIMETABLE")).replace(" ", "_").replace(":", "_").replace("/", "_")
+                filename = f"MTTI_Timetable_{title_slug}.pdf"
+
+                self.send_response(200)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "success": True,
+                    "status": "success",
+                    "filename": filename,
+                    "file_data": pdf_base64,
+                    "data": pdf_base64
                 }).encode("utf-8"))
 
             elif path == "/api/export-exam-results-pdf":

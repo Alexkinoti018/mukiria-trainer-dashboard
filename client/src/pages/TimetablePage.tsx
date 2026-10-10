@@ -15,6 +15,8 @@ import {
   Search, 
   Filter, 
   Printer, 
+  Download,
+  Loader2,
   CheckCircle2, 
   AlertCircle, 
   Sparkles, 
@@ -156,6 +158,79 @@ export default function TimetablePage() {
     { id: "mr-isaiah-kirui", name: "Isaiah Kirui", dept: "Civil/Building" }
   ];
 
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const downloadBase64File = (base64Data: string, filename: string, mimeType: string) => {
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const formatCohort = (classCode?: string, unitTitle?: string) => {
+    if (!classCode) return "";
+    let clean = classCode.trim();
+    if (unitTitle) {
+      const escaped = unitTitle.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      clean = clean.replace(new RegExp(`^${escaped}\\s*`, "i"), "");
+    }
+    clean = clean.replace(/^(?:ICT\s*SKIL[LS]\s*(?:1\s*)?)/i, "").trim();
+    return clean;
+  };
+
+  const handleDownloadTimetablePdf = async () => {
+    setIsDownloadingPdf(true);
+    try {
+      let currentSchedule: any = {};
+      let title = "";
+      if (viewMode === "trainer") {
+        title = `TEACHER SCHEDULE: ${activeTrainer?.name}`;
+        currentSchedule = activeTrainer?.schedule || {};
+      } else if (viewMode === "class") {
+        title = `CLASS TIMETABLE: ${selectedClassFilter}`;
+        currentSchedule = classSchedule;
+      } else {
+        title = `LABORATORY / VENUE OCCUPANCY: ${selectedVenueFilter}`;
+        currentSchedule = venueSchedule;
+      }
+
+      const payload = {
+        schedule_title: title,
+        term: masterTimetable.term,
+        week: academicContext.currentWeek,
+        schedule: currentSchedule,
+      };
+
+      const res = await fetch("http://localhost:8000/api/export-timetable-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
+      const data = await res.json();
+      if (data.file_data) {
+        downloadBase64File(data.file_data, data.filename || "MTTI_Timetable.pdf", "application/pdf");
+        toast.success("Official Timetable PDF downloaded", { description: data.filename });
+      }
+    } catch (err: any) {
+      toast.info("Opening browser print dialog as fallback...");
+      window.print();
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   return (
     <TrainerLayout 
       title="Master Academic Timetable" 
@@ -163,8 +238,62 @@ export default function TimetablePage() {
     >
       <div className="space-y-6">
 
-        {/* ── Top Institutional Banner: Synchronized Calendar, Date, Week & Clock ── */}
-        <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-r from-[#000953] via-[#021575] to-[#042899] text-white p-6 shadow-xl print:border-none print:shadow-none print:p-0 print:bg-white print:text-black">
+        {/* ── Print Stylesheet for Flawless 1-Page A4 Landscape Output ── */}
+        <style>{`
+          @media print {
+            @page {
+              size: A4 landscape;
+              margin: 6mm 8mm 6mm 8mm;
+            }
+            html, body {
+              background: #fff !important;
+              color: #000 !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            ::-webkit-scrollbar {
+              display: none !important;
+              height: 0 !important;
+              width: 0 !important;
+            }
+            * {
+              scrollbar-width: none !important;
+            }
+            .print\\:hidden {
+              display: none !important;
+            }
+            .timetable-print-card {
+              border: 1.5px solid #000 !important;
+              box-shadow: none !important;
+              padding: 4px !important;
+              margin: 0 !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+              width: 100% !important;
+            }
+            .timetable-table {
+              width: 100% !important;
+              table-layout: fixed !important;
+              border-collapse: collapse !important;
+            }
+            .timetable-table th, 
+            .timetable-table td {
+              border: 1px solid #000 !important;
+              word-wrap: break-word !important;
+              overflow-wrap: break-word !important;
+              padding: 4px 6px !important;
+            }
+            .timetable-table tr {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
+          }
+        `}</style>
+
+        {/* ── Top Institutional Banner: Synchronized Calendar, Date, Week & Clock (Screen-Only) ── */}
+        <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-r from-[#000953] via-[#021575] to-[#042899] text-white p-6 shadow-xl print:hidden">
           <div className="relative z-10 flex flex-wrap items-center justify-between gap-6">
             
             <div className="space-y-1.5">
@@ -208,7 +337,7 @@ export default function TimetablePage() {
 
         {/* ── Live Trainer Status Card (What Alexander Kinoti / Selected Trainer Has NOW) ── */}
         {liveStatus && (
-          <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-4 print:hidden">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold">
@@ -244,6 +373,19 @@ export default function TimetablePage() {
                      "SESSIONS CONCLUDED TODAY"}
                   </span>
                 </div>
+
+                <button
+                  onClick={handleDownloadTimetablePdf}
+                  disabled={isDownloadingPdf}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-sm print:hidden"
+                >
+                  {isDownloadingPdf ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5" />
+                  )}
+                  Download Official PDF
+                </button>
 
                 <button
                   onClick={() => window.print()}
@@ -441,7 +583,7 @@ export default function TimetablePage() {
         </div>
 
         {/* ── Official Weekly Timetable Grid (Screen & Print) ── */}
-        <div className="bg-white text-black p-6 rounded-2xl border-2 border-black shadow-lg print:border-none print:shadow-none print:p-0">
+        <div className="timetable-print-card bg-white text-black p-6 rounded-2xl border-2 border-black shadow-lg print:border-none print:shadow-none print:p-0">
           
           {/* Official Schedule Header */}
           <div className="flex items-center justify-between border-b-2 border-black pb-4 mb-4">
@@ -455,43 +597,81 @@ export default function TimetablePage() {
                    `LABORATORY / VENUE OCCUPANCY: ${selectedVenueFilter}`}
                 </p>
                 <p className="text-[11px] text-slate-600 font-mono">
-                  {masterTimetable.term} • Week {academicContext.currentWeek} • Generated 9/27/2026
+                  {masterTimetable.term} • Week {academicContext.currentWeek} • Assessment Center: 01200004
                 </p>
               </div>
             </div>
 
-            <div className="text-right text-xs space-y-0.5">
-              <div className="font-bold">Assessment Center: 01200004</div>
-              <div className="text-[11px] text-slate-700">All lectures strictly 2-hour duration</div>
-              <div className="text-[10px] text-emerald-800 font-bold uppercase">TVET CDACC Certified</div>
+            <div className="flex items-center gap-3">
+              <div className="text-right text-xs space-y-0.5 hidden sm:block">
+                <div className="font-bold">TVET CDACC Certified</div>
+                <div className="text-[11px] text-slate-700">All lectures strictly 2-hour duration</div>
+                <div className="text-[10px] text-emerald-800 font-bold uppercase">Official Academic Timetable</div>
+              </div>
+              <div className="flex items-center gap-1.5 print:hidden">
+                <button
+                  onClick={handleDownloadTimetablePdf}
+                  disabled={isDownloadingPdf}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-sm"
+                  title="Download vector 1-page A4 landscape PDF"
+                >
+                  {isDownloadingPdf ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5" />
+                  )}
+                  <span>PDF</span>
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border transition"
+                  title="Print single-sheet landscape"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print</span>
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Table Container */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-[11px] text-black border border-black" style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif' }}>
+          <div className="overflow-x-auto print:overflow-visible">
+            <table 
+              className="timetable-table w-full text-left border-collapse text-[10.5px] text-black border border-black" 
+              style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif', tableLayout: 'fixed' }}
+            >
+              <colgroup>
+                <col style={{ width: "8%" }} />
+                <col style={{ width: "21.5%" }} />
+                <col style={{ width: "4.5%" }} />
+                <col style={{ width: "21.5%" }} />
+                <col style={{ width: "4.5%" }} />
+                <col style={{ width: "21.5%" }} />
+                <col style={{ width: "3.5%" }} />
+                <col style={{ width: "15%" }} />
+              </colgroup>
               <thead>
                 <tr className="bg-slate-100 text-center font-bold">
-                  <th className="p-2.5 border border-black w-20">Day</th>
-                  <th className="p-2.5 border border-black min-w-[150px]">
+                  <th className="p-2 border border-black">Day</th>
+                  <th className="p-2 border border-black">
                     Period 1<br/><span className="text-[10px] font-normal font-mono">8:00 - 10:00</span>
                   </th>
-                  <th className="p-2 border border-black bg-amber-50 text-[10px] w-20">
-                    TEA BREAK<br/><span className="font-mono">10:00 - 10:30</span>
+                  <th className="p-1 border border-black bg-amber-50 text-[10px]">
+                    TEA<br/><span className="font-mono text-[9px]">10:00</span>
                   </th>
-                  <th className="p-2.5 border border-black min-w-[150px]">
+                  <th className="p-2 border border-black">
                     Period 2<br/><span className="text-[10px] font-normal font-mono">10:30 - 12:30</span>
                   </th>
-                  <th className="p-2 border border-black bg-amber-50 text-[10px] w-20">
-                    LUNCH HR<br/><span className="font-mono">12:30 - 13:30</span>
+                  <th className="p-1 border border-black bg-amber-50 text-[10px]">
+                    LUNCH<br/><span className="font-mono text-[9px]">12:30</span>
                   </th>
-                  <th className="p-2.5 border border-black min-w-[150px]">
+                  <th className="p-2 border border-black">
                     Period 3<br/><span className="text-[10px] font-normal font-mono">13:30 - 15:30</span>
                   </th>
-                  <th className="p-1.5 border border-black bg-amber-50 text-[9px] w-14">
-                    BREAK<br/><span className="font-mono">15:30</span>
+                  <th className="p-1 border border-black bg-amber-50 text-[9px]">
+                    BRK<br/><span className="font-mono text-[8px]">15:30</span>
                   </th>
-                  <th className="p-2.5 border border-black min-w-[150px]">
+                  <th className="p-2 border border-black">
                     Period 4<br/><span className="text-[10px] font-normal font-mono">15:35 - 17:35</span>
                   </th>
                 </tr>
@@ -533,13 +713,13 @@ export default function TimetablePage() {
                       </td>
 
                       {/* Period 1 */}
-                      <td className="p-2 border border-black align-top min-h-[60px]">
+                      <td className="p-2 border border-black align-top min-h-[58px]">
                         {p1 ? (
                           <div className="space-y-1">
                             <div className="font-bold text-xs leading-snug">{p1.unitTitle}</div>
-                            <div className="text-[10px] font-mono font-bold text-slate-800">{p1.classCode}</div>
+                            <div className="text-[10px] font-mono font-bold text-slate-800">{formatCohort(p1.classCode, p1.unitTitle)}</div>
                             {p1.trainerName && <div className="text-[10px] text-blue-700 italic">{p1.trainerName}</div>}
-                            <div className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold">
+                            <div className="inline-flex items-center gap-1 text-[9.5px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold">
                               <MapPin className="w-3 h-3 text-red-600" />
                               {p1.venue}
                             </div>
@@ -550,18 +730,18 @@ export default function TimetablePage() {
                       </td>
 
                       {/* Tea Break */}
-                      <td className="p-1 border border-black bg-amber-50/50 text-center text-[10px] text-slate-400 font-semibold align-middle">
+                      <td className="p-1 border border-black bg-amber-50/50 text-center text-[10px] text-slate-500 font-semibold align-middle">
                         Tea
                       </td>
 
                       {/* Period 2 */}
-                      <td className="p-2 border border-black align-top min-h-[60px]">
+                      <td className="p-2 border border-black align-top min-h-[58px]">
                         {p2 ? (
                           <div className="space-y-1">
                             <div className="font-bold text-xs leading-snug">{p2.unitTitle}</div>
-                            <div className="text-[10px] font-mono font-bold text-slate-800">{p2.classCode}</div>
+                            <div className="text-[10px] font-mono font-bold text-slate-800">{formatCohort(p2.classCode, p2.unitTitle)}</div>
                             {p2.trainerName && <div className="text-[10px] text-blue-700 italic">{p2.trainerName}</div>}
-                            <div className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold">
+                            <div className="inline-flex items-center gap-1 text-[9.5px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold">
                               <MapPin className="w-3 h-3 text-red-600" />
                               {p2.venue}
                             </div>
@@ -572,18 +752,18 @@ export default function TimetablePage() {
                       </td>
 
                       {/* Lunch Hour */}
-                      <td className="p-1 border border-black bg-amber-50/50 text-center text-[10px] text-slate-400 font-semibold align-middle">
+                      <td className="p-1 border border-black bg-amber-50/50 text-center text-[10px] text-slate-500 font-semibold align-middle">
                         Lunch
                       </td>
 
                       {/* Period 3 */}
-                      <td className="p-2 border border-black align-top min-h-[60px]">
+                      <td className="p-2 border border-black align-top min-h-[58px]">
                         {p3 ? (
                           <div className="space-y-1">
                             <div className="font-bold text-xs leading-snug">{p3.unitTitle}</div>
-                            <div className="text-[10px] font-mono font-bold text-slate-800">{p3.classCode}</div>
+                            <div className="text-[10px] font-mono font-bold text-slate-800">{formatCohort(p3.classCode, p3.unitTitle)}</div>
                             {p3.trainerName && <div className="text-[10px] text-blue-700 italic">{p3.trainerName}</div>}
-                            <div className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold">
+                            <div className="inline-flex items-center gap-1 text-[9.5px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold">
                               <MapPin className="w-3 h-3 text-red-600" />
                               {p3.venue}
                             </div>
@@ -599,13 +779,13 @@ export default function TimetablePage() {
                       </td>
 
                       {/* Period 4 */}
-                      <td className="p-2 border border-black align-top min-h-[60px]">
+                      <td className="p-2 border border-black align-top min-h-[58px]">
                         {p4 ? (
                           <div className="space-y-1">
                             <div className="font-bold text-xs leading-snug">{p4.unitTitle}</div>
-                            <div className="text-[10px] font-mono font-bold text-slate-800">{p4.classCode}</div>
+                            <div className="text-[10px] font-mono font-bold text-slate-800">{formatCohort(p4.classCode, p4.unitTitle)}</div>
                             {p4.trainerName && <div className="text-[10px] text-blue-700 italic">{p4.trainerName}</div>}
-                            <div className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold">
+                            <div className="inline-flex items-center gap-1 text-[9.5px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold">
                               <MapPin className="w-3 h-3 text-red-600" />
                               {p4.venue}
                             </div>
