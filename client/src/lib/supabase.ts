@@ -365,13 +365,47 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+if (typeof globalThis.WebSocket === "undefined") {
+  class FallbackWebSocket {
+    static readonly CONNECTING = 0;
+    static readonly OPEN = 1;
+    static readonly CLOSING = 2;
+    static readonly CLOSED = 3;
+    readonly CONNECTING = 0;
+    readonly OPEN = 1;
+    readonly CLOSING = 2;
+    readonly CLOSED = 3;
+    readyState = 3;
+    url = "";
+    protocol = "";
+    extensions = "";
+    bufferedAmount = 0;
+    binaryType: BinaryType = "blob";
+    onopen: ((ev: any) => any) | null = null;
+    onerror: ((ev: any) => any) | null = null;
+    onclose: ((ev: any) => any) | null = null;
+    onmessage: ((ev: any) => any) | null = null;
+    constructor(url?: string | URL) {
+      this.url = url ? String(url) : "";
+    }
+    send() {}
+    close() {}
+    addEventListener() {}
+    removeEventListener() {}
+    dispatchEvent() {
+      return false;
+    }
+  }
+  (globalThis as any).WebSocket = FallbackWebSocket;
+}
+
 export const supabase = createClient<Database>(
   supabaseUrl || "https://placeholder.supabase.co",
   supabaseAnonKey || "placeholder-anon-key",
   {
     auth: {
-      persistSession: true,
-      autoRefreshToken: true,
+      persistSession: typeof window !== "undefined",
+      autoRefreshToken: typeof window !== "undefined",
     },
   }
 );
