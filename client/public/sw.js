@@ -5,7 +5,7 @@
  * - Guarantees hot-reloads and institutional theme updates apply immediately when online
  */
 
-const CACHE_NAME = "mtti-pwa-v5";
+const CACHE_NAME = "mtti-pwa-v6";
 const STATIC_ASSETS = [
   "/",
   "/index.html",

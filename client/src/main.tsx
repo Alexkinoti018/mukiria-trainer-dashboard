@@ -14,7 +14,7 @@ if ("serviceWorker" in navigator) {
   if ("caches" in window) {
     caches.keys().then((names) => {
       names.forEach((name) => {
-        if (name !== "mtti-pwa-v5") {
+        if (name !== "mtti-pwa-v6") {
           caches.delete(name);
         }
       });
