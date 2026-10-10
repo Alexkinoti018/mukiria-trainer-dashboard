@@ -196,10 +196,19 @@ export function buildUnifiedGradedExamData(
     });
   }
 
-  const secAMax = unifiedSecA.reduce((acc, q) => acc + q.max_marks, 0);
-  const secAAwarded = unifiedSecA.reduce((acc, q) => acc + q.marks_awarded, 0);
-  const secBMax = unifiedSecB.reduce((acc, q) => acc + q.max_marks, 0);
-  const secBAwarded = unifiedSecB.reduce((acc, q) => acc + q.marks_awarded, 0);
+  const rawSecAMax = unifiedSecA.reduce((acc, q) => acc + q.max_marks, 0);
+  const secAMax = exam?.payload?.section_a?.total_marks ?? (rawSecAMax > 0 ? rawSecAMax : 30);
+  let secAAwarded = Math.min(
+    secAMax,
+    Math.round(unifiedSecA.reduce((acc, q) => acc + q.marks_awarded, 0))
+  );
+
+  const rawSecBMax = unifiedSecB.reduce((acc, q) => acc + q.max_marks, 0);
+  const secBMax = exam?.payload?.section_b?.total_marks ?? (rawSecBMax > 0 ? rawSecBMax : 40);
+  let secBAwarded = Math.min(
+    secBMax,
+    Math.round(unifiedSecB.reduce((acc, q) => acc + q.marks_awarded, 0))
+  );
 
   const computedMaxMarks = secAMax + secBMax;
   const totalMarks = exam?.payload?.total_marks ?? (computedMaxMarks > 0 ? computedMaxMarks : 70);
@@ -207,7 +216,27 @@ export function buildUnifiedGradedExamData(
     submission.total_score !== null && submission.total_score !== undefined
       ? Math.round(submission.total_score)
       : secAAwarded + secBAwarded;
-  const totalScore = Math.min(totalMarks, Math.max(0, rawTotal));
+
+  let totalScore = rawTotal;
+  if (totalScore > totalMarks && totalMarks > 0) {
+    if (secAAwarded + secBAwarded > 0 && secAAwarded + secBAwarded <= totalMarks) {
+      totalScore = secAAwarded + secBAwarded;
+    } else if (totalScore <= 100) {
+      totalScore = Math.round((totalScore / 100) * totalMarks);
+    } else {
+      totalScore = totalMarks;
+    }
+  }
+  totalScore = Math.min(totalMarks, Math.max(0, totalScore));
+
+  // Reconcile secAAwarded + secBAwarded so they always sum to totalScore
+  if (totalScore > 0 && secAAwarded + secBAwarded !== totalScore && totalMarks > 0) {
+    const targetSecA = Math.min(secAMax, Math.round((secAMax / totalMarks) * totalScore));
+    const targetSecB = Math.min(secBMax, Math.max(0, totalScore - targetSecA));
+    secAAwarded = totalScore - targetSecB;
+    secBAwarded = targetSecB;
+  }
+
   const percentage = totalMarks > 0 ? Math.min(100, Math.round((totalScore / totalMarks) * 100)) : 0;
   const isPass = percentage >= 50;
 

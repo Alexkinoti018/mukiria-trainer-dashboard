@@ -121,9 +121,30 @@ export function ExamProvider({ children }: { children: ReactNode }) {
                 }
               : s;
 
+          let normalizedScore =
+            baseSub.total_score !== null && baseSub.total_score !== undefined
+              ? Math.round(baseSub.total_score)
+              : null;
+
+          if (normalizedScore !== null && normalizedScore > maxMarks && maxMarks > 0) {
+            const secBMax = exam?.payload?.section_b?.total_marks ?? 40;
+            const secASum = (baseSub.section_a || []).reduce((acc, a) => acc + (a.marks_awarded ?? 0), 0);
+            const secBSum = Math.min(
+              secBMax,
+              (baseSub.section_b || []).reduce((acc, b) => acc + (b.marks_awarded ?? 0), 0)
+            );
+            if (secASum + secBSum > 0 && secASum + secBSum <= maxMarks) {
+              normalizedScore = Math.round(secASum + secBSum);
+            } else if (normalizedScore <= 100) {
+              normalizedScore = Math.round((normalizedScore / 100) * maxMarks);
+            } else {
+              normalizedScore = maxMarks;
+            }
+          }
+
           return {
             ...baseSub,
-            total_score: baseSub.total_score !== null ? Math.round(baseSub.total_score) : null,
+            total_score: normalizedScore,
             section_a: (baseSub.section_a || []).map((a) => ({
               ...a,
               marks_awarded: a.marks_awarded !== undefined ? Math.round(a.marks_awarded) : undefined,
