@@ -240,10 +240,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("❌ [MTTI Auth] Supabase signOut error:", err);
     } finally {
-      // Security: Purge all session, exam, timer, attendance, and marks storage
-      purgeMTTISessionCache();
+      // Clear session auth tokens only; preserve persistent academic registers, attendance, and plans
+      localStorage.removeItem("mtti_demo_session");
+      localStorage.removeItem("student_demo_session");
+      sessionStorage.removeItem("active_tab");
       setUser(null);
-      console.log("✅ [MTTI Auth] Logged out and sanitized all client storage");
+      console.log("✅ [MTTI Auth] Logged out safely preserving persistent academic registers");
     }
   }, []);
 

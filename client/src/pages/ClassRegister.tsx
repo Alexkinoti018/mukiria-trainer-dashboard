@@ -150,8 +150,15 @@ export default function ClassRegister() {
     hodComment: "",
   });
 
-  // When class selection changes, synchronize metadata
+  // When class selection changes, synchronize metadata & rehydrate saved comments
   useEffect(() => {
+    const commentsKey = `mtti_class_register_comments_${selectedClassCode}`;
+    let savedComments = { lecturerComment: "", hodComment: "" };
+    try {
+      const raw = localStorage.getItem(commentsKey);
+      if (raw) savedComments = JSON.parse(raw);
+    } catch (e) {}
+
     setMetadata(prev => ({
       ...prev,
       className: activeClassConfig.name,
@@ -160,8 +167,26 @@ export default function ClassRegister() {
       duration: activeClassConfig.duration,
       level: activeClassConfig.level,
       assessmentType: activeClassConfig.assessmentType,
+      lecturerComment: savedComments.lecturerComment || prev.lecturerComment || "",
+      hodComment: savedComments.hodComment || prev.hodComment || "",
     }));
-  }, [activeClassConfig]);
+  }, [activeClassConfig, selectedClassCode]);
+
+  const handleCommentChange = (field: "lecturerComment" | "hodComment", value: string) => {
+    setMetadata(prev => {
+      const updated = { ...prev, [field]: value };
+      try {
+        localStorage.setItem(
+          `mtti_class_register_comments_${selectedClassCode}`,
+          JSON.stringify({
+            lecturerComment: field === "lecturerComment" ? value : prev.lecturerComment,
+            hodComment: field === "hodComment" ? value : prev.hodComment,
+          })
+        );
+      } catch (e) {}
+      return updated;
+    });
+  };
 
   // Filter trainees by selected class
   const classTrainees = useMemo(() => {
@@ -307,6 +332,7 @@ export default function ClassRegister() {
   const persistLocally = (data: Record<string, StudentAttendanceRecord>) => {
     try {
       localStorage.setItem(`mtti_class_register_${selectedClassCode}`, JSON.stringify(data));
+      localStorage.setItem(`mtti_class_register_persisted_${selectedClassCode}`, JSON.stringify(data));
     } catch (e) {
       console.warn("Error caching attendance locally:", e);
     }
@@ -315,10 +341,11 @@ export default function ClassRegister() {
   // Rehydrate attendance tracking: Load from localStorage immediately, then rehydrate from backend PostgreSQL / API
   useEffect(() => {
     const storageKey = `mtti_class_register_${selectedClassCode}`;
+    const backupKey = `mtti_class_register_persisted_${selectedClassCode}`;
     let initialLoaded: Record<string, StudentAttendanceRecord> = {};
 
     try {
-      const raw = localStorage.getItem(storageKey);
+      const raw = localStorage.getItem(storageKey) || localStorage.getItem(backupKey);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === "object" && Object.keys(parsed).length > 0) {
