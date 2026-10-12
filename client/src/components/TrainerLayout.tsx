@@ -226,8 +226,37 @@ export default function TrainerLayout({
       <div className="px-3 py-4 border-t border-sidebar-border space-y-2">
         <div className="px-4 py-2">
           <p className="text-xs text-sidebar-foreground/60">Logged in as</p>
-          <p className="text-sm font-medium truncate">{user?.email || "Admin"}</p>
+          <p className="text-sm font-semibold truncate text-sidebar-foreground">
+            {user?.name || (user?.email ? user.email.split("@")[0].toUpperCase() : "MR. ALEXANDER KINOTI")}
+          </p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-primary/15 text-primary uppercase">
+              {user?.role || "TRAINER"}
+            </span>
+            <span className="text-[10px] text-muted-foreground font-mono">
+              MTTI/FAC/2026
+            </span>
+          </div>
         </div>
+
+        {/* Quick Portal Switcher Pills */}
+        <div className="px-2 space-y-1">
+          <button
+            onClick={() => navigate("/trainee/dashboard")}
+            className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+          >
+            <span>Trainee Portal</span>
+            <span className="text-[10px] font-mono text-primary">Preview &rarr;</span>
+          </button>
+          <button
+            onClick={() => navigate("/hod/dashboard")}
+            className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+          >
+            <span>HOD Audit Hub</span>
+            <span className="text-[10px] font-mono text-primary">View &rarr;</span>
+          </button>
+        </div>
+
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-200 shadow-sm border border-transparent hover:border-sidebar-border"
