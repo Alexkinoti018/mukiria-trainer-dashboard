@@ -54,6 +54,12 @@ export interface LearningPlanDocument {
   traineesCount: number;
   classCode: string;
   datePrepared: string;
+  dateRevised?: string;
+  trainerSignDate?: string;
+  trainerSignature?: string;
+  approvedBy?: string;
+  approvalDate?: string;
+  approvalSignature?: string;
   skillOrJobTask: string;
   elements: ElementCriteria[];
   weeks: WeekSession[];
@@ -133,11 +139,11 @@ const generateInitialPlans = (): LearningPlanDocument[] => {
       unitTitle: unitTitle,
       trainerName: "Alexander Kinoti",
       department: u.department || "Computing and Informatics",
-      duration: "31 AUG – 20 NOV 2026",
+      duration: "07 SEP – 13 NOV 2026",
       level: unitLevel,
       traineesCount: 19,
       classCode: u.department?.includes("Business") ? "ADMIN5/6/J/26 MOD 3" : u.department?.includes("Survey") ? "LS5/6/S/26" : u.department?.includes("Hospitality") ? "FBS5/6/J/26" : "ICT4/ITECH6/S/26 MOD 1",
-      datePrepared: "31/08/2026",
+      datePrepared: "07/09/2026",
       skillOrJobTask: u.description || `Operate computer hardware and software, manage data systems, and utilize productivity applications according to CDACC occupational guidelines.`,
       elements: elements.length > 0 ? elements : [
         {
@@ -193,6 +199,8 @@ export default function LearningPlan() {
         let planUpdated = false;
         let newTitle = p.unitTitle;
         let newLevel = p.level;
+        let newDuration = p.duration;
+        let newDatePrepared = p.datePrepared;
 
         if (cleanedTitle !== p.unitTitle) {
           newTitle = cleanedTitle;
@@ -200,6 +208,15 @@ export default function LearningPlan() {
         }
         if (parsedLevel !== p.level) {
           newLevel = parsedLevel;
+          planUpdated = true;
+        }
+        // Normalize legacy dates to official Term 3 2026 calendar (Term starts 07/09/2026)
+        if (p.duration === "31 AUG – 20 NOV 2026" || !p.duration) {
+          newDuration = "07 SEP – 13 NOV 2026";
+          planUpdated = true;
+        }
+        if (p.datePrepared === "31/08/2026" || !p.datePrepared) {
+          newDatePrepared = "07/09/2026";
           planUpdated = true;
         }
 
@@ -225,7 +242,7 @@ export default function LearningPlan() {
 
         if (planUpdated) {
           updated = true;
-          return { ...p, unitTitle: newTitle, level: newLevel, weeks: updatedWeeks };
+          return { ...p, unitTitle: newTitle, level: newLevel, duration: newDuration, datePrepared: newDatePrepared, weeks: updatedWeeks };
         }
         return p;
       });
@@ -458,6 +475,13 @@ export default function LearningPlan() {
     level: 6,
     traineesCount: 25,
     classCode: "",
+    datePrepared: "07/09/2026",
+    dateRevised: "",
+    trainerSignDate: "07/09/2026",
+    trainerSignature: "",
+    approvedBy: "",
+    approvalDate: "",
+    approvalSignature: "",
     skillOrJobTask: ""
   });
 
@@ -472,6 +496,13 @@ export default function LearningPlan() {
       level: activePlan.level,
       traineesCount: activePlan.traineesCount,
       classCode: activePlan.classCode,
+      datePrepared: activePlan.datePrepared || "07/09/2026",
+      dateRevised: activePlan.dateRevised || new Date().toLocaleDateString("en-GB"),
+      trainerSignDate: activePlan.trainerSignDate || activePlan.datePrepared || "07/09/2026",
+      trainerSignature: activePlan.trainerSignature || activePlan.trainerName || "",
+      approvedBy: activePlan.approvedBy || "",
+      approvalDate: activePlan.approvalDate || "",
+      approvalSignature: activePlan.approvalSignature || "",
       skillOrJobTask: activePlan.skillOrJobTask
     });
     setIsEditMetaModalOpen(true);
@@ -951,7 +982,7 @@ export default function LearningPlan() {
                     className={cellPaddingClass}
                     style={{ border: `${tableStyle.borderWidth} ${tableStyle.borderStyle} ${tableStyle.borderColor}` }}
                   >
-                    <span className="font-bold">Date of Revision:</span> ........................
+                    <span className="font-bold">Date of Revision:</span> {activePlan.dateRevised || "........................"}
                   </td>
                 </tr>
                 <tr>
@@ -1209,19 +1240,31 @@ export default function LearningPlan() {
               </table>
             </div>
             
-            {/* Footer Section */}
+            {/* Footer Section — Sign-off & Institutional Endorsement */}
             <div className="mt-12 flex justify-between text-sm font-bold">
-              <div className="flex gap-4">
+              <div className="flex gap-4 items-center">
                 <span>Prepared by: {activePlan.trainerName}</span>
-                <span>Date: {activePlan.datePrepared}</span>
-                <span>Sign: ........................</span>
+                <span>Date: {activePlan.trainerSignDate || activePlan.datePrepared}</span>
+                <span>
+                  Sign: {activePlan.trainerSignature ? (
+                    <span className="font-serif italic text-primary">{activePlan.trainerSignature}</span>
+                  ) : (
+                    "........................"
+                  )}
+                </span>
               </div>
             </div>
             <div className="mt-8 flex justify-between text-sm font-bold">
-              <div className="flex gap-4">
-                <span>Approved by: .................................................</span>
-                <span>Date: ........................</span>
-                <span>Sign: ........................</span>
+              <div className="flex gap-4 items-center">
+                <span>Approved by: {activePlan.approvedBy || "................................................."}</span>
+                <span>Date: {activePlan.approvalDate || "........................"}</span>
+                <span>
+                  Sign: {activePlan.approvalSignature ? (
+                    <span className="font-serif italic text-primary">{activePlan.approvalSignature}</span>
+                  ) : (
+                    "........................"
+                  )}
+                </span>
               </div>
             </div>
 
@@ -1362,6 +1405,32 @@ export default function LearningPlan() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground block mb-1">Date of Preparation (Beginning of Term)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 07/09/2026"
+                      value={metaFormData.datePrepared}
+                      onChange={e => setMetaFormData({ ...metaFormData, datePrepared: e.target.value })}
+                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs"
+                      required
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Initial preparation date at the beginning of the academic term.</p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground block mb-1">Date of Revision (Optional Mid/End Term)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 12/10/2026"
+                      value={metaFormData.dateRevised}
+                      onChange={e => setMetaFormData({ ...metaFormData, dateRevised: e.target.value })}
+                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Updated by trainer when adjusting outcomes during the term.</p>
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-xs font-bold text-muted-foreground block mb-1">Skill or Job Task Description</label>
                   <textarea
@@ -1371,6 +1440,74 @@ export default function LearningPlan() {
                     className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs"
                     required
                   />
+                </div>
+
+                {/* Sign-off & Institutional Approval Section */}
+                <div className="pt-2 border-t border-border">
+                  <h4 className="text-xs font-bold text-foreground mb-2 uppercase tracking-wide">Sign-off & Endorsement Controls</h4>
+                  <div className="grid grid-cols-2 gap-4 bg-muted/40 p-3 rounded-lg border border-border">
+                    {/* Trainer Sign-off */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold text-primary">Trainer Endorsement</p>
+                      <div>
+                        <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Trainer Sign-off Date</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 07/09/2026"
+                          value={metaFormData.trainerSignDate}
+                          onChange={e => setMetaFormData({ ...metaFormData, trainerSignDate: e.target.value })}
+                          className="w-full bg-background border border-border rounded px-2.5 py-1.5 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Trainer Signature / Notation</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Alexander Kinoti (or leave blank for physical sign)"
+                          value={metaFormData.trainerSignature}
+                          onChange={e => setMetaFormData({ ...metaFormData, trainerSignature: e.target.value })}
+                          className="w-full bg-background border border-border rounded px-2.5 py-1.5 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* HOD Endorsement */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold text-primary">HOD Institutional Approval</p>
+                      <div>
+                        <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Approved By (HOD Name / Title)</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. HOD Computing & Informatics"
+                          value={metaFormData.approvedBy}
+                          onChange={e => setMetaFormData({ ...metaFormData, approvedBy: e.target.value })}
+                          className="w-full bg-background border border-border rounded px-2.5 py-1.5 text-xs"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Approval Date</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 09/09/2026"
+                            value={metaFormData.approvalDate}
+                            onChange={e => setMetaFormData({ ...metaFormData, approvalDate: e.target.value })}
+                            className="w-full bg-background border border-border rounded px-2.5 py-1.5 text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Signature Mark</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Approved / HOD"
+                            value={metaFormData.approvalSignature}
+                            onChange={e => setMetaFormData({ ...metaFormData, approvalSignature: e.target.value })}
+                            className="w-full bg-background border border-border rounded px-2.5 py-1.5 text-xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2 border-t border-border">

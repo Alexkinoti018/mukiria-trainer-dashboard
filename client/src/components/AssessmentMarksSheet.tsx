@@ -632,7 +632,7 @@ export function AssessmentMarksSheet() {
           /* Ensure table expands 100% with no cut-off columns */
           table.cdacc-table {
             width: 100% !important;
-            min-width: 100% !important;
+            min-width: 0 !important;
             border-collapse: collapse !important;
             table-layout: auto !important;
           }
@@ -640,6 +640,7 @@ export function AssessmentMarksSheet() {
             border: 1px solid #000000 !important;
             padding: 3px 4px !important;
             font-size: 10px !important;
+            min-width: 0 !important;
           }
           thead {
             display: table-header-group !important;
@@ -790,19 +791,14 @@ export function AssessmentMarksSheet() {
         className="p-8 bg-white text-black shadow-md rounded-xl border border-gray-300 print:shadow-none print:border-none print:p-0 print:m-0"
       >
         
-        {/* Official TVET CDACC Continuous Assessment Mark Sheet Header (No MTTI Logo) */}
-        <div className="text-center border-b-2 border-black pb-3 mb-4 space-y-1">
+        {/* Official Mukiria Continuous Assessment Mark Sheet Header (No MTTI Logo) */}
+        <div className="text-center pb-3 mb-4 space-y-1.5">
           <h1 className="text-xl font-bold uppercase tracking-wider text-black" style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif' }}>
             MUKIRIA TECHNICAL TRAINING INSTITUTE
           </h1>
-          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-800 print:text-black" style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif' }}>
-            TVET CURRICULUM DEVELOPMENT, ASSESSMENT AND CERTIFICATION COUNCIL (TVET CDACC)
+          <h2 className="text-base font-bold uppercase tracking-wide text-black" style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif' }}>
+            CONTINUOUS ASSESSMENT MARK SHEET PER UNIT OF COMPETENCY
           </h2>
-          <div className="inline-block border-y-2 border-black py-0.5 px-4 mt-1">
-            <h3 className="text-base font-extrabold uppercase tracking-wide text-black" style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif' }}>
-              CONTINUOUS ASSESSMENT MARK SHEET PER UNIT OF COMPETENCY
-            </h3>
-          </div>
         </div>
 
         {/* Clean Metadata Section Matching Official CDACC Form Without Text Collision */}
@@ -967,7 +963,10 @@ export function AssessmentMarksSheet() {
                 const hasScores = hasTheoryScores || 
                                   row.cpScores.some(s => s !== "" && !isNaN(Number(s))) || 
                                   (includeProject && row.projectScore !== undefined && row.projectScore !== "");
-                const verdict = hasScores ? (row.weightedMark >= 50 ? "COMPETENT" : "NOT YET COMPETENT") : "";
+                const practicalFloor = level <= 4 ? 40 : level === 5 ? 30 : 30; // Level 3-4: 40%, Level 5-6: 30%
+                const verdict = hasScores
+                  ? (row.weightedMark >= 50 && row.cpAvg >= practicalFloor ? "COMPETENT" : "NOT YET COMPETENT")
+                  : "";
 
                 return (
                   <tr key={row.id} className="hover:bg-slate-50 transition-colors">

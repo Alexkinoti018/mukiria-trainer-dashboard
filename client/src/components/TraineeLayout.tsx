@@ -105,8 +105,9 @@ export default function TraineeLayout({
       {/* Footer */}
       <div className="px-3 py-4 border-t border-sidebar-border space-y-2">
         <div className="px-4 py-2">
-          <p className="text-xs text-sidebar-foreground/60">Logged in as</p>
-          <p className="text-sm font-medium truncate">{user?.email || "Admin"}</p>
+          <p className="text-xs text-sidebar-foreground/60">Trainee Identity</p>
+          <p className="text-sm font-semibold truncate text-foreground">{user?.name || "Trainee Candidate"}</p>
+          <p className="text-[11px] font-mono text-muted-foreground truncate">{user?.reg_number || "ADM/MTTI/2026/001"}</p>
         </div>
         <button
           onClick={handleLogout}

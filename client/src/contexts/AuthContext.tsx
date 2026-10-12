@@ -72,6 +72,7 @@ const DEMO_USERS: Record<string, AuthUser> = {
     id: "demo-trainee-001",
     email: "student@mtti.ac.ke",
     name: "Alex Kinoti",
+    reg_number: "FBS 5 MOD/13254/12026",
     role: "trainee",
   }
 };

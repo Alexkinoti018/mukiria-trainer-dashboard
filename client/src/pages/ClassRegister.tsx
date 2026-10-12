@@ -877,11 +877,37 @@ export default function ClassRegister() {
         {/* Print Styles */}
         <style dangerouslySetInnerHTML={{__html: `
           @media print {
-            @page { size: ${formMode === "CUR/02" ? "landscape" : "portrait"}; margin: 5mm; }
-            body { -webkit-print-color-adjust: exact; }
-            thead { display: table-row-group; }
-            table { font-size: 8px !important; }
-            th, td { padding: 1px 2px !important; }
+            @page { size: ${formMode === "CUR/02" ? "A4 landscape" : "A4 portrait"}; margin: 6mm; }
+            html, body {
+              background: #fff !important;
+              color: #000 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            body * {
+              visibility: hidden !important;
+            }
+            #mtti-register-printable,
+            #mtti-register-printable * {
+              visibility: visible !important;
+            }
+            #mtti-register-printable {
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              border: none !important;
+              box-shadow: none !important;
+            }
+            .print\\:hidden {
+              display: none !important;
+            }
+            thead { display: table-header-group !important; }
+            table { font-size: 8.5px !important; width: 100% !important; border-collapse: collapse !important; }
+            th, td { padding: 2px 3px !important; border: 1px solid #000 !important; }
           }
         `}} />
 
@@ -890,62 +916,71 @@ export default function ClassRegister() {
         {/* ============================================================== */}
         {formMode === "CUR/02" && (
           <div 
+            id="mtti-register-printable"
             className="bg-white text-black p-6 border-2 border-black rounded-lg shadow-lg mx-auto w-full print:border-none print:shadow-none print:p-0"
-            style={{ fontFamily: 'Maiandra GD, sans-serif' }}
+            style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif' }}
           >
-            {/* Top Header */}
-            <div className="flex justify-between items-start text-xs font-bold mb-2">
+            {/* Top Row: Timestamp left, Form Code right */}
+            <div className="flex justify-between items-start text-xs font-bold mb-1">
               <div>{academicContext.formattedDate} : {academicContext.timeFormatted}</div>
-              <div className="font-mono text-sm">MTTI/REG/CUR/02</div>
+              <div className="font-bold text-sm">MTTI/REG/CUR/02</div>
             </div>
 
-            <div className="text-center mb-4">
+            {/* Centered Institution Title */}
+            <div className="text-center mb-2">
               <h1 className="text-xl font-bold tracking-tight uppercase">MUKIRIA TECHNICAL TRAINING INSTITUTE</h1>
             </div>
 
-            {/* Metadata Grid */}
-            <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-xs mb-3 border-b-2 border-black pb-3">
-              <div className="flex">
-                <span className="font-bold w-40">NAME OF LECTURER:</span>
-                <span className="font-bold underline uppercase">{metadata.lecturer}</span>
-              </div>
-              <div className="flex">
-                <span className="font-bold w-28">DURATION:</span>
-                <span className="font-bold">{metadata.duration}</span>
-              </div>
-              <div className="flex">
-                <span className="font-bold w-40">CLASS:</span>
-                <span className="font-bold">{selectedClassCode}</span>
-              </div>
-              <div className="flex">
-                <span className="font-bold w-28">LEVEL:</span>
-                <span className="font-bold">{metadata.level}</span>
-              </div>
-              <div className="flex col-span-2">
-                <span className="font-bold w-40">SUBJECT:</span>
-                <span className="font-bold underline">{metadata.subject}</span>
+            {/* Logo + Underlined Metadata Block (Exact Match to media_1791165647100.pdf) */}
+            <div className="flex items-center gap-6 mb-3 pb-2">
+              <img
+                src="/mtti-logo.jpg"
+                alt="MTTI Logo"
+                className="w-20 h-20 object-contain shrink-0"
+                onError={(e) => (e.currentTarget.style.display = "none")}
+              />
+              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-2 text-xs">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-bold whitespace-nowrap w-36">NAME OF LECTURER:</span>
+                  <span className="font-bold uppercase border-b border-black flex-1 px-1">{metadata.lecturer}</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="font-bold whitespace-nowrap w-24">DURATION:</span>
+                  <span className="font-bold border-b border-black flex-1 px-1">{metadata.duration}</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="font-bold whitespace-nowrap w-36">CLASS:</span>
+                  <span className="font-bold border-b border-black flex-1 px-1">{selectedClassCode}</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="font-bold whitespace-nowrap w-24">LEVEL:</span>
+                  <span className="font-bold border-b border-black flex-1 px-1">{metadata.level}</span>
+                </div>
+                <div className="flex items-baseline gap-2 md:col-span-1">
+                  <span className="font-bold whitespace-nowrap w-36">SUBJECT:</span>
+                  <span className="font-bold uppercase border-b border-black flex-1 px-1">{metadata.subject}</span>
+                </div>
               </div>
             </div>
 
-            <div className="text-center my-3">
+            <div className="text-center my-2">
               <h2 className="text-sm font-bold uppercase tracking-wide">GENERAL CLASS REGISTER</h2>
-              <p className="text-[11px] font-mono text-gray-700">FILTERED BY: &#123;Class: {selectedClassCode}&#125;</p>
+              <p className="text-[11px] font-bold text-black mt-0.5">FILTERED BY: &#123;Class: {selectedClassCode}&#125;</p>
             </div>
 
             {/* 10-Week Attendance Table (Every week has 3 sessions = 30 total sessions) */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto print:overflow-visible">
               <table className="w-full border-collapse border-2 border-black text-[11px]">
                 <thead>
-                  <tr className="bg-gray-100 font-bold border-b border-black">
-                    <th rowSpan={2} className="border border-black p-1 text-center w-7 text-xs">#</th>
-                    <th rowSpan={2} className="border border-black p-1 text-left w-32 whitespace-nowrap text-xs">ADMISSION NO</th>
-                    <th rowSpan={2} className="border border-black p-1 text-left w-44 whitespace-nowrap text-xs">NAMES</th>
+                  {/* Header Row 1: Top-left colSpan=3 blank merged cell + WK_1..WK_10 (colSpan=3) + Summary (rowSpan=2) */}
+                  <tr className="bg-white font-bold border-b border-black">
+                    <th colSpan={3} className="border border-black p-1 text-center"></th>
                     {Array.from({ length: WEEKS }).map((_, w) => (
                       <th 
                         key={w} 
                         colSpan={SESSIONS_PER_WEEK}
                         onClick={() => markWholeWeek(w + 1)}
-                        className="border border-black p-0.5 text-center text-[10px] font-bold bg-gray-200 border-r-2 border-r-black cursor-pointer hover:bg-gray-300 transition select-none"
+                        className="border border-black p-1 text-center text-[10px] font-bold bg-gray-100 border-r-2 border-r-black cursor-pointer hover:bg-gray-200 transition select-none"
                         title={`Week ${w + 1} (Click to mark all 3 sessions present)`}
                       >
                         WK_{w + 1}
@@ -953,21 +988,25 @@ export default function ClassRegister() {
                     ))}
                     <th rowSpan={2} className="border border-black p-1 text-center w-12 text-[10px] leading-tight">Possible<br/>Hrs</th>
                     <th rowSpan={2} className="border border-black p-1 text-center w-12 text-[10px] leading-tight">Actual<br/>Hrs</th>
-                    <th rowSpan={2} className="border border-black p-1 text-center w-14 text-[10px] leading-tight">Actual<br/>Attendance %</th>
+                    <th rowSpan={2} className="border border-black p-1 text-center w-16 text-[10px] leading-tight">Actual<br/>Attendance %</th>
                     <th rowSpan={2} className="border border-black p-1 text-center w-16 text-xs print:hidden">Action</th>
                   </tr>
-                  <tr className="bg-gray-50 border-b border-black">
+                  {/* Header Row 2: #, ADMISSION NO, NAMES + 30 sub-session cells */}
+                  <tr className="bg-gray-50 border-b border-black font-bold">
+                    <th className="border border-black p-1 text-center w-7 text-xs">#</th>
+                    <th className="border border-black p-1 text-left w-32 whitespace-nowrap text-xs">ADMISSION NO</th>
+                    <th className="border border-black p-1 text-left w-44 whitespace-nowrap text-xs">NAMES</th>
                     {Array.from({ length: WEEKS }).map((_, w) => (
                       Array.from({ length: SESSIONS_PER_WEEK }).map((_, s) => (
                         <th 
                           key={`w${w}_s${s}`} 
                           onClick={() => markWholeSessionColumn(w + 1, s + 1)}
-                          className={`border border-black p-0.5 text-center w-5 min-w-[20px] text-[9px] font-mono text-gray-700 hover:bg-black/10 cursor-pointer select-none ${
+                          className={`border border-black p-0.5 text-center w-5 min-w-[18px] text-[9px] font-mono text-gray-700 hover:bg-black/10 cursor-pointer select-none ${
                             s === SESSIONS_PER_WEEK - 1 ? "border-r-2 border-r-black" : ""
                           }`}
                           title={`Week ${w + 1}, Session ${s + 1} (Click to toggle entire column)`}
                         >
-                          {s + 1}
+                          <span className="print:hidden">{s + 1}</span>
                         </th>
                       ))
                     ))}
@@ -1002,11 +1041,11 @@ export default function ClassRegister() {
                                 title={`W${w + 1} S${s + 1}: ${status === 'X' ? 'Present' : status === '0' ? 'Absent' : 'Unmarked'} (Click to cycle)`}
                               >
                                 {status === "X" ? (
-                                  <span className="text-red-600 font-bold">X</span>
+                                  <span className="text-red-600 print:text-black font-bold">X</span>
                                 ) : status === "0" ? (
-                                  <span className="text-red-600 font-mono font-bold">0</span>
+                                  <span className="text-red-600 print:text-black font-mono font-bold">0</span>
                                 ) : (
-                                  <span className="text-gray-300 font-light">-</span>
+                                  <span className="text-gray-300 print:invisible font-light">-</span>
                                 )}
                               </td>
                             );
@@ -1016,7 +1055,7 @@ export default function ClassRegister() {
                         <td className="border border-black p-1 text-center font-mono text-xs">{stats.possibleHrs}</td>
                         <td className="border border-black p-1 text-center font-mono font-bold text-xs">{stats.actualHrs}</td>
                         <td className="border border-black p-1 text-center font-mono font-bold text-xs">
-                          {stats.totalMarkedSessions > 0 ? `${stats.percentage}%` : "-"}
+                          {stats.totalMarkedSessions > 0 ? `${stats.percentage}%` : ""}
                         </td>
                         <td className="border border-black p-1 text-center print:hidden bg-white">
                           <div className="flex items-center justify-center gap-1">
@@ -1039,36 +1078,66 @@ export default function ClassRegister() {
                       </tr>
                     );
                   })}
+
+                  {/* Official Merged Footer Rows: Lecturer's Comment & HOD's Comment across the 10 Weekly Columns */}
+                  <tr className="border-t-2 border-black bg-white">
+                    <td colSpan={3} className="border border-black p-2 font-bold text-xs align-middle">
+                      Lecturer&apos;s Comment
+                    </td>
+                    {Array.from({ length: WEEKS }).map((_, w) => (
+                      <td
+                        key={`lec-comment-wk-${w}`}
+                        colSpan={SESSIONS_PER_WEEK}
+                        className="border border-black border-r-2 border-r-black p-1 align-top h-10"
+                      >
+                        {w === 0 ? (
+                          <input
+                            type="text"
+                            value={metadata.lecturerComment}
+                            onChange={(e) => setMetadata({ ...metadata, lecturerComment: e.target.value })}
+                            placeholder="Weekly remark..."
+                            className="w-full h-full bg-transparent outline-none text-[10px] font-medium"
+                          />
+                        ) : null}
+                      </td>
+                    ))}
+                    <td className="border border-black p-1"></td>
+                    <td className="border border-black p-1"></td>
+                    <td className="border border-black p-1"></td>
+                    <td className="border border-black p-1 print:hidden"></td>
+                  </tr>
+                  <tr className="border-t border-black bg-white">
+                    <td colSpan={3} className="border border-black p-2 font-bold text-xs align-middle">
+                      HOD&apos;s Comment
+                    </td>
+                    {Array.from({ length: WEEKS }).map((_, w) => (
+                      <td
+                        key={`hod-comment-wk-${w}`}
+                        colSpan={SESSIONS_PER_WEEK}
+                        className="border border-black border-r-2 border-r-black p-1 align-top h-10"
+                      >
+                        {w === 0 ? (
+                          <input
+                            type="text"
+                            value={metadata.hodComment}
+                            onChange={(e) => setMetadata({ ...metadata, hodComment: e.target.value })}
+                            placeholder="HOD remark..."
+                            className="w-full h-full bg-transparent outline-none text-[10px] font-medium"
+                          />
+                        ) : null}
+                      </td>
+                    ))}
+                    <td className="border border-black p-1"></td>
+                    <td className="border border-black p-1"></td>
+                    <td className="border border-black p-1"></td>
+                    <td className="border border-black p-1 print:hidden"></td>
+                  </tr>
                 </tbody>
               </table>
             </div>
 
-            {/* Bottom Comments Section */}
-            <div className="mt-4 border border-black p-3 space-y-3 text-xs bg-gray-50">
-              <div className="flex">
-                <span className="font-bold w-40">Lecturer's Comment:</span>
-                <input 
-                  type="text" 
-                  value={metadata.lecturerComment} 
-                  onChange={e => setMetadata({ ...metadata, lecturerComment: e.target.value })} 
-                  placeholder="e.g. Trainees actively participating in computer essentials practical sessions."
-                  className="flex-1 bg-transparent border-b border-black outline-none px-2 font-medium"
-                />
-              </div>
-              <div className="flex">
-                <span className="font-bold w-40">HOD's Comment:</span>
-                <input 
-                  type="text" 
-                  value={metadata.hodComment} 
-                  onChange={e => setMetadata({ ...metadata, hodComment: e.target.value })} 
-                  placeholder="e.g. Syllabus coverage and attendance registers verified."
-                  className="flex-1 bg-transparent border-b border-black outline-none px-2 font-medium"
-                />
-              </div>
-            </div>
-
             {/* Footer Page count */}
-            <div className="text-center text-xs mt-3 text-gray-600 font-bold">
+            <div className="text-center text-xs mt-3 text-black font-bold">
               Page 1 of 1
             </div>
           </div>
@@ -1079,53 +1148,60 @@ export default function ClassRegister() {
         {/* ============================================================== */}
         {formMode === "CUR/03" && (
           <div 
+            id="mtti-register-printable"
             className="bg-white text-black p-8 border-2 border-black rounded-lg shadow-lg mx-auto w-full max-w-4xl print:border-none print:shadow-none print:p-0"
-            style={{ fontFamily: 'Maiandra GD, sans-serif' }}
+            style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif' }}
           >
             {/* Header Block */}
-            <div className="flex justify-between items-start text-xs font-bold mb-2">
+            <div className="flex justify-between items-start text-xs font-bold mb-1">
               <div></div>
               <div className="text-right">
-                <div className="font-mono text-sm">MTTI/REG/CUR/03</div>
-                <div className="mt-1">DATE: <span className="underline">{metadata.assessmentDate}</span></div>
+                <div className="font-bold text-sm">MTTI/REG/CUR/03</div>
+                <div className="mt-1">DATE: <span className="border-b border-dotted border-black px-3">{metadata.assessmentDate}</span></div>
               </div>
             </div>
 
             <div className="text-center mb-4">
+              <img
+                src="/mtti-logo.jpg"
+                alt="MTTI Logo"
+                className="w-20 h-20 object-contain mx-auto mb-1.5"
+                onError={(e) => (e.currentTarget.style.display = "none")}
+              />
               <h1 className="text-xl font-bold uppercase tracking-tight">MUKIRIA TECHNICAL TRAINING INSTITUTE</h1>
               <h2 className="text-sm font-bold uppercase mt-1">ASSESSMENT OFFICE</h2>
-              <h3 className="text-base font-bold underline mt-1">ASSESSMENT ATTENDANCE REGISTER</h3>
+              <h3 className="text-base font-bold uppercase mt-1">ASSESSMENT ATTENDANCE REGISTER</h3>
             </div>
 
-            {/* Form Header Info */}
-            <div className="grid grid-cols-2 gap-4 text-xs font-bold mb-4 border-b-2 border-black pb-3">
-              <div>
-                <span>DEPARTMENT: </span>
-                <span className="underline uppercase">{metadata.department}</span>
+            {/* Form Header Info with Dotted Underlines (Exact Match to pages 3-4 of media_1790885843191.pdf) */}
+            <div className="grid grid-cols-2 gap-x-8 gap-y-2.5 text-xs font-bold mb-4 pb-2">
+              <div className="flex items-baseline gap-2">
+                <span className="whitespace-nowrap">DEPARTMENT:</span>
+                <span className="border-b border-dotted border-black flex-1 px-1 uppercase">{metadata.department}</span>
               </div>
-              <div>
-                <span>CLASS: </span>
-                <span className="underline">{selectedClassCode}</span>
+              <div className="flex items-baseline gap-2">
+                <span className="whitespace-nowrap">CLASS:</span>
+                <span className="border-b border-dotted border-black flex-1 px-1">{selectedClassCode}</span>
               </div>
-              <div>
-                <span>UNIT OF COMPETENCY: </span>
-                <span className="underline uppercase">{metadata.subject}</span>
+              <div className="flex items-baseline gap-2">
+                <span className="whitespace-nowrap">UNIT OF COMPETENCY:</span>
+                <span className="border-b border-dotted border-black flex-1 px-1 uppercase">{metadata.subject}</span>
               </div>
-              <div>
-                <span>TYPE OF ASSESSMENT: </span>
-                <span className="underline uppercase">{metadata.assessmentType}</span>
+              <div className="flex items-baseline gap-2">
+                <span className="whitespace-nowrap">TYPE OF ASSESSMENT:</span>
+                <span className="border-b border-dotted border-black flex-1 px-1 uppercase">{metadata.assessmentType}</span>
               </div>
             </div>
 
             {/* Trainee Attendance List */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto print:overflow-visible">
               <table className="w-full border-collapse border-2 border-black text-xs">
                 <thead>
                   <tr className="bg-gray-100 font-bold border-b-2 border-black">
-                    <th className="border border-black p-2 text-center w-12">S/NO</th>
-                    <th className="border border-black p-2 text-left w-36">ADM NO</th>
+                    <th className="border border-black p-2 text-center w-14">S/NO</th>
+                    <th className="border border-black p-2 text-left w-40">ADM NO</th>
                     <th className="border border-black p-2 text-left">TRAINEE NAME</th>
-                    <th className="border border-black p-2 text-center w-36">STATUS / ATTENDANCE</th>
+                    <th className="border border-black p-2 text-center w-44">SIGNATURE</th>
                     <th className="border border-black p-2 text-center w-20 print:hidden">ACTION</th>
                   </tr>
                 </thead>
@@ -1140,15 +1216,15 @@ export default function ClassRegister() {
                         <td 
                           onClick={() => toggleSignature(trainee.id)}
                           className="border border-black p-2 text-center cursor-pointer select-none"
-                          title="Click to toggle attendance status"
+                          title="Click to toggle trainee signature status"
                         >
                           {isSigned ? (
-                            <div className="flex items-center justify-center gap-1 font-mono text-[11px] font-bold text-emerald-800">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>Attended</span>
+                            <div className="flex items-center justify-center gap-1 font-mono text-[11px] font-bold text-emerald-800 print:text-black">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 print:hidden" />
+                              <span className="italic font-serif">{trainee.name.split(" ")[0]}</span>
                             </div>
                           ) : (
-                            <span className="text-gray-400 italic">Not Attended</span>
+                            <span className="text-gray-400 print:invisible italic">Not Signed</span>
                           )}
                         </td>
                         <td className="border border-black p-2 text-center print:hidden bg-white">
@@ -1183,14 +1259,14 @@ export default function ClassRegister() {
                 <div className="mt-3 border-b border-black w-60 pb-1">
                   Name: <strong>{metadata.lecturer}</strong>
                 </div>
-                <p className="text-[10px] text-gray-500 mt-1">Date: {metadata.assessmentDate}</p>
+                <p className="text-[10px] text-gray-600 mt-1">Date: {metadata.assessmentDate}</p>
               </div>
               <div>
                 <p>Assessment Officer / Supervisor:</p>
                 <div className="mt-3 border-b border-black w-60 pb-1">
                   Signature: ______________________
                 </div>
-                <p className="text-[10px] text-gray-500 mt-1">Date: ____________________</p>
+                <p className="text-[10px] text-gray-600 mt-1">Date: ____________________</p>
               </div>
             </div>
           </div>

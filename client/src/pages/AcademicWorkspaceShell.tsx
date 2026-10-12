@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import jsPDF from "jspdf";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { getStoredSessionPlans, saveStoredSessionPlans, getStoredLearningPlans, getStoredRecordsOfWork, saveStoredRecordsOfWork, SessionDeliveryStep, SessionPlan } from "@/lib/mockSessionPlans";
-import { getCurriculumUnits, getUnitDetails, CurriculumUnit } from "@/lib/curriculumDatabase";
+import { getCurriculumUnits, getUnitDetails, CurriculumUnit, resolveProgramUnitProfile, canonicalizeCohortCode } from "@/lib/curriculumDatabase";
 import { Plus, Trash2, Save, Printer, Sparkles, BookOpen, Clock, FileText, CheckCircle, UploadCloud, Edit3, ArrowRight, Check, ChevronDown, ChevronUp, GripVertical, QrCode } from "lucide-react";
 import AttendanceQuickMarkModal from "@/components/AttendanceQuickMarkModal";
 import WorkshopDoorQRModal from "@/components/WorkshopDoorQRModal";
@@ -336,6 +336,47 @@ export default function AcademicWorkspaceShell() {
             setReflection("Trainees demonstrated acceptable competency standard.");
             setResources(weekData?.resources?.join(", ") || cdaccUnit.suggested_resources?.join(", ") || "Projector, lab workstations, CDACC standard guide");
           }
+        } else {
+          // Robust Trade-Specific Resolution Fallback
+          const profile = resolveProgramUnitProfile(activeClass, activeUnit);
+          const outList = profile.learningOutcomes.map(o => o.loTitle);
+          setAvailableOutcomes(outList);
+
+          const storedPlans = getStoredSessionPlans();
+          const existing = storedPlans.find(
+            p => p.unit_code === activeUnit && p.week_number === activeWeek && ((p as any).session_number === activeSessionNo || (!((p as any).session_number) && activeSessionNo === 1))
+          );
+
+          if (existing) {
+            setCurrentSessionPlanId(existing.id);
+            setSessionTitle(existing.session_title);
+            setDeliveryTime(existing.time_duration);
+            setSelectedOutcomes(existing.learning_outcomes || []);
+            setSafety(existing.safety_requirements);
+            setIntroduction(existing.introduction);
+            setActivities(existing.delivery_steps || []);
+            setSessionReview(existing.session_review);
+            setAssignment(existing.assignment);
+            setReflection(existing.reflection);
+            setResources(existing.resources?.join(", ") || "");
+          } else {
+            setCurrentSessionPlanId(`plan-profile-${Date.now()}-w${activeWeek}-s${activeSessionNo}`);
+            const baseTitle = `Week ${activeWeek}: ${profile.unitTitle}`;
+            setSessionTitle(activeSessionNo > 1 ? `${baseTitle} (Session ${activeSessionNo})` : baseTitle);
+            setDeliveryTime("10:30-12:30");
+            setSelectedOutcomes(outList);
+            setSafety("Standard laboratory guidelines & workshop safety protocols.");
+            setIntroduction(`Introduction to ${baseTitle} - Session ${activeSessionNo} as per CDACC occupational standards.`);
+            setActivities([
+              { time_minutes: 30, trainer_activity: "Exposition of technical principles & demonstration.", learner_activity: "Active observation & taking guided notes.", assessment: "Oral Questioning" },
+              { time_minutes: 60, trainer_activity: "Supervise practical exercises on workstations.", learner_activity: "Execute practical task matching performance criteria.", assessment: "Observation Checklist" },
+              { time_minutes: 30, trainer_activity: "Facilitate debrief and review competency achievements.", learner_activity: "Present task output & store in portfolio.", assessment: "Product Checklist" }
+            ]);
+            setSessionReview("");
+            setAssignment(`Practice practical competencies for ${profile.unitTitle} and update portfolio.`);
+            setReflection("Trainees demonstrated acceptable competency standard.");
+            setResources("Projector, lab workstations, CDACC standard guide");
+          }
         }
       }
 
@@ -429,7 +470,7 @@ export default function AcademicWorkspaceShell() {
       session_review: sessionReview,
       assignment: assignment,
       reflection: reflection,
-      signature: "Alexander Kinoti",
+      signature: "Alexander Kinoti Mbiti",
       signature_date: new Date().toLocaleDateString("en-GB"),
       status: "planned"
     };
@@ -469,7 +510,7 @@ export default function AcademicWorkspaceShell() {
       work_actually_covered: rowWorkCovered || `Covered outcomes: ${selectedOutcomes.join("; ")}`,
       reflection: rowReflection || reflection || "Excellent trainee participation and hands-on competence demonstration.",
       status: "delivered" as const,
-      signature: "Alexander Kinoti",
+      signature: "Alexander Kinoti Mbiti",
       signature_date: new Date().toLocaleDateString("en-GB")
     };
     
@@ -542,7 +583,7 @@ export default function AcademicWorkspaceShell() {
       drawCell(0, 0, "Date:", new Date().toLocaleDateString("en-GB"));
       drawCell(1, 0, "Time:", deliveryTime);
       drawCell(2, 0, "Week / Session:", `Week ${activeWeek} (Sess ${activeSessionNo})`);
-      drawCell(3, 0, "Trainer:", "Alexander Kinoti");
+      drawCell(3, 0, "Trainer:", "Alexander Kinoti Mbiti");
 
       drawCell(0, 1, "Department:", "Computing");
       drawCell(1, 1, "Unit:", (units.find(u => u.unit_code === activeUnit)?.unit_name || activeUnit).substring(0, 20));
@@ -677,7 +718,7 @@ export default function AcademicWorkspaceShell() {
         time_duration: deliveryTime,
         week_number: activeWeek,
         session_no: activeSessionNo,
-        trainer_name: "Alexander Kinoti",
+        trainer_name: "Alexander Kinoti Mbiti",
         department: "Computing & Informatics",
         unit_name: activeUnitData?.unit_name || activeUnit,
         unit_code: activeUnit,
@@ -1598,7 +1639,7 @@ export default function AcademicWorkspaceShell() {
           learning_outcomes: selectedOutcomes,
           date: new Date().toLocaleDateString("en-GB"),
           time_duration: deliveryTime,
-          trainer_name: "Alexander Kinoti",
+          trainer_name: "Alexander Kinoti Mbiti",
           venue: "Computer Lab 1 / Workshop",
           safety_requirements: safety
         }}

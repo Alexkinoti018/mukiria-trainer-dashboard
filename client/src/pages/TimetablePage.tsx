@@ -192,37 +192,160 @@ export default function TimetablePage() {
   const handleDownloadTimetablePdf = async () => {
     setIsDownloadingPdf(true);
     try {
-      let currentSchedule: any = {};
-      let title = "";
-      if (viewMode === "trainer") {
-        title = `TEACHER SCHEDULE: ${activeTrainer?.name}`;
-        currentSchedule = activeTrainer?.schedule || {};
-      } else if (viewMode === "class") {
-        title = `CLASS TIMETABLE: ${selectedClassFilter}`;
-        currentSchedule = classSchedule;
-      } else {
-        title = `LABORATORY / VENUE OCCUPANCY: ${selectedVenueFilter}`;
-        currentSchedule = venueSchedule;
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const pageW = 297;
+      const pageH = 210;
+      const marginX = 10;
+      const topY = 18;
+      const tableW = pageW - marginX * 2; // 277mm
+      const headerH = 16;
+      const rowH = 32;
+      const tableH = headerH + rowH * 5; // 176mm
+
+      const headerTitle =
+        viewMode === "trainer"
+          ? `Teacher   ${activeTrainer?.name || "MR ALEXANDER KINOTI"}`
+          : viewMode === "class"
+          ? `Class   ${selectedClassFilter}`
+          : `Room   ${selectedVenueFilter}`;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(22);
+      doc.setTextColor(0, 0, 0);
+      doc.text(headerTitle, pageW / 2, 13, { align: "center" });
+
+      // Column widths matching official aSc Timetables proportions (sum = 277mm)
+      const colWidths = [27, 36, 35, 36, 35, 36, 36, 36];
+      const colX: number[] = [];
+      let accX = marginX;
+      for (const w of colWidths) {
+        colX.push(accX);
+        accX += w;
       }
 
-      const payload = {
-        schedule_title: title,
-        term: masterTimetable.term,
-        week: academicContext.currentWeek,
-        schedule: currentSchedule,
-      };
+      // Outer border (thick 0.6mm)
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.6);
+      doc.rect(marginX, topY, tableW, tableH);
 
-      const res = await fetch("http://localhost:8000/api/export-timetable-pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      // Header bottom line (0.5mm)
+      doc.setLineWidth(0.5);
+      doc.line(marginX, topY + headerH, marginX + tableW, topY + headerH);
+
+      // Vertical column lines (full height from topY to topY + tableH)
+      doc.setLineWidth(0.3);
+      for (let c = 1; c < colWidths.length; c++) {
+        doc.line(colX[c], topY, colX[c], topY + tableH);
+      }
+
+      // Header labels
+      const headers = [
+        { title: "", time: "", size: 12 },
+        { title: "1", time: "8:00 - 10:00", size: 14 },
+        { title: "TEA BREAK", time: "10:00 - 10:30", size: 12 },
+        { title: "2", time: "10:30 - 12:30", size: 14 },
+        { title: "LUNCH HR", time: "12:30 - 13:30", size: 12 },
+        { title: "3", time: "13:30 - 15:30", size: 14 },
+        { title: "SHORT BREAK", time: "15:30 - 15:35", size: 10 },
+        { title: "4", time: "15:35 - 17:35", size: 14 },
+      ];
+
+      headers.forEach((h, idx) => {
+        if (!h.title) return;
+        const cx = colX[idx] + colWidths[idx] / 2;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(h.size);
+        doc.text(h.title, cx, topY + 8.5, { align: "center" });
+        doc.setFontSize(7.5);
+        doc.text(h.time, cx, topY + 14, { align: "center" });
       });
-      if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
-      const data = await res.json();
-      if (data.file_data) {
-        downloadBase64File(data.file_data, data.filename || "MTTI_Timetable.pdf", "application/pdf");
-        toast.success("Official Timetable PDF downloaded", { description: data.filename });
-      }
+
+      // Body rows (Mo, Tu, We, Th, Fr)
+      // Note: TEA BREAK (col 2), LUNCH HR (col 4), and SHORT BREAK (col 6) are vertically merged across all 5 days!
+      const nonBreakCols = [0, 1, 3, 5, 7];
+      daysOfWeek.forEach((day, dIdx) => {
+        const ry = topY + headerH + dIdx * rowH;
+
+        // Draw horizontal row divider ONLY across non-break columns (0, 1, 3, 5, 7)
+        if (dIdx > 0) {
+          doc.setLineWidth(0.25);
+          for (const colIdx of nonBreakCols) {
+            doc.line(colX[colIdx], ry, colX[colIdx] + colWidths[colIdx], ry);
+          }
+        }
+
+        // Day label (Mo, Tu, We, Th, Fr)
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(22);
+        doc.text(day.slice(0, 2), colX[0] + colWidths[0] / 2, ry + rowH / 2 + 3, {
+          align: "center",
+        });
+
+        let daySessions: any[] = [];
+        if (viewMode === "trainer") {
+          daySessions = activeTrainer?.schedule[day] || [];
+        } else if (viewMode === "class") {
+          daySessions = classSchedule[day] || [];
+        } else {
+          daySessions = venueSchedule[day] || [];
+        }
+
+        const periodToCol: Record<number, number> = { 1: 1, 2: 3, 3: 5, 4: 7 };
+        for (const pNum of [1, 2, 3, 4]) {
+          const cIdx = periodToCol[pNum];
+          const cellX = colX[cIdx];
+          const cellW = colWidths[cIdx];
+          const slotSessions = daySessions.filter((s) => s.period === pNum);
+          if (slotSessions.length === 0) continue;
+
+          const subH = rowH / slotSessions.length;
+          slotSessions.forEach((s, sIdx) => {
+            const sy = ry + sIdx * subH;
+            if (sIdx > 0) {
+              doc.setLineWidth(0.25);
+              doc.line(cellX, sy, cellX + cellW, sy);
+            }
+            // Top-left: Subject / Unit Title
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(6.5);
+            const uLines = doc.splitTextToSize(String(s.unitTitle || "").toUpperCase(), cellW - 3);
+            doc.text(uLines.slice(0, 2), cellX + 1.5, sy + 4);
+
+            // Center: Class Cohort Code
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8.5);
+            const cohortText = formatCohort(s.classCode, s.unitTitle);
+            const cLines = doc.splitTextToSize(cohortText, cellW - 3);
+            doc.text(cLines.slice(0, 2), cellX + cellW / 2, sy + subH / 2 + 1, {
+              align: "center",
+            });
+
+            // Bottom-right: Room / Venue
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7.5);
+            doc.text(String(s.venue || ""), cellX + cellW - 1.5, sy + subH - 2, {
+              align: "right",
+            });
+          });
+        }
+      });
+
+      // Bottom footer line outside table border
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.text("Timetable generated:9/27/2026", marginX, topY + tableH + 4.5);
+      doc.text("aSc Timetables", marginX + tableW, topY + tableH + 4.5, { align: "right" });
+
+      const safeName = (
+        viewMode === "trainer"
+          ? activeTrainer?.name || "Trainer"
+          : viewMode === "class"
+          ? selectedClassFilter
+          : selectedVenueFilter
+      ).replace(/[^a-zA-Z0-9_-]/g, "_");
+      doc.save(`MTTI_Timetable_${safeName}.pdf`);
+      toast.success("Official aSc Timetable PDF downloaded");
     } catch (err: any) {
       toast.info("Opening browser print dialog as fallback...");
       window.print();
@@ -243,7 +366,7 @@ export default function TimetablePage() {
           @media print {
             @page {
               size: A4 landscape;
-              margin: 6mm 8mm 6mm 8mm;
+              margin: 8mm 10mm 8mm 10mm;
             }
             html, body {
               background: #fff !important;
@@ -253,37 +376,39 @@ export default function TimetablePage() {
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
-            ::-webkit-scrollbar {
-              display: none !important;
-              height: 0 !important;
-              width: 0 !important;
+            body * {
+              visibility: hidden !important;
             }
-            * {
-              scrollbar-width: none !important;
+            #mtti-timetable-printable,
+            #mtti-timetable-printable * {
+              visibility: visible !important;
+            }
+            #mtti-timetable-printable {
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              box-shadow: none !important;
+              border: none !important;
+              background: #fff !important;
             }
             .print\\:hidden {
               display: none !important;
-            }
-            .timetable-print-card {
-              border: 1.5px solid #000 !important;
-              box-shadow: none !important;
-              padding: 4px !important;
-              margin: 0 !important;
-              page-break-inside: avoid !important;
-              break-inside: avoid !important;
-              width: 100% !important;
             }
             .timetable-table {
               width: 100% !important;
               table-layout: fixed !important;
               border-collapse: collapse !important;
+              border: 2px solid #000 !important;
             }
             .timetable-table th, 
             .timetable-table td {
               border: 1px solid #000 !important;
               word-wrap: break-word !important;
               overflow-wrap: break-word !important;
-              padding: 4px 6px !important;
             }
             .timetable-table tr {
               page-break-inside: avoid !important;
@@ -582,105 +707,119 @@ export default function TimetablePage() {
           </div>
         </div>
 
-        {/* ── Official Weekly Timetable Grid (Screen & Print) ── */}
-        <div className="timetable-print-card bg-white text-black p-6 rounded-2xl border-2 border-black shadow-lg print:border-none print:shadow-none print:p-0">
-          
-          {/* Official Schedule Header */}
-          <div className="flex items-center justify-between border-b-2 border-black pb-4 mb-4">
-            <div className="flex items-center gap-3">
-              <img src="/mtti-logo.jpg" alt="Mukiria Logo" className="w-14 h-14 object-contain" onError={e => e.currentTarget.style.display = 'none'} />
+        {/* ── Official Weekly Timetable Grid (Screen & Print — Exact aSc Timetables Layout) ── */}
+        <div
+          id="mtti-timetable-printable"
+          className="timetable-print-card bg-white text-black p-6 rounded-xl border border-gray-300 shadow-lg print:border-none print:shadow-none print:p-0"
+          style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
+        >
+          {/* Top Action Bar (Screen Only) */}
+          <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4 print:hidden">
+            <div className="flex items-center gap-2.5">
+              <img
+                src="/mtti-logo.jpg"
+                alt="Mukiria Logo"
+                className="w-9 h-9 object-contain"
+                onError={(e) => (e.currentTarget.style.display = "none")}
+              />
               <div>
-                <h3 className="text-lg font-bold uppercase tracking-wide font-serif">MUKIRIA TECHNICAL TRAINING INSTITUTE</h3>
-                <p className="text-xs font-bold text-slate-700">
-                  {viewMode === "trainer" ? `TEACHER SCHEDULE: ${activeTrainer?.name}` :
-                   viewMode === "class" ? `CLASS TIMETABLE: ${selectedClassFilter}` :
-                   `LABORATORY / VENUE OCCUPANCY: ${selectedVenueFilter}`}
+                <p className="text-xs font-extrabold uppercase tracking-wide text-[#000953]">
+                  MUKIRIA TECHNICAL TRAINING INSTITUTE — OFFICIAL aSc TIMETABLE
                 </p>
                 <p className="text-[11px] text-slate-600 font-mono">
                   {masterTimetable.term} • Week {academicContext.currentWeek} • Assessment Center: 01200004
                 </p>
               </div>
             </div>
-
-            <div className="flex items-center gap-3">
-              <div className="text-right text-xs space-y-0.5 hidden sm:block">
-                <div className="font-bold">TVET CDACC Certified</div>
-                <div className="text-[11px] text-slate-700">All lectures strictly 2-hour duration</div>
-                <div className="text-[10px] text-emerald-800 font-bold uppercase">Official Academic Timetable</div>
-              </div>
-              <div className="flex items-center gap-1.5 print:hidden">
-                <button
-                  onClick={handleDownloadTimetablePdf}
-                  disabled={isDownloadingPdf}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-sm"
-                  title="Download vector 1-page A4 landscape PDF"
-                >
-                  {isDownloadingPdf ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Download className="w-3.5 h-3.5" />
-                  )}
-                  <span>PDF</span>
-                </button>
-                <button
-                  onClick={() => window.print()}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border transition"
-                  title="Print single-sheet landscape"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Print</span>
-                </button>
-              </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleDownloadTimetablePdf}
+                disabled={isDownloadingPdf}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#000953] text-white hover:bg-[#000953]/90 transition shadow-sm"
+                title="Download vector 1-page A4 landscape PDF"
+              >
+                {isDownloadingPdf ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Download className="w-3.5 h-3.5" />
+                )}
+                <span>Download PDF</span>
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border transition"
+                title="Print single-sheet landscape"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print</span>
+              </button>
             </div>
           </div>
 
-          {/* Table Container */}
+          {/* Official Centered aSc Title: "Teacher  MR ALEXANDER KINOTI" */}
+          <div className="text-center mb-3">
+            <h2 className="text-2xl sm:text-3xl font-normal tracking-wide text-black">
+              {viewMode === "trainer"
+                ? `Teacher  ${activeTrainer?.name}`
+                : viewMode === "class"
+                ? `Class  ${selectedClassFilter}`
+                : `Room  ${selectedVenueFilter}`}
+            </h2>
+          </div>
+
+          {/* Main 8-Column aSc Timetable Grid with Vertically Merged Break Columns (rowSpan=5) */}
           <div className="overflow-x-auto print:overflow-visible">
-            <table 
-              className="timetable-table w-full text-left border-collapse text-[10.5px] text-black border border-black" 
-              style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif', tableLayout: 'fixed' }}
+            <table
+              className="timetable-table w-full border-collapse border-2 border-black text-black"
+              style={{ tableLayout: "fixed", fontFamily: "Arial, Helvetica, sans-serif" }}
             >
               <colgroup>
-                <col style={{ width: "8%" }} />
-                <col style={{ width: "21.5%" }} />
-                <col style={{ width: "4.5%" }} />
-                <col style={{ width: "21.5%" }} />
-                <col style={{ width: "4.5%" }} />
-                <col style={{ width: "21.5%" }} />
-                <col style={{ width: "3.5%" }} />
-                <col style={{ width: "15%" }} />
+                <col style={{ width: "9.5%" }} />
+                <col style={{ width: "13%" }} />
+                <col style={{ width: "12.5%" }} />
+                <col style={{ width: "13%" }} />
+                <col style={{ width: "12.5%" }} />
+                <col style={{ width: "13%" }} />
+                <col style={{ width: "13.5%" }} />
+                <col style={{ width: "13%" }} />
               </colgroup>
               <thead>
-                <tr className="bg-slate-100 text-center font-bold">
-                  <th className="p-2 border border-black">Day</th>
-                  <th className="p-2 border border-black">
-                    Period 1<br/><span className="text-[10px] font-normal font-mono">8:00 - 10:00</span>
+                <tr className="border-b-2 border-black text-center bg-white">
+                  <th className="border border-black p-2"></th>
+                  <th className="border border-black py-2 px-1 font-normal">
+                    <div className="text-lg leading-none mb-1">1</div>
+                    <div className="text-[9.5px] font-normal">8:00 - 10:00</div>
                   </th>
-                  <th className="p-1 border border-black bg-amber-50 text-[10px]">
-                    TEA<br/><span className="font-mono text-[9px]">10:00</span>
+                  <th className="border border-black py-2 px-1 font-normal">
+                    <div className="text-sm sm:text-base leading-none mb-1">TEA BREAK</div>
+                    <div className="text-[9.5px] font-normal">10:00 - 10:30</div>
                   </th>
-                  <th className="p-2 border border-black">
-                    Period 2<br/><span className="text-[10px] font-normal font-mono">10:30 - 12:30</span>
+                  <th className="border border-black py-2 px-1 font-normal">
+                    <div className="text-lg leading-none mb-1">2</div>
+                    <div className="text-[9.5px] font-normal">10:30 - 12:30</div>
                   </th>
-                  <th className="p-1 border border-black bg-amber-50 text-[10px]">
-                    LUNCH<br/><span className="font-mono text-[9px]">12:30</span>
+                  <th className="border border-black py-2 px-1 font-normal">
+                    <div className="text-sm sm:text-base leading-none mb-1">LUNCH HR</div>
+                    <div className="text-[9.5px] font-normal">12:30 - 13:30</div>
                   </th>
-                  <th className="p-2 border border-black">
-                    Period 3<br/><span className="text-[10px] font-normal font-mono">13:30 - 15:30</span>
+                  <th className="border border-black py-2 px-1 font-normal">
+                    <div className="text-lg leading-none mb-1">3</div>
+                    <div className="text-[9.5px] font-normal">13:30 - 15:30</div>
                   </th>
-                  <th className="p-1 border border-black bg-amber-50 text-[9px]">
-                    BRK<br/><span className="font-mono text-[8px]">15:30</span>
+                  <th className="border border-black py-2 px-1 font-normal">
+                    <div className="text-xs sm:text-sm leading-none mb-1">SHORT BREAK</div>
+                    <div className="text-[9.5px] font-normal">15:30 - 15:35</div>
                   </th>
-                  <th className="p-2 border border-black">
-                    Period 4<br/><span className="text-[10px] font-normal font-mono">15:35 - 17:35</span>
+                  <th className="border border-black py-2 px-1 font-normal">
+                    <div className="text-lg leading-none mb-1">4</div>
+                    <div className="text-[9.5px] font-normal">15:35 - 17:35</div>
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {daysOfWeek.map((day) => {
+                {daysOfWeek.map((day, dayIdx) => {
                   const isToday = academicContext.dayName === day;
-                  
-                  // Get day sessions based on view mode
+
                   let daySessions: any[] = [];
                   if (viewMode === "trainer") {
                     daySessions = activeTrainer?.schedule[day] || [];
@@ -690,22 +829,52 @@ export default function TimetablePage() {
                     daySessions = venueSchedule[day] || [];
                   }
 
-                  const p1 = daySessions.find(s => s.period === 1);
-                  const p2 = daySessions.find(s => s.period === 2);
-                  const p3 = daySessions.find(s => s.period === 3);
-                  const p4 = daySessions.find(s => s.period === 4);
+                  const renderPeriodCell = (periodNum: number) => {
+                    const slotSessions = daySessions.filter((s) => s.period === periodNum);
+                    return (
+                      <td
+                        key={`p-${periodNum}`}
+                        className="border border-black p-0 align-top h-[108px] print:h-[96px] bg-white"
+                      >
+                        {slotSessions.length > 0 ? (
+                          <div className="flex flex-col h-full divide-y divide-black">
+                            {slotSessions.map((s, sIdx) => (
+                              <div
+                                key={sIdx}
+                                className="flex-1 flex flex-col justify-between p-1.5 min-h-[50px]"
+                              >
+                                <div className="text-[9px] uppercase leading-tight text-left font-normal text-black">
+                                  {s.unitTitle}
+                                </div>
+                                <div className="text-[11px] font-bold uppercase text-center leading-tight my-1 text-black">
+                                  {formatCohort(s.classCode, s.unitTitle)}
+                                  {s.trainerName && (
+                                    <div className="text-[8.5px] font-normal uppercase text-slate-700 mt-0.5">
+                                      {s.trainerName}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="text-[10px] uppercase text-right font-normal leading-none text-black">
+                                  {s.venue}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                      </td>
+                    );
+                  };
 
                   return (
-                    <tr 
-                      key={day} 
-                      className={`hover:bg-slate-50 transition ${isToday ? 'bg-blue-50/60 font-semibold' : ''}`}
-                    >
-                      {/* Day Label */}
-                      <td className="p-2.5 border border-black text-center font-bold">
-                        <div className="flex flex-col items-center">
-                          <span className="text-sm">{day.slice(0, 2)}</span>
+                    <tr key={day} className="bg-white">
+                      {/* Day Label (Mo, Tu, We, Th, Fr) */}
+                      <td className="border border-black p-2 text-center align-middle h-[108px] print:h-[96px]">
+                        <div className="flex flex-col items-center justify-center">
+                          <span className="text-2xl sm:text-3xl font-normal text-black leading-none">
+                            {day.slice(0, 2)}
+                          </span>
                           {isToday && (
-                            <span className="text-[9px] px-1 py-0.2 bg-primary text-primary-foreground rounded font-bold uppercase tracking-tight mt-0.5">
+                            <span className="text-[8px] px-1.5 py-0.5 bg-[#000953] text-white rounded font-bold uppercase tracking-tight mt-1 print:hidden">
                               Today
                             </span>
                           )}
@@ -713,87 +882,43 @@ export default function TimetablePage() {
                       </td>
 
                       {/* Period 1 */}
-                      <td className="p-2 border border-black align-top min-h-[58px]">
-                        {p1 ? (
-                          <div className="space-y-1">
-                            <div className="font-bold text-xs leading-snug">{p1.unitTitle}</div>
-                            <div className="text-[10px] font-mono font-bold text-slate-800">{formatCohort(p1.classCode, p1.unitTitle)}</div>
-                            {p1.trainerName && <div className="text-[10px] text-blue-700 italic">{p1.trainerName}</div>}
-                            <div className="inline-flex items-center gap-1 text-[9.5px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold">
-                              <MapPin className="w-3 h-3 text-red-600" />
-                              {p1.venue}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="h-full flex items-center justify-center text-slate-300 text-xs italic">-</div>
-                        )}
-                      </td>
+                      {renderPeriodCell(1)}
 
-                      {/* Tea Break */}
-                      <td className="p-1 border border-black bg-amber-50/50 text-center text-[10px] text-slate-500 font-semibold align-middle">
-                        Tea
-                      </td>
+                      {/* TEA BREAK — Vertically merged across all 5 days (rowSpan=5) */}
+                      {dayIdx === 0 && (
+                        <td
+                          rowSpan={5}
+                          className="border-x border-black bg-white"
+                          aria-label="Tea Break"
+                        />
+                      )}
 
                       {/* Period 2 */}
-                      <td className="p-2 border border-black align-top min-h-[58px]">
-                        {p2 ? (
-                          <div className="space-y-1">
-                            <div className="font-bold text-xs leading-snug">{p2.unitTitle}</div>
-                            <div className="text-[10px] font-mono font-bold text-slate-800">{formatCohort(p2.classCode, p2.unitTitle)}</div>
-                            {p2.trainerName && <div className="text-[10px] text-blue-700 italic">{p2.trainerName}</div>}
-                            <div className="inline-flex items-center gap-1 text-[9.5px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold">
-                              <MapPin className="w-3 h-3 text-red-600" />
-                              {p2.venue}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="h-full flex items-center justify-center text-slate-300 text-xs italic">-</div>
-                        )}
-                      </td>
+                      {renderPeriodCell(2)}
 
-                      {/* Lunch Hour */}
-                      <td className="p-1 border border-black bg-amber-50/50 text-center text-[10px] text-slate-500 font-semibold align-middle">
-                        Lunch
-                      </td>
+                      {/* LUNCH HR — Vertically merged across all 5 days (rowSpan=5) */}
+                      {dayIdx === 0 && (
+                        <td
+                          rowSpan={5}
+                          className="border-x border-black bg-white"
+                          aria-label="Lunch Hour"
+                        />
+                      )}
 
                       {/* Period 3 */}
-                      <td className="p-2 border border-black align-top min-h-[58px]">
-                        {p3 ? (
-                          <div className="space-y-1">
-                            <div className="font-bold text-xs leading-snug">{p3.unitTitle}</div>
-                            <div className="text-[10px] font-mono font-bold text-slate-800">{formatCohort(p3.classCode, p3.unitTitle)}</div>
-                            {p3.trainerName && <div className="text-[10px] text-blue-700 italic">{p3.trainerName}</div>}
-                            <div className="inline-flex items-center gap-1 text-[9.5px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold">
-                              <MapPin className="w-3 h-3 text-red-600" />
-                              {p3.venue}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="h-full flex items-center justify-center text-slate-300 text-xs italic">-</div>
-                        )}
-                      </td>
+                      {renderPeriodCell(3)}
 
-                      {/* Short Break */}
-                      <td className="p-1 border border-black bg-amber-50/50 text-center text-[9px] text-slate-400 align-middle">
-                        -
-                      </td>
+                      {/* SHORT BREAK — Vertically merged across all 5 days (rowSpan=5) */}
+                      {dayIdx === 0 && (
+                        <td
+                          rowSpan={5}
+                          className="border-x border-black bg-white"
+                          aria-label="Short Break"
+                        />
+                      )}
 
                       {/* Period 4 */}
-                      <td className="p-2 border border-black align-top min-h-[58px]">
-                        {p4 ? (
-                          <div className="space-y-1">
-                            <div className="font-bold text-xs leading-snug">{p4.unitTitle}</div>
-                            <div className="text-[10px] font-mono font-bold text-slate-800">{formatCohort(p4.classCode, p4.unitTitle)}</div>
-                            {p4.trainerName && <div className="text-[10px] text-blue-700 italic">{p4.trainerName}</div>}
-                            <div className="inline-flex items-center gap-1 text-[9.5px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold">
-                              <MapPin className="w-3 h-3 text-red-600" />
-                              {p4.venue}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="h-full flex items-center justify-center text-slate-300 text-xs italic">-</div>
-                        )}
-                      </td>
+                      {renderPeriodCell(4)}
                     </tr>
                   );
                 })}
@@ -801,18 +926,11 @@ export default function TimetablePage() {
             </table>
           </div>
 
-          {/* Footer Endorsement for Timetable */}
-          <div className="flex justify-between items-end pt-4 mt-6 border-t border-black text-xs font-bold">
-            <div>
-              <p>Prepared by: Timetable Committee & Deputy Principal Academics</p>
-              <p className="text-[10px] text-slate-600 font-mono mt-0.5">Software: aSc Timetables Institutional Edition 2026</p>
-            </div>
-            <div className="text-right">
-              <p>Official Institutional Stamp</p>
-              <div className="w-48 border-b border-black mt-3"></div>
-            </div>
+          {/* Official Bottom Line Outside Table Border */}
+          <div className="flex justify-between items-center pt-1 text-[11px] font-normal text-black">
+            <span>Timetable generated:9/27/2026</span>
+            <span>aSc Timetables</span>
           </div>
-
         </div>
 
       </div>

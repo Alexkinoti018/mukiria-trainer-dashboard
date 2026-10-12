@@ -151,23 +151,35 @@ export default function TraineeAssignments() {
 
   const getTaskCode = (type: string): string => {
     switch (type) {
+      // Continuous Practical (CP1–3)
       case "Practical 1": return "CP1";
       case "Practical 2": return "CP2";
       case "Practical 3": return "CP3";
-      case "Observation Checklist": return "CP1";
-      case "Assignment": return "CT1";
-      case "Assignments": return "CT1";
+      // Continuous Theory (CT1–3)
+      case "Written Assessment 1": return "CT1";
+      case "Written Assessment 2": return "CT2";
+      case "Written Assessment 3": return "CT3";
+      // Assignment
       case "Assignment 1": return "CT1";
       case "Assignment 2": return "CT2";
-      case "CAT": return "CT2";
+      case "Assignment 3": return "CT3";
+      case "Assignment": return "CT1";
+      // CAT (Continuous Assessment Test)
+      case "Continuous Assessment Test 1 (CAT 1)": return "CT1";
+      case "Continuous Assessment Test 2 (CAT 2)": return "CT2";
+      case "Continuous Assessment Test 3 (CAT 3)": return "CT3";
       case "CAT 1": return "CT1";
       case "CAT 2": return "CT2";
-      case "CATs": return "CT2";
-      case "Exam 1": return "CT1";
-      case "Exam 2": return "CT2";
-      case "Exam 3": return "CT3";
+      case "CAT": return "CT2";
+      // Project
+      case "Capstone / Course Project": return "Project";
+      case "Project Milestone 1": return "CP3";
       case "Project": return "Project";
-      case "Other": return "CP1";
+      // Portfolios
+      case "Observation Checklist": return "CP1";
+      case "Portfolio of Evidence": return "CP3";
+      case "Industrial Attachment Logbook": return "CP3";
+      case "Other Technical Evidence": return "CP1";
       default: return "CP1";
     }
   };
@@ -253,19 +265,48 @@ export default function TraineeAssignments() {
               onChange={(e) => setSelectedUploadType(e.target.value)}
               className="w-full p-2.5 border border-border rounded-xl bg-background text-foreground text-xs font-semibold focus:ring-1 focus:ring-primary outline-none"
             >
-              <option value="Practical 1">Practical 1 (CP1 — Laboratory / Workshop Task)</option>
-              <option value="Practical 2">Practical 2 (CP2 — Practical Skills Task)</option>
-              <option value="Practical 3">Practical 3 (CP3 — Technical Application)</option>
-              <option value="Observation Checklist">Observation Checklist (Formative Practical)</option>
-              <option value="Assignment">Assignment (CT1)</option>
-              <option value="Assignments">Assignments (CT)</option>
-              <option value="CAT">CAT (Continuous Assessment Test)</option>
-              <option value="CAT 1">CAT 1</option>
-              <option value="CAT 2">CAT 2</option>
-              <option value="Exam 1">Exam 1 (CT1 — Written Assessment 1)</option>
-              <option value="Exam 2">Exam 2 (CT2 — Written Assessment 2)</option>
-              <option value="Exam 3">Exam 3 (CT3 — Written Assessment 3)</option>
-              <option value="Other">Other Technical Evidence</option>
+              {/* Continuous Practical (CP1–3) */}
+              <optgroup label="Continuous Practical (CP1–3)">
+                <option value="Practical 1">Practical 1 (CP1 — Laboratory / Workshop Task)</option>
+                <option value="Practical 2">Practical 2 (CP2 — Practical Skills Task)</option>
+                <option value="Practical 3">Practical 3 (CP3 — Technical Application)</option>
+              </optgroup>
+
+              {/* Continuous Theory (CT1–3) */}
+              <optgroup label="Continuous Theory (CT1–3)">
+                <option value="Written Assessment 1">Written Assessment 1 (CT1)</option>
+                <option value="Written Assessment 2">Written Assessment 2 (CT2)</option>
+                <option value="Written Assessment 3">Written Assessment 3 (CT3)</option>
+              </optgroup>
+
+              {/* Assignment */}
+              <optgroup label="Assignment">
+                <option value="Assignment 1">Assignment 1 (Theory / Homework)</option>
+                <option value="Assignment 2">Assignment 2 (Research / Analysis)</option>
+                <option value="Assignment 3">Assignment 3 (Case Study)</option>
+                <option value="Assignment">General Unit Assignment</option>
+              </optgroup>
+
+              {/* CAT (Continuous Assessment Test) */}
+              <optgroup label="CAT (Continuous Assessment Test)">
+                <option value="Continuous Assessment Test 1 (CAT 1)">CAT 1 (Continuous Assessment Test 1)</option>
+                <option value="Continuous Assessment Test 2 (CAT 2)">CAT 2 (Continuous Assessment Test 2)</option>
+                <option value="Continuous Assessment Test 3 (CAT 3)">CAT 3 (Continuous Assessment Test 3)</option>
+              </optgroup>
+
+              {/* Project */}
+              <optgroup label="Project">
+                <option value="Capstone / Course Project">Capstone / Course Project</option>
+                <option value="Project Milestone 1">Project Milestone / Progress Report</option>
+              </optgroup>
+
+              {/* Portfolios */}
+              <optgroup label="Portfolios">
+                <option value="Observation Checklist">Observation Checklist (Assessor Practical Rubric)</option>
+                <option value="Portfolio of Evidence">Portfolio of Evidence (TVET CDACC File)</option>
+                <option value="Industrial Attachment Logbook">Industrial Attachment Logbook / Field Report</option>
+                <option value="Other Technical Evidence">Other Technical Evidence</option>
+              </optgroup>
             </select>
             <p className="text-[11px] text-muted-foreground mt-1">
               Mapped Assessment Code: <span className="font-bold text-primary">{getTaskCode(selectedUploadType)}</span>
