@@ -18,11 +18,17 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useSyncStatus } from "@/lib/syncEngine";
+import { useLocation } from "wouter";
 import { toast } from "sonner";
 
 export default function OfflineStatusBar() {
+  const [location] = useLocation();
   const { isOnline, isSyncing, pendingCount, lastSyncTime, conflicts, syncNow } = useSyncStatus();
   const [isExpanded, setIsExpanded] = useState(false);
+
+  if (location === "/" || location === "/login") {
+    return null;
+  }
 
   const handleManualSync = async () => {
     toast.info("Checking connectivity & syncing buffered queue...");

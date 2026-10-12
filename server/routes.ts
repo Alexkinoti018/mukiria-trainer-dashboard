@@ -13,7 +13,7 @@ import {
 
 export interface AuthenticatedUser {
   id: string;
-  email: string;
+  email?: string;
   name: string;
   role: "trainee" | "trainer" | "hod" | "admin";
   reg_number?: string;
@@ -40,10 +40,10 @@ export const DB = {
     { id: "trainer-002", name: "Alexander Kinoti", email: "kinoti@mtti.ac.ke", assigned_units: ["ICT/OS/IT/CR/1/6"] },
   ],
   trainees: [
-    { id: "trainee-001", name: "Nthiga Gakii Doris", reg_number: "14179/S2026-SEED", email: "doris.nthiga@mtti.ac.ke", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
-    { id: "trainee-10525", name: "Alex Kinoti", reg_number: "10525", email: "alex.kinoti@mtti.ac.ke", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
-    { id: "trainee-002", name: "Harriet Mwendwa", reg_number: "10526", email: "harriet@mtti.ac.ke", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
-    { id: "trainee-003", name: "Other Student", reg_number: "99999", email: "other@mtti.ac.ke", class_id: "class-ee-4", enrolled_units: ["EE/CU/01/4"] },
+    { id: "trainee-001", name: "Nthiga Gakii Doris", reg_number: "14179/S2026-SEED", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
+    { id: "trainee-10525", name: "Alex Kinoti", reg_number: "10525", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
+    { id: "trainee-002", name: "Harriet Mwendwa", reg_number: "10526", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
+    { id: "trainee-003", name: "Other Student", reg_number: "99999", class_id: "class-ee-4", enrolled_units: ["EE/CU/01/4"] },
   ],
   unit_offerings: [
     { id: "uo-1", term_id: "term-2026", class_id: "class-itech-6", unit_code: "ICT/CU/IT/CR/6/6", unit_id: "unit-cr-6", trainer_id: "trainer-001", department_id: "dept-ci" },
@@ -380,11 +380,11 @@ export function authenticateUser(req: AuthenticatedRequest, res: Response, next:
     } else if (token === "token-trainer-002") {
       user = { id: "trainer-002", email: "kinoti@mtti.ac.ke", name: "Alexander Kinoti", role: "trainer", assigned_units: ["ICT/OS/IT/CR/1/6"], department_id: "dept-ci" };
     } else if (token === "token-trainee-001") {
-      user = { id: "trainee-001", email: "doris.nthiga@mtti.ac.ke", name: "Nthiga Gakii Doris", role: "trainee", reg_number: "14179/S2026", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] };
+      user = { id: "trainee-001", name: "Nthiga Gakii Doris", role: "trainee", reg_number: "14179/S2026", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] };
     } else if (token === "token-trainee-002") {
-      user = { id: "trainee-002", email: "harriet@mtti.ac.ke", name: "Harriet Mwendwa", role: "trainee", reg_number: "10526", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] };
+      user = { id: "trainee-002", name: "Harriet Mwendwa", role: "trainee", reg_number: "10526", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] };
     } else if (token === "token-trainee-003") {
-      user = { id: "trainee-003", email: "ee_trainee@mtti.ac.ke", name: "EE Trainee", role: "trainee", reg_number: "99999", department_id: "dept-ee", enrolled_units: ["EE/CU/PO/CR/1/6"] };
+      user = { id: "trainee-003", name: "EE Trainee", role: "trainee", reg_number: "99999", department_id: "dept-ee", enrolled_units: ["EE/CU/PO/CR/1/6"] };
     } else if (token === "token-hod-ci") {
       user = { id: "hod-001", email: "hod.ci@mtti.ac.ke", name: "Prof. S. Njoroge", role: "hod", department_id: "dept-ci" };
     } else if (token === "token-hod-ee") {
@@ -402,7 +402,7 @@ export function authenticateUser(req: AuthenticatedRequest, res: Response, next:
 
     user = {
       id: idHeader || `user-${roleHeader}`,
-      email: `${roleHeader}@mtti.ac.ke`,
+      email: roleHeader === "trainee" ? undefined : `${roleHeader}@mtti.ac.ke`,
       name: `Demo ${roleHeader.toUpperCase()}`,
       role: roleHeader as any,
       reg_number: regHeader,
@@ -850,7 +850,6 @@ apiRouter.post("/trainees", async (req: AuthenticatedRequest, res: Response) => 
       id,
       name: traineeRecord.name,
       reg_number: adm_no,
-      email: `${adm_no.replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}@mtti.ac.ke`,
       class_id: classCode,
       enrolled_units: ["IT/CU/ICTA/CR/01/6/MA", "061155101A-WA1"],
     };
@@ -870,8 +869,25 @@ apiRouter.post("/trainees", async (req: AuthenticatedRequest, res: Response) => 
   }
 });
 
+// ─── RBAC GUARD: /api/attendance/* (Reject Trainees with HTTP 403) ────────────
+apiRouter.use("/attendance", (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  if (req.user?.role === "trainee") {
+    res.status(403).json({
+      error: "Forbidden: Trainees cannot access or modify class attendance registers",
+    });
+    return;
+  }
+  next();
+});
+
 // ─── ENDPOINT: GET /api/attendance (Rehydrate Attendance Records) ──────────────
 apiRouter.get("/attendance", async (req: AuthenticatedRequest, res: Response) => {
+  if (req.user?.role === "trainee") {
+    res.status(403).json({
+      error: "Forbidden: Trainees cannot access or modify class attendance registers",
+    });
+    return;
+  }
   try {
     const unitOfferingId = (req.query.unit_offering_id as string) || "uo-1";
     const weekNumber = req.query.week_number ? parseInt(req.query.week_number as string) : undefined;
@@ -948,6 +964,12 @@ apiRouter.get("/attendance", async (req: AuthenticatedRequest, res: Response) =>
 
 // ─── ENDPOINT: POST /api/attendance/mark (Single Session Mark) ────────────────
 apiRouter.post("/attendance/mark", async (req: AuthenticatedRequest, res: Response) => {
+  if (req.user?.role === "trainee") {
+    res.status(403).json({
+      error: "Forbidden: Trainees cannot access or modify class attendance registers",
+    });
+    return;
+  }
   try {
     const {
       unit_offering_id = "uo-1",
@@ -1045,6 +1067,12 @@ apiRouter.post("/attendance/mark", async (req: AuthenticatedRequest, res: Respon
 
 // ─── ENDPOINT: POST /api/attendance/bulk (Transactional Bulk Upsert) ───────────
 apiRouter.post("/attendance/bulk", async (req: AuthenticatedRequest, res: Response) => {
+  if (req.user?.role === "trainee") {
+    res.status(403).json({
+      error: "Forbidden: Trainees cannot access or modify class attendance registers",
+    });
+    return;
+  }
   try {
     const { unit_offering_id = "uo-1", records = [], attendanceData, session_plan_id } = req.body;
     let itemsToProcess: Array<{
@@ -1624,6 +1652,24 @@ const handleBatchMarks = (req: AuthenticatedRequest, res: Response) => {
   });
 };
 
+// ─── RBAC GUARD: /api/marks/* (Reject Trainees with HTTP 403) ───────────────
+apiRouter.use("/marks", (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  if (req.user?.role === "trainee") {
+    res.status(403).json({
+      error: "Forbidden: Trainees cannot submit or update assessment marks",
+    });
+    return;
+  }
+  next();
+});
+
+apiRouter.get("/marks", requireRoles("trainer", "hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
+  res.json({
+    success: true,
+    marks: DB.assessment_marks,
+  });
+});
+
 apiRouter.post("/marks/batch", handleBatchMarks);
 apiRouter.post("/assessment-marks/batch", handleBatchMarks);
 
@@ -1640,8 +1686,28 @@ export function canEditPedagogical(record: { approval_status?: string } | null |
   return record.approval_status !== "approved";
 }
 
-// ─── ENDPOINT: POST /api/pedagogy/sign-off (HOD Digital Pedagogical Sign-Off) ──
-apiRouter.post("/pedagogy/sign-off", (req: AuthenticatedRequest, res: Response) => {
+// ─── RBAC GUARD: /api/hod/* (Reject Non-HOD/Non-Admin Users with HTTP 403) ───
+apiRouter.use("/hod", requireRoles("hod", "admin"));
+
+apiRouter.get("/hod/overview", requireRoles("hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
+  const deptId = req.user?.department_id;
+  const sessionPlans = deptId
+    ? DB.session_plans.filter(sp => sp.department_id === deptId)
+    : DB.session_plans;
+  const recordsOfWork = deptId
+    ? DB.record_of_work.filter(row => row.department_id === deptId)
+    : DB.record_of_work;
+
+  res.json({
+    success: true,
+    department_id: deptId || "all",
+    session_plans: sessionPlans,
+    record_of_work: recordsOfWork,
+  });
+});
+
+// ─── ENDPOINT: POST /api/pedagogy/sign-off & /api/hod/sign-off (HOD Digital Pedagogical Sign-Off) ──
+const handlePedagogicalSignOff = (req: AuthenticatedRequest, res: Response) => {
   const user = req.user;
   if (!user) {
     res.status(401).json({ error: "Authentication required" });
@@ -1697,7 +1763,10 @@ apiRouter.post("/pedagogy/sign-off", (req: AuthenticatedRequest, res: Response) 
     message: `Pedagogical record ${targetId} marked as ${status}`,
     record,
   });
-});
+};
+
+apiRouter.post("/pedagogy/sign-off", handlePedagogicalSignOff);
+apiRouter.post("/hod/sign-off", requireRoles("hod", "admin"), handlePedagogicalSignOff);
 
 // Guard endpoint for trainer edits on pedagogical records (immutability check)
 apiRouter.put("/pedagogy/record-of-work/:id", (req: AuthenticatedRequest, res: Response) => {
@@ -1719,6 +1788,18 @@ apiRouter.put("/pedagogy/record-of-work/:id", (req: AuthenticatedRequest, res: R
   res.json({ success: true, record });
 });
 
+// ─── RBAC GUARD: /api/admin/* (Reject Non-Admin Users with HTTP 403) ─────────
+apiRouter.use("/admin", requireRoles("admin"));
+
+apiRouter.get("/admin/overview", requireRoles("admin"), (_req: Request, res: Response) => {
+  res.json({
+    success: true,
+    departments: DB.departments.length,
+    trainers: DB.trainers.length,
+    unit_offerings: DB.unit_offerings.length,
+  });
+});
+
 // ─── ENDPOINT: POST /api/admin/users (Vertical Privilege Escalation Guard) ─────
 apiRouter.post("/admin/users", requireRoles("admin"), (req: Request, res: Response) => {
   const { name, email, role } = req.body;
@@ -1726,7 +1807,7 @@ apiRouter.post("/admin/users", requireRoles("admin"), (req: Request, res: Respon
 });
 
 // ─── ENDPOINT: POST /api/admin/maintenance/:action (Diagnostics & System Operations) ──
-apiRouter.post("/admin/maintenance/:action", async (req: Request, res: Response) => {
+apiRouter.post("/admin/maintenance/:action", requireRoles("admin"), async (req: Request, res: Response) => {
   const { action } = req.params;
 
   if (action === "ping-db") {

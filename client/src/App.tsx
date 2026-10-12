@@ -102,8 +102,12 @@ function Router() {
     <Switch>
       {/* Public routes */}
       <Route path="/" component={Login} />
+      <Route path="/login" component={Login} />
       <Route path="/exam" component={CandidatePortal} />
       <Route path="/trainee/exam" component={CandidatePortal} />
+      <Route path="/candidate/portal">
+        <ProtectedRoute allowedRoles={["trainee", "admin"]}><CandidatePortal /></ProtectedRoute>
+      </Route>
       <Route path="/session/:id" component={StudentSessionView} />
 
       {/* Trainer Routes */}
@@ -182,19 +186,19 @@ function Router() {
 
       {/* HOD Routes */}
       <Route path="/hod">
-        <ProtectedRoute allowedRoles={["hod", "admin", "trainer"]}><HODDashboard /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["hod", "admin"]}><HODDashboard /></ProtectedRoute>
       </Route>
       <Route path="/hod/dashboard">
-        <ProtectedRoute allowedRoles={["hod", "admin", "trainer"]}><HODDashboard /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["hod", "admin"]}><HODDashboard /></ProtectedRoute>
       </Route>
       <Route path="/hod/compliance">
-        <ProtectedRoute allowedRoles={["hod", "admin", "trainer"]}><HODCompliance /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["hod", "admin"]}><HODCompliance /></ProtectedRoute>
       </Route>
       <Route path="/hod/analytics">
-        <ProtectedRoute allowedRoles={["hod", "admin", "trainer"]}><HODAnalytics /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["hod", "admin"]}><HODAnalytics /></ProtectedRoute>
       </Route>
       <Route path="/hod/reports">
-        <ProtectedRoute allowedRoles={["hod", "admin", "trainer"]}><HODReports /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["hod", "admin"]}><HODReports /></ProtectedRoute>
       </Route>
 
       {/* Route Aliases for direct un-prefixed URLs */}
@@ -214,7 +218,7 @@ function Router() {
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Dashboard /></ProtectedRoute>
       </Route>
       <Route path="/admin">
-        <ProtectedRoute allowedRoles={["admin", "trainer", "hod"]}><AdminDashboard /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>
       </Route>
       <Route path="/class-register">
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><ClassRegister /></ProtectedRoute>

@@ -110,6 +110,9 @@ export default function Login() {
     setActiveRole(roleId);
     setError("");
     setShowForgotNotice(false);
+    if (roleId === "trainee" && identifier.includes("@")) {
+      setIdentifier("");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -126,6 +129,13 @@ export default function Login() {
       return;
     }
 
+    if (activeRole === "trainee" && identifier.includes("@")) {
+      setError(
+        "Trainees do not use email addresses. Please enter your Admission / Registration Number (e.g., FBS 5 MOD/13254/12026)."
+      );
+      return;
+    }
+
     if (!password.trim()) {
       setError("Please enter your Security PIN or password.");
       return;
@@ -135,7 +145,7 @@ export default function Login() {
     setError("");
 
     try {
-      const result = await login(password);
+      const result = await login(password, identifier, activeRole);
 
       if (result.success) {
         toast.success("Authentication successful", {
@@ -239,6 +249,7 @@ export default function Login() {
               <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
+                name={activeRole === "trainee" ? "trainee_admission_number" : "staff_identifier"}
                 value={identifier}
                 onChange={(e) => {
                   setIdentifier(e.target.value);
@@ -247,7 +258,7 @@ export default function Login() {
                 placeholder={currentRole.identifierPlaceholder}
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 text-sm transition-all focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
                 disabled={isSubmitting}
-                autoComplete="username"
+                autoComplete={activeRole === "trainee" ? "off" : "username"}
               />
             </div>
           </div>

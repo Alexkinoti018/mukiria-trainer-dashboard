@@ -16,8 +16,6 @@ interface AssessmentRow {
   name: string;
   ctScores: (number | string)[];
   cpScores: (number | string)[];
-  assignmentScore?: number | string;
-  projectScore?: number | string;
   ctAvg: number;
   cpAvg: number;
   weightedMark: number;
@@ -42,8 +40,6 @@ export function AssessmentMarksSheet() {
   const [selectedClass, setSelectedClass] = useState<string>("ICT4/ITECH6/S/26 MOD 1");
   const [unitOfferingId] = useState("uo_1");
   const [isLocked, setIsLocked] = useState(false); // Internal Assessor Sign-off
-  const [includeAssignment, setIncludeAssignment] = useState(true);
-  const [includeProject, setIncludeProject] = useState(true);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [syncVersion, setSyncVersion] = useState(0);
 
@@ -79,11 +75,7 @@ export function AssessmentMarksSheet() {
   };
 
   // TVET CDACC Official Weight Formula per Level
-  const calculateWeighted = (ctAvg: number, cpAvg: number, currentLevel: number, projectScore: number = 0): number => {
-    if (projectScore > 0) {
-      const score = (cpAvg * 0.4) + (ctAvg * 0.2) + (projectScore * 0.4);
-      return Math.round(score);
-    }
+  const calculateWeighted = (ctAvg: number, cpAvg: number, currentLevel: number): number => {
     let raw = 0;
     switch (currentLevel) {
       case 6: raw = (ctAvg * 0.5) + (cpAvg * 0.5); break;
@@ -159,10 +151,8 @@ export function AssessmentMarksSheet() {
 
         const initCtScores: (number | string)[] = Array(ctCount).fill("");
         const initCpScores: (number | string)[] = Array(cpCount).fill("");
-        let initAssignmentScore: number | string = "";
-        let initProjectScore: number | string = "";
 
-        // 1. Pull graded online exam submissions (CATs, CT1, CT2, CT3, CP1-3, Project, Assignment) from ExamContext
+        // 1. Pull graded online exam submissions (CT1, CT2, CT3, CP1-3) from ExamContext
         submissions.forEach((sub) => {
           if (sub.total_score === null || sub.total_score === undefined) return;
           const matched = findMatchingTrainee([t], {
@@ -192,11 +182,9 @@ export function AssessmentMarksSheet() {
           else if (slot === "CP1" && cpCount >= 1) initCpScores[0] = String(pct);
           else if (slot === "CP2" && cpCount >= 2) initCpScores[1] = String(pct);
           else if (slot === "CP3" && cpCount >= 3) initCpScores[2] = String(pct);
-          else if (slot === "Assignment") initAssignmentScore = String(pct);
-          else if (slot === "Project") initProjectScore = String(pct);
         });
 
-        // 2. Pull graded uploaded evidence (Practicals CP1-CP3, CATs CT1-CT3, Project, Assignment) from TraineeContext
+        // 2. Pull graded uploaded evidence (Practicals CP1-CP3, Theory CT1-CT3) from TraineeContext
         uploads.forEach((up) => {
           if (up.status !== "graded" || up.grade === null || up.grade === undefined) return;
           const matched = findMatchingTrainee([t], {
@@ -218,8 +206,6 @@ export function AssessmentMarksSheet() {
           else if (slot === "CP1" && cpCount >= 1) initCpScores[0] = String(pct);
           else if (slot === "CP2" && cpCount >= 2) initCpScores[1] = String(pct);
           else if (slot === "CP3" && cpCount >= 3) initCpScores[2] = String(pct);
-          else if (slot === "Assignment") initAssignmentScore = String(pct);
-          else if (slot === "Project") initProjectScore = String(pct);
         });
 
         // 3. Apply explicit saved marksheet overrides from localStorage
@@ -238,21 +224,11 @@ export function AssessmentMarksSheet() {
               }
             });
           }
-          if (savedEntry.assignment_score !== undefined && savedEntry.assignment_score !== "" && !isNaN(Number(savedEntry.assignment_score)) && Number(savedEntry.assignment_score) > 0) {
-            initAssignmentScore = String(savedEntry.assignment_score);
-          }
-          if (savedEntry.project_score !== undefined && savedEntry.project_score !== "" && !isNaN(Number(savedEntry.project_score)) && Number(savedEntry.project_score) > 0) {
-            initProjectScore = String(savedEntry.project_score);
-          }
         }
 
-        const theoryInputs = includeAssignment && initAssignmentScore !== ""
-          ? [...initCtScores, initAssignmentScore]
-          : initCtScores;
-        const ctAvg = calculateAverages(theoryInputs);
+        const ctAvg = calculateAverages(initCtScores);
         const cpAvg = calculateAverages(initCpScores);
-        const projVal = includeProject ? (parseFloat(String(initProjectScore || 0)) || 0) : 0;
-        const weightedMark = calculateWeighted(ctAvg, cpAvg, targetLevel, projVal);
+        const weightedMark = calculateWeighted(ctAvg, cpAvg, targetLevel);
 
         return {
           id: t.id,
@@ -262,8 +238,6 @@ export function AssessmentMarksSheet() {
           name: t.name,
           ctScores: initCtScores,
           cpScores: initCpScores,
-          assignmentScore: initAssignmentScore,
-          projectScore: initProjectScore,
           ctAvg,
           cpAvg,
           weightedMark,
@@ -276,17 +250,13 @@ export function AssessmentMarksSheet() {
   useEffect(() => {
     setRows((prev) =>
       prev.map((row) => {
-        const theoryInputs = includeAssignment && row.assignmentScore !== undefined && row.assignmentScore !== ""
-          ? [...row.ctScores, row.assignmentScore]
-          : row.ctScores;
-        const ctAvg = calculateAverages(theoryInputs);
+        const ctAvg = calculateAverages(row.ctScores);
         const cpAvg = calculateAverages(row.cpScores);
-        const projVal = includeProject ? (parseFloat(String(row.projectScore || 0)) || 0) : 0;
-        const weightedMark = calculateWeighted(ctAvg, cpAvg, level, projVal);
+        const weightedMark = calculateWeighted(ctAvg, cpAvg, level);
         return { ...row, ctAvg, cpAvg, weightedMark };
       })
     );
-  }, [level, ctCount, cpCount, includeAssignment, includeProject]);
+  }, [level, ctCount, cpCount]);
 
   const handleScoreChange = (rowId: string, type: 'ct' | 'cp', index: number, value: string) => {
     if (isLocked) {
@@ -307,49 +277,8 @@ export function AssessmentMarksSheet() {
           newRow.cpScores[index] = value;
           newRow.cpAvg = calculateAverages(newRow.cpScores);
         }
-        const theoryInputs = includeAssignment && newRow.assignmentScore !== undefined && newRow.assignmentScore !== ""
-          ? [...newRow.ctScores, newRow.assignmentScore]
-          : newRow.ctScores;
-        newRow.ctAvg = calculateAverages(theoryInputs);
-        
-        const projVal = includeProject ? (parseFloat(String(newRow.projectScore || 0)) || 0) : 0;
-        newRow.weightedMark = calculateWeighted(newRow.ctAvg, newRow.cpAvg, level, projVal);
-        return newRow;
-      })
-    );
-  };
-
-  const handleAssignmentScoreChange = (rowId: string, value: string) => {
-    if (isLocked) {
-      toast.warning("Assessment sheet is locked. Unlock first to edit marks.");
-      return;
-    }
-    setRows((prev) =>
-      prev.map((row) => {
-        if (row.id !== rowId) return row;
-        const newRow = { ...row, assignmentScore: value };
-        const theoryInputs = includeAssignment && value !== ""
-          ? [...newRow.ctScores, value]
-          : newRow.ctScores;
-        newRow.ctAvg = calculateAverages(theoryInputs);
-        const projVal = includeProject ? (parseFloat(String(newRow.projectScore || 0)) || 0) : 0;
-        newRow.weightedMark = calculateWeighted(newRow.ctAvg, newRow.cpAvg, level, projVal);
-        return newRow;
-      })
-    );
-  };
-
-  const handleProjectScoreChange = (rowId: string, value: string) => {
-    if (isLocked) {
-      toast.warning("Assessment sheet is locked. Unlock first to edit marks.");
-      return;
-    }
-    setRows((prev) =>
-      prev.map((row) => {
-        if (row.id !== rowId) return row;
-        const newRow = { ...row, projectScore: value };
-        const projVal = includeProject ? (parseFloat(value) || 0) : 0;
-        newRow.weightedMark = calculateWeighted(newRow.ctAvg, newRow.cpAvg, level, projVal);
+        newRow.ctAvg = calculateAverages(newRow.ctScores);
+        newRow.weightedMark = calculateWeighted(newRow.ctAvg, newRow.cpAvg, level);
         return newRow;
       })
     );
@@ -362,9 +291,7 @@ export function AssessmentMarksSheet() {
   ) => {
     const columns: string[] = [];
     for (let i = 0; i < ctCount; i++) columns.push(`ct-${i}`);
-    if (includeAssignment) columns.push("assignment");
     for (let i = 0; i < cpCount; i++) columns.push(`cp-${i}`);
-    if (includeProject) columns.push("project");
 
     const currentColIdx = columns.indexOf(colKey);
     let targetRow = rowIndex;
@@ -464,7 +391,6 @@ export function AssessmentMarksSheet() {
           traineeId: r.id,
           cpScore: r.cpAvg,
           ctScore: r.ctAvg,
-          projectScore: typeof r.projectScore === "number" ? r.projectScore : (parseFloat(String(r.projectScore || 0)) || 0),
         })),
       };
 
@@ -494,14 +420,6 @@ export function AssessmentMarksSheet() {
         computed_average_theory: Math.round(r.ctAvg),
         cp_scores: r.cpScores.map(score => (score === "" ? null : parseFloat(score as any))),
         computed_average_practical: Math.round(r.cpAvg),
-        assignment_score:
-          r.assignmentScore !== undefined && r.assignmentScore !== ""
-            ? parseFloat(String(r.assignmentScore)) || 0
-            : undefined,
-        project_score:
-          r.projectScore !== undefined && r.projectScore !== ""
-            ? parseFloat(String(r.projectScore)) || 0
-            : 0,
         weighted_mark: Math.round(r.weightedMark),
         is_locked: isLocked
       }));
@@ -683,36 +601,16 @@ export function AssessmentMarksSheet() {
           <span className="text-xs text-muted-foreground font-medium">
             {rows.length} candidates loaded
           </span>
-
-          <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground cursor-pointer ml-2">
-            <input 
-              type="checkbox" 
-              checked={includeAssignment} 
-              onChange={(e) => setIncludeAssignment(e.target.checked)}
-              className="rounded text-primary focus:ring-primary"
-            />
-            <span>Include Assignment</span>
-          </label>
-
-          <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground cursor-pointer ml-2">
-            <input 
-              type="checkbox" 
-              checked={includeProject} 
-              onChange={(e) => setIncludeProject(e.target.checked)}
-              className="rounded text-primary focus:ring-primary"
-            />
-            <span>Include Project (40%)</span>
-          </label>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => {
               setSyncVersion((v) => v + 1);
-              toast.success("Synchronized graded CATs (CT1–CT3), Practicals (CP1–CP3), Assignments & Projects.");
+              toast.success("Synchronized graded Continuous Theory (CT1–CT3) & Practical (CP1–CP3) assessments.");
             }}
             className="flex items-center gap-1.5 px-3 py-2 bg-[#000953] hover:bg-[#000e7a] text-white rounded-lg text-xs font-bold transition shadow-sm"
-            title="Sync all graded CATs, Practicals, Assignments and Projects into the Marksheet"
+            title="Sync all graded CT and CP assessments into the Marksheet"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Sync Graded Assessments
@@ -912,41 +810,30 @@ export function AssessmentMarksSheet() {
 
         {/* Dynamic Landscape Continuous Assessment Table */}
         <div className="w-full overflow-x-auto mb-5 border-2 border-black rounded shadow-sm print:shadow-none print:rounded-none print:border-black print:overflow-visible">
-          <table className="w-full min-w-[1060px] text-left border-collapse text-[11px] text-black cdacc-table" style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif' }}>
+          <table className="w-full min-w-[960px] text-left border-collapse text-[11px] text-black cdacc-table" style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif' }}>
             <thead>
               <tr className="bg-slate-100 print:bg-slate-100">
                 <th className="p-2 border border-black font-bold text-center w-10 min-w-[36px]" rowSpan={2}>S/N</th>
                 <th className="p-2 border border-black font-bold text-center w-40 min-w-[140px]" rowSpan={2}>Candidate’s Reg Code</th>
                 <th className="p-2 border border-black font-bold text-center w-28 min-w-[95px]" rowSpan={2}>ADM NO</th>
                 <th className="p-2 border border-black font-bold text-center min-w-[200px]" rowSpan={2}>Candidate’s Name</th>
-                <th className="p-2 border border-black font-bold text-center" colSpan={ctCount + (includeAssignment ? 2 : 1)}>
-                  Continuous Theory (CT / CAT &amp; Assignment) Marks (100%)
+                <th className="p-2 border border-black font-bold text-center" colSpan={ctCount + 1}>
+                  Continuous Theory (CT) Marks (100%)
                   <button onClick={() => addColumn('ct')} className="ml-2 font-bold hover:underline print:hidden text-[#000953]" title="Add Theory Assessment Column">[+]</button>
                 </th>
                 <th className="p-2 border border-black font-bold text-center" colSpan={cpCount + 1}>
                   Continuous Practical (CP) Marks (100%)
                   <button onClick={() => addColumn('cp')} className="ml-2 font-bold hover:underline print:hidden text-[#000953]" title="Add Practical Assessment Column">[+]</button>
                 </th>
-                {includeProject && (
-                  <th className="p-2 border border-black font-bold text-center w-20 min-w-[70px]" rowSpan={2}>PROJECT<br/>(40%)</th>
-                )}
                 <th className="p-2 border border-black font-bold text-center w-24 min-w-[80px]" rowSpan={2}>Weighted marks</th>
-                <th className="p-2 border border-black font-bold text-center w-24 min-w-[80px]" rowSpan={2}>Remarks</th>
                 <th className="p-2 border-none font-bold text-center print:hidden w-12" rowSpan={2}></th>
               </tr>
               <tr className="bg-slate-100 print:bg-slate-100">
                 {Array.from({ length: ctCount }).map((_, i) => (
                   <th key={`cth-${i}`} className="p-1.5 border border-black text-center font-bold w-14 min-w-[54px]">
                     CT {i + 1}
-                    <span className="block text-[9px] font-semibold text-slate-600 print:text-black">(CAT {i + 1})</span>
                   </th>
                 ))}
-                {includeAssignment && (
-                  <th className="p-1.5 border border-black text-center font-bold w-16 min-w-[58px]">
-                    ASSIGN.
-                    <span className="block text-[9px] font-semibold text-slate-600 print:text-black">(100%)</span>
-                  </th>
-                )}
                 <th className="p-1.5 border border-black text-center font-bold bg-[#e5e5e5] w-20 min-w-[65px]">AVERAGE</th>
                 
                 {Array.from({ length: cpCount }).map((_, i) => (
@@ -957,16 +844,8 @@ export function AssessmentMarksSheet() {
             </thead>
             <tbody>
               {rows.map((row, rowIdx) => {
-                const hasTheoryScores =
-                  row.ctScores.some(s => s !== "" && !isNaN(Number(s))) ||
-                  (includeAssignment && row.assignmentScore !== undefined && row.assignmentScore !== "" && !isNaN(Number(row.assignmentScore)));
-                const hasScores = hasTheoryScores || 
-                                  row.cpScores.some(s => s !== "" && !isNaN(Number(s))) || 
-                                  (includeProject && row.projectScore !== undefined && row.projectScore !== "");
-                const practicalFloor = level <= 4 ? 40 : level === 5 ? 30 : 30; // Level 3-4: 40%, Level 5-6: 30%
-                const verdict = hasScores
-                  ? (row.weightedMark >= 50 && row.cpAvg >= practicalFloor ? "COMPETENT" : "NOT YET COMPETENT")
-                  : "";
+                const hasTheoryScores = row.ctScores.some(s => s !== "" && !isNaN(Number(s)));
+                const hasScores = hasTheoryScores || row.cpScores.some(s => s !== "" && !isNaN(Number(s)));
 
                 return (
                   <tr key={row.id} className="hover:bg-slate-50 transition-colors">
@@ -1024,25 +903,6 @@ export function AssessmentMarksSheet() {
                       </td>
                     ))}
 
-                    {/* Assignment Score (if enabled) */}
-                    {includeAssignment && (
-                      <td className="p-1 border border-black text-center">
-                        <input
-                          id={`cell-${rowIdx}-assignment`}
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="1"
-                          placeholder=""
-                          readOnly={isLocked}
-                          className="w-full h-7 outline-none text-center bg-transparent font-bold text-xs text-black focus:bg-amber-50 rounded disabled:opacity-50 print:border-none"
-                          value={row.assignmentScore !== undefined ? row.assignmentScore : ""}
-                          onChange={(e) => handleAssignmentScoreChange(row.id, e.target.value)}
-                          onKeyDown={(e) => handleMatrixKeyDown(e, rowIdx, "assignment")}
-                        />
-                      </td>
-                    )}
-
                     <td className="p-1.5 border border-black text-center font-bold bg-[#e5e5e5] text-black text-xs">
                       {hasTheoryScores ? Math.round(row.ctAvg) : ""}
                     </td>
@@ -1068,38 +928,10 @@ export function AssessmentMarksSheet() {
                     <td className="p-1.5 border border-black text-center font-bold bg-[#e5e5e5] text-black text-xs">
                       {row.cpScores.some(s => s !== "" && !isNaN(Number(s))) ? Math.round(row.cpAvg) : ""}
                     </td>
-
-                    {/* Project Score (if enabled) */}
-                    {includeProject && (
-                      <td className="p-1 border border-black text-center">
-                        <input 
-                          id={`cell-${rowIdx}-project`}
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="1"
-                          placeholder=""
-                          readOnly={isLocked}
-                          className="w-full h-7 outline-none text-center bg-transparent font-bold text-xs text-black focus:bg-amber-50 rounded disabled:opacity-50 print:border-none" 
-                          value={row.projectScore !== undefined ? row.projectScore : ""} 
-                          onChange={(e) => handleProjectScoreChange(row.id, e.target.value)}
-                          onKeyDown={(e) => handleMatrixKeyDown(e, rowIdx, "project")}
-                        />
-                      </td>
-                    )}
                     
                     {/* Weighted Marks */}
                     <td className="p-1.5 border border-black text-center font-bold bg-[#e5e5e5] text-black text-xs">
                       {hasScores ? row.weightedMark : ""}
-                    </td>
-
-                    {/* Remarks / Verdict */}
-                    <td className="p-1.5 border border-black text-center font-bold text-xs">
-                      {verdict ? (
-                        <span className={verdict === "COMPETENT" ? "text-emerald-700 print:text-black" : "text-amber-700 print:text-black"}>
-                          {verdict}
-                        </span>
-                      ) : ""}
                     </td>
                     
                     {/* Action buttons (print:hidden) */}
@@ -1141,96 +973,70 @@ export function AssessmentMarksSheet() {
               <li>To arrive at Weighted marks, use Average marks for Theory and Practical as per the ratio below depending on the level of the course:</li>
             </ol>
             <div className="mt-2 space-y-0.5 font-bold ml-5 text-black">
-              <p className={level === 6 ? "bg-amber-100/80 px-2 py-0.5 rounded inline-block" : ""}>
-                Level 6 = ( Theory × 0.5) + ( Practical × 0.5) {level === 6 ? "◄ [Active Course Level]" : ""}
-              </p>
-              <br />
-              <p className={level === 5 ? "bg-amber-100/80 px-2 py-0.5 rounded inline-block" : ""}>
-                Level 5 = ( Theory × 0.4) + ( Practical × 0.6) {level === 5 ? "◄ [Active Course Level]" : ""}
-              </p>
-              <br />
-              <p className={level === 4 ? "bg-amber-100/80 px-2 py-0.5 rounded inline-block" : ""}>
-                Level 4 = ( Theory × 0.3) + ( Practical × 0.7) {level === 4 ? "◄ [Active Course Level]" : ""}
-              </p>
-              <br />
-              <p className={level === 3 ? "bg-amber-100/80 px-2 py-0.5 rounded inline-block" : ""}>
-                Level 3 = ( Theory × 0.2) + ( Practical × 0.8) {level === 3 ? "◄ [Active Course Level]" : ""}
-              </p>
+              <p>Level 6 = ( Theory × 0.5) + ( Practical × 0.5)</p>
+              <p>Level 5 = ( Theory × 0.4) + ( Practical × 0.6)</p>
+              <p>Level 4 = ( Theory × 0.3) + ( Practical × 0.7)</p>
+              <p>Level 3 = ( Theory × 0.2) + ( Practical × 0.8)</p>
             </div>
           </div>
 
           {/* Official TVET CDACC Approval Block */}
-          <div className="pt-4 border-t-2 border-black">
-            <div className="font-bold text-[12px] mb-2 uppercase">Approved by:</div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-[12px]">
-              
-              {/* 1. Internal Assessor */}
-              <div className="border border-black p-3 rounded-sm space-y-2.5 bg-slate-50/50 print:bg-white">
-                <div className="font-bold border-b border-black pb-1">1. Internal Assessor</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="font-bold whitespace-nowrap">Name:</span>
-                  <input 
-                    value={assessorName}
-                    onChange={(e) => setAssessorName(e.target.value)}
-                    className="font-bold border-b border-dotted border-black outline-none bg-transparent w-full px-1 text-xs"
-                  />
-                </div>
-                <div className="flex items-baseline gap-1 pt-1">
-                  <span className="font-bold whitespace-nowrap">Signature:</span>
-                  <span className="border-b border-black flex-1 text-center font-serif italic text-xs">
-                    {isLocked ? "Alexander Kinoti" : "..................................."}
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-1 pt-1">
-                  <span className="font-bold whitespace-nowrap">Date:</span>
-                  <input 
-                    value={poeDate}
-                    onChange={(e) => setPoeDate(e.target.value)}
-                    className="border-b border-dotted border-black outline-none bg-transparent w-full px-1 text-xs"
-                  />
-                </div>
+          <div className="pt-3 space-y-2.5 text-[12px] text-black">
+            <div className="font-bold">Approved by:</div>
+            <div className="flex flex-wrap items-baseline justify-between gap-4">
+              <div className="flex items-baseline gap-2">
+                <span className="font-bold whitespace-nowrap">1. Name of Internal Assessor:</span>
+                <input
+                  value={assessorName}
+                  onChange={(e) => setAssessorName(e.target.value)}
+                  className="font-bold border-b border-dotted border-black outline-none bg-transparent w-56 px-1 text-xs"
+                />
               </div>
-
-              {/* 2. Internal Verifier */}
-              <div className="border border-black p-3 rounded-sm space-y-2.5 bg-slate-50/50 print:bg-white">
-                <div className="font-bold border-b border-black pb-1">2. Internal Verifier</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="font-bold whitespace-nowrap">Name:</span>
-                  <input 
-                    value={verifierName}
-                    onChange={(e) => setVerifierName(e.target.value)}
-                    className="font-bold border-b border-dotted border-black outline-none bg-transparent w-full px-1 text-xs"
-                  />
-                </div>
-                <div className="flex items-baseline gap-1 pt-1">
-                  <span className="font-bold whitespace-nowrap">Signature:</span>
-                  <span className="border-b border-black flex-1 text-center font-serif italic text-xs">
-                    {isLocked ? "Verified — HOD" : "..................................."}
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-1 pt-1">
-                  <span className="font-bold whitespace-nowrap">Date:</span>
-                  <input 
-                    value={poeDate}
-                    onChange={(e) => setPoeDate(e.target.value)}
-                    className="border-b border-dotted border-black outline-none bg-transparent w-full px-1 text-xs"
-                  />
-                </div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-bold whitespace-nowrap">Signature:</span>
+                <span className="border-b border-dotted border-black w-48 text-center font-serif italic text-xs">
+                  {isLocked ? "Alexander Kinoti" : "........................"}
+                </span>
               </div>
-
-              {/* 3. Institutional Stamp */}
-              <div className="border border-black p-3 rounded-sm flex flex-col justify-between bg-slate-50/50 print:bg-white min-h-[110px]">
-                <div className="font-bold border-b border-black pb-1">Institutional Stamp</div>
-                <div className="border-2 border-dashed border-slate-400 print:border-black rounded flex-1 flex flex-col items-center justify-center p-2 text-center my-1 min-h-[50px]">
-                  <span className="text-[10px] text-slate-500 print:text-black font-semibold uppercase tracking-wider">
-                    Official Assessment Center Rubber Stamp
-                  </span>
-                </div>
-                <div className="text-[10px] text-right text-slate-600 print:text-black font-bold">
-                  Code: {centerCode}
-                </div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-bold whitespace-nowrap">Date:</span>
+                <input
+                  value={poeDate}
+                  onChange={(e) => setPoeDate(e.target.value)}
+                  className="border-b border-dotted border-black outline-none bg-transparent w-36 px-1 text-xs"
+                />
               </div>
+            </div>
 
+            <div className="flex flex-wrap items-baseline justify-between gap-4">
+              <div className="flex items-baseline gap-2">
+                <span className="font-bold whitespace-nowrap">2. Name of Internal Verifier:</span>
+                <input
+                  value={verifierName}
+                  onChange={(e) => setVerifierName(e.target.value)}
+                  className="font-bold border-b border-dotted border-black outline-none bg-transparent w-56 px-1 text-xs"
+                />
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-bold whitespace-nowrap">Signature:</span>
+                <span className="border-b border-dotted border-black w-36 text-center font-serif italic text-xs">
+                  {isLocked ? "Verified — HOD" : "........................"}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-bold whitespace-nowrap">Date:</span>
+                <input
+                  value={poeDate}
+                  onChange={(e) => setPoeDate(e.target.value)}
+                  className="border-b border-dotted border-black outline-none bg-transparent w-32 px-1 text-xs"
+                />
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-bold whitespace-nowrap">Institutional stamp:</span>
+                <span className="border-b border-dotted border-black w-36 text-center text-xs">
+                  ........................
+                </span>
+              </div>
             </div>
           </div>
         </div>

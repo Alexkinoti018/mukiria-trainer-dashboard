@@ -1121,7 +1121,7 @@ export default function ClassRegister() {
                           <input
                             type="text"
                             value={metadata.lecturerComment}
-                            onChange={(e) => setMetadata({ ...metadata, lecturerComment: e.target.value })}
+                            onChange={(e) => handleCommentChange("lecturerComment", e.target.value)}
                             placeholder="Weekly remark..."
                             className="w-full h-full bg-transparent outline-none text-[10px] font-medium"
                           />
@@ -1147,7 +1147,7 @@ export default function ClassRegister() {
                           <input
                             type="text"
                             value={metadata.hodComment}
-                            onChange={(e) => setMetadata({ ...metadata, hodComment: e.target.value })}
+                            onChange={(e) => handleCommentChange("hodComment", e.target.value)}
                             placeholder="HOD remark..."
                             className="w-full h-full bg-transparent outline-none text-[10px] font-medium"
                           />

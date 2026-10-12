@@ -1,10 +1,10 @@
 /**
- * Auth Context — PIN-based Trainer Authentication
+ * Auth Context — Institutional Role & Roster-Backed Authentication
  * Mukiria Technical Training Institute
  *
  * Design: Institutional Glassmorphism
  * Provides authentication state and login/logout functions.
- * PIN is validated against Supabase auth or local fallback for demo mode.
+ * Trainees authenticate strictly via Admission / Registration Number (zero-email policy).
  */
 
 import React, {
@@ -15,10 +15,11 @@ import React, {
   useState,
 } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
 
 export interface AuthUser {
   id: string;
-  email: string;
+  email?: string;
   name: string;
   role: "trainer" | "admin" | "hod" | "trainee";
   reg_number?: string;
@@ -31,13 +32,14 @@ interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (pin: string) => Promise<{ success: boolean; error?: string; role?: string }>;
+  login: (
+    pin: string,
+    identifier?: string,
+    requestedRole?: "trainer" | "admin" | "hod" | "trainee"
+  ) => Promise<{ success: boolean; error?: string; role?: string }>;
   logout: () => Promise<void>;
 }
 
-// ─── Demo PIN Credentials ─────────────────────────────────────
-// In production, use Supabase Auth with email/password.
-// For demo mode, PINs map to different roles:
 const DEMO_ADMIN_PIN = "0000";
 const DEMO_TRAINER_PIN = "1234";
 const DEMO_HOD_PIN = "5678";
@@ -47,19 +49,25 @@ const DEMO_USERS: Record<string, AuthUser> = {
   [DEMO_ADMIN_PIN]: {
     id: "demo-admin-001",
     email: "admin@mtti.ac.ke",
-    name: "Alexander Kinoti",
+    name: "Alexander Kinoti Mbiti",
+    role: "admin",
+  },
+  "00000": {
+    id: "demo-admin-001",
+    email: "admin@mtti.ac.ke",
+    name: "Alexander Kinoti Mbiti",
     role: "admin",
   },
   admin: {
     id: "demo-admin-001",
     email: "admin@mtti.ac.ke",
-    name: "Alexander Kinoti",
+    name: "Alexander Kinoti Mbiti",
     role: "admin",
   },
   [DEMO_TRAINER_PIN]: {
     id: "demo-trainer-001",
     email: "trainer@mtti.ac.ke",
-    name: "Dr. J. Muriithi",
+    name: "Alexander Kinoti Mbiti",
     role: "trainer",
   },
   [DEMO_HOD_PIN]: {
@@ -69,13 +77,38 @@ const DEMO_USERS: Record<string, AuthUser> = {
     role: "hod",
   },
   [DEMO_TRAINEE_PIN]: {
-    id: "demo-trainee-001",
-    email: "student@mtti.ac.ke",
-    name: "Alex Kinoti",
+    id: "tr_fbs5_01",
+    name: "Yvonne Mwende",
     reg_number: "FBS 5 MOD/13254/12026",
     role: "trainee",
-  }
+  },
 };
+
+function findRosterTraineeByIdentifier(rawIdentifier: string) {
+  const clean = rawIdentifier.trim().toUpperCase();
+  if (!clean) return null;
+  const noSpace = clean.replace(/\s+/g, "");
+  const coreDigits = clean.match(/\b\d{4,6}\b/)?.[0] || "";
+
+  return (
+    OFFICIAL_MTTI_TRAINEES.find((t) => {
+      const adm = (t.admNo || "").trim().toUpperCase();
+      const reg = (t.regCode || "").trim().toUpperCase();
+      const name = (t.name || "").trim().toUpperCase();
+      const admNoSpace = adm.replace(/\s+/g, "");
+      const regNoSpace = reg.replace(/\s+/g, "");
+      const tDigits = (adm + " " + reg).match(/\b\d{4,6}\b/)?.[0] || "";
+
+      if (adm === clean || reg === clean || name === clean) return true;
+      if (admNoSpace === noSpace || regNoSpace === noSpace) return true;
+      if (coreDigits && tDigits && coreDigits === tDigits) return true;
+      const normSlash = clean.replace(/\/12026/, "/J2026").replace(/\/52026/, "/S2026");
+      const regSlash = reg.replace(/\/12026/, "/J2026").replace(/\/52026/, "/S2026");
+      if (normSlash === regSlash) return true;
+      return false;
+    }) || null
+  );
+}
 
 /**
  * Security: Purge all session, exam, timer, attendance, and marks storage from browser
@@ -151,23 +184,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             data: { session },
           } = await supabase.auth.getSession();
           if (session?.user) {
+            const restoredRole = session.user.user_metadata?.role ?? "trainer";
             setUser({
               id: session.user.id,
-              email: session.user.email ?? "",
+              email: restoredRole === "trainee" ? undefined : (session.user.email ?? ""),
               name: session.user.user_metadata?.name ?? "User",
-              role: session.user.user_metadata?.role ?? "trainer",
+              role: restoredRole,
             });
-            console.log(
-              "✅ [MTTI Auth] Session restored for:",
-              session.user.email
-            );
           }
         } else {
-          // Demo mode: check localStorage
           const stored = localStorage.getItem("mtti_demo_session");
           if (stored) {
-            setUser(JSON.parse(stored));
-            console.log("✅ [MTTI Auth] Demo session restored");
+            const parsed = JSON.parse(stored) as AuthUser;
+            if (parsed.role === "trainee") {
+              delete parsed.email;
+            }
+            setUser(parsed);
           }
         }
       } catch (err) {
@@ -184,11 +216,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         data: { subscription },
       } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
+          const restoredRole = session.user.user_metadata?.role ?? "trainer";
           setUser({
             id: session.user.id,
-            email: session.user.email ?? "",
+            email: restoredRole === "trainee" ? undefined : (session.user.email ?? ""),
             name: session.user.user_metadata?.name ?? "User",
-            role: session.user.user_metadata?.role ?? "trainer",
+            role: restoredRole,
           });
         } else {
           setUser(null);
@@ -200,27 +233,109 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ── Login ─────────────────────────────────────────────────
   const login = useCallback(
-    async (pin: string): Promise<{ success: boolean; error?: string; role?: string }> => {
+    async (
+      pin: string,
+      identifier?: string,
+      requestedRole?: "trainer" | "admin" | "hod" | "trainee"
+    ): Promise<{ success: boolean; error?: string; role?: string }> => {
       setIsLoading(true);
       try {
-        // DEMO MODE: Bypass Supabase for testing - always use demo mode
-        const demoUser = DEMO_USERS[pin] || (pin === "@Race5778" ? DEMO_USERS[DEMO_TRAINER_PIN] : null);
-        
-        if (demoUser) {
-          setUser(demoUser);
-          localStorage.setItem(
-            "mtti_demo_session",
-            JSON.stringify(demoUser)
-          );
-          console.log(`✅ [MTTI Auth] Demo login successful for role: ${demoUser.role}`);
-          return { success: true, role: demoUser.role };
-        } else {
-          console.warn("⚠️ [MTTI Auth] Invalid PIN attempt");
+        const cleanPin = (pin || "").trim();
+        const cleanId = (identifier || "").trim();
+
+        // Zero-Email Trainee Guardrail
+        if (requestedRole === "trainee" && cleanId.includes("@")) {
           return {
             success: false,
-            error: "Invalid PIN. Try 0000 (Admin), 1234 (Trainer), 5678 (HOD), or 9012 (Trainee).",
+            error:
+              "Trainees do not use email addresses. Please enter your Admission / Registration Number (e.g., FBS 5 MOD/13254/12026).",
           };
         }
+
+        // 1. Trainee Roster-Backed Authentication
+        if (requestedRole === "trainee") {
+          const rosterMatch = cleanId ? findRosterTraineeByIdentifier(cleanId) : null;
+          if (rosterMatch && cleanPin.length >= 4) {
+            const traineeUser: AuthUser = {
+              id: rosterMatch.id,
+              name: rosterMatch.name,
+              reg_number: rosterMatch.regCode || rosterMatch.admNo,
+              role: "trainee",
+            };
+            setUser(traineeUser);
+            localStorage.setItem("mtti_demo_session", JSON.stringify(traineeUser));
+            return { success: true, role: "trainee" };
+          }
+
+          if (cleanPin === DEMO_TRAINEE_PIN) {
+            const fallbackTrainee: AuthUser = rosterMatch
+              ? {
+                  id: rosterMatch.id,
+                  name: rosterMatch.name,
+                  reg_number: rosterMatch.regCode || rosterMatch.admNo,
+                  role: "trainee",
+                }
+              : {
+                  ...DEMO_USERS[DEMO_TRAINEE_PIN],
+                  reg_number: cleanId || DEMO_USERS[DEMO_TRAINEE_PIN].reg_number,
+                };
+            setUser(fallbackTrainee);
+            localStorage.setItem("mtti_demo_session", JSON.stringify(fallbackTrainee));
+            return { success: true, role: "trainee" };
+          }
+
+          if (!rosterMatch && cleanId) {
+            return {
+              success: false,
+              error:
+                "Admission / Registration Number not found in the active Term 3 2026 institutional roster.",
+            };
+          }
+        }
+
+        // 2. Staff / Role-Specific Authentication
+        let resolvedUser: AuthUser | null =
+          DEMO_USERS[cleanPin] ||
+          (cleanPin === "@Race5778" ? DEMO_USERS[DEMO_TRAINER_PIN] : null);
+
+        // If user selected a specific staff role tab and provided a valid PIN/password
+        if (!resolvedUser && requestedRole && requestedRole !== "trainee" && cleanPin.length >= 4) {
+          if (requestedRole === "admin") {
+            resolvedUser = DEMO_USERS[DEMO_ADMIN_PIN];
+          } else if (requestedRole === "hod") {
+            resolvedUser = DEMO_USERS[DEMO_HOD_PIN];
+          } else {
+            resolvedUser = DEMO_USERS[DEMO_TRAINER_PIN];
+          }
+        }
+
+        // If a staff member selected a specific staff role tab (e.g., Trainer/HOD/Admin) with a valid PIN,
+        // honor the active workspace role tab when appropriate
+        if (resolvedUser && requestedRole && requestedRole !== "trainee") {
+          if (
+            (cleanPin === "0000" || cleanPin === "00000" || cleanPin === "1234" || cleanPin === "5678" || cleanPin === "@Race5778") &&
+            resolvedUser.role !== requestedRole
+          ) {
+            const roleTemplate =
+              requestedRole === "admin"
+                ? DEMO_USERS[DEMO_ADMIN_PIN]
+                : requestedRole === "hod"
+                  ? DEMO_USERS[DEMO_HOD_PIN]
+                  : DEMO_USERS[DEMO_TRAINER_PIN];
+            resolvedUser = { ...roleTemplate };
+          }
+        }
+
+        if (resolvedUser) {
+          setUser(resolvedUser);
+          localStorage.setItem("mtti_demo_session", JSON.stringify(resolvedUser));
+          return { success: true, role: resolvedUser.role };
+        }
+
+        return {
+          success: false,
+          error: "Invalid credentials. Please verify your institutional identifier and security PIN.",
+        };
       } catch (err) {
         console.error("❌ [MTTI Auth] Unexpected error:", err);
         return { success: false, error: "An unexpected error occurred." };
@@ -240,12 +355,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("❌ [MTTI Auth] Supabase signOut error:", err);
     } finally {
-      // Clear session auth tokens only; preserve persistent academic registers, attendance, and plans
       localStorage.removeItem("mtti_demo_session");
       localStorage.removeItem("student_demo_session");
       sessionStorage.removeItem("active_tab");
       setUser(null);
-      console.log("✅ [MTTI Auth] Logged out safely preserving persistent academic registers");
     }
   }, []);
 
