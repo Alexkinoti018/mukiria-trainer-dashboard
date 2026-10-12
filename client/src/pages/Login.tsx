@@ -1,74 +1,17 @@
 /*
- * Login Page — Institutional Portal Access
- * Mukiria Technical Training Institute
- * Design: Modern & Minimalist Institutional Glassmorphism
- * Serves Trainee, Trainer, HOD, and Administrator access points.
+ * Login Page — Administrator Authentication
+ * Design: Modern & Minimalist — clean layout, professional colors, minimal ornamentation
  */
 
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { 
-  AlertCircle, 
-  Eye, 
-  EyeOff, 
-  Loader2, 
-  GraduationCap, 
-  BookOpen, 
-  Building2, 
-  ShieldCheck, 
-  ArrowRight 
-} from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
-interface RoleOption {
-  id: "trainee" | "trainer" | "hod" | "admin";
-  label: string;
-  pin: string;
-  icon: React.ElementType;
-  description: string;
-  targetPath: string;
-}
-
-const ROLE_OPTIONS: RoleOption[] = [
-  {
-    id: "trainee",
-    label: "Trainee",
-    pin: "9012",
-    icon: GraduationCap,
-    description: "Online Exams, Results & Continuous Evidence Submission",
-    targetPath: "/trainee/dashboard",
-  },
-  {
-    id: "trainer",
-    label: "Trainer",
-    pin: "1234",
-    icon: BookOpen,
-    description: "Learning Plans, Session Plans, Class Register & Assessment Grading",
-    targetPath: "/trainer/dashboard",
-  },
-  {
-    id: "hod",
-    label: "HOD",
-    pin: "5678",
-    icon: Building2,
-    description: "Departmental Quality Assurance, Compliance & Regulatory Audits",
-    targetPath: "/hod/dashboard",
-  },
-  {
-    id: "admin",
-    label: "Admin",
-    pin: "0000",
-    icon: ShieldCheck,
-    description: "System Command Center, Roster Ingestion & Database Diagnostics",
-    targetPath: "/admin",
-  },
-];
-
 export default function Login() {
-  const [selectedRole, setSelectedRole] = useState<RoleOption["id"]>("trainer");
-  const [password, setPassword] = useState("1234");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,12 +32,6 @@ export default function Login() {
     }
   }, [isAuthenticated, user, navigate]);
 
-  const handleRoleSelect = (role: RoleOption) => {
-    setSelectedRole(role.id);
-    setPassword(role.pin);
-    setError("");
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password.trim()) {
@@ -107,7 +44,7 @@ export default function Login() {
     const result = await login(password);
     if (result.success) {
       toast.success("Welcome back!", {
-        description: "Redirecting to your institutional portal...",
+        description: "Redirecting to portal...",
       });
       
       // Route based on role
@@ -127,90 +64,47 @@ export default function Login() {
     setIsSubmitting(false);
   };
 
-  const activeRoleConfig = ROLE_OPTIONS.find((r) => r.id === selectedRole) || ROLE_OPTIONS[1];
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       {/* Main container */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-lg"
+        className="w-full max-w-md"
       >
         {/* Card */}
-        <div className="card-minimal p-6 sm:p-8 space-y-6 shadow-xl border border-border/60 backdrop-blur-md">
+        <div className="card-minimal p-8 space-y-6">
           {/* Header */}
           <div className="text-center space-y-2">
-            <div className="flex justify-center mb-3">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center p-2.5 shadow-sm">
-                <img
-                  src="/mtti-logo.jpg"
-                  alt="Mukiria TTI Crest"
-                  className="w-full h-full object-contain rounded"
-                  onError={(e) => {
-                    // Fallback to SVG shield if logo image fails to load
-                    (e.target as HTMLElement).style.display = "none";
-                  }}
-                />
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-primary"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">
-              Institutional Portal Access
+            <h1 className="text-2xl font-semibold text-foreground">
+              Administrator Access
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground font-medium">
-              Mukiria Technical Training Institute — Academic Management System
-            </p>
-          </div>
-
-          {/* Role Selector Tabs */}
-          <div className="space-y-2">
-            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center">
-              Select Portal Destination
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {ROLE_OPTIONS.map((role) => {
-                const Icon = role.icon;
-                const isSelected = selectedRole === role.id;
-                return (
-                  <button
-                    key={role.id}
-                    type="button"
-                    onClick={() => handleRoleSelect(role)}
-                    className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all text-center gap-1.5 ${
-                      isSelected
-                        ? "bg-primary text-primary-foreground border-primary shadow-sm font-semibold scale-[1.02]"
-                        : "bg-muted/40 text-muted-foreground hover:bg-muted/80 border-border/60 hover:text-foreground"
-                    }`}
-                  >
-                    <Icon className={`w-4 h-4 ${isSelected ? "text-primary-foreground" : "text-primary"}`} />
-                    <span className="text-xs">{role.label}</span>
-                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
-                      isSelected ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
-                    }`}>
-                      {role.pin}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-[11px] text-muted-foreground text-center italic mt-1.5 px-2">
-              {activeRoleConfig.description}
+            <p className="text-sm text-muted-foreground">
+              Mukiria Technical Training Institute
             </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* PIN field */}
+            {/* Password field */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-foreground">
-                  Security PIN / Password
-                </label>
-                <span className="text-[11px] text-primary font-medium">
-                  {activeRoleConfig.label} Access ({activeRoleConfig.pin})
-                </span>
-              </div>
+              <label className="block text-sm font-medium text-foreground">
+                Password
+              </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -219,8 +113,8 @@ export default function Login() {
                     setPassword(e.target.value);
                     setError("");
                   }}
-                  placeholder="Enter 4-digit PIN"
-                  className="input-field pr-10 text-center tracking-widest font-mono text-base font-semibold"
+                  placeholder="Enter your password"
+                  className="input-field pr-10"
                   disabled={isSubmitting}
                   autoFocus
                 />
@@ -229,7 +123,6 @@ export default function Login() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   tabIndex={-1}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -245,7 +138,7 @@ export default function Login() {
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
-                className="flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-sm"
+                className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm"
               >
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
@@ -256,30 +149,23 @@ export default function Login() {
             <button
               type="submit"
               disabled={isSubmitting || !password.trim()}
-              className="btn-primary w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl shadow-md transition-all"
+              className="btn-primary w-full flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Authenticating...
+                  Signing in...
                 </>
               ) : (
-                <>
-                  <span>Enter {activeRoleConfig.label} Portal</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
+                "Sign In"
               )}
             </button>
           </form>
 
-          {/* Quick Info & Reference */}
-          <div className="pt-2 border-t border-border/50 text-center space-y-1">
-            <p className="text-[11px] text-muted-foreground">
-              Institutional Term: <strong>Term 3, 2026</strong> (07/09/2026 – 13/11/2026)
-            </p>
-            <p className="text-[10px] text-muted-foreground/80 font-mono">
-              Admin: 0000 | Trainer: 1234 | HOD: 5678 | Trainee: 9012
-            </p>
+          {/* Footer note */}
+          <div className="text-xs text-center text-muted-foreground space-y-1">
+            <p>Demo PINs:</p>
+            <p>Admin: <strong>0000</strong> | Trainer: <strong>1234</strong> | HOD: <strong>5678</strong> | Trainee: <strong>9012</strong></p>
           </div>
         </div>
       </motion.div>

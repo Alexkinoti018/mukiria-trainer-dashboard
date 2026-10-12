@@ -111,25 +111,13 @@ export default function HODLayout({
             {user?.role || "HOD"}
           </span>
         </div>
-        <div className="space-y-1">
-          <button
-            onClick={() => navigate("/trainer/dashboard")}
-            className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 transition-all duration-200"
-          >
-            <div className="flex items-center gap-2">
-              <LayoutDashboard className="w-4 h-4 shrink-0" />
-              <span>Trainer Workspace</span>
-            </div>
-            <span className="text-[10px] font-mono">&rarr;</span>
-          </button>
-          <button
-            onClick={() => navigate("/trainee/dashboard")}
-            className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-all duration-200"
-          >
-            <span>Trainee Portal Preview</span>
-            <span className="text-[10px] font-mono text-primary">&rarr;</span>
-          </button>
-        </div>
+        <button
+          onClick={() => navigate("/trainer/dashboard")}
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 transition-all duration-200"
+        >
+          <LayoutDashboard className="w-4 h-4 shrink-0" />
+          <span>Trainer Workspace</span>
+        </button>
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-200"
