@@ -147,7 +147,6 @@ export interface Submission {
   assessment_type?: string;
   student_name: string;
   reg_number: string;
-  student_email?: string;
   section_a: StudentAnswer[];
   section_b: StudentAnswer[];
   status: "pending" | "graded" | "reviewed" | "submitted" | "in_progress";

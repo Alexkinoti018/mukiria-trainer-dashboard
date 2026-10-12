@@ -2,7 +2,7 @@
  * Candidate Portal — Student Exam Interface
  * Design: Institutional Glassmorphism (lighter variant for students)
  * Features: Dynamic exam loader, offline-resilient timer, secure submission
- * URL: /exam?unitCode=COMP-204
+ * URL: /exam?unitCode=061155101A-WA1
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";

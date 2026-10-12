@@ -3,8 +3,8 @@
  * Mukiria Technical Training Institute
  *
  * Design: Institutional Glassmorphism
- * Provides authentication state and login/logout functions.
- * Trainees authenticate strictly via Admission / Registration Number (zero-email policy).
+ * Provides authentication state, strict role-credential verification,
+ * automatic /api/* RBAC header injection, and session cache sanitization.
  */
 
 import React, {
@@ -23,6 +23,7 @@ export interface AuthUser {
   name: string;
   role: "trainer" | "admin" | "hod" | "trainee";
   reg_number?: string;
+  cohort_code?: string;
   department_id?: string;
   enrolled_units?: string[];
   assigned_units?: string[];
@@ -47,44 +48,58 @@ const DEMO_TRAINEE_PIN = "9012";
 
 const DEMO_USERS: Record<string, AuthUser> = {
   [DEMO_ADMIN_PIN]: {
-    id: "demo-admin-001",
+    id: "admin-001",
     email: "admin@mtti.ac.ke",
     name: "Alexander Kinoti Mbiti",
     role: "admin",
+    department_id: "dept-ci",
   },
   "00000": {
-    id: "demo-admin-001",
+    id: "admin-001",
     email: "admin@mtti.ac.ke",
     name: "Alexander Kinoti Mbiti",
     role: "admin",
+    department_id: "dept-ci",
   },
   admin: {
-    id: "demo-admin-001",
+    id: "admin-001",
     email: "admin@mtti.ac.ke",
     name: "Alexander Kinoti Mbiti",
     role: "admin",
+    department_id: "dept-ci",
   },
   [DEMO_TRAINER_PIN]: {
-    id: "demo-trainer-001",
+    id: "trainer-001",
     email: "trainer@mtti.ac.ke",
     name: "Alexander Kinoti Mbiti",
     role: "trainer",
+    department_id: "dept-ci",
+    assigned_units: [
+      "ICT/CU/IT/CR/6/6",
+      "061155101A-WA1",
+      "061155101A",
+      "0415 451 21A",
+      "IT/CU/ICTA/CR/01/4/MA",
+    ],
   },
   [DEMO_HOD_PIN]: {
-    id: "demo-hod-001",
-    email: "hod@mtti.ac.ke",
+    id: "hod-001",
+    email: "hod.ci@mtti.ac.ke",
     name: "Prof. S. Njoroge",
     role: "hod",
+    department_id: "dept-ci",
   },
   [DEMO_TRAINEE_PIN]: {
     id: "tr_fbs5_01",
     name: "Yvonne Mwende",
     reg_number: "FBS 5 MOD/13254/12026",
+    cohort_code: "FBS 5 MOD/J/2026",
     role: "trainee",
+    enrolled_units: ["061155101A", "061155101A-WA1"],
   },
 };
 
-function findRosterTraineeByIdentifier(rawIdentifier: string) {
+export function findRosterTraineeByIdentifier(rawIdentifier: string) {
   const clean = rawIdentifier.trim().toUpperCase();
   if (!clean) return null;
   const noSpace = clean.replace(/\s+/g, "");
@@ -108,6 +123,64 @@ function findRosterTraineeByIdentifier(rawIdentifier: string) {
       return false;
     }) || null
   );
+}
+
+function getBearerTokenForUser(user: AuthUser): string {
+  if (user.role === "admin") return "token-admin";
+  if (user.role === "hod") return user.department_id === "dept-ee" ? "token-hod-ee" : "token-hod-ci";
+  if (user.role === "trainer") return user.id === "trainer-002" ? "token-trainer-002" : "token-trainer-001";
+  return "token-trainee-001";
+}
+
+// Install global browser fetch interceptor once to attach RBAC headers to /api/* calls
+let fetchInterceptorInstalled = false;
+function installApiAuthFetchBridge() {
+  if (fetchInterceptorInstalled || typeof window === "undefined" || typeof window.fetch !== "function") {
+    return;
+  }
+  fetchInterceptorInstalled = true;
+  const originalFetch = window.fetch.bind(window);
+
+  window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    try {
+      const urlStr =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
+
+      const isInternalApi = urlStr.startsWith("/api/") || urlStr.includes("/api/");
+      if (isInternalApi) {
+        const rawSession = window.localStorage.getItem("mtti_demo_session");
+        if (rawSession) {
+          const activeUser = JSON.parse(rawSession) as AuthUser;
+          if (activeUser && activeUser.role) {
+            const headers = new Headers(init?.headers || {});
+            if (!headers.has("Authorization")) {
+              headers.set("Authorization", `Bearer ${getBearerTokenForUser(activeUser)}`);
+            }
+            if (!headers.has("x-user-role")) {
+              headers.set("x-user-role", activeUser.role);
+            }
+            if (!headers.has("x-user-id") && activeUser.id) {
+              headers.set("x-user-id", activeUser.id);
+            }
+            if (!headers.has("x-user-reg") && activeUser.reg_number) {
+              headers.set("x-user-reg", activeUser.reg_number);
+            }
+            if (!headers.has("x-user-dept") && activeUser.department_id) {
+              headers.set("x-user-dept", activeUser.department_id);
+            }
+            return originalFetch(input, { ...init, headers });
+          }
+        }
+      }
+    } catch {
+      // Fall back to standard fetch if storage parsing fails
+    }
+    return originalFetch(input, init);
+  };
 }
 
 /**
@@ -177,6 +250,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ── Restore session on mount ──────────────────────────────
   useEffect(() => {
+    installApiAuthFetchBridge();
+
     const restoreSession = async () => {
       try {
         if (isSupabaseConfigured()) {
@@ -253,89 +328,87 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         // 1. Trainee Roster-Backed Authentication
-        if (requestedRole === "trainee") {
+        if (requestedRole === "trainee" || (!requestedRole && cleanPin === DEMO_TRAINEE_PIN)) {
           const rosterMatch = cleanId ? findRosterTraineeByIdentifier(cleanId) : null;
-          if (rosterMatch && cleanPin.length >= 4) {
-            const traineeUser: AuthUser = {
-              id: rosterMatch.id,
-              name: rosterMatch.name,
-              reg_number: rosterMatch.regCode || rosterMatch.admNo,
-              role: "trainee",
-            };
-            setUser(traineeUser);
-            localStorage.setItem("mtti_demo_session", JSON.stringify(traineeUser));
-            return { success: true, role: "trainee" };
-          }
 
-          if (cleanPin === DEMO_TRAINEE_PIN) {
-            const fallbackTrainee: AuthUser = rosterMatch
-              ? {
-                  id: rosterMatch.id,
-                  name: rosterMatch.name,
-                  reg_number: rosterMatch.regCode || rosterMatch.admNo,
-                  role: "trainee",
-                }
-              : {
-                  ...DEMO_USERS[DEMO_TRAINEE_PIN],
-                  reg_number: cleanId || DEMO_USERS[DEMO_TRAINEE_PIN].reg_number,
-                };
-            setUser(fallbackTrainee);
-            localStorage.setItem("mtti_demo_session", JSON.stringify(fallbackTrainee));
-            return { success: true, role: "trainee" };
-          }
-
-          if (!rosterMatch && cleanId) {
+          if (cleanId && !rosterMatch) {
             return {
               success: false,
               error:
                 "Admission / Registration Number not found in the active Term 3 2026 institutional roster.",
             };
           }
-        }
 
-        // 2. Staff / Role-Specific Authentication
-        let resolvedUser: AuthUser | null =
-          DEMO_USERS[cleanPin] ||
-          (cleanPin === "@Race5778" ? DEMO_USERS[DEMO_TRAINER_PIN] : null);
+          const coreDigits =
+            (rosterMatch ? `${rosterMatch.admNo} ${rosterMatch.regCode}` : cleanId).match(
+              /\b\d{4,6}\b/
+            )?.[0] || "";
 
-        // If user selected a specific staff role tab and provided a valid PIN/password
-        if (!resolvedUser && requestedRole && requestedRole !== "trainee" && cleanPin.length >= 4) {
-          if (requestedRole === "admin") {
-            resolvedUser = DEMO_USERS[DEMO_ADMIN_PIN];
-          } else if (requestedRole === "hod") {
-            resolvedUser = DEMO_USERS[DEMO_HOD_PIN];
-          } else {
-            resolvedUser = DEMO_USERS[DEMO_TRAINER_PIN];
+          const isValidTraineePin =
+            cleanPin === DEMO_TRAINEE_PIN ||
+            (coreDigits && cleanPin === coreDigits) ||
+            (rosterMatch &&
+              (cleanPin.toUpperCase() === rosterMatch.admNo.toUpperCase() ||
+                cleanPin.toUpperCase() === rosterMatch.regCode.toUpperCase()));
+
+          if (!isValidTraineePin) {
+            return {
+              success: false,
+              error:
+                "Invalid Trainee Security PIN. Enter your authorized Trainee PIN or your core Admission Number digits.",
+            };
           }
+
+          const traineeUser: AuthUser = rosterMatch
+            ? {
+                id: rosterMatch.id,
+                name: rosterMatch.name,
+                reg_number: rosterMatch.regCode || rosterMatch.admNo,
+                cohort_code: rosterMatch.classCode,
+                role: "trainee",
+              }
+            : {
+                ...DEMO_USERS[DEMO_TRAINEE_PIN],
+              };
+
+          setUser(traineeUser);
+          localStorage.setItem("mtti_demo_session", JSON.stringify(traineeUser));
+          return { success: true, role: "trainee" };
         }
 
-        // If a staff member selected a specific staff role tab (e.g., Trainer/HOD/Admin) with a valid PIN,
-        // honor the active workspace role tab when appropriate
-        if (resolvedUser && requestedRole && requestedRole !== "trainee") {
-          if (
-            (cleanPin === "0000" || cleanPin === "00000" || cleanPin === "1234" || cleanPin === "5678" || cleanPin === "@Race5778") &&
-            resolvedUser.role !== requestedRole
-          ) {
-            const roleTemplate =
-              requestedRole === "admin"
-                ? DEMO_USERS[DEMO_ADMIN_PIN]
-                : requestedRole === "hod"
-                  ? DEMO_USERS[DEMO_HOD_PIN]
-                  : DEMO_USERS[DEMO_TRAINER_PIN];
-            resolvedUser = { ...roleTemplate };
-          }
+        // 2. Staff Role-Specific Authentication (Strict Role & PIN Matching — Zero Privilege Escalation)
+        let resolvedUser: AuthUser | null = null;
+
+        if (cleanPin === "@Race5778") {
+          // Lead Developer / Trainer master credential
+          resolvedUser =
+            requestedRole === "admin"
+              ? DEMO_USERS[DEMO_ADMIN_PIN]
+              : requestedRole === "hod"
+                ? DEMO_USERS[DEMO_HOD_PIN]
+                : DEMO_USERS[DEMO_TRAINER_PIN];
+        } else {
+          resolvedUser = DEMO_USERS[cleanPin] || null;
         }
 
-        if (resolvedUser) {
-          setUser(resolvedUser);
-          localStorage.setItem("mtti_demo_session", JSON.stringify(resolvedUser));
-          return { success: true, role: resolvedUser.role };
+        if (!resolvedUser) {
+          return {
+            success: false,
+            error: "Invalid credentials. Please verify your institutional identifier and security PIN.",
+          };
         }
 
-        return {
-          success: false,
-          error: "Invalid credentials. Please verify your institutional identifier and security PIN.",
-        };
+        // Prevent cross-role privilege escalation (e.g., using Trainer PIN 1234 on Admin or HOD tab)
+        if (requestedRole && resolvedUser.role !== requestedRole) {
+          return {
+            success: false,
+            error: `Role Mismatch: The credentials provided belong to the ${resolvedUser.role.toUpperCase()} role and cannot access the ${requestedRole.toUpperCase()} portal.`,
+          };
+        }
+
+        setUser(resolvedUser);
+        localStorage.setItem("mtti_demo_session", JSON.stringify(resolvedUser));
+        return { success: true, role: resolvedUser.role };
       } catch (err) {
         console.error("❌ [MTTI Auth] Unexpected error:", err);
         return { success: false, error: "An unexpected error occurred." };

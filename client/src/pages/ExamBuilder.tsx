@@ -314,8 +314,8 @@ export default function ExamBuilder() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          unit_code: unitCode || "COMP-204",
-          course_name: courseName || "Software Engineering",
+          unit_code: unitCode || "061155101A-WA1",
+          course_name: courseName || "ICT Technician Level 5",
           unit_name: unitName,
           class_code: classCode,
           series,

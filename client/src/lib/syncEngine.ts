@@ -301,7 +301,6 @@ class SyncEngine {
         unit_code: sub.unit_code,
         student_name: sub.student_name,
         reg_number: sub.reg_number,
-        student_email: sub.student_email || null,
         section_a: sub.section_a,
         section_b: sub.section_b,
         status: sub.status === "draft" ? "pending" : sub.status,

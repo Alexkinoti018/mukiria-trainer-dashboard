@@ -20,7 +20,6 @@ export interface OfflineSubmission {
   unit_code: string;
   student_name: string;
   reg_number: string;
-  student_email?: string;
   section_a: any[];
   section_b: any[];
   status: "draft" | "submitted" | "pending" | "graded" | "reviewed";

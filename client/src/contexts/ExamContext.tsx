@@ -179,7 +179,7 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     if (!user) return [];
     if (user.role === "trainee") {
       return allSubmissions.filter(
-        (s) => s.reg_number === user.reg_number || s.student_email === user.email || s.trainee_id === user.id
+        (s) => s.reg_number === user.reg_number || s.trainee_id === user.id
       );
     }
     return allSubmissions;

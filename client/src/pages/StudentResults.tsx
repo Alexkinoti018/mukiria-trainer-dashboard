@@ -34,7 +34,6 @@ import { toast } from "sonner";
 import type { Submission } from "@/lib/supabase";
 
 interface StudentSession {
-  email: string;
   name: string;
   reg_number: string;
 }
@@ -68,7 +67,6 @@ export default function StudentResults() {
         map.set(key, {
           reg_number: reg,
           name: sub.student_name || "Candidate",
-          email: `${reg.split("/")[0].toLowerCase()}@mtti.ac.ke`,
           submissionCount: 1,
         });
       }
@@ -82,7 +80,6 @@ export default function StudentResults() {
         map.set(key, {
           reg_number: reg,
           name: t.name,
-          email: `${reg.split("/")[0].toLowerCase()}@mtti.ac.ke`,
           submissionCount: 0,
         });
       }
@@ -95,7 +92,6 @@ export default function StudentResults() {
     // 1. If authenticated as a trainee in AuthContext, use their identity immediately
     if (user && user.role === "trainee") {
       const traineeCandidate: StudentSession = {
-        email: user.email || "trainee@mtti.ac.ke",
         name: user.name || "Nthiga Gakii Doris",
         reg_number: user.reg_number || "14179/S2026",
       };
@@ -117,7 +113,6 @@ export default function StudentResults() {
         }
       }
       const firstWithSubs = availableCandidates[0] || {
-        email: "doris@mtti.ac.ke",
         name: "Nthiga Gakii Doris",
         reg_number: "14179/S2026",
       };
@@ -139,7 +134,6 @@ export default function StudentResults() {
         const parsed = JSON.parse(storedPortal);
         if (parsed?.reg_number) {
           setSession({
-            email: parsed.email || `${parsed.reg_number}@mtti.ac.ke`,
             name: parsed.name || "Candidate",
             reg_number: parsed.reg_number,
           });
@@ -192,7 +186,7 @@ export default function StudentResults() {
     try {
       const query = lookupInput.trim().toLowerCase();
       if (!query) {
-        toast.error("Please enter your Registration Number, Name, or Email.");
+        toast.error("Please enter your Registration Number or Candidate Name.");
         return;
       }
 
@@ -200,8 +194,7 @@ export default function StudentResults() {
         (c) =>
           c.reg_number.toLowerCase() === query ||
           c.reg_number.toLowerCase().includes(query) ||
-          c.name.toLowerCase().includes(query) ||
-          c.email.toLowerCase() === query
+          c.name.toLowerCase().includes(query)
       );
 
       if (matched) {

@@ -687,32 +687,6 @@ export const MOCK_EXAMS: any = [
 
 export const MOCK_SUBMISSIONS: Submission[] = [
   {
-    id: "sub-alex-kinoti-061155101A",
-    unit_code: "061155101A-WA1",
-    student_name: "Alex Kinoti",
-    reg_number: "10525",
-    section_a: [
-      { question_id: "dl1_a1", answer: "Digital literacy is the capability to safely and effectively use digital technologies and devices to access, evaluate, and create information. Its importance in the workplace is that it enables task automation, seamless collaboration, and high workplace productivity.", marks_awarded: 2, ai_reasoning: "Clear and comprehensive definition with direct workplace relevance." },
-      { question_id: "dl1_a2", answer: "Input devices: 1. Keyboard, 2. Optical Mouse. Output devices: 1. Display Monitor, 2. Laser Printer.", marks_awarded: 4, ai_reasoning: "All four standard professional office peripherals correctly identified." },
-      { question_id: "dl1_a3", answer: "1. Save all open working files. 2. Close all active software applications. 3. Click the Start button on the taskbar, choose Power icon, and select 'Shut down'. Wait for system unit to power off before switching off monitor and wall socket.", marks_awarded: 2, ai_reasoning: "Sequence adheres to institutional safe power-down protocols." },
-      { question_id: "dl1_a4", answer: "1. Touch typing: Keeping fingers anchored on home row keys (ASDF JKL;) without looking down at keys. 2. Using keyboard shortcuts (e.g. Ctrl+C for copy, Ctrl+V for paste, Ctrl+S for saving).", marks_awarded: 2, ai_reasoning: "Correct identification of ergonomics, finger placement, and shortcut keys." },
-      { question_id: "dl1_a5", answer: "1. Create folder: Right-click desktop or file explorer > New > Folder > enter confidential folder name > press Enter. 2. Save report: In word processor, click File > Save As > Browse to new folder > save document. 3. Protect: In Save As dialog, click Tools > General Options (or File > Info > Protect Document > Encrypt with Password) > set strong password > confirm.", marks_awarded: 3, ai_reasoning: "Comprehensive procedure covering folder creation, saving, and document password encryption." },
-      { question_id: "dl1_a6", answer: "1. Healthcare / Hospitals: Managing patient electronic health records and diagnostic machinery. 2. Banking & Financial Institutions: Handling electronic fund transfers and account balances. 3. Education / Academic Centers: Research, computer-based learning, and academic recordkeeping.", marks_awarded: 3, ai_reasoning: "Three major sectors accurately identified with relevant computing roles." },
-      { question_id: "dl1_a7", answer: "1. Connect HDMI or VGA video cable between laptop and projector, then power on the projector. 2. On laptop, press Windows Key + P to display projection options and choose 'Duplicate' (or 'Extend'). 3. Calibrate screen resolution and adjust projector focus ring for clear projection.", marks_awarded: 3, ai_reasoning: "Physical cabling, operating system shortcut, and optical calibration all described." },
-      { question_id: "dl1_a8", answer: "System software controls and manages computer hardware and system resources (e.g. Windows 11, Ubuntu Linux). Application software allows users to perform specific end-user productivity tasks (e.g. Microsoft Word, Microsoft Excel).", marks_awarded: 3, ai_reasoning: "Clear technical differentiation with two valid examples for each software category." },
-      { question_id: "dl1_a9", answer: "Drag and drop is a GUI mouse action where the user clicks and holds an item (such as a document or folder), moves the mouse cursor to a new destination folder or drive, and releases the mouse button to move or copy the item.", marks_awarded: 2, ai_reasoning: "Accurate explanation of mouse interaction and file directory relocation." },
-      { question_id: "dl1_a10", answer: "1. Acceptable Use Policy (AUP): Dictates allowable computing and internet conduct, banning unauthorized downloads. 2. Data Protection & Password Policy: Requires strong passwords, confidential handling of company data, and locking screens when leaving workstations.", marks_awarded: 3, ai_reasoning: "Two critical workplace governance policies articulated clearly." },
-    ],
-    section_b: [
-      { question_id: "dl1_b11", answer: "a) Word processor creates, edits, formats, and prints rich documents. Differentiated by WYSIWYG text styling and support for tables and graphics.\nb) Newsletter formatting: Multi-column layout, drop cap on opening story, callout quote boxes with borders, and clear heading hierarchy.\nc) i. CTRL+Z: Undo last action. ii. CTRL+X: Cut selected content to clipboard. iii. CTRL+V: Paste content from clipboard.\nd) Differences: 1. Computer is programmable for diverse tasks while calculator performs fixed arithmetic. 2. Computer has large secondary storage (SSD/HDD) while calculator has minimal memory. 3. Computer supports varied peripherals while calculator has fixed numeric keypad.", marks_awarded: 19, ai_reasoning: "Outstanding depth across all sub-parts with thorough technical descriptions." },
-      { question_id: "dl1_b12", answer: "a) Insert table: Insert tab > Table > choose Quick Tables or drag grid for required rows/columns. Enter sales headers and numbers.\nb) Save & Print: File > Save As > select mapped network drive > Save. File > Print > Settings > Custom Print Pages: 1 > Print.\nc) Budget components: 1. Cells with coordinate addresses (e.g. A1, B5). 2. Formulas like =SUM() and =AVERAGE(). 3. Row and column headers. 4. Multiple worksheet tabs.\nd) Safety measures: 1. Keep food and drinks out of computer lab. 2. Use surge protectors and cable trunking. 3. Antivirus protection and restricted physical access.", marks_awarded: 18, ai_reasoning: "Strong procedural knowledge across word tables, spreadsheets, and lab precautions." },
-    ],
-    status: "graded",
-    total_score: 64,
-    trainer_comments: "The candidate demonstrates exceptional competence in digital literacy principles, practical workplace computer procedures, and software applications.",
-    created_at: "2026-10-04T09:30:00Z",
-  },
-  {
     id: "sub-harriet-061155101A",
     unit_code: "061155101A-WA1",
     student_name: "Harriet Mwendwa",
@@ -948,7 +922,6 @@ export const MOCK_SUBMISSIONS: Submission[] = [
     unit_code: "0415-451-21A-WA1",
     student_name: "RISPER MWENDE",
     reg_number: "13410",
-    student_email: "risper.mwende@mtti.ac.ke",
     section_a: [
       { question_id: "wa1_a1", answer: "An operating system is system software that manages computer hardware, software resources, and provides common services for computer programs.", marks_awarded: 2, ai_reasoning: "Accurate definition provided." },
       { question_id: "wa1_a2", answer: "Create: Right-click > New > Folder > Type name. Rename: Right-click folder > Rename > Type new name. Delete: Right-click folder > Delete.", marks_awarded: 6, ai_reasoning: "Complete step-by-step folder operations." },
@@ -962,7 +935,7 @@ export const MOCK_SUBMISSIONS: Submission[] = [
     ],
     section_b: [
       { question_id: "wa1_b1", answer: "a) Strengths of MS Word: Spell checker, Mail merge, Table formatting, Templates, and Graphics integration.\nb) Animation: movement on slide objects; Transition: visual effect between slides; Slide: single presentation page; Presentation: collection of slides; PowerPoint: presentation software.", marks_awarded: 16, ai_reasoning: "Thorough breakdown of Word strengths and PowerPoint terminology." },
-      { question_id: "wa1_b2", answer: "a) #DIV/0! (divide by zero), #VALUE! (wrong data type), #REF! (deleted cell reference), #NAME? (misspelled function), #N/A (value not found).\nb) i. =D5*2% ii. =C5+E5 iii. =SUM(F5:F10), =AVERAGE(F5:F10), =MAX(F5:F10), =MIN(F5:F10), =COUNT(A5:A10).", marks_awarded: 15, ai_reasoning: "Accurate Excel error definitions and sales formulas." },
+      { question_id: "wa1_b2", answer: "a) #DIV/0! (divide by zero), #VALUE! (wrong data type), #REF! (deleted cell reference), #NAME? (misspelled function), #N/A (value not found).\nb) i. =D5*2% ii. =C5+E5 iii. =SUM(F5:F5:F10), =AVERAGE(F5:F10), =MAX(F5:F10), =MIN(F5:F10), =COUNT(A5:A10).", marks_awarded: 15, ai_reasoning: "Accurate Excel error definitions and sales formulas." },
       { question_id: "wa1_b4", answer: "a) Internet services: Email, Cloud storage, WWW research, Video conferencing, and E-commerce.\nb) LAN benefits: Printer sharing, centralized file backup, fast internal communication, lower software licensing cost, and centralized security.", marks_awarded: 12, ai_reasoning: "Good discussion of internet services and institutional LAN benefits." },
     ],
     status: "graded",
@@ -976,7 +949,6 @@ export const MOCK_SUBMISSIONS: Submission[] = [
     unit_code: "0415-451-21A-WA1",
     student_name: "Banta Micheni",
     reg_number: "13527",
-    student_email: "banta.micheni@mtti.ac.ke",
     section_a: [
       { question_id: "wa1_a1", answer: "An operating system is the core software managing memory and processes.", marks_awarded: 2 },
       { question_id: "wa1_a2", answer: "Right-click > New > Folder; Right-click > Rename; Right-click > Delete.", marks_awarded: 5 },
