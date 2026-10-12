@@ -1,7 +1,9 @@
 import React, { useState, useRef } from "react";
 import TraineeLayout from "@/components/TraineeLayout";
 import { useTrainees, Upload } from "@/contexts/TraineeContext";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, findRosterTraineeByIdentifier } from "@/contexts/AuthContext";
+import { useExam } from "@/contexts/ExamContext";
+import { evaluateExamPortalAvailability, doesExamMatchTraineeCohort } from "@/lib/supabase";
 import { 
   uploadEvidenceFile, 
   downloadEvidenceFile, 
@@ -129,65 +131,72 @@ export const OFFICIAL_EXAM_PAPERS = [
 
 export default function TraineeAssignments() {
   const { uploads, recordUpload, deleteUpload } = useTrainees();
+  const { exams } = useExam();
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Authenticated trainee identifier resolution
-  const currentTraineeId = user?.id || "tr_it6_01";
-  const currentTraineeName = user?.name || "Nthiga Gakii Doris";
+  const rosterEntry = React.useMemo(() => {
+    if (!user) return null;
+    return findRosterTraineeByIdentifier(user.reg_number || user.name || "");
+  }, [user]);
 
-  const [selectedUploadType, setSelectedUploadType] = useState<string>("Practical 1");
+  // Authenticated trainee identifier resolution
+  const currentTraineeId = user?.id || rosterEntry?.id || "trainee-session";
+  const currentTraineeName = user?.name || rosterEntry?.name || "Trainee Candidate";
+  const currentRegNo = user?.reg_number || rosterEntry?.regCode || rosterEntry?.admNo || "";
+  const cohortCode = user?.cohort_code || rosterEntry?.classCode || "Assigned Cohort";
+
+  // Strictly resolve ONLY tasks explicitly allocated (portal_visible === true) to this trainee's cohort by the Trainer/Department
+  const allocatedTasks = React.useMemo(() => {
+    const validExams = (exams || []).filter(
+      (ex) =>
+        ex.payload?.portal_visible === true &&
+        doesExamMatchTraineeCohort(ex, cohortCode, user?.enrolled_units)
+    );
+    return validExams.map((ex) => {
+      const portalStatus = evaluateExamPortalAvailability(ex.payload);
+      const slot = ex.payload?.task_code || (ex.payload?.type === "practical" ? "CP1" : "CT1");
+      return {
+        id: ex.id,
+        unitCode: ex.unit_code,
+        title: ex.payload?.title || ex.course_name,
+        slot,
+        category: portalStatus.categoryLabel,
+        canSubmit: portalStatus.canStart,
+        statusLabel: portalStatus.statusLabel,
+      };
+    });
+  }, [exams, cohortCode, user?.enrolled_units]);
+
+  const [selectedTaskId, setSelectedTaskId] = useState<string>("");
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [viewingUpload, setViewingUpload] = useState<Upload | null>(null);
 
-  // Filter uploads belonging to this trainee (or default institutional demo trainee)
+  const activeAllocatedTask = React.useMemo(() => {
+    if (allocatedTasks.length === 0) return null;
+    return allocatedTasks.find((t) => t.id === selectedTaskId) || allocatedTasks[0];
+  }, [allocatedTasks, selectedTaskId]);
+
+  // Filter uploads belonging strictly to this trainee
   const myUploads = uploads.filter(
     (up) =>
       up.traineeId === currentTraineeId ||
-      up.student_name.toLowerCase() === currentTraineeName.toLowerCase() ||
-      (!user && (up.traineeId === "tr_it6_01" || up.traineeId === "tr_1"))
+      up.traineeId === rosterEntry?.id ||
+      up.student_name.trim().toLowerCase() === currentTraineeName.trim().toLowerCase()
   );
 
-  const getTaskCode = (type: string): string => {
-    switch (type) {
-      // Continuous Practical (CP1–3)
-      case "Practical 1": return "CP1";
-      case "Practical 2": return "CP2";
-      case "Practical 3": return "CP3";
-      // Continuous Theory (CT1–3)
-      case "Written Assessment 1": return "CT1";
-      case "Written Assessment 2": return "CT2";
-      case "Written Assessment 3": return "CT3";
-      // Assignment
-      case "Assignment 1": return "CT1";
-      case "Assignment 2": return "CT2";
-      case "Assignment 3": return "CT3";
-      case "Assignment": return "CT1";
-      // CAT (Continuous Assessment Test)
-      case "Continuous Assessment Test 1 (CAT 1)": return "CT1";
-      case "Continuous Assessment Test 2 (CAT 2)": return "CT2";
-      case "Continuous Assessment Test 3 (CAT 3)": return "CT3";
-      case "CAT 1": return "CT1";
-      case "CAT 2": return "CT2";
-      case "CAT": return "CT2";
-      // Project
-      case "Capstone / Course Project": return "Project";
-      case "Project Milestone 1": return "CP3";
-      case "Project": return "Project";
-      // Portfolios
-      case "Observation Checklist": return "CP1";
-      case "Portfolio of Evidence": return "CP3";
-      case "Industrial Attachment Logbook": return "CP3";
-      case "Other Technical Evidence": return "CP1";
-      default: return "CP1";
-    }
-  };
-
   const handleProcessFile = async (file: File) => {
+    if (!activeAllocatedTask || !activeAllocatedTask.canSubmit) {
+      toast.error("Allocation Required", {
+        description: "You can only upload evidence for an assessment task actively allocated by your Trainer.",
+      });
+      return;
+    }
+
     setIsUploading(true);
     try {
-      const taskCode = getTaskCode(selectedUploadType);
+      const taskCode = activeAllocatedTask.slot;
       const evidence = await uploadEvidenceFile(file, {
         traineeId: currentTraineeId,
         taskCode: taskCode,
@@ -198,10 +207,10 @@ export default function TraineeAssignments() {
         traineeId: currentTraineeId,
         student_name: currentTraineeName,
         filename: evidence.filename,
-        uploadType: selectedUploadType,
+        uploadType: `${activeAllocatedTask.category} (${activeAllocatedTask.title})`,
         task_code: taskCode,
         unit_offering_id: "uo_1",
-        unit_code: "IT/CU/ICTA/CR/01/6/MA",
+        unit_code: activeAllocatedTask.unitCode,
         file_url: evidence.fileUrl,
         file_data: evidence.fileData,
         mime_type: evidence.mimeType,
@@ -241,7 +250,7 @@ export default function TraineeAssignments() {
   return (
     <TraineeLayout 
       title="Assignments & Assessment Evidence" 
-      subtitle="Submit, review, and track your practical observations, lab reports, and assignments."
+      subtitle="Submit and track evidence for assessments allocated to your cohort by your Trainer."
     >
       <div className="grid md:grid-cols-2 gap-8 mt-6">
         {/* Upload Form Card */}
@@ -249,117 +258,113 @@ export default function TraineeAssignments() {
           <div className="flex items-center justify-between border-b border-border pb-4">
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
               <UploadCloud className="w-5 h-5 text-primary" />
-              Submit Assessment Evidence
+              Submit Allocated Task Evidence
             </h2>
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
-              TVET CDACC
+              {cohortCode}
             </span>
           </div>
-          
-          <div>
-            <label className="block text-xs font-bold text-foreground mb-2">
-              Select Assessment Task Type:
-            </label>
-            <select 
-              value={selectedUploadType}
-              onChange={(e) => setSelectedUploadType(e.target.value)}
-              className="w-full p-2.5 border border-border rounded-xl bg-background text-foreground text-xs font-semibold focus:ring-1 focus:ring-primary outline-none"
-            >
-              {/* Continuous Practical (CP1–3) */}
-              <optgroup label="Continuous Practical (CP1–3)">
-                <option value="Practical 1">Practical 1 (CP1 — Laboratory / Workshop Task)</option>
-                <option value="Practical 2">Practical 2 (CP2 — Practical Skills Task)</option>
-                <option value="Practical 3">Practical 3 (CP3 — Technical Application)</option>
-              </optgroup>
 
-              {/* Continuous Theory (CT1–3) */}
-              <optgroup label="Continuous Theory (CT1–3)">
-                <option value="Written Assessment 1">Written Assessment 1 (CT1)</option>
-                <option value="Written Assessment 2">Written Assessment 2 (CT2)</option>
-                <option value="Written Assessment 3">Written Assessment 3 (CT3)</option>
-              </optgroup>
-
-              {/* Assignment */}
-              <optgroup label="Assignment">
-                <option value="Assignment 1">Assignment 1 (Theory / Homework)</option>
-                <option value="Assignment 2">Assignment 2 (Research / Analysis)</option>
-                <option value="Assignment 3">Assignment 3 (Case Study)</option>
-                <option value="Assignment">General Unit Assignment</option>
-              </optgroup>
-
-              {/* CAT (Continuous Assessment Test) */}
-              <optgroup label="CAT (Continuous Assessment Test)">
-                <option value="Continuous Assessment Test 1 (CAT 1)">CAT 1 (Continuous Assessment Test 1)</option>
-                <option value="Continuous Assessment Test 2 (CAT 2)">CAT 2 (Continuous Assessment Test 2)</option>
-                <option value="Continuous Assessment Test 3 (CAT 3)">CAT 3 (Continuous Assessment Test 3)</option>
-              </optgroup>
-
-              {/* Project */}
-              <optgroup label="Project">
-                <option value="Capstone / Course Project">Capstone / Course Project</option>
-                <option value="Project Milestone 1">Project Milestone / Progress Report</option>
-              </optgroup>
-
-              {/* Portfolios */}
-              <optgroup label="Portfolios">
-                <option value="Observation Checklist">Observation Checklist (Assessor Practical Rubric)</option>
-                <option value="Portfolio of Evidence">Portfolio of Evidence (TVET CDACC File)</option>
-                <option value="Industrial Attachment Logbook">Industrial Attachment Logbook / Field Report</option>
-                <option value="Other Technical Evidence">Other Technical Evidence</option>
-              </optgroup>
-            </select>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              Mapped Assessment Code: <span className="font-bold text-primary">{getTaskCode(selectedUploadType)}</span>
-            </p>
-          </div>
-
-          {/* Interactive Drag & Drop Box */}
-          <div
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-2xl p-8 text-center transition flex flex-col items-center justify-center cursor-pointer ${
-              isDragging 
-                ? "border-primary bg-primary/5" 
-                : "border-border hover:border-primary/50 bg-muted/10 hover:bg-muted/20"
-            }`}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input 
-              ref={fileInputRef}
-              type="file" 
-              accept=".pdf,.png,.jpg,.jpeg,.webp,.docx,.doc,.zip" 
-              className="hidden" 
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  handleProcessFile(e.target.files[0]);
-                }
-              }}
-            />
-
-            <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
-              <UploadCloud className={`w-6 h-6 ${isUploading ? "animate-bounce" : ""}`} />
+          {allocatedTasks.length === 0 ? (
+            <div className="p-8 rounded-2xl border border-dashed border-border bg-muted/20 text-center space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-[#000953]/10 text-[#000953] flex items-center justify-center mx-auto">
+                <Lock className="w-6 h-6" />
+              </div>
+              <h3 className="text-sm font-bold text-foreground">
+                No Assessment Task Currently Allocated for Evidence Upload
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-md mx-auto">
+                To prevent assessment malpractice and unauthorized submissions, Continuous Assessment Tests (<strong>CT1–CT3</strong>), Practicals (<strong>CP1–CP3</strong>), and Assignments only unlock here once your Trainer or Department explicitly allocates and schedules them for <strong>{cohortCode}</strong>.
+              </p>
             </div>
+          ) : (
+            <>
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-2">
+                  Select Trainer-Allocated Assessment Task:
+                </label>
+                <select 
+                  value={activeAllocatedTask?.id || ""}
+                  onChange={(e) => setSelectedTaskId(e.target.value)}
+                  className="w-full p-2.5 border border-border rounded-xl bg-background text-foreground text-xs font-semibold focus:ring-1 focus:ring-primary outline-none"
+                >
+                  {allocatedTasks.map((task) => (
+                    <option key={task.id} value={task.id}>
+                      [{task.slot}] {task.unitCode} — {task.title} ({task.statusLabel})
+                    </option>
+                  ))}
+                </select>
+                {activeAllocatedTask && (
+                  <p className="text-[11px] text-muted-foreground mt-1.5 flex items-center justify-between">
+                    <span>
+                      Mapped Marksheet Slot: <strong className="text-primary">{activeAllocatedTask.slot}</strong>
+                    </span>
+                    <span className="font-mono">{activeAllocatedTask.statusLabel}</span>
+                  </p>
+                )}
+              </div>
 
-            <h3 className="text-sm font-bold text-foreground">
-              {isUploading ? "Uploading & Storing Binary Evidence..." : `Drop your ${selectedUploadType} document here`}
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Supports PDF, PNG, JPG, Word (.docx), or ZIP (Max 25MB)
-            </p>
+              {/* Interactive Drag & Drop Box */}
+              <div
+                onDragOver={(e) => { e.preventDefault(); if (activeAllocatedTask?.canSubmit) setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-2xl p-8 text-center transition flex flex-col items-center justify-center ${
+                  !activeAllocatedTask?.canSubmit
+                    ? "border-border bg-muted/30 opacity-60 cursor-not-allowed"
+                    : isDragging 
+                    ? "border-primary bg-primary/5 cursor-pointer" 
+                    : "border-border hover:border-primary/50 bg-muted/10 hover:bg-muted/20 cursor-pointer"
+                }`}
+                onClick={() => {
+                  if (activeAllocatedTask?.canSubmit) fileInputRef.current?.click();
+                }}
+              >
+                <input 
+                  ref={fileInputRef}
+                  type="file" 
+                  accept=".pdf,.png,.jpg,.jpeg,.webp,.docx,.doc,.zip" 
+                  className="hidden" 
+                  disabled={!activeAllocatedTask?.canSubmit}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleProcessFile(e.target.files[0]);
+                    }
+                  }}
+                />
 
-            <button
-              type="button"
-              disabled={isUploading}
-              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold hover:opacity-90 transition shadow-sm"
-            >
-              Browse Files from Computer
-            </button>
-          </div>
+                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
+                  <UploadCloud className={`w-6 h-6 ${isUploading ? "animate-bounce" : ""}`} />
+                </div>
 
-          <div className="p-3.5 bg-muted/20 rounded-xl border border-border text-[11px] text-muted-foreground leading-relaxed">
-            <span className="font-bold text-foreground block mb-0.5">Integrity Notice:</span>
-            Submissions are permanently logged in the institutional assessment register. Once verified by your trainer, files cannot be altered or deleted.
+                <h3 className="text-sm font-bold text-foreground">
+                  {!activeAllocatedTask?.canSubmit
+                    ? `Submission Window Locked (${activeAllocatedTask?.statusLabel})`
+                    : isUploading
+                    ? "Uploading & Storing Binary Evidence..."
+                    : `Drop your ${activeAllocatedTask.slot} (${activeAllocatedTask.unitCode}) evidence here`}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Supports PDF, PNG, JPG, Word (.docx), or ZIP (Max 25MB)
+                </p>
+
+                <button
+                  type="button"
+                  disabled={isUploading || !activeAllocatedTask?.canSubmit}
+                  className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold hover:opacity-90 transition shadow-sm disabled:opacity-50"
+                >
+                  Browse Files from Computer
+                </button>
+              </div>
+            </>
+          )}
+
+          <div className="p-3.5 bg-muted/20 rounded-xl border border-border text-[11px] text-muted-foreground leading-relaxed flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold text-foreground block mb-0.5">Institutional Examination Integrity Policy:</span>
+              Unallocated assessment papers (CT1–CT3 / CP1–CP3) and Assessor Observation Checklists are strictly restricted from candidate download. Submissions are logged with your Admission Number ({currentRegNo || "Verified Roster"}).
+            </div>
           </div>
         </div>
 
@@ -368,7 +373,7 @@ export default function TraineeAssignments() {
           <div className="flex items-center justify-between border-b border-border pb-4">
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              My Submissions ({myUploads.length})
+              My Submitted Evidence ({myUploads.length})
             </h2>
             <span className="text-xs text-muted-foreground font-medium">
               Candidate: <span className="font-semibold text-foreground">{currentTraineeName}</span>
@@ -379,8 +384,8 @@ export default function TraineeAssignments() {
             {myUploads.length === 0 ? (
               <div className="p-12 text-center text-muted-foreground flex flex-col items-center">
                 <FileText className="w-12 h-12 opacity-20 mb-3" />
-                <p className="text-sm font-semibold">No submissions recorded yet.</p>
-                <p className="text-xs mt-1">Upload your practical reports or assignments to begin.</p>
+                <p className="text-sm font-semibold">No submissions recorded yet for {currentTraineeName}.</p>
+                <p className="text-xs mt-1">When your Trainer allocates a practical or assignment task, upload your work on the left.</p>
               </div>
             ) : (
               myUploads.map((upload) => (
@@ -473,57 +478,6 @@ export default function TraineeAssignments() {
               ))
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Official Assessment Papers & Checklists Section */}
-      <div className="bg-card border border-border p-6 rounded-2xl shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-4">
-          <div>
-            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-primary" />
-              Official TVET CDACC Assessment Question Papers & Checklists
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Mukiria Technical Training Institute — Verified curriculum assessment materials by Trainer Alexander Kinoti
-            </p>
-          </div>
-          <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 self-start sm:self-auto">
-            11 Documents Available
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {OFFICIAL_EXAM_PAPERS.map((paper, idx) => (
-            <div
-              key={idx}
-              className="p-3.5 border border-border rounded-xl bg-background hover:border-primary/40 transition flex flex-col justify-between gap-3 shadow-2xs"
-            >
-              <div className="space-y-1">
-                <div className="flex items-center justify-between gap-2">
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase ${paper.badgeClass}`}>
-                    {paper.typeBadge}
-                  </span>
-                  <span className="text-[10px] font-mono text-muted-foreground">{paper.code}</span>
-                </div>
-                <h4 className="font-bold text-xs text-foreground leading-snug pt-1">{paper.title}</h4>
-                <p className="text-[11px] text-muted-foreground">{paper.classInfo}</p>
-              </div>
-
-              <div className="pt-2 border-t border-border/60 flex items-center justify-between">
-                <span className="text-[10px] font-medium text-muted-foreground">{paper.pages} • PDF</span>
-                <a
-                  href={`/assessment-papers/${encodeURIComponent(paper.filename)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  Download / View
-                </a>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 

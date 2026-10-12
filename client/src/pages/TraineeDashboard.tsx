@@ -4,59 +4,22 @@ import { Link } from "wouter";
 import { useAuth, findRosterTraineeByIdentifier } from "@/contexts/AuthContext";
 import { useExam } from "@/contexts/ExamContext";
 import { useTrainees } from "@/contexts/TraineeContext";
-import { GraduationCap, BookOpen, FileCheck2, UploadCloud, ArrowRight, ShieldCheck } from "lucide-react";
-
-const ALL_SERIES_EXAMS = [
-  {
-    code: "061155101A-WA1",
-    title: "Digital Literacy — Written Assessment 1 (CT1)",
-    subtitle: "Core Procedures, ICT Safety & Office Productivity",
-    marks: 100,
-    mins: 120,
-    level: "KNQF Level 5/6",
-    cohorts: ["FBS", "LS", "DIGITAL"],
-  },
-  {
-    code: "061155101A-WA2",
-    title: "Digital Literacy — Written Assessment 2 (CT2)",
-    subtitle: "Computer Systems, Architecture & Operating Systems",
-    marks: 100,
-    mins: 120,
-    level: "KNQF Level 5/6",
-    cohorts: ["FBS", "LS", "DIGITAL"],
-  },
-  {
-    code: "061155101A-WA3",
-    title: "Digital Literacy — Written Assessment 3 (CT3)",
-    subtitle: "Networks, Collaboration & Digital Citizenship",
-    marks: 100,
-    mins: 120,
-    level: "KNQF Level 5/6",
-    cohorts: ["FBS", "LS", "DIGITAL"],
-  },
-  {
-    code: "0415-451-21A-WA1",
-    title: "Apply ICT Skills — Written Assessment 1 (CT1)",
-    subtitle: "Computer Hardware, OS & Word Processing",
-    marks: 100,
-    mins: 120,
-    level: "KNQF Level 5/6",
-    cohorts: ["ADMIN"],
-  },
-  {
-    code: "IT/CU/ICTA/CR/01/4/MA",
-    title: "Perform Computer Essentials — Formative Practical & Oral",
-    subtitle: "Hardware Identification, Device Manager & File Archiving",
-    marks: 100,
-    mins: 180,
-    level: "KNQF Level 4/6",
-    cohorts: ["ICT4", "ITECH"],
-  },
-];
+import { evaluateExamPortalAvailability, doesExamMatchTraineeCohort } from "@/lib/supabase";
+import {
+  GraduationCap,
+  BookOpen,
+  FileCheck2,
+  UploadCloud,
+  ArrowRight,
+  ShieldCheck,
+  Clock,
+  Lock,
+  Calendar,
+} from "lucide-react";
 
 export default function TraineeDashboard() {
   const { user } = useAuth();
-  const { submissions } = useExam();
+  const { exams, submissions } = useExam();
   const { uploads } = useTrainees();
 
   const rosterEntry = useMemo(() => {
@@ -69,14 +32,28 @@ export default function TraineeDashboard() {
   const cohortCode = user?.cohort_code || rosterEntry?.classCode || "FBS 5 MOD/J/2026";
   const department = rosterEntry?.department || "Academic Department";
 
-  // Filter exams relevant to the logged-in trainee's cohort
+  // Strictly filter ONLY assessments explicitly allocated (portal_visible === true) to this trainee's cohort
   const cohortExams = useMemo(() => {
-    const upperCohort = cohortCode.toUpperCase();
-    const matched = ALL_SERIES_EXAMS.filter((ex) =>
-      ex.cohorts.some((tag) => upperCohort.includes(tag))
+    const allocatedExams = (exams || []).filter(
+      (ex) =>
+        ex.payload?.portal_visible === true &&
+        doesExamMatchTraineeCohort(ex, cohortCode, user?.enrolled_units)
     );
-    return matched.length > 0 ? matched : ALL_SERIES_EXAMS.slice(0, 3);
-  }, [cohortCode]);
+
+    return allocatedExams.map((ex) => {
+      const portalStatus = evaluateExamPortalAvailability(ex.payload);
+      return {
+        id: ex.id,
+        code: ex.unit_code,
+        title: ex.payload?.title || ex.course_name,
+        subtitle: ex.payload?.unit_name || ex.course_name,
+        marks: ex.payload?.total_marks ?? 100,
+        mins: ex.payload?.duration_minutes ?? 120,
+        taskSlot: ex.payload?.task_code || "",
+        portalStatus,
+      };
+    });
+  }, [exams, cohortCode, user?.enrolled_units]);
 
   // Filter graded exam submissions belonging strictly to this trainee
   const mySubmissions = useMemo(() => {
@@ -138,16 +115,16 @@ export default function TraineeDashboard() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Active Cohort Examinations */}
+          {/* Active Cohort Examinations, CATs & Online Assessments */}
           <div className="p-6 bg-card border border-border rounded-xl shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-primary" />
-                  Upcoming Online Exams
+                  Allocated Online Exams & CATs
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {cohortExams.length} active examination{cohortExams.length !== 1 ? "s" : ""} assigned to {cohortCode}.
+                  {cohortExams.length} allocated assessment{cohortExams.length !== 1 ? "s" : ""} for {cohortCode}.
                 </p>
               </div>
               <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
@@ -155,32 +132,92 @@ export default function TraineeDashboard() {
               </span>
             </div>
 
-            <div className="space-y-3">
-              {cohortExams.map((ex) => (
-                <div
-                  key={ex.code}
-                  className="p-4 bg-muted/40 hover:bg-muted/70 transition-all rounded-xl border border-border flex items-center justify-between gap-4"
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono font-bold text-amber-600">{ex.code}</span>
-                      <span className="text-[11px] text-muted-foreground">
-                        • {ex.level} • {ex.marks}% • {ex.mins} Mins
-                      </span>
-                    </div>
-                    <h4 className="font-semibold text-sm truncate mt-0.5">{ex.title}</h4>
-                    <p className="text-xs text-muted-foreground truncate">{ex.subtitle}</p>
-                  </div>
-                  <Link
-                    href={`/trainee/exam?unitCode=${encodeURIComponent(ex.code)}&regNo=${encodeURIComponent(traineeRegNo)}`}
-                  >
-                    <a className="btn-primary px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 flex items-center gap-1.5 shadow-sm">
-                      Start Exam
-                    </a>
-                  </Link>
+            {cohortExams.length === 0 ? (
+              <div className="p-8 rounded-xl border border-dashed border-border bg-muted/20 text-center space-y-2.5">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                  <Lock className="w-5 h-5" />
                 </div>
-              ))}
-            </div>
+                <p className="text-sm font-bold text-foreground">
+                  No Online Exam or CAT Currently Allocated
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
+                  Your Trainer or Department has not opened an active Continuous Assessment Test (<strong>CT1–CT3</strong>) or Practical (<strong>CP1–CP3</strong>) for <strong>{cohortCode}</strong> at this time. Scheduled papers appear here automatically when released.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {cohortExams.map((ex) => {
+                  const { portalStatus } = ex;
+                  const statusBadgeStyle =
+                    portalStatus.state === "open"
+                      ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/25"
+                      : portalStatus.state === "scheduled"
+                      ? "bg-blue-500/10 text-blue-700 border-blue-500/25"
+                      : portalStatus.state === "past_due_open"
+                      ? "bg-amber-500/10 text-amber-700 border-amber-500/25"
+                      : "bg-rose-500/10 text-rose-700 border-rose-500/25";
+
+                  return (
+                    <div
+                      key={ex.id || ex.code}
+                      className="p-4 bg-muted/40 hover:bg-muted/70 transition-all rounded-xl border border-border flex flex-col gap-3"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-mono font-bold text-amber-600">{ex.code}</span>
+                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-primary/10 text-primary">
+                              {portalStatus.categoryLabel}
+                              {ex.taskSlot ? ` • ${ex.taskSlot}` : ""}
+                            </span>
+                            <span className="text-[11px] text-muted-foreground">
+                              • {ex.marks} Marks • {ex.mins} Mins
+                            </span>
+                          </div>
+                          <h4 className="font-semibold text-sm truncate mt-1">{ex.title}</h4>
+                          <p className="text-xs text-muted-foreground truncate">{ex.subtitle}</p>
+                        </div>
+
+                        {portalStatus.canStart ? (
+                          <Link
+                            href={`/trainee/exam?unitCode=${encodeURIComponent(ex.code)}&regNo=${encodeURIComponent(traineeRegNo)}`}
+                          >
+                            <a className="btn-primary px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 flex items-center gap-1.5 shadow-sm">
+                              Start {portalStatus.categoryLabel}
+                            </a>
+                          </Link>
+                        ) : (
+                          <span className="px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 flex items-center gap-1.5 bg-muted text-muted-foreground border border-border cursor-not-allowed">
+                            <Lock className="w-3.5 h-3.5" />
+                            {portalStatus.state === "scheduled" ? "Scheduled" : "Closed"}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="pt-2 border-t border-border/60 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                        <span className={`px-2 py-0.5 rounded font-semibold border ${statusBadgeStyle}`}>
+                          {portalStatus.statusLabel}
+                        </span>
+                        <div className="flex items-center gap-3 text-muted-foreground font-mono">
+                          {portalStatus.availableFromFormatted && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3 text-emerald-600" />
+                              Opens: {portalStatus.availableFromFormatted}
+                            </span>
+                          )}
+                          {portalStatus.dueAtFormatted && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-rose-600" />
+                              Due: {portalStatus.dueAtFormatted}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Trainee Scoped Results & Evidence Portfolio */}

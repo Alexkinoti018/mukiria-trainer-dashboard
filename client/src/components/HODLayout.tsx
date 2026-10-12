@@ -33,8 +33,17 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { icon: LayoutDashboard, label: "Institution Overview", path: "/hod/dashboard" },
   { icon: FileText, label: "Trainer Compliance", path: "/hod/compliance" },
-  { icon: BarChart3, label: "Analytics", path: "/hod/analytics" },
-  { icon: Download, label: "Reports", path: "/hod/reports" },
+  { icon: BarChart3, label: "Department Analytics", path: "/hod/analytics" },
+  { icon: Download, label: "Department Reports", path: "/hod/reports" },
+];
+
+const TRAINER_TEACHING_ITEMS: NavItem[] = [
+  { icon: LayoutDashboard, label: "Trainer Dashboard", path: "/trainer/dashboard" },
+  { icon: FileText, label: "Exam & CAT Builder", path: "/trainer/exam-builder" },
+  { icon: ClipboardCheck, label: "Exam & CAT Grading", path: "/trainer/grading" },
+  { icon: BookOpen, label: "Uploaded Evidence", path: "/trainer/grading/uploads" },
+  { icon: Eye, label: "Assessment Marksheet", path: "/trainer/assessment-marks" },
+  { icon: Zap, label: "Session Plans & RoW", path: "/trainer/session-plans" },
 ];
 
 interface HODLayoutProps {
@@ -72,34 +81,66 @@ export default function HODLayout({
           </div>
           <div className="min-w-0">
             <div className="text-sm font-bold text-primary">Mukiria TTI</div>
-            <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">HOD Portal</div>
+            <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">HOD & Trainer Portal</div>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const isActive = location === item.path || (item.path === "/hod/dashboard" && (location === "/hod" || location === "/hod/"));
-          return (
-            <button
-              key={item.path}
-              onClick={() => {
-                navigate(item.path);
-                setMobileOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                isActive
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold shadow-sm"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent"
-              }`}
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
+      <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
+        <div className="space-y-1">
+          <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            HOD Governance
+          </div>
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = location === item.path || (item.path === "/hod/dashboard" && (location === "/hod" || location === "/hod/"));
+            return (
+              <button
+                key={item.path}
+                onClick={() => {
+                  navigate(item.path);
+                  setMobileOpen(false);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold shadow-sm"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent"
+                }`}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="space-y-1 pt-2 border-t border-sidebar-border">
+          <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            My Teaching & Assessments
+          </div>
+          {TRAINER_TEACHING_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = location === item.path;
+            return (
+              <button
+                key={item.path}
+                onClick={() => {
+                  navigate(item.path);
+                  setMobileOpen(false);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold shadow-sm"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent"
+                }`}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </nav>
 
       {/* Footer */}
@@ -108,7 +149,7 @@ export default function HODLayout({
           <p className="text-xs text-sidebar-foreground/60">Logged in as</p>
           <p className="text-sm font-medium truncate">{user?.name || user?.email || "Prof. S. Njoroge (HOD)"}</p>
           <span className="inline-block mt-0.5 px-2 py-0.5 text-[10px] font-bold rounded bg-primary/15 text-primary uppercase">
-            {user?.role || "HOD"}
+            HOD • Trainer
           </span>
         </div>
         <button
@@ -116,7 +157,7 @@ export default function HODLayout({
           className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 transition-all duration-200"
         >
           <LayoutDashboard className="w-4 h-4 shrink-0" />
-          <span>Trainer Workspace</span>
+          <span>Full Trainer Workspace</span>
         </button>
         <button
           onClick={handleLogout}

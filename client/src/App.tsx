@@ -110,15 +110,15 @@ function Router() {
       </Route>
       <Route path="/session/:id" component={StudentSessionView} />
 
-      {/* Trainer Routes */}
+      {/* Trainer Routes (Accessible to Trainers, HODs who also teach, and Admins) */}
       <Route path="/trainer/dashboard">
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Dashboard /></ProtectedRoute>
       </Route>
       <Route path="/trainer/exam-builder">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><ExamBuilder /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><ExamBuilder /></ProtectedRoute>
       </Route>
       <Route path="/trainer/grading">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><Grading /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Grading /></ProtectedRoute>
       </Route>
       <Route path="/trainer/grading/uploads">
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><UploadGrading /></ProtectedRoute>
@@ -154,13 +154,13 @@ function Router() {
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Reports /></ProtectedRoute>
       </Route>
       <Route path="/trainer/setup">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><Setup /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Setup /></ProtectedRoute>
       </Route>
       <Route path="/trainer/proctoring">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><Proctoring /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Proctoring /></ProtectedRoute>
       </Route>
       <Route path="/trainer/auto-grading">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><AutoGrading /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><AutoGrading /></ProtectedRoute>
       </Route>
       <Route path="/trainer/performance-insights">
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><PerformanceInsights /></ProtectedRoute>
@@ -203,10 +203,10 @@ function Router() {
 
       {/* Route Aliases for direct un-prefixed URLs */}
       <Route path="/exam-builder">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><ExamBuilder /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><ExamBuilder /></ProtectedRoute>
       </Route>
       <Route path="/grading">
-        <ProtectedRoute allowedRoles={["trainer", "admin"]}><Grading /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Grading /></ProtectedRoute>
       </Route>
       <Route path="/analytics">
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Analytics /></ProtectedRoute>

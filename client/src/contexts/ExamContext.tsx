@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
-import { Exam, Submission, isSupabaseConfigured, normalizeAssessmentTaskSlot } from "@/lib/supabase";
+import { Exam, Submission, isSupabaseConfigured, normalizeAssessmentTaskSlot, doesExamMatchTraineeCohort } from "@/lib/supabase";
 import { MOCK_EXAMS, MOCK_SUBMISSIONS } from "@/lib/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { syncScoreToContinuousMarksheet } from "@/contexts/TraineeContext";
@@ -8,7 +8,8 @@ import { nanoid } from "nanoid";
 interface ExamContextType {
   exams: Exam[];
   submissions: Submission[];
-  addExam: (exam: Omit<Exam, "id" | "created_at">) => void;
+  addExam: (exam: Omit<Exam, "id" | "created_at"> & { id?: string }) => void;
+  updateExamSchedule: (unitCodeOrId: string, scheduleUpdates: Partial<Exam["payload"]>) => void;
   submitExam: (submission: Omit<Submission, "id" | "created_at" | "updated_at">) => void;
   gradeSubmission: (id: string, updates: Partial<Submission>) => void;
 }
@@ -185,12 +186,13 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     return allSubmissions;
   }, [allSubmissions, user]);
 
-  // Column Shielding: Trainees receive sanitized exams stripped of answer keys, rubrics, and critical aspects
+  // Column Shielding & Strict Allocation Policy: Trainees only receive exams explicitly allocated (portal_visible === true) to their cohort
   const scopedExams = useMemo(() => {
-    if (!user) return exams;
+    if (!user) return [];
     if (user.role === "trainee") {
       return exams
-        .filter((e) => !user.enrolled_units || user.enrolled_units.includes(e.unit_code))
+        .filter((e) => e.payload?.portal_visible === true)
+        .filter((e) => doesExamMatchTraineeCohort(e, user.cohort_code, user.enrolled_units))
         .map((e) => sanitizeExamForStudent(e));
     }
     return exams;
@@ -220,14 +222,49 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const addExam = (examPayload: Omit<Exam, "id" | "created_at">) => {
-    const newExam: Exam = {
-      ...examPayload,
-      id: `exam-${nanoid(6)}`,
-      created_at: new Date().toISOString(),
-    };
-    
-    const updated = [...exams, newExam];
+  const addExam = (examPayload: Omit<Exam, "id" | "created_at"> & { id?: string }) => {
+    const existingIdx = exams.findIndex(
+      (e) =>
+        (examPayload.id && e.id === examPayload.id) ||
+        e.unit_code.trim().toUpperCase() === examPayload.unit_code.trim().toUpperCase()
+    );
+
+    let updated: Exam[];
+    if (existingIdx >= 0) {
+      const existing = exams[existingIdx];
+      const mergedExam: Exam = {
+        ...existing,
+        ...examPayload,
+        id: existing.id,
+        created_at: existing.created_at,
+      };
+      updated = exams.map((e, idx) => (idx === existingIdx ? mergedExam : e));
+    } else {
+      const newExam: Exam = {
+        ...examPayload,
+        id: examPayload.id || `exam-${nanoid(6)}`,
+        created_at: new Date().toISOString(),
+      };
+      updated = [...exams, newExam];
+    }
+
+    setExams(updated);
+    localStorage.setItem("mukiria_exams", JSON.stringify(updated));
+  };
+
+  const updateExamSchedule = (unitCodeOrId: string, scheduleUpdates: Partial<Exam["payload"]>) => {
+    const updated = exams.map((e) => {
+      if (e.id === unitCodeOrId || e.unit_code.trim().toUpperCase() === unitCodeOrId.trim().toUpperCase()) {
+        return {
+          ...e,
+          payload: {
+            ...e.payload,
+            ...scheduleUpdates,
+          },
+        };
+      }
+      return e;
+    });
     setExams(updated);
     localStorage.setItem("mukiria_exams", JSON.stringify(updated));
   };
@@ -273,7 +310,16 @@ export function ExamProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ExamContext.Provider value={{ exams: scopedExams, submissions: scopedSubmissions, addExam, submitExam, gradeSubmission }}>
+    <ExamContext.Provider
+      value={{
+        exams: scopedExams,
+        submissions: scopedSubmissions,
+        addExam,
+        updateExamSchedule,
+        submitExam,
+        gradeSubmission,
+      }}
+    >
       {children}
     </ExamContext.Provider>
   );

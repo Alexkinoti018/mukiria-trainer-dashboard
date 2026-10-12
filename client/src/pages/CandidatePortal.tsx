@@ -24,12 +24,13 @@ import {
   Award,
   Info,
   Search,
+  Lock,
 } from "lucide-react";
 import { useExam, sanitizeExamForStudent } from "@/contexts/ExamContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
 import { MOCK_EXAMS } from "@/lib/mockData";
-import type { Exam } from "@/lib/supabase";
+import { evaluateExamPortalAvailability, type Exam } from "@/lib/supabase";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
 import {
@@ -228,7 +229,7 @@ export default function CandidatePortal() {
   const unitCode = params.get("unitCode") ?? params.get("unit") ?? "";
   const { exams, submissions, submitExam } = useExam();
   const { user } = useAuth();
-  const allAvailableExams: Exam[] = (exams && exams.length > 0) ? exams : (MOCK_EXAMS as Exam[]);
+  const allAvailableExams: Exam[] = (exams || []).filter((ex) => ex.payload?.portal_visible === true);
 
   const [state, setState] = useState<PortalState>("loading");
   const [exam, setExam] = useState<Exam | null>(null);
@@ -356,7 +357,16 @@ export default function CandidatePortal() {
         setState("not_found");
         return;
       }
-      
+
+      const portalAvailability = evaluateExamPortalAvailability(foundExam.payload);
+      if (!portalAvailability.canStart) {
+        toast.warning("Assessment Portal Locked", {
+          description: portalAvailability.statusLabel,
+        });
+        setState("not_found");
+        return;
+      }
+
       if (foundExam) {
         // Enforce Column Shielding: completely shield correct answers and rubrics from candidate state
         foundExam = sanitizeExamForStudent(foundExam);
@@ -386,11 +396,19 @@ export default function CandidatePortal() {
       if (!exam || submitting) return;
       setSubmitting(true);
 
-      // 1. Mandatory Mod 5: Valid Exam Window Verification
+      // 1. Mandatory Mod 5: Valid Exam Window & Due Date Verification
+      const availability = evaluateExamPortalAvailability(exam.payload);
+      if (!availability.canStart) {
+        toast.error("Submission Window Closed", {
+          description: `403 Forbidden: ${availability.statusLabel}. Submissions are locked.`,
+        });
+        setSubmitting(false);
+        return;
+      }
       if (exam.payload?.end_time) {
         const now = new Date();
         const endTime = new Date(exam.payload.end_time);
-        if (now > endTime) {
+        if (now > endTime && exam.payload?.late_submission_policy !== "allow_flagged") {
           toast.error("Submission Window Expired", {
             description: "403 Forbidden: Exam submission window has expired and submissions are locked.",
           });
@@ -399,14 +417,16 @@ export default function CandidatePortal() {
         }
       }
 
-      // 2. Mandatory Mod 5: Submission Locking (Cannot re-submit once committed)
+      // 2. Mandatory Mod 5: Submission Locking & Max Attempts Verification
       const regNo = student.regNumber.trim().toUpperCase();
-      const existingSub = (submissions || []).find(
+      const maxAttempts = availability.maxAttempts || 1;
+      const priorSubs = (submissions || []).filter(
         (s) =>
           (s.unit_code?.toUpperCase() === exam.unit_code?.toUpperCase() || s.exam_id === exam.id) &&
-          s.reg_number?.toUpperCase() === regNo
+          s.reg_number?.toUpperCase() === regNo &&
+          (s.status === "submitted" || s.status === "graded")
       );
-      if (existingSub && (existingSub.status === "submitted" || existingSub.status === "graded")) {
+      if (priorSubs.length >= maxAttempts) {
         toast.error("Submission Locked", {
           description: "400 Bad Request: Locked: Submission has already been completed and cannot be modified.",
         });
@@ -801,54 +821,122 @@ export default function CandidatePortal() {
               OFFICIAL EXAMINATION PORTAL
             </span>
             <h2 className="text-2xl font-bold text-[#000953]">
-              Available Online Examinations
+              Allocated Online Examinations & CATs
             </h2>
             <p className="text-xs text-slate-600">
-              Select your scheduled assessment paper below to register and launch the test runner.
+              Only assessments explicitly allocated and scheduled for your cohort ({user?.cohort_code || "Official Roster"}) by your Trainer or Department appear here.
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            {allAvailableExams.map((ex) => (
-              <div
-                key={ex.id || ex.unit_code}
-                className="bg-white rounded-2xl border border-slate-300 p-6 space-y-4 shadow-sm hover:border-[#000953] hover:shadow-md transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-[#000953]/10 text-[#000953] border border-[#000953]/20">
-                      {ex.unit_code}
-                    </span>
-                    <span className="text-xs text-slate-500 font-mono font-semibold">
-                      {ex.payload?.duration_minutes ?? 120} Mins • {ex.payload?.total_marks ?? 70} Marks
-                    </span>
-                  </div>
-                  <h3 className="text-base font-bold text-[#000953] mb-1">
-                    {ex.payload?.title || ex.course_name}
-                  </h3>
-                  <p className="text-xs text-slate-600 line-clamp-2">
-                    {ex.payload?.instructions || "Section A (30 Marks compulsory) and Section B (40 Marks structured questions)."}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
-                  <span className="text-xs text-slate-500 font-medium">
-                    Class: {ex.payload?.class || "L5/6 Combined"}
-                  </span>
-                  <button
-                    onClick={() => {
-                      setExam(ex);
-                      setState(ex.payload?.type === "practical" ? "practical" : "registration");
-                    }}
-                    className="px-4 py-2 text-xs font-bold rounded-lg flex items-center gap-1.5 bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition"
-                  >
-                    Select Exam
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+          {allAvailableExams.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-300 p-8 text-center shadow-sm space-y-4 max-w-2xl mx-auto">
+              <div className="w-12 h-12 rounded-2xl bg-[#000953]/10 border border-[#000953]/20 flex items-center justify-center mx-auto">
+                <Lock className="w-6 h-6 text-[#000953]" />
               </div>
-            ))}
-          </div>
+              <div className="space-y-1.5">
+                <h3 className="text-base font-bold text-[#000953]">
+                  No Active Online Examination or CAT Allocated at This Time
+                </h3>
+                <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+                  Your Trainer or Head of Department has not published an open online examination or CAT for cohort{" "}
+                  <span className="font-mono font-bold text-[#000953]">
+                    {user?.cohort_code || "your class"}
+                  </span>{" "}
+                  yet. Unallocated assessment papers (such as CT1–CT3 and CP1–CP3) are strictly confidential and locked until scheduled.
+                </p>
+              </div>
+              <div className="pt-2 flex items-center justify-center gap-3 flex-wrap">
+                <a
+                  href="/trainee/dashboard"
+                  className="px-4 py-2 text-xs font-bold rounded-lg bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition inline-flex items-center gap-1.5"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  Return to Trainee Dashboard
+                </a>
+                <a
+                  href="/trainee/assignments"
+                  className="px-4 py-2 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition inline-flex items-center gap-1.5"
+                >
+                  View Portfolio & Evidence Uploads
+                </a>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {allAvailableExams
+                .filter((ex) => ex.payload?.portal_visible === true)
+                .map((ex) => {
+                  const portalStatus = evaluateExamPortalAvailability(ex.payload);
+                  return (
+                    <div
+                      key={ex.id || ex.unit_code}
+                      className="bg-white rounded-2xl border border-slate-300 p-6 space-y-4 shadow-sm hover:border-[#000953] hover:shadow-md transition-all flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-[#000953]/10 text-[#000953] border border-[#000953]/20">
+                              {ex.unit_code}
+                            </span>
+                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-50 text-[#c48820] border border-amber-200">
+                              {portalStatus.categoryLabel}
+                              {ex.payload?.task_code ? ` • ${ex.payload.task_code}` : ""}
+                            </span>
+                          </div>
+                          <span className="text-xs text-slate-500 font-mono font-semibold">
+                            {ex.payload?.duration_minutes ?? 120} Mins • {ex.payload?.total_marks ?? 70} Marks
+                          </span>
+                        </div>
+                        <h3 className="text-base font-bold text-[#000953] mb-1">
+                          {ex.payload?.title || ex.course_name}
+                        </h3>
+                        <p className="text-xs text-slate-600 line-clamp-2">
+                          {ex.payload?.instructions || "Section A (30 Marks compulsory) and Section B (40 Marks structured questions)."}
+                        </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
+                          <span
+                            className={`px-2 py-0.5 rounded font-semibold border ${
+                              portalStatus.state === "open"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : portalStatus.state === "scheduled"
+                                ? "bg-blue-50 text-blue-700 border-blue-200"
+                                : portalStatus.state === "past_due_open"
+                                ? "bg-amber-50 text-amber-700 border-amber-200"
+                                : "bg-rose-50 text-rose-700 border-rose-200"
+                            }`}
+                          >
+                            {portalStatus.statusLabel}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
+                        <span className="text-xs text-slate-500 font-medium">
+                          Class: {ex.payload?.class || "L5/6 Combined"}
+                        </span>
+                        {portalStatus.canStart ? (
+                          <button
+                            onClick={() => {
+                              setExam(ex);
+                              setState(ex.payload?.type === "practical" ? "practical" : "registration");
+                            }}
+                            className="px-4 py-2 text-xs font-bold rounded-lg flex items-center gap-1.5 bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition"
+                          >
+                            Select {portalStatus.categoryLabel}
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        ) : (
+                          <span className="px-3.5 py-2 text-xs font-bold rounded-lg flex items-center gap-1.5 bg-slate-100 text-slate-500 border border-slate-300 cursor-not-allowed">
+                            <Lock className="w-3.5 h-3.5" />
+                            {portalStatus.state === "scheduled" ? "Scheduled" : "Closed"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
         </div>
       </PortalShell>
     );

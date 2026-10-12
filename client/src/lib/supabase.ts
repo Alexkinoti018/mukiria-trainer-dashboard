@@ -43,6 +43,8 @@ export interface ExamSection {
   total_marks: number;
 }
 
+export type AssessmentCategory = "CAT" | "Exam" | "Practical" | "Assignment" | "Project";
+
 export interface ExamPayload {
   title: string;
   duration_minutes: number;
@@ -57,9 +59,25 @@ export interface ExamPayload {
   type?: "written" | "practical";
   task_code?: string;
   assessment_type?: string;
+  assessment_category?: AssessmentCategory;
   class?: string;
+  target_cohorts?: string[];
   start_time?: string;
   end_time?: string;
+  /** Whether the exam/CAT/assignment is published & visible on the Trainee Portal (defaults to true) */
+  portal_visible?: boolean;
+  /** ISO / datetime-local string when the assessment unlocks on the Trainee Portal */
+  available_from?: string;
+  /** ISO / datetime-local string when the assessment is due / closes */
+  due_at?: string;
+  /** Behavior after due_at passes */
+  late_submission_policy?: "strict_lock" | "allow_flagged";
+  /** Maximum attempts allowed per trainee (defaults to 1) */
+  max_attempts?: number;
+  /** Whether objective scores are shown immediately or held until trainer grading */
+  release_results_mode?: "immediate_objective" | "after_trainer_grading";
+  /** Whether live tab-switch & focus proctoring is enforced */
+  proctoring_required?: boolean;
   section_a?: ExamSection;
   section_b?: ExamSection;
   project_brief?: string;
@@ -67,6 +85,167 @@ export interface ExamPayload {
   tasks?: Array<{ id: string; title: string; marks: number; details: string[] }>;
   rubric?: Array<{ category: string; max_marks: number; criteria: Array<{ description: string; marks: number }> }>;
   checklist_items?: Array<{ id: string; task: string; criteria: string; marks: number; critical_aspect?: string }>;
+}
+
+export interface PortalAvailabilityStatus {
+  isVisible: boolean;
+  state: "hidden" | "scheduled" | "open" | "past_due_open" | "closed";
+  canStart: boolean;
+  statusLabel: string;
+  availableFromFormatted: string | null;
+  dueAtFormatted: string | null;
+  categoryLabel: AssessmentCategory;
+  latePolicy: "strict_lock" | "allow_flagged";
+  maxAttempts: number;
+}
+
+export function doesExamMatchTraineeCohort(exam: Exam, cohortCode?: string, enrolledUnits?: string[]): boolean {
+  const unitUpper = (exam.unit_code || "").trim().toUpperCase();
+  if (enrolledUnits && enrolledUnits.length > 0) {
+    if (enrolledUnits.some((u) => unitUpper.startsWith(u.trim().toUpperCase()))) {
+      return true;
+    }
+  }
+
+  const upperCohort = (cohortCode || "").trim().toUpperCase();
+  if (!upperCohort) return false;
+
+  const customCohorts = exam.payload?.target_cohorts;
+  if (customCohorts && customCohorts.length > 0) {
+    return customCohorts.some((tag) => upperCohort.includes(tag.trim().toUpperCase()));
+  }
+
+  const examClass = (exam.payload?.class || "").trim().toUpperCase();
+  if (examClass) {
+    if (upperCohort.includes("ITECH 6") || upperCohort.includes("ICT6") || upperCohort.includes("CSDP")) {
+      if (unitUpper.includes("/6/") || examClass.includes("ITECH6") || examClass.includes("CSDP")) return true;
+      if (unitUpper.includes("/4/") || examClass.includes("ICT4")) return false;
+    }
+    if (upperCohort.includes("ICT4") || upperCohort.includes("ICTT")) {
+      if (unitUpper.includes("/4/") || examClass.includes("ICT4")) return true;
+      if (unitUpper.includes("/6/")) return false;
+    }
+  }
+
+  if (unitUpper.startsWith("061155101A")) {
+    return upperCohort.includes("FBS") || upperCohort.includes("LS") || upperCohort.includes("CSDP");
+  }
+  if (unitUpper.startsWith("0415-451-21A") || unitUpper.startsWith("0415 451 21A")) {
+    return upperCohort.includes("ADMIN");
+  }
+  if (unitUpper.startsWith("IT/CU/ICTA/CR/01/4/MA")) {
+    return upperCohort.includes("ICT4") || upperCohort.includes("ICTT");
+  }
+  if (unitUpper.startsWith("IT/CU/ICTA/CR/01/6/MA")) {
+    return upperCohort.includes("ITECH 6") || upperCohort.includes("ICT6") || upperCohort.includes("CSDP");
+  }
+
+  return false;
+}
+
+export function evaluateExamPortalAvailability(
+  payload: ExamPayload,
+  now: Date = new Date()
+): PortalAvailabilityStatus {
+  // STRICT ANTI-LEAKAGE POLICY: Assessments are hidden from trainees unless explicitly allocated (portal_visible === true)
+  const isVisible = payload.portal_visible === true;
+  const latePolicy = payload.late_submission_policy || "strict_lock";
+  const maxAttempts = payload.max_attempts && payload.max_attempts > 0 ? payload.max_attempts : 1;
+
+  const formatDt = (raw?: string): string | null => {
+    if (!raw || !raw.trim()) return null;
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return raw;
+    return d.toLocaleString("en-KE", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const availableFromRaw = payload.available_from || payload.start_time;
+  const dueAtRaw = payload.due_at || payload.end_time;
+  const availableFromDate = availableFromRaw ? new Date(availableFromRaw) : null;
+  const dueAtDate = dueAtRaw ? new Date(dueAtRaw) : null;
+
+  const derivedCategory: AssessmentCategory =
+    payload.assessment_category ||
+    (payload.type === "practical"
+      ? "Practical"
+      : (payload.task_code || "").toUpperCase().startsWith("CT") ||
+        (payload.title || "").toUpperCase().includes("CAT") ||
+        (payload.title || "").toUpperCase().includes("WRITTEN ASSESSMENT")
+      ? "CAT"
+      : "Exam");
+
+  if (!isVisible) {
+    return {
+      isVisible: false,
+      state: "hidden",
+      canStart: false,
+      statusLabel: "Not Allocated to Trainee Portal",
+      availableFromFormatted: formatDt(availableFromRaw),
+      dueAtFormatted: formatDt(dueAtRaw),
+      categoryLabel: derivedCategory,
+      latePolicy,
+      maxAttempts,
+    };
+  }
+
+  if (availableFromDate && !isNaN(availableFromDate.getTime()) && now < availableFromDate) {
+    return {
+      isVisible: true,
+      state: "scheduled",
+      canStart: false,
+      statusLabel: `Scheduled • Opens ${formatDt(availableFromRaw)}`,
+      availableFromFormatted: formatDt(availableFromRaw),
+      dueAtFormatted: formatDt(dueAtRaw),
+      categoryLabel: derivedCategory,
+      latePolicy,
+      maxAttempts,
+    };
+  }
+
+  if (dueAtDate && !isNaN(dueAtDate.getTime()) && now > dueAtDate) {
+    if (latePolicy === "allow_flagged") {
+      return {
+        isVisible: true,
+        state: "past_due_open",
+        canStart: true,
+        statusLabel: `Past Due (${formatDt(dueAtRaw)}) • Late Submission Allowed`,
+        availableFromFormatted: formatDt(availableFromRaw),
+        dueAtFormatted: formatDt(dueAtRaw),
+        categoryLabel: derivedCategory,
+        latePolicy,
+        maxAttempts,
+      };
+    }
+    return {
+      isVisible: true,
+      state: "closed",
+      canStart: false,
+      statusLabel: `Closed • Due ${formatDt(dueAtRaw)}`,
+      availableFromFormatted: formatDt(availableFromRaw),
+      dueAtFormatted: formatDt(dueAtRaw),
+      categoryLabel: derivedCategory,
+      latePolicy,
+      maxAttempts,
+    };
+  }
+
+  return {
+    isVisible: true,
+    state: "open",
+    canStart: true,
+    statusLabel: dueAtRaw ? `Open • Due ${formatDt(dueAtRaw)}` : "Open on Trainee Portal",
+    availableFromFormatted: formatDt(availableFromRaw),
+    dueAtFormatted: formatDt(dueAtRaw),
+    categoryLabel: derivedCategory,
+    latePolicy,
+    maxAttempts,
+  };
 }
 
 export interface Exam {
