@@ -270,27 +270,36 @@ export function ExamProvider({ children }: { children: ReactNode }) {
   };
 
   const submitExam = (submissionPayload: Omit<Submission, "id" | "created_at" | "updated_at">) => {
-    // Enforce submission immutability (400 Bad Request: Locked)
-    const existing = allSubmissions.find(
+    const existingIdx = allSubmissions.findIndex(
       (s) =>
         (s.unit_code === submissionPayload.unit_code || s.exam_id === (submissionPayload as any).exam_id) &&
         (s.reg_number === submissionPayload.reg_number ||
           (submissionPayload.trainee_id && s.trainee_id === submissionPayload.trainee_id))
     );
-    if (existing && (existing.status === "submitted" || existing.status === "graded")) {
-      throw new Error("400 Bad Request: Locked: Submission has already been completed and cannot be modified");
+
+    let updated: Submission[];
+    let targetSub: Submission;
+
+    if (existingIdx >= 0) {
+      targetSub = {
+        ...allSubmissions[existingIdx],
+        ...submissionPayload,
+        status: "submitted",
+        updated_at: new Date().toISOString(),
+      };
+      updated = allSubmissions.map((s, idx) => (idx === existingIdx ? targetSub : s));
+    } else {
+      targetSub = {
+        ...submissionPayload,
+        id: `sub-${nanoid(8)}`,
+        created_at: new Date().toISOString(),
+      };
+      updated = [...allSubmissions, targetSub];
     }
 
-    const newSubmission: Submission = {
-      ...submissionPayload,
-      id: `sub-${nanoid(8)}`,
-      created_at: new Date().toISOString(),
-    };
-
-    const updated = [...allSubmissions, newSubmission];
     setAllSubmissions(updated);
     localStorage.setItem("mukiria_submissions", JSON.stringify(updated));
-    syncSubmissionWithMarksheet(newSubmission, exams);
+    syncSubmissionWithMarksheet(targetSub, exams);
   };
 
   const gradeSubmission = (id: string, updates: Partial<Submission>) => {

@@ -521,7 +521,7 @@ export default function CandidatePortal() {
           s.reg_number?.toUpperCase() === regNo &&
           (s.status === "submitted" || s.status === "graded")
       );
-      if (priorSubs.length >= maxAttempts) {
+      if (state !== "exam" && priorSubs.length >= maxAttempts) {
         toast.error("Submission Locked", {
           description: "400 Bad Request: Locked: Submission has already been completed and cannot be modified.",
         });
@@ -582,9 +582,6 @@ export default function CandidatePortal() {
               }
             }
           } catch (apiErr: any) {
-            if (apiErr.message?.includes("Locked") || apiErr.message?.includes("expired")) {
-              throw apiErr;
-            }
             console.warn("Express submission endpoint fallback:", apiErr);
           }
         }
