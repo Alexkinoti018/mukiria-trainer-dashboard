@@ -185,6 +185,20 @@ export function useAutoDraft<T>(
     setLastSaved(null);
   }, [storageKey]);
 
+  // Flush unsaved keystrokes immediately on page reload or close
+  useEffect(() => {
+    if (typeof window === "undefined" || !storageKey) return;
+    const handleUnload = () => {
+      forceSave();
+    };
+    window.addEventListener("beforeunload", handleUnload);
+    window.addEventListener("pagehide", handleUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleUnload);
+      window.removeEventListener("pagehide", handleUnload);
+    };
+  }, [forceSave, storageKey]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {

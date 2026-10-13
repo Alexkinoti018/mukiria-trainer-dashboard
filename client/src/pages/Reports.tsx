@@ -482,11 +482,12 @@ export default function Reports() {
           }
 
           if (q.sub_parts && q.sub_parts.length > 0) {
-            q.sub_parts.forEach((spLine) => {
+            q.sub_parts.forEach((spLine: any) => {
               doc.setFont("helvetica", "italic");
               doc.setTextColor(51, 65, 85);
               doc.setFontSize(7);
-              const spLines = doc.splitTextToSize(spLine, contentW - 10);
+              const spText = typeof spLine === "string" ? spLine : `${spLine.part ? `${spLine.part}) ` : ""}${spLine.prompt || spLine.text || ""}${spLine.marks ? ` (${spLine.marks} Marks)` : ""}`;
+              const spLines = doc.splitTextToSize(spText, contentW - 10);
               for (let l = 0; l < spLines.length; l++) {
                 if (y > 268) {
                   doc.addPage();

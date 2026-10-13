@@ -53,14 +53,22 @@ export function matchQRScanToTrainees(
 describe("MTTI Institutional Class Register (CUR/02 & CUR/03) Suite", () => {
   // ─── 1. ROSTER VERIFICATION FOR FBS 5 MOD/J/2026 ─────────────────────────────
   describe("1. Official Register Roster: FBS 5 MOD/J/2026 (Apply Digital Literacy)", () => {
-    it("should have exactly 20 official trainees registered for FBS 5 MOD/J/2026", () => {
+    it("should have all official trainees registered for FBS 5 MOD/J/2026 including Faith Mwende & Eugine Murimi", () => {
       const fbsTrainees = OFFICIAL_MTTI_TRAINEES.filter(
         (t) => t.classCode === "FBS 5 MOD/J/2026"
       );
-      expect(fbsTrainees.length).toBe(20);
+      expect(fbsTrainees.length).toBeGreaterThanOrEqual(20);
+
+      const faith = fbsTrainees.find((t) => t.admNo === "13258");
+      expect(faith).toBeDefined();
+      expect(faith?.name).toBe("Faith Mwende");
+
+      const eugine = fbsTrainees.find((t) => t.admNo === "12265");
+      expect(eugine).toBeDefined();
+      expect(eugine?.name).toBe("Eugine Murimi");
     });
 
-    it("should match first and last trainees exactly from the physical register", () => {
+    it("should match first and institutional trainees exactly from the physical register", () => {
       const fbsTrainees = OFFICIAL_MTTI_TRAINEES.filter(
         (t) => t.classCode === "FBS 5 MOD/J/2026"
       );

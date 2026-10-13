@@ -81,6 +81,26 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
       expect(data.cohortCode).toBe("FBS 5 MOD/J/2026");
     });
 
+    it("should resolve Faith Mwende (13258) for Apply Digital Literacy written assessment 1", async () => {
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=13258&unitCode=061155101A-WA1`);
+      expect(res.status).toBe(200);
+
+      const data = await res.json();
+      expect(data.admissionNumber).toBe("13258");
+      expect(data.fullName).toBe("Faith Mwende");
+      expect(data.cohortCode).toBe("FBS 5 MOD/J/2026");
+    });
+
+    it("should resolve Eugine Murimi (12265) for Apply Digital Literacy written assessment 1", async () => {
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=12265&unitCode=061155101A-WA1`);
+      expect(res.status).toBe(200);
+
+      const data = await res.json();
+      expect(data.admissionNumber).toBe("12265");
+      expect(data.fullName).toBe("Eugine Murimi");
+      expect(data.cohortCode).toBe("FBS 5 MOD/J/2026");
+    });
+
     it("should resolve ICT4 MOD/S/2026 trainee (14076/S2026) for Computer Essentials unit (IT/CU/ICTA/CR/01/4/MA)", async () => {
       const res = await fetch(`${baseUrl}/trainees/lookup?regNo=14076/S2026&unitCode=IT/CU/ICTA/CR/01/4/MA`);
       expect(res.status).toBe(200);

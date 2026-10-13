@@ -223,14 +223,17 @@ export default function MarkedExamScriptModal({
             {/* Structured Sub-Parts (a, b, c, d) — Identical to Trainee Exam Paper */}
             {q.sub_parts && q.sub_parts.length > 0 && (
               <div className="mt-2 mb-3 pl-4 border-l-2 border-[#000953]/30 space-y-1.5 bg-slate-50/70 py-2 pr-3 rounded-r">
-                {q.sub_parts.map((sp, spIdx) => (
-                  <p
-                    key={spIdx}
-                    className="text-xs sm:text-sm font-medium text-slate-800 leading-relaxed"
-                  >
-                    {sp}
-                  </p>
-                ))}
+                {q.sub_parts.map((sp: any, spIdx: number) => {
+                  const text = typeof sp === "string" ? sp : `${sp.part ? `${sp.part}) ` : ""}${sp.prompt || sp.text || ""}${sp.marks ? ` (${sp.marks} Marks)` : ""}`;
+                  return (
+                    <p
+                      key={spIdx}
+                      className="text-xs sm:text-sm font-medium text-slate-800 leading-relaxed"
+                    >
+                      {text}
+                    </p>
+                  );
+                })}
               </div>
             )}
 

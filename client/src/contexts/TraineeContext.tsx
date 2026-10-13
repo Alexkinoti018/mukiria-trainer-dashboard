@@ -116,6 +116,8 @@ export const OFFICIAL_MTTI_TRAINEES: Trainee[] = [
   { id: "tr_fbs5_18", regCode: "FBS 5 MOD/13559/J2026", admNo: "13559", name: "Kinya Weddy", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
   { id: "tr_fbs5_19", regCode: "FBS 5 MOD/13571/J2026", admNo: "13571", name: "Gakuhi Jackline Nyambura", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
   { id: "tr_fbs5_20", regCode: "FBS 5 MOD/13583/J2026", admNo: "13583", name: "Terry Mwendwa", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_21", regCode: "FBS 5 MOD/13258/J2026", admNo: "13258", name: "Faith Mwende", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
+  { id: "tr_fbs5_22", regCode: "FBS 5 MOD/12265/J2026", admNo: "12265", name: "Eugine Murimi", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "M" },
   { id: "tr_fbs6_01", regCode: "FBP6 MOD/13251/12026", admNo: "13251", name: "Mbithi Faith Wavinya", classCode: "FBS6 MOD/12026", department: "FBS Hospitality", gender: "F" },
   { id: "tr_fbs6_02", regCode: "FBS6 MOD/13314/12026", admNo: "13314", name: "Emmanuel Njoroge", classCode: "FBS6 MOD/12026", department: "FBS Hospitality", gender: "M" },
   { id: "tr_fbs6_03", regCode: "FBS6 MOD/13403/12026", admNo: "13403", name: "Brenda Ntinyari", classCode: "FBS6 MOD/12026", department: "FBS Hospitality", gender: "F" },
@@ -559,11 +561,11 @@ const TraineeContext = createContext<TraineeContextType | undefined>(undefined);
 export function TraineeProvider({ children }: { children: ReactNode }) {
   // Initialize from localStorage or fallback to official roster (with automatic cleanup of phantom candidates)
   const [trainees, setTrainees] = useState<Trainee[]>(() => {
-    const versionKey = "mtti_roster_version_v6";
+    const versionKey = "mtti_roster_version_v7";
     const currentVersion = localStorage.getItem(versionKey);
     const saved = localStorage.getItem("mtti_trainees");
 
-    if (currentVersion === "v6" && saved) {
+    if (currentVersion === "v7" && saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 10) {
@@ -576,7 +578,15 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
             return true;
           });
 
-          return filtered.map((t: Trainee) => {
+          // Ensure any newly added official trainees (e.g. Faith Mwende, Eugine Murimi) are retained
+          const existingIds = new Set(filtered.map((t: Trainee) => t.id));
+          const existingAdms = new Set(filtered.map((t: Trainee) => (t.admNo || "").trim().toUpperCase()));
+          const missingOfficial = OFFICIAL_MTTI_TRAINEES.filter(
+            (ot) => !existingIds.has(ot.id) && !existingAdms.has((ot.admNo || "").trim().toUpperCase())
+          );
+          const merged = [...filtered, ...missingOfficial];
+
+          return merged.map((t: Trainee) => {
             let classCode = t.classCode;
             if (
               classCode === "ITECH 6 MODULAR/S/2026" || 
@@ -603,7 +613,7 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
     }
 
     // Default to clean official roster and mark version
-    localStorage.setItem(versionKey, "v6");
+    localStorage.setItem(versionKey, "v7");
     localStorage.setItem("mtti_trainees", JSON.stringify(OFFICIAL_MTTI_TRAINEES));
     return OFFICIAL_MTTI_TRAINEES;
   });

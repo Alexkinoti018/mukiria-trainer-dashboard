@@ -145,6 +145,18 @@ interface ExamAnswersDraft {
   sectionBAnswers: Record<string, string>;
 }
 
+export function formatSubPart(sp: any): string {
+  if (!sp) return "";
+  if (typeof sp === "string") return sp;
+  if (typeof sp === "object") {
+    const part = sp.part ? `${sp.part}) ` : "";
+    const prompt = sp.prompt || sp.text || sp.title || "";
+    const marks = sp.marks ? ` (${sp.marks} ${sp.marks === 1 ? "Mark" : "Marks"})` : "";
+    return `${part}${prompt}${marks}`.trim();
+  }
+  return String(sp);
+}
+
 // ─── Unobtrusive Draft Status Badge Component ────────────────
 function DraftStatusBadge({
   isSaving,
@@ -302,27 +314,71 @@ export default function CandidatePortal() {
     (action: React.SetStateAction<Record<string, number | string>>) => {
       setAnswersDraft((prev) => {
         const nextA = typeof action === "function" ? action(prev.sectionAAnswers) : action;
-        return {
+        const nextDraft = {
           ...prev,
           sectionAAnswers: nextA,
         };
+        // Immediate synchronous write to ensure zero answer loss on refresh or network interruption
+        if (exam) {
+          const traineeCandidateId = user?.id || student.regNumber.trim().toUpperCase() || "anonymous";
+          try {
+            const serialized = JSON.stringify(nextDraft);
+            localStorage.setItem(`mtti_exam_answers_${exam.id}_${traineeCandidateId}`, serialized);
+            localStorage.setItem(`mtti_exam_answers_${exam.unit_code}_${traineeCandidateId}`, serialized);
+            localStorage.setItem(`mtti_exam_answers_${exam.unit_code}`, serialized);
+            if (exam.id) localStorage.setItem(`mtti_exam_answers_${exam.id}`, serialized);
+          } catch (e) {}
+        }
+        return nextDraft;
       });
     },
-    [setAnswersDraft]
+    [setAnswersDraft, exam, user, student.regNumber]
   );
 
   const setSectionBAnswers = useCallback(
     (action: React.SetStateAction<Record<string, string>>) => {
       setAnswersDraft((prev) => {
         const nextB = typeof action === "function" ? action(prev.sectionBAnswers) : action;
-        return {
+        const nextDraft = {
           ...prev,
           sectionBAnswers: nextB,
         };
+        // Immediate synchronous write to ensure zero answer loss on refresh or network interruption
+        if (exam) {
+          const traineeCandidateId = user?.id || student.regNumber.trim().toUpperCase() || "anonymous";
+          try {
+            const serialized = JSON.stringify(nextDraft);
+            localStorage.setItem(`mtti_exam_answers_${exam.id}_${traineeCandidateId}`, serialized);
+            localStorage.setItem(`mtti_exam_answers_${exam.unit_code}_${traineeCandidateId}`, serialized);
+            localStorage.setItem(`mtti_exam_answers_${exam.unit_code}`, serialized);
+            if (exam.id) localStorage.setItem(`mtti_exam_answers_${exam.id}`, serialized);
+          } catch (e) {}
+        }
+        return nextDraft;
       });
     },
-    [setAnswersDraft]
+    [setAnswersDraft, exam, user, student.regNumber]
   );
+
+  // Synchronously persist ongoing exam session state so accidental refresh retains candidate & timer
+  useEffect(() => {
+    if (exam && state === "exam" && student.name && student.regNumber) {
+      try {
+        localStorage.setItem(
+          `mtti_active_exam_session_${exam.unit_code}`,
+          JSON.stringify({
+            state: "exam",
+            unitCode: exam.unit_code,
+            examId: exam.id,
+            student,
+            currentSection,
+            currentQIndex,
+            timestamp: Date.now(),
+          })
+        );
+      } catch (e) {}
+    }
+  }, [exam, state, student, currentSection, currentQIndex]);
 
   const handleTimerExpire = useCallback(() => {
     toast.warning("Time's Up!", { description: "Your exam is being submitted automatically." });
@@ -397,6 +453,31 @@ export default function CandidatePortal() {
       
       setExam(foundExam);
       console.log("✅ [MTTI Portal] Exam loaded with Column Shielding:", foundExam.unit_code);
+
+      // Check if candidate already has an active in-progress assessment session (refresh recovery)
+      const ongoingSessionKey = `mtti_active_exam_session_${foundExam.unit_code}`;
+      const savedSessionRaw = localStorage.getItem(ongoingSessionKey);
+      if (savedSessionRaw) {
+        try {
+          const savedSession = JSON.parse(savedSessionRaw);
+          if (
+            savedSession &&
+            savedSession.state === "exam" &&
+            savedSession.student?.name &&
+            savedSession.student?.regNumber
+          ) {
+            setStudent(savedSession.student);
+            setIsVerified(true);
+            setVerifiedCohort(savedSession.student.cohortCode || "Active Register");
+            if (savedSession.currentSection) setCurrentSection(savedSession.currentSection);
+            if (typeof savedSession.currentQIndex === "number") setCurrentQIndex(savedSession.currentQIndex);
+            setState("exam");
+            startTimer();
+            return;
+          }
+        } catch (e) {}
+      }
+
       setState("registration");
     } catch (err) {
       console.error("❌ [MTTI Portal] Load error:", err);
@@ -553,8 +634,12 @@ export default function CandidatePortal() {
         resetTimer();
         clearDraft();
         localStorage.removeItem(`mtti_exam_answers_${exam.unit_code}`);
+        localStorage.removeItem(`mtti_active_exam_session_${exam.unit_code}`);
         if (draftStorageKey) {
           localStorage.removeItem(draftStorageKey);
+        }
+        if (exam.id) {
+          localStorage.removeItem(`mtti_exam_answers_${exam.id}`);
         }
         setState("submitted");
         if (!autoSubmit) {
@@ -576,44 +661,93 @@ export default function CandidatePortal() {
     [exam, student, sectionAAnswers, sectionBAnswers, submitting, resetTimer, clearDraft, draftStorageKey]
   );
 
-  // ── Restore answers from legacy localStorage or IndexedDB if not already in draft ────
+  // ── Restore answers from multi-tier localStorage or IndexedDB if not already in draft ────
   useEffect(() => {
     if (exam && state === "exam") {
-      // If answersDraft is already populated from useAutoDraft, skip legacy restore
-      if (
-        Object.keys(answersDraft.sectionAAnswers).length > 0 ||
-        Object.keys(answersDraft.sectionBAnswers).length > 0
-      ) {
-        return;
+      const traineeCandidateId = user?.id || student.regNumber.trim().toUpperCase() || "anonymous";
+      const keyCandidates = [
+        draftStorageKey,
+        `mtti_exam_answers_${exam.id}_${traineeCandidateId}`,
+        `mtti_exam_answers_${exam.unit_code}_${traineeCandidateId}`,
+        `mtti_exam_answers_${exam.unit_code}`,
+        `mtti_exam_answers_${exam.id}`,
+      ].filter(Boolean);
+
+      let mergedA = { ...answersDraft.sectionAAnswers };
+      let mergedB = { ...answersDraft.sectionBAnswers };
+      let updated = false;
+
+      for (const k of keyCandidates) {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            const a = parsed.sectionAAnswers || parsed.section_a;
+            const b = parsed.sectionBAnswers || parsed.section_b;
+            if (a && typeof a === "object") {
+              if (Array.isArray(a)) {
+                a.forEach((item: any) => {
+                  if (item.question_id && (mergedA[item.question_id] === undefined || mergedA[item.question_id] === "")) {
+                    mergedA[item.question_id] = item.answer;
+                    updated = true;
+                  }
+                });
+              } else {
+                Object.entries(a).forEach(([qId, val]) => {
+                  if (val !== undefined && val !== "" && (mergedA[qId] === undefined || mergedA[qId] === "")) {
+                    mergedA[qId] = val as any;
+                    updated = true;
+                  }
+                });
+              }
+            }
+            if (b && typeof b === "object") {
+              if (Array.isArray(b)) {
+                b.forEach((item: any) => {
+                  if (item.question_id && (mergedB[item.question_id] === undefined || mergedB[item.question_id] === "")) {
+                    mergedB[item.question_id] = item.answer;
+                    updated = true;
+                  }
+                });
+              } else {
+                Object.entries(b).forEach(([qId, val]) => {
+                  if (val !== undefined && val !== "" && (mergedB[qId] === undefined || mergedB[qId] === "")) {
+                    mergedB[qId] = val as any;
+                    updated = true;
+                  }
+                });
+              }
+            }
+          } catch (e) {}
+        }
       }
 
-      // Check legacy localStorage key for seamless backward compatibility
-      const legacyStored = localStorage.getItem(`mtti_exam_answers_${exam.unit_code}`);
-      if (legacyStored) {
-        try {
-          const { sectionAAnswers: a, sectionBAnswers: b } = JSON.parse(legacyStored);
-          if (a || b) {
-            setAnswersDraft({
-              sectionAAnswers: a || {},
-              sectionBAnswers: b || {},
-            });
-            return;
-          }
-        } catch (e) {}
+      if (updated) {
+        setAnswersDraft({
+          sectionAAnswers: mergedA,
+          sectionBAnswers: mergedB,
+        });
       }
 
       // Check IndexedDB draft store
       getDraftSubmissionFromOffline(exam.unit_code, student.regNumber).then((draft) => {
         if (draft) {
-          const aMap: Record<string, any> = {};
+          let idbUpdated = false;
+          const aMap: Record<string, any> = { ...mergedA };
           (draft.section_a || []).forEach((item: any) => {
-            if (item.question_id) aMap[item.question_id] = item.answer;
+            if (item.question_id && (aMap[item.question_id] === undefined || aMap[item.question_id] === "")) {
+              aMap[item.question_id] = item.answer;
+              idbUpdated = true;
+            }
           });
-          const bMap: Record<string, string> = {};
+          const bMap: Record<string, string> = { ...mergedB };
           (draft.section_b || []).forEach((item: any) => {
-            if (item.question_id) bMap[item.question_id] = item.answer;
+            if (item.question_id && (bMap[item.question_id] === undefined || bMap[item.question_id] === "")) {
+              bMap[item.question_id] = item.answer;
+              idbUpdated = true;
+            }
           });
-          if (Object.keys(aMap).length > 0 || Object.keys(bMap).length > 0) {
+          if (idbUpdated) {
             setAnswersDraft({
               sectionAAnswers: aMap,
               sectionBAnswers: bMap,
@@ -622,7 +756,7 @@ export default function CandidatePortal() {
         }
       });
     }
-  }, [exam, state, student.regNumber, answersDraft.sectionAAnswers, answersDraft.sectionBAnswers, setAnswersDraft]);
+  }, [exam, state, student.regNumber, user, draftStorageKey]);
 
   const answeredA = Object.keys(sectionAAnswers).filter(
     (k) => sectionAAnswers[k] !== "" && sectionAAnswers[k] !== undefined
@@ -1521,10 +1655,10 @@ export default function CandidatePortal() {
 
               {/* Structured Sub-Parts (a, b, c, d) — Identical to Graded Exam Paper */}
               {Array.isArray(currentQ?.sub_parts) && currentQ.sub_parts.length > 0 && (
-                <div className="mb-5 pl-4 border-l-2 border-[#000953]/30 space-y-1.5 bg-slate-50 py-2.5 pr-3 rounded-r">
-                  {currentQ.sub_parts.map((sp: string, spIdx: number) => (
+                <div className="mb-5 pl-4 border-l-2 border-[#000953]/30 space-y-2 bg-slate-50 py-3 pr-3 rounded-r">
+                  {currentQ.sub_parts.map((sp: any, spIdx: number) => (
                     <p key={spIdx} className="text-xs sm:text-sm font-medium text-slate-800 leading-relaxed">
-                      {sp}
+                      {formatSubPart(sp)}
                     </p>
                   ))}
                 </div>
@@ -1583,8 +1717,8 @@ export default function CandidatePortal() {
                 </div>
               )}
 
-              {/* Short Answer / Practical / Essay / Open-ended text */}
-              {(qType === "short" || qType === "short_answer" || qType === "practical" || qType === "essay" || !currentQ?.type) && (
+              {/* Short Answer / Practical / Essay / Structured / Open-ended text */}
+              {(qType === "short" || qType === "short_answer" || qType === "practical" || qType === "essay" || qType === "structured" || !currentQ?.type) && (
                 <div className="space-y-2">
                   <div className="text-[11px] font-bold text-[#000953] uppercase tracking-wider mb-1">
                     {isInSectionA

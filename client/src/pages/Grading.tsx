@@ -1126,7 +1126,7 @@ export default function Grading() {
                                           <div className="mb-2.5 pl-3 border-l-2 border-[#000953]/30 space-y-1 bg-slate-50 py-1.5 pr-2 rounded-r">
                                             {q.sub_parts.map((sp, spIdx) => (
                                               <p key={spIdx} className="text-xs text-slate-800 font-medium">
-                                                {sp}
+                                                {typeof sp === "string" ? sp : `${(sp as any).part ? `${(sp as any).part}) ` : ""}${(sp as any).prompt || (sp as any).text || ""}${(sp as any).marks ? ` (${(sp as any).marks} Marks)` : ""}`}
                                               </p>
                                             ))}
                                           </div>
@@ -1326,7 +1326,7 @@ export default function Grading() {
                                                 key={spIdx}
                                                 className="text-xs font-medium text-slate-800 leading-relaxed"
                                               >
-                                                {sp}
+                                                {typeof sp === "string" ? sp : `${(sp as any).part ? `${(sp as any).part}) ` : ""}${(sp as any).prompt || (sp as any).text || ""}${(sp as any).marks ? ` (${(sp as any).marks} Marks)` : ""}`}
                                               </p>
                                             ))}
                                           </div>

@@ -471,8 +471,9 @@ export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void
 
       const subPartLines: string[] = [];
       if (q.sub_parts && q.sub_parts.length > 0) {
-        q.sub_parts.forEach((sp) => {
-          const wrappedSp = doc.splitTextToSize(`   ${sp}`, contentWidth - 12);
+        q.sub_parts.forEach((sp: any) => {
+          const spText = typeof sp === "string" ? sp : `${sp?.part ? `${sp.part}) ` : ""}${sp?.prompt || sp?.text || ""}${sp?.marks ? ` (${sp.marks} Marks)` : ""}`;
+          const wrappedSp = doc.splitTextToSize(`   ${spText}`, contentWidth - 12);
           subPartLines.push(...wrappedSp);
         });
       }
