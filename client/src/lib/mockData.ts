@@ -6,6 +6,7 @@
 
 import type { Exam, Submission } from "./supabase";
 import { DIGITAL_LITERACY_EXAMS } from "./digitalLiteracyExams";
+import { FBS_COHORT_SUBMISSIONS } from "./fbsCohortSubmissions";
 
 export const MOCK_EXAMS: any = [
   ...DIGITAL_LITERACY_EXAMS,
@@ -686,6 +687,7 @@ export const MOCK_EXAMS: any = [
 ];
 
 export const MOCK_SUBMISSIONS: Submission[] = [
+  ...FBS_COHORT_SUBMISSIONS,
   {
     id: "sub-harriet-061155101A",
     unit_code: "061155101A-WA1",

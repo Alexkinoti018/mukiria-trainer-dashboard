@@ -10,6 +10,7 @@ import {
   AttendanceRecord,
   TraineeRecord,
 } from "./db.ts";
+import { FBS_COHORT_SUBMISSIONS } from "../client/src/lib/fbsCohortSubmissions.ts";
 
 export interface AuthenticatedUser {
   id: string;
@@ -44,9 +45,35 @@ export const DB = {
     { id: "trainee-10525", name: "Alex Kinoti", reg_number: "10525", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
     { id: "trainee-002", name: "Harriet Mwendwa", reg_number: "10526", class_id: "class-itech-6", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A-WA1"] },
     { id: "trainee-003", name: "Other Student", reg_number: "99999", class_id: "class-ee-4", enrolled_units: ["EE/CU/01/4"] },
+    { id: "tr_fbs5_01", name: "Yvonne Mwende", reg_number: "13254", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_02", name: "Muoki Muthoki", reg_number: "13263", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_03", name: "Kibaara Peninah Gaichuiri", reg_number: "13281", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_04", name: "Hilda Mwede Njagi", reg_number: "13297", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_05", name: "Ndolo Shalom Mbithe", reg_number: "13304", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_06", name: "Mirriam Nzula", reg_number: "13313", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_07", name: "Waweru Hope Marion Makena", reg_number: "13343", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_08", name: "Ann Joy Makena", reg_number: "13355", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_09", name: "Martha Mwende Kyalo", reg_number: "13378", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_10", name: "John Opiyo Omondi", reg_number: "13396", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_11", name: "Eunice Kendi Nyaga", reg_number: "13445", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_12", name: "Miriko Rita", reg_number: "13446", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_13", name: "Valentine Lesoito", reg_number: "13463", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_14", name: "Kinyua Christine Mutito", reg_number: "13482", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_15", name: "Gichukia Bridgit Nyakio", reg_number: "13488", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_16", name: "Karwitha Silvia", reg_number: "13546", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_17", name: "Lavint Aliviza", reg_number: "13551", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_18", name: "Kinya Weddy", reg_number: "13559", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_19", name: "Gakuhi Jackline Nyambura", reg_number: "13571", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs5_20", name: "Terry Mwendwa", reg_number: "13583", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
     { id: "tr_fbs5_21", name: "Faith Mwende", reg_number: "13258", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
     { id: "tr_fbs5_22", name: "Eugene Murimi", reg_number: "12265", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
     { id: "tr_fbs5_23", name: "Brendah Mumbi", reg_number: "13231", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs6_01", name: "Mbithi Faith Wavinya", reg_number: "13251", class_id: "FBS6 MOD/12026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs6_02", name: "Emmanuel Njoroge", reg_number: "13314", class_id: "FBS6 MOD/12026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs6_03", name: "Brenda Ntinyari", reg_number: "13403", class_id: "FBS6 MOD/12026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs6_04", name: "Omedo Lilian Atieno", reg_number: "13430", class_id: "FBS6 MOD/12026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs6_05", name: "Waguama Donatus Wachira", reg_number: "13487", class_id: "FBS6 MOD/12026", enrolled_units: ["061155101A", "061155101A-WA1"] },
+    { id: "tr_fbs6_06", name: "Nyamai Caroline Mutheu", reg_number: "13495", class_id: "FBS6 MOD/12026", enrolled_units: ["061155101A", "061155101A-WA1"] },
   ],
   unit_offerings: [
     { id: "uo-1", term_id: "term-2026", class_id: "class-itech-6", unit_code: "ICT/CU/IT/CR/6/6", unit_id: "unit-cr-6", trainer_id: "trainer-001", department_id: "dept-ci" },
@@ -168,6 +195,7 @@ export const DB = {
     }
   ],
   submissions: [
+    ...FBS_COHORT_SUBMISSIONS,
     {
       id: "sub-101",
       exam_id: "exam-cr-001",
@@ -1262,6 +1290,27 @@ apiRouter.get("/exams/:id", (req: AuthenticatedRequest, res: Response) => {
 
   // Admin: full access
   res.json(exam);
+});
+
+// ─── ENDPOINT: GET /api/submissions (List Submissions with RBAC) ────────────
+apiRouter.get("/submissions", (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user;
+  if (!user) {
+    res.json(DB.submissions);
+    return;
+  }
+
+  // Trainee Scope (BOLA Protection): Trainee can ONLY view their own submissions
+  if (user.role === "trainee") {
+    const userSubs = DB.submissions.filter(
+      s => (user.id && s.trainee_id === user.id) || (user.reg_number && s.reg_number === user.reg_number)
+    );
+    res.json(userSubs);
+    return;
+  }
+
+  // Trainer / HOD / Admin: full access
+  res.json(DB.submissions);
 });
 
 // ─── ENDPOINT: GET /api/submissions/:id (BOLA / IDOR Protection) ─────────────
