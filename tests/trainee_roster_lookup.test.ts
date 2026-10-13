@@ -91,13 +91,23 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
       expect(data.cohortCode).toBe("FBS 5 MOD/J/2026");
     });
 
-    it("should resolve Eugine Murimi (12265) for Apply Digital Literacy written assessment 1", async () => {
+    it("should resolve Eugene Murimi (12265) for Apply Digital Literacy written assessment 1", async () => {
       const res = await fetch(`${baseUrl}/trainees/lookup?regNo=12265&unitCode=061155101A-WA1`);
       expect(res.status).toBe(200);
 
       const data = await res.json();
       expect(data.admissionNumber).toBe("12265");
-      expect(data.fullName).toBe("Eugine Murimi");
+      expect(data.fullName).toBe("Eugene Murimi");
+      expect(data.cohortCode).toBe("FBS 5 MOD/J/2026");
+    });
+
+    it("should resolve Brendah Mumbi (13231) for Apply Digital Literacy written assessment 1", async () => {
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=13231&unitCode=061155101A-WA1`);
+      expect(res.status).toBe(200);
+
+      const data = await res.json();
+      expect(data.admissionNumber).toBe("13231");
+      expect(data.fullName).toBe("Brendah Mumbi");
       expect(data.cohortCode).toBe("FBS 5 MOD/J/2026");
     });
 
