@@ -24,6 +24,8 @@ import {
   Eye,
   EyeOff,
   ShieldCheck,
+  Check,
+  Users,
 } from "lucide-react";
 import TrainerLayout from "@/components/TrainerLayout";
 import { AssessmentMarksSheet } from "@/components/AssessmentMarksSheet";
@@ -405,6 +407,9 @@ export default function ExamBuilder() {
     setActiveExam(null);
     setUnitCode("");
     setCourseName("");
+    setUnitName("");
+    setClassCode("");
+    setSeries("");
     setPayload(EMPTY_PAYLOAD());
     setIsCreating(true);
     setExpandedSection("a");
@@ -414,6 +419,9 @@ export default function ExamBuilder() {
     setActiveExam(exam);
     setUnitCode(exam.unit_code);
     setCourseName(exam.course_name);
+    setUnitName(exam.payload?.unit_name || "");
+    setClassCode(exam.payload?.class || "");
+    setSeries(exam.payload?.series || "");
     setPayload(exam.payload);
     setIsCreating(true);
     setExpandedSection("a");
@@ -425,13 +433,27 @@ export default function ExamBuilder() {
       return;
     }
 
-    let updatedPayload = { ...payload };
+    const assignedClass = classCode.trim() || payload.class || "";
+    const derivedTargetCohorts =
+      payload.target_cohorts && payload.target_cohorts.length > 0
+        ? payload.target_cohorts
+        : assignedClass
+        ? [assignedClass]
+        : undefined;
+
+    let updatedPayload = {
+      ...payload,
+      class: assignedClass,
+      unit_name: unitName.trim() || payload.unit_name || "",
+      series: series.trim() || payload.series || "",
+      target_cohorts: derivedTargetCohorts,
+    };
 
     if (payload.type !== "practical") {
       const sectionATotal = payload.section_a?.questions.reduce((s, q) => s + q.marks, 0) || 0;
       const sectionBTotal = payload.section_b?.questions.reduce((s, q) => s + q.marks, 0) || 0;
       updatedPayload = {
-        ...payload,
+        ...updatedPayload,
         section_a: { ...payload.section_a!, total_marks: sectionATotal },
         section_b: { ...payload.section_b!, total_marks: sectionBTotal },
         total_marks: sectionATotal + sectionBTotal,
@@ -1029,6 +1051,72 @@ export default function ExamBuilder() {
                           : "Unallocated (Hidden in Trainer Bank)"}
                       </span>
                     </label>
+                  </div>
+
+                  {/* Target Cohort Allocation Pills */}
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <label className="text-xs font-bold text-[#000953] flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-[#c48820]" />
+                        Target Cohort / Permitted Classes:
+                      </label>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        Click cohort buttons below to allocate access to this assessment
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { code: "FBS5/6/J/26", label: "FBS5/6/J/26 (Food & Beverage L5/L6)" },
+                        { code: "ITECH 6 MOD", label: "ITECH 6 MOD (ICT L6)" },
+                        { code: "ICT4 MOD", label: "ICT4 MOD (ICT L4)" },
+                        { code: "ADMIN5/6/J/26", label: "ADMIN5/6/J/26 (Business L5/L6)" },
+                        { code: "LS5/6/S/26", label: "LS5/6/S/26 (Land Survey L5/L6)" },
+                        { code: "ALL", label: "All Enrolled Cohorts" },
+                      ].map((item) => {
+                        const activeCohorts = payload.target_cohorts || [];
+                        const isSelected =
+                          activeCohorts.includes(item.code) ||
+                          (activeCohorts.length === 0 && (classCode === item.code || payload.class === item.code));
+
+                        return (
+                          <button
+                            key={item.code}
+                            type="button"
+                            onClick={() => {
+                              let next: string[];
+                              if (isSelected) {
+                                next = activeCohorts.filter((c) => c !== item.code);
+                              } else {
+                                next = item.code === "ALL" ? ["ALL"] : [...activeCohorts.filter((c) => c !== "ALL"), item.code];
+                                if (!classCode.trim()) {
+                                  setClassCode(item.code);
+                                }
+                              }
+                              setPayload((p) => ({
+                                ...p,
+                                target_cohorts: next,
+                                class: next[0] || p.class,
+                              }));
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition flex items-center gap-1 ${
+                              isSelected
+                                ? "bg-[#000953] text-white border-[#000953] shadow-xs"
+                                : "bg-white text-slate-700 border-slate-300 hover:border-[#000953]"
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3 text-[#c48820]" />}
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {(payload.target_cohorts?.length ?? 0) > 0 && (
+                      <p className="text-[11px] font-mono font-semibold text-emerald-700 pt-1">
+                        ✓ Allocated strictly to: {payload.target_cohorts?.join(", ")}
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">

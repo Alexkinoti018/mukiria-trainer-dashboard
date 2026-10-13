@@ -182,7 +182,9 @@ function Router() {
       <Route path="/trainee/results">
         <ProtectedRoute allowedRoles={["trainee", "trainer", "hod", "admin"]}><StudentResults /></ProtectedRoute>
       </Route>
-      <Route path="/results" component={StudentResults} />
+      <Route path="/results">
+        <ProtectedRoute allowedRoles={["trainee", "trainer", "hod", "admin"]}><StudentResults /></ProtectedRoute>
+      </Route>
 
       {/* HOD Routes */}
       <Route path="/hod">

@@ -243,6 +243,20 @@ export default function CandidatePortal() {
   const [submitting, setSubmitting] = useState(false);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
 
+  // Strictly bind authenticated trainee identity so trainees cannot impersonate another candidate
+  useEffect(() => {
+    if (user && user.role === "trainee" && user.reg_number) {
+      setStudent({
+        name: user.name,
+        regNumber: user.reg_number,
+        cohortCode: user.cohort_code || "Active Cohort",
+      });
+      setIsVerified(true);
+      setVerifiedCohort(user.cohort_code || "Active Cohort");
+      setVerificationError(null);
+    }
+  }, [user]);
+
   // Scoped key format: mtti_exam_answers_${exam.id}_${traineeId || 'anonymous'}
   const traineeId = user?.id || student.regNumber.trim().toUpperCase() || "anonymous";
   const draftStorageKey = exam ? `mtti_exam_answers_${exam.id}_${traineeId}` : "";
@@ -1133,18 +1147,22 @@ export default function CandidatePortal() {
                 <div className="flex gap-2">
                   <input
                     value={student.regNumber}
+                    readOnly={user?.role === "trainee"}
                     onChange={(e) => {
+                      if (user?.role === "trainee") return;
                       const val = e.target.value;
                       setStudent((s) => ({ ...s, regNumber: val, name: isVerified ? "" : s.name }));
                       if (isVerified) setIsVerified(false);
                       if (verificationError) setVerificationError(null);
                     }}
                     onBlur={() => {
+                      if (user?.role === "trainee") return;
                       if (student.regNumber.trim() && !isVerified) {
                         handleVerifyRegNo(student.regNumber);
                       }
                     }}
                     onKeyDown={(e) => {
+                      if (user?.role === "trainee") return;
                       if (e.key === "Enter" && student.regNumber.trim()) {
                         e.preventDefault();
                         handleVerifyRegNo(student.regNumber);
@@ -1152,6 +1170,8 @@ export default function CandidatePortal() {
                     }}
                     placeholder="e.g. 14179/S2026 or 13254"
                     className={`flex-1 px-3.5 py-2.5 rounded-xl text-sm font-mono bg-white border-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/20 ${
+                      user?.role === "trainee" ? "bg-slate-50 cursor-not-allowed " : ""
+                    }${
                       isVerified
                         ? "border-emerald-500"
                         : verificationError
@@ -1159,25 +1179,27 @@ export default function CandidatePortal() {
                         : "border-slate-300"
                     }`}
                   />
-                  <button
-                    type="button"
-                    disabled={isVerifying || !student.regNumber.trim()}
-                    onClick={() => handleVerifyRegNo(student.regNumber)}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1.5 shrink-0 border shadow-sm ${
-                      isVerified
-                        ? "bg-emerald-600 border-emerald-600 text-white"
-                        : "bg-[#000953] hover:bg-[#000e7a] border-[#000953] text-white"
-                    }`}
-                  >
-                    {isVerifying ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : isVerified ? (
-                      <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                    ) : (
-                      <Search className="w-3.5 h-3.5" />
-                    )}
-                    {isVerified ? "Verified" : "Verify"}
-                  </button>
+                  {user?.role !== "trainee" && (
+                    <button
+                      type="button"
+                      disabled={isVerifying || !student.regNumber.trim()}
+                      onClick={() => handleVerifyRegNo(student.regNumber)}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1.5 shrink-0 border shadow-sm ${
+                        isVerified
+                          ? "bg-emerald-600 border-emerald-600 text-white"
+                          : "bg-[#000953] hover:bg-[#000e7a] border-[#000953] text-white"
+                      }`}
+                    >
+                      {isVerifying ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : isVerified ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                      ) : (
+                        <Search className="w-3.5 h-3.5" />
+                      )}
+                      {isVerified ? "Verified" : "Verify"}
+                    </button>
+                  )}
                 </div>
               </div>
 

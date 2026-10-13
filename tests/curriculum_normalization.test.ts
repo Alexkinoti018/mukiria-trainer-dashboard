@@ -57,4 +57,63 @@ describe("Part 1: Master Normalization Engine & Resolution Suite", () => {
     expect(ictProfile.tvetLevel).toBe("Level 4");
     expect(ictProfile.learningOutcomes.length).toBe(5);
   });
+
+  it("accurately matches FBS5/6/J/26 allocated exams to all FBS Level 5 and Level 6 trainees while shielding other cohorts", async () => {
+    const { doesExamMatchTraineeCohort, doesCohortTagMatch } = await import("../client/src/lib/supabase");
+
+    // 1. doesCohortTagMatch assertions
+    expect(doesCohortTagMatch("FBS 5 MOD/J/2026", "FBS5/6/J/26")).toBe(true);
+    expect(doesCohortTagMatch("FBS6 MOD/12026", "FBS5/6/J/26")).toBe(true);
+    expect(doesCohortTagMatch("FBS 5 MOD", "FBS5/6/J/26")).toBe(true);
+    expect(doesCohortTagMatch("FBS5/6/J/26", "FBS 5 MOD/J/2026")).toBe(true);
+    expect(doesCohortTagMatch("ITECH 6 MODULAR/S/2026", "FBS5/6/J/26")).toBe(false);
+    expect(doesCohortTagMatch("ADMIN5/6/J/26 MOD 3", "FBS5/6/J/26")).toBe(false);
+    expect(doesCohortTagMatch("LS5/6/S/26", "FBS5/6/J/26")).toBe(false);
+
+    // 2. Exam targeted via target_cohorts: ["FBS5/6/J/26"]
+    const examWithTargetCohort = {
+      id: "exam-fbs-test",
+      unit_code: "061155101A-WA1",
+      course_name: "Apply Digital Literacy",
+      created_at: new Date().toISOString(),
+      payload: {
+        title: "WRITTEN ASSESSMENT 1",
+        portal_visible: true,
+        target_cohorts: ["FBS5/6/J/26"],
+        duration_minutes: 120,
+        total_marks: 70,
+        type: "written",
+      },
+    };
+
+    // Must match Yvonne Mwende (Level 5) and Faith Wavinya (Level 6)
+    expect(doesExamMatchTraineeCohort(examWithTargetCohort, "FBS 5 MOD/J/2026")).toBe(true);
+    expect(doesExamMatchTraineeCohort(examWithTargetCohort, "FBS6 MOD/12026")).toBe(true);
+    expect(doesExamMatchTraineeCohort(examWithTargetCohort, "FBS5/6/J/26")).toBe(true);
+
+    // Must NOT match ITECH 6 or ICT 4 or ADMIN trainees
+    expect(doesExamMatchTraineeCohort(examWithTargetCohort, "ITECH 6 MODULAR/S/2026")).toBe(false);
+    expect(doesExamMatchTraineeCohort(examWithTargetCohort, "ICT4 MOD/S/2026")).toBe(false);
+    expect(doesExamMatchTraineeCohort(examWithTargetCohort, "ADMIN5/6/J/26 MOD 3")).toBe(false);
+
+    // 3. Exam targeted via class: "FBS5/6/J/26"
+    const examWithClass = {
+      id: "exam-fbs-class",
+      unit_code: "FBS/OS/HOS/BC/01/5/MA",
+      course_name: "Food & Beverage Operations",
+      created_at: new Date().toISOString(),
+      payload: {
+        title: "Beverage Service CAT 1",
+        portal_visible: true,
+        class: "FBS5/6/J/26",
+        duration_minutes: 90,
+        total_marks: 50,
+        type: "written",
+      },
+    };
+
+    expect(doesExamMatchTraineeCohort(examWithClass, "FBS 5 MOD/J/2026")).toBe(true);
+    expect(doesExamMatchTraineeCohort(examWithClass, "FBS6 MOD/12026")).toBe(true);
+    expect(doesExamMatchTraineeCohort(examWithClass, "ITECH 6 MODULAR/S/2026")).toBe(false);
+  });
 });

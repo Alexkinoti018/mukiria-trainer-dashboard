@@ -99,10 +99,120 @@ export interface PortalAvailabilityStatus {
   maxAttempts: number;
 }
 
+/**
+ * Normalizes any institutional cohort code/string by removing spaces, dashes, slashes, etc.
+ * E.g., "FBS 5 MOD/J/2026" -> "FBS5MODJ2026", "FBS5/6/J/26" -> "FBS56J26"
+ */
+export function cleanCohortIdentifier(raw?: string): string {
+  return (raw || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+/**
+ * Robust institutional cohort matching:
+ * Returns true if a trainee's cohort matches an exam's target cohort tag or class code.
+ * Handles combined cohorts (e.g. FBS5/6/J/26, ADMIN5/6/J/26, LS5/6/S/26, ICT4/ITECH6/S/26).
+ */
+export function doesCohortTagMatch(traineeCohort?: string, targetTag?: string): boolean {
+  const tCohort = (traineeCohort || "").trim().toUpperCase();
+  const tTag = (targetTag || "").trim().toUpperCase();
+  if (!tCohort || !tTag) return false;
+
+  // Wildcards
+  if (tTag === "ALL" || tTag === "ALL COHORTS" || tTag === "CAMPUS-WIDE" || tTag === "ANY") {
+    return true;
+  }
+
+  const cleanTrainee = cleanCohortIdentifier(tCohort);
+  const cleanTarget = cleanCohortIdentifier(tTag);
+
+  // Exact or cleaned equality
+  if (tCohort === tTag || cleanTrainee === cleanTarget) return true;
+  if (cleanTrainee.includes(cleanTarget) || cleanTarget.includes(cleanTrainee)) return true;
+
+  // 1. Food & Beverage Sales / Hospitality Department:
+  // Combined Institutional Cohort: "FBS5/6/J/26" (matches Level 5: "FBS 5 MOD/J/2026" & Level 6: "FBS6 MOD/12026")
+  const isTraineeFBS =
+    cleanTrainee.startsWith("FBS") ||
+    cleanTrainee.startsWith("FBP") ||
+    tCohort.includes("FOOD") ||
+    tCohort.includes("BEVERAGE");
+  const isTargetFBS =
+    cleanTarget.startsWith("FBS") ||
+    cleanTarget.startsWith("FBP") ||
+    tTag.includes("FOOD") ||
+    tTag.includes("BEVERAGE");
+  if (isTraineeFBS && isTargetFBS) {
+    // If target is combined FBS5/6 (e.g. "FBS5/6/J/26", "FBS56J26", "FBS 5/6", "FBS"):
+    if (
+      cleanTarget.includes("56") ||
+      (cleanTarget.includes("5") && cleanTarget.includes("6")) ||
+      (!cleanTarget.includes("5") && !cleanTarget.includes("6")) ||
+      cleanTarget === "FBS" ||
+      cleanTarget === "FBP"
+    ) {
+      return true;
+    }
+    // If target specifies Level 5 specifically:
+    if (cleanTarget.includes("5") && !cleanTarget.includes("6")) {
+      return cleanTrainee.includes("5");
+    }
+    // If target specifies Level 6 specifically:
+    if (cleanTarget.includes("6") && !cleanTarget.includes("5")) {
+      return cleanTrainee.includes("6");
+    }
+    return true;
+  }
+
+  // 2. Business / Office Administration Department:
+  // Combined Institutional Cohort: "ADMIN5/6/J/26"
+  const isTraineeAdmin = cleanTrainee.includes("ADMIN") || cleanTrainee.includes("BUS");
+  const isTargetAdmin = cleanTarget.includes("ADMIN") || cleanTarget.includes("BUS");
+  if (isTraineeAdmin && isTargetAdmin) {
+    return true;
+  }
+
+  // 3. Building & Civil / Land Survey:
+  // Combined Institutional Cohort: "LS5/6/S/26"
+  const isTraineeLS = cleanTrainee.includes("LS") || cleanTrainee.includes("SURVEY") || cleanTrainee.includes("CIVIL");
+  const isTargetLS = cleanTarget.includes("LS") || cleanTarget.includes("SURVEY") || cleanTarget.includes("CIVIL");
+  if (isTraineeLS && isTargetLS) {
+    return true;
+  }
+
+  // 4. Computing & Informatics (ITECH 6 vs ICT 4):
+  const isTraineeICT = cleanTrainee.includes("ITECH") || cleanTrainee.includes("ICT") || cleanTrainee.includes("CSDP");
+  const isTargetICT = cleanTarget.includes("ITECH") || cleanTarget.includes("ICT") || cleanTarget.includes("CSDP");
+  if (isTraineeICT && isTargetICT) {
+    if (
+      (cleanTarget.includes("4") && cleanTarget.includes("6")) ||
+      cleanTarget === "ICT" ||
+      cleanTarget === "ITECH"
+    ) {
+      return true;
+    }
+    if (cleanTarget.includes("6")) {
+      return cleanTrainee.includes("6") || cleanTrainee.includes("ITECH");
+    }
+    if (cleanTarget.includes("4")) {
+      return cleanTrainee.includes("4");
+    }
+    return true;
+  }
+
+  return false;
+}
+
 export function doesExamMatchTraineeCohort(exam: Exam, cohortCode?: string, enrolledUnits?: string[]): boolean {
   const unitUpper = (exam.unit_code || "").trim().toUpperCase();
+
+  // 1. Direct Enrolled Units Match
   if (enrolledUnits && enrolledUnits.length > 0) {
-    if (enrolledUnits.some((u) => unitUpper.startsWith(u.trim().toUpperCase()))) {
+    if (
+      enrolledUnits.some((u) => {
+        const uUpper = u.trim().toUpperCase();
+        return unitUpper === uUpper || unitUpper.startsWith(uUpper) || uUpper.startsWith(unitUpper);
+      })
+    ) {
       return true;
     }
   }
@@ -110,28 +220,51 @@ export function doesExamMatchTraineeCohort(exam: Exam, cohortCode?: string, enro
   const upperCohort = (cohortCode || "").trim().toUpperCase();
   if (!upperCohort) return false;
 
+  // 2. Custom Target Cohorts (explicit tags set by Trainer in ExamBuilder)
   const customCohorts = exam.payload?.target_cohorts;
   if (customCohorts && customCohorts.length > 0) {
-    return customCohorts.some((tag) => upperCohort.includes(tag.trim().toUpperCase()));
+    return customCohorts.some((tag) => doesCohortTagMatch(upperCohort, tag));
   }
 
+  // 3. Class Field on Exam Payload (e.g. "FBS5/6/J/26", "FBS5/6/J/25, LS5/6/S/25", "ADMIN5/6/J/26")
   const examClass = (exam.payload?.class || "").trim().toUpperCase();
   if (examClass) {
-    if (upperCohort.includes("ITECH 6") || upperCohort.includes("ICT6") || upperCohort.includes("CSDP")) {
-      if (unitUpper.includes("/6/") || examClass.includes("ITECH6") || examClass.includes("CSDP")) return true;
-      if (unitUpper.includes("/4/") || examClass.includes("ICT4")) return false;
+    // If comma-separated or slash-separated classes, check each token
+    const classTokens = examClass.split(/[,;]+/).map((s) => s.trim()).filter(Boolean);
+    if (classTokens.some((tok) => doesCohortTagMatch(upperCohort, tok))) {
+      return true;
     }
-    if (upperCohort.includes("ICT4") || upperCohort.includes("ICTT")) {
-      if (unitUpper.includes("/4/") || examClass.includes("ICT4")) return true;
-      if (unitUpper.includes("/6/")) return false;
+    if (doesCohortTagMatch(upperCohort, examClass)) {
+      return true;
     }
   }
 
+  // 4. Department / Course Name Match
+  const courseUpper = (exam.course_name || "").toUpperCase();
+  const deptUpper = (exam.payload?.department || "").toUpperCase();
+  const isFBS = upperCohort.includes("FBS") || upperCohort.includes("FBP");
+  if (
+    isFBS &&
+    (courseUpper.includes("FOOD") || courseUpper.includes("BEVERAGE") || deptUpper.includes("HOSPITALITY"))
+  ) {
+    return true;
+  }
+  const isAdmin = upperCohort.includes("ADMIN");
+  if (isAdmin && (courseUpper.includes("OFFICE ADMIN") || deptUpper.includes("BUSINESS"))) {
+    return true;
+  }
+  const isLS = upperCohort.includes("LS") || upperCohort.includes("SURVEY");
+  if (isLS && (courseUpper.includes("LAND SURVEY") || deptUpper.includes("BUILDING"))) {
+    return true;
+  }
+
+  // 5. Institutional Common Curriculum Mapping
   if (unitUpper.startsWith("061155101A")) {
-    return upperCohort.includes("FBS") || upperCohort.includes("LS") || upperCohort.includes("CSDP");
+    // Apply Digital Literacy is common to FBS (Food & Beverage), LS (Land Survey), and CSDP
+    return isFBS || isLS || upperCohort.includes("CSDP") || upperCohort.includes("ADMIN");
   }
   if (unitUpper.startsWith("0415-451-21A") || unitUpper.startsWith("0415 451 21A")) {
-    return upperCohort.includes("ADMIN");
+    return isAdmin;
   }
   if (unitUpper.startsWith("IT/CU/ICTA/CR/01/4/MA")) {
     return upperCohort.includes("ICT4") || upperCohort.includes("ICTT");
