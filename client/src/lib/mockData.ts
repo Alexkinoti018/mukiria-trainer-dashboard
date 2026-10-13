@@ -865,7 +865,7 @@ export const MOCK_SUBMISSIONS: Submission[] = [
     status: "graded",
     total_score: 63,
     trainer_comments: "Distinction performance. Strong grasp of digital literacy concepts and office application workflows.",
-    created_at: "2026-10-04T11:30:00Z",
+    created_at: "2026-10-13T13:51:20Z",
   },
   {
     id: "sub-006",
@@ -885,13 +885,13 @@ export const MOCK_SUBMISSIONS: Submission[] = [
       { question_id: "dl1_a10", answer: "Password security policy and internet acceptable use policy.", marks_awarded: 2, ai_reasoning: "Identified two policies." },
     ],
     section_b: [
-      { question_id: "dl1_b11", answer: "a) Word processor is used to type and format documents; features include font styling and tables.\nb) Columns, bold headings, images, and page borders.\nc) i. CTRL+Z undoes an action. ii. CTRL+X cuts text. iii. CTRL+V pastes text.\nd) Computers store large files and run many applications while calculators only compute numbers.", marks_awarded: 16, ai_reasoning: "Good coverage of word processing and shortcut keys." },
-      { question_id: "dl1_b12", answer: "a) Click Insert > Table and choose rows and columns for the sales data.\nb) Save As to the shared network drive, then File > Print > Page 1.\nc) Rows, columns, cells, and =SUM formulas.\nd) Avoid liquids near computers, use surge protectors, and lock the lab.", marks_awarded: 16, ai_reasoning: "Solid practical explanation across all four sub-parts." },
+      { question_id: "dl1_b11", answer: "a) Word processor is used to type and format documents; features include font styling and tables.\nb) Columns, bold headings, images, and page borders.\nc) i. CTRL+Z undoes an action. ii. CTRL+X cuts text. iii. CTRL+V pastes text.\nd) Computers store large files and run many applications while calculators only compute numbers.", marks_awarded: 15, ai_reasoning: "Good coverage of word processing and shortcut keys." },
+      { question_id: "dl1_b12", answer: "a) Click Insert > Table and choose rows and columns for the sales data.\nb) Save As to the shared network drive, then File > Print > Page 1.\nc) Rows, columns, cells, and =SUM formulas.\nd) Avoid liquids near computers, use surge protectors, and lock the lab.", marks_awarded: 15, ai_reasoning: "Solid practical explanation across all four sub-parts." },
     ],
     status: "graded",
-    total_score: 56,
-    trainer_comments: "Competent performance (80%). Good practical understanding of workplace computer operations.",
-    created_at: "2026-10-04T12:00:00Z",
+    total_score: 54,
+    trainer_comments: "Credit performance. Good practical understanding of workplace computer operations.",
+    created_at: "2026-10-13T13:54:10Z",
   },
   {
     id: "sub-007",

@@ -520,9 +520,8 @@ export default function Grading() {
   const getGrade = (score: number | null) => {
     if (score === null) return "—";
     if (score >= 80) return "A";
-    if (score >= 70) return "B";
-    if (score >= 60) return "C";
-    if (score >= 50) return "D";
+    if (score >= 65) return "B";
+    if (score >= 50) return "C";
     return "F";
   };
 
@@ -913,11 +912,15 @@ export default function Grading() {
                         <div className="text-xs font-bold flex items-center justify-end gap-1.5 mt-1 text-slate-700">
                           Grade {getGrade(pctScore)}
                           <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider border ${
-                            pctScore >= 50
+                            pctScore >= 80
                               ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                              : pctScore >= 65
+                              ? "bg-blue-50 text-blue-700 border-blue-300"
+                              : pctScore >= 50
+                              ? "bg-amber-50 text-amber-700 border-amber-300"
                               : "bg-rose-50 text-rose-700 border-rose-300"
                           }`}>
-                            {pctScore >= 50 ? "PASS" : "FAIL"}
+                            {pctScore >= 80 ? "DISTINCTION" : pctScore >= 65 ? "CREDIT" : pctScore >= 50 ? "PASS" : "REFER"}
                           </span>
                         </div>
                       </div>

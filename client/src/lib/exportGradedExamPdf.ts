@@ -240,18 +240,57 @@ export function buildUnifiedGradedExamData(
   const percentage = totalMarks > 0 ? Math.min(100, Math.round((totalScore / totalMarks) * 100)) : 0;
   const isPass = percentage >= 50;
 
+  // Resolve cohort-specific institutional metadata
+  const regUpper = (submission.reg_number || "").toUpperCase();
+  const nameUpper = (submission.student_name || "").toUpperCase();
+  const isFBS =
+    submission.id?.includes("fbs") ||
+    regUpper.includes("FBS") ||
+    regUpper.includes("FBP") ||
+    exam?.payload?.class?.includes("FBS") ||
+    [
+      "13254", "13263", "13281", "13297", "13304", "13313", "13343", "13355", "13378", "13396",
+      "13445", "13446", "13463", "13482", "13488", "13546", "13551", "13559", "13571", "13583",
+      "13258", "12265", "13231", "13251", "13314", "13403", "13430", "13487", "13495"
+    ].includes(submission.reg_number?.trim());
+
+  const isLS =
+    submission.id?.includes("ls") ||
+    regUpper.includes("LS") ||
+    [
+      "14009", "14024", "14032", "14092", "14120", "14348", "14403", "14428", "14502",
+      "14001", "14011", "14066", "14183", "14256", "14283", "14331", "14332", "14351", "14451"
+    ].includes(submission.reg_number?.trim());
+
+  let resolvedDept = (exam?.payload as any)?.department || "DEPARTMENT OF COMPUTING & INFORMATICS";
+  let resolvedCourse = exam?.course_name || "PERFORM COMPUTER ESSENTIALS";
+  let resolvedClass = (exam?.payload as any)?.class || "ICT4/ITECH6/S/26 MOD 1";
+  let resolvedUnitName = (exam?.payload as any)?.unit_name || exam?.course_name || submission.unit_code;
+
+  if (isFBS) {
+    resolvedDept = "HOSPITALITY & INSTITUTIONAL MANAGEMENT DEPARTMENT";
+    resolvedCourse = "FOOD AND BEVERAGE SALES AND SERVICE MANAGEMENT LEVEL 5 & 6";
+    resolvedClass = "FBS5/6/J/26";
+    resolvedUnitName = "APPLY DIGITAL LITERACY";
+  } else if (isLS) {
+    resolvedDept = "BUILDING & CIVIL ENGINEERING DEPARTMENT";
+    resolvedCourse = "LAND SURVEY LEVEL 5 & 6";
+    resolvedClass = "LS5/6/S/26";
+    resolvedUnitName = "APPLY DIGITAL LITERACY";
+  }
+
   return {
     student_name: submission.student_name,
     reg_number: submission.reg_number,
     institution: (exam?.payload as any)?.institution || "MUKIRIA TECHNICAL TRAINING INSTITUTE",
-    department: (exam?.payload as any)?.department || "DEPARTMENT OF COMPUTING & INFORMATICS",
+    department: resolvedDept,
     exam_header: (exam?.payload as any)?.exam_header || "INTERNAL EXAMINATION",
     exam_title: exam?.payload?.title || "WRITTEN ASSESSMENT 1",
-    course_name: exam?.course_name || "PERFORM COMPUTER ESSENTIALS",
+    course_name: resolvedCourse,
     course_code: (exam?.payload as any)?.course_code || submission.unit_code,
-    unit_name: (exam?.payload as any)?.unit_name || exam?.course_name || submission.unit_code,
+    unit_name: resolvedUnitName,
     unit_code: submission.unit_code,
-    class_code: (exam?.payload as any)?.class || "ICT4/ITECH6/S/26 MOD 1",
+    class_code: resolvedClass,
     series: (exam?.payload as any)?.series || "SEP - NOV 2026",
     time_allowed:
       (exam?.payload as any)?.time_allowed ||
