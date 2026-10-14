@@ -29,11 +29,11 @@ interface AssessmentRow {
 
 export function AssessmentMarksSheet() {
   const [centerCode, setCenterCode] = useState("01200004");
-  const [level, setLevel] = useState<number>(6);
-  const [courseCode, setCourseCode] = useState("041305T4OAD");
-  const [courseTitle, setCourseTitle] = useState("Diploma in Information Communication Technology");
-  const [unitCode, setUnitCode] = useState("IT/CU/ICTA/CR/01/6/MA");
-  const [unitTitle, setUnitTitle] = useState("Perform Computer Essentials");
+  const [level, setLevel] = useState<number>(4);
+  const [courseCode, setCourseCode] = useState("061004T4ICT");
+  const [courseTitle, setCourseTitle] = useState("ICT 4 / ICT Technician Level 5 & 6");
+  const [unitCode, setUnitCode] = useState("IT/CU/ICTA/CR/01/4/MA");
+  const [unitTitle, setUnitTitle] = useState("PERFORM COMPUTER ESSENTIALS");
   const [termDates, setTermDates] = useState("From 31 AUG 2026 to 20 NOV 2026");
   const [poeDate, setPoeDate] = useState("07/10/2026");
   const [assessmentSeries, setAssessmentSeries] = useState("NOV/DEC 2026");
@@ -111,39 +111,39 @@ export function AssessmentMarksSheet() {
           return false;
         });
 
-    let targetLevel = 6;
+    let targetLevel = 4;
     if (selectedClass.includes("FBS")) {
       targetLevel = 5;
       setLevel(5);
-      setCourseTitle("Diploma in Food & Beverage Sales and Service Management");
-      setCourseCode("FBS-MOD-5");
-      setUnitCode("HBS/OS/COS/BC/01/5/MA");
-      setUnitTitle("Apply Digital Literacy");
-      setTermDates("From SEPT 2026 to NOV 2026");
+      setCourseTitle("Food & Beverage Sales and Service Management Level 5 & 6");
+      setCourseCode("101305T4FBS");
+      setUnitCode("0611 551 01A");
+      setUnitTitle("APPLY DIGITAL LITERACY");
+      setTermDates("From 31 AUG 2026 to 20 NOV 2026");
     } else if (selectedClass.includes("ADMIN")) {
-      targetLevel = 6;
-      setLevel(6);
-      setCourseTitle("Diploma in Secretarial & Administration");
-      setCourseCode("Admin-MOD-6");
-      setUnitCode("ADM/OS/SEC/BC/01/6/MA");
-      setUnitTitle("Apply ICT Skills");
-      setTermDates("From SEPT 2026 to NOV 2026");
+      targetLevel = 5;
+      setLevel(5);
+      setCourseTitle("Office Administrator Level 5");
+      setCourseCode("041505T4OA");
+      setUnitCode("0415 451 21A");
+      setUnitTitle("APPLY ICT SKILLS");
+      setTermDates("From 31 AUG 2026 to 20 NOV 2026");
     } else if (selectedClass.includes("LS")) {
       targetLevel = 6;
       setLevel(6);
-      setCourseTitle("Diploma in Land Survey");
-      setCourseCode("LS-MOD-6");
-      setUnitCode("LS/CU/SRV/BC/01/6/MA");
-      setUnitTitle("Apply Digital Literacy");
-      setTermDates("From SEPT 2026 to NOV 2026");
+      setCourseTitle("Diploma in Land Survey (Level 6)");
+      setCourseCode("073106T4LS");
+      setUnitCode("0611 551 01A");
+      setUnitTitle("APPLY DIGITAL LITERACY");
+      setTermDates("From 31 AUG 2026 to 20 NOV 2026");
     } else if (selectedClass.includes("ICT4") || selectedClass.includes("ITECH6")) {
-      targetLevel = 6;
-      setLevel(6);
-      setCourseTitle("Diploma in Information Communication Technology");
-      setCourseCode("041305T4OAD");
-      setUnitCode("IT/CU/ICTA/CR/01/6/MA");
-      setUnitTitle("Perform Computer Essentials");
-      setTermDates("From SEPT 2026 to NOV 2026");
+      targetLevel = 4;
+      setLevel(4);
+      setCourseTitle("ICT 4 / ICT Technician Level 5 & 6");
+      setCourseCode("061004T4ICT");
+      setUnitCode("IT/CU/ICTA/CR/01/4/MA");
+      setUnitTitle("PERFORM COMPUTER ESSENTIALS");
+      setTermDates("From 31 AUG 2026 to 20 NOV 2026");
     }
 
     let savedMarks: any[] = [];
