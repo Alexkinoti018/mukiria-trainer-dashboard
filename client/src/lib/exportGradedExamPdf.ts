@@ -1,6 +1,28 @@
 import jsPDF from "jspdf";
 import type { Exam, Submission } from "@/lib/supabase";
 
+export function formatMarkingSchemeItem(item: unknown): string {
+  if (!item) return "";
+  if (typeof item === "string") return item;
+  if (typeof item === "object") {
+    const record = item as Record<string, unknown>;
+    return String(
+      record.point ||
+      record.criterion ||
+      record.text ||
+      record.description ||
+      record.expectedAnswer ||
+      JSON.stringify(item)
+    );
+  }
+  return String(item);
+}
+
+export function formatMarkingSchemeList(items: unknown[]): string {
+  if (!Array.isArray(items) || items.length === 0) return "Not specified";
+  return items.map(formatMarkingSchemeItem).filter(Boolean).join(" | ");
+}
+
 export interface UnifiedGradedQuestion {
   question_id: string;
   q_num: number | string;
@@ -12,8 +34,8 @@ export interface UnifiedGradedQuestion {
   raw_answer: string | number;
   formatted_answer: string;
   formatted_correct_answer?: string;
-  sub_parts?: string[];
-  breakdown?: string[];
+  sub_parts?: any[];
+  breakdown?: any[];
   rubric?: string;
   critical_aspect?: string;
   max_marks: number;
@@ -135,19 +157,76 @@ export function buildUnifiedGradedExamData(
     const rawAwarded = ans?.marks_awarded !== undefined ? Math.round(Number(ans.marks_awarded)) : 0;
     const marksAwarded = Math.min(maxMarks, Math.max(0, rawAwarded));
 
+    const qNum = q?.q_num ?? defaultQNum;
+    let cleanText = (q?.text || `Question ${qNum}`).trim();
+
+    // Prevent double numbering: strip leading "11.", "Q11.", "11)", "Task 11."
+    const numPrefixRegex = new RegExp(`^(?:Q(?:uestion)?\\s*|Task\\s*)?${qNum}[\\.:\\)\\-\\s]+`, "i");
+    cleanText = cleanText.replace(numPrefixRegex, "").trim();
+
+    // Prevent duplicate printing of sub-questions in Section B
+    const subParts = Array.isArray(q?.sub_parts) ? q.sub_parts : undefined;
+    if (subParts && subParts.length > 0) {
+      const subPartMatch = cleanText.search(/(?:^|\n)\s*(?:\([a-dA-D]\)|[a-dA-D]\))/i);
+      if (subPartMatch !== -1) {
+        const preamble = cleanText.slice(0, subPartMatch).trim();
+        if (preamble) {
+          cleanText = preamble;
+        } else if (q?.critical_aspect) {
+          cleanText = `Structured Assessment Task: ${q.critical_aspect}`;
+        } else {
+          cleanText = "Answer all structured sub-questions below:";
+        }
+      }
+    }
+
+    // Format sub-parts cleanly
+    let formattedSubParts: any[] | undefined = undefined;
+    if (subParts && subParts.length > 0) {
+      formattedSubParts = subParts.map((sp: any) => {
+        if (typeof sp === "string") return sp;
+        const partLabel = sp?.part ? `${sp.part}) ` : sp?.label ? `${sp.label}) ` : "";
+        const promptText = sp?.prompt || sp?.text || "";
+        const marksText = sp?.marks ? ` (${sp.marks} ${sp.marks === 1 ? "Mark" : "Marks"})` : "";
+        return `${partLabel}${promptText}${marksText}`.trim();
+      });
+    }
+
+    // Format breakdown cleanly using formatMarkingSchemeItem
+    let formattedBreakdown: string[] | undefined = undefined;
+    if (Array.isArray(q?.breakdown) && q.breakdown.length > 0) {
+      formattedBreakdown = q.breakdown.map(formatMarkingSchemeItem).filter(Boolean);
+    } else if (subParts && subParts.length > 0) {
+      const collected: string[] = [];
+      subParts.forEach((sp: any) => {
+        if (Array.isArray(sp?.breakdown)) {
+          sp.breakdown.forEach((b: any) => {
+            const formatted = formatMarkingSchemeItem(b);
+            if (formatted) {
+              const partPrefix = sp?.part ? `${sp.part}) ` : "";
+              collected.push(`${partPrefix}${formatted}`);
+            }
+          });
+        }
+      });
+      if (collected.length > 0) {
+        formattedBreakdown = collected;
+      }
+    }
+
     return {
       question_id: qId,
-      q_num: q?.q_num ?? defaultQNum,
+      q_num: qNum,
       type: qType,
-      text: q?.text || `Question ${defaultQNum}`,
+      text: cleanText,
       options,
       selected_option_index: selectedOptIdx,
       correct_option_index: correctOptIdx,
       raw_answer: rawAns,
       formatted_answer: formattedAnswer,
       formatted_correct_answer: formattedCorrectAnswer,
-      sub_parts: Array.isArray(q?.sub_parts) ? q.sub_parts : undefined,
-      breakdown: Array.isArray(q?.breakdown) ? q.breakdown : undefined,
+      sub_parts: formattedSubParts,
+      breakdown: formattedBreakdown,
       rubric: q?.rubric,
       critical_aspect: q?.critical_aspect,
       max_marks: maxMarks,
@@ -332,8 +411,11 @@ export function buildUnifiedGradedExamData(
   };
 }
 
-export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void {
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+export function exportGradedExamPDFClientSide(
+  data: UnifiedGradedExamData,
+  customDoc?: jsPDF
+): jsPDF {
+  const doc = customDoc || new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = 210;
   const pageHeight = 297;
   const margin = 14;
@@ -415,13 +497,16 @@ export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void
 
   const drawMetaRow = (x: number, rowY: number, label: string, val: string, maxW: number) => {
     doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
     doc.setTextColor(71, 85, 105);
     doc.text(label, x, rowY);
     doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
     doc.setTextColor(15, 23, 42);
     const labelW = doc.getTextWidth(label) + 2;
-    const clipped = doc.splitTextToSize(val || "—", maxW - labelW)[0] || "—";
-    doc.text(clipped, x + labelW, rowY);
+    const availW = Math.max(20, maxW - labelW);
+    const splitLines = doc.splitTextToSize(val || "—", availW);
+    doc.text(splitLines[0] || "—", x + labelW, rowY);
   };
 
   const colW = contentWidth / 2 - 5;
@@ -503,20 +588,34 @@ export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void
       const qPrefix = isSectionB && String(q.q_num).toLowerCase().startsWith("task")
         ? `${q.q_num}.`
         : `Q${q.q_num || idx + 1}.`;
+
+      let promptTitle = (q.text || "").trim();
+      const numPrefixRegex = new RegExp(`^(?:Q(?:uestion)?\\s*|Task\\s*)?${q.q_num}[\\.:\\)\\-\\s]+`, "i");
+      promptTitle = promptTitle.replace(numPrefixRegex, "").trim();
+
+      // 1. Question Prompt (Set font before splitTextToSize for exact line calculation)
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
       const promptLines = doc.splitTextToSize(
-        `${qPrefix} ${q.text} (${q.max_marks} ${q.max_marks === 1 ? "Mark" : "Marks"})`,
+        `${qPrefix} ${promptTitle} (${q.max_marks} ${q.max_marks === 1 ? "Mark" : "Marks"})`,
         contentWidth - 28
       );
 
+      // 2. Sub-parts (Render once cleanly without duplicating question prompt)
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
       const subPartLines: string[] = [];
       if (q.sub_parts && q.sub_parts.length > 0) {
         q.sub_parts.forEach((sp: any) => {
-          const spText = typeof sp === "string" ? sp : `${sp?.part ? `${sp.part}) ` : ""}${sp?.prompt || sp?.text || ""}${sp?.marks ? ` (${sp.marks} Marks)` : ""}`;
+          const spText = typeof sp === "string" ? sp : `${sp?.part ? `${sp.part}) ` : sp?.label ? `${sp.label}) ` : ""}${sp?.prompt || sp?.text || ""}${sp?.marks ? ` (${sp.marks} Marks)` : ""}`;
           const wrappedSp = doc.splitTextToSize(`   ${spText}`, contentWidth - 12);
           subPartLines.push(...wrappedSp);
         });
       }
 
+      // 3. MCQ Options
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
       const optionLines: { text: string; isSelected: boolean; isCorrect: boolean }[] = [];
       if (q.type === "mcq" && q.options && q.options.length > 0) {
         q.options.forEach((opt, oIdx) => {
@@ -534,6 +633,9 @@ export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void
         });
       }
 
+      // 4. Candidate Response
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
       const ansLines =
         q.type === "mcq" && optionLines.length > 0
           ? []
@@ -542,9 +644,12 @@ export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void
               contentWidth - 12
             );
 
+      // 5. Official Marking Scheme / Breakdown (Normalized using formatMarkingSchemeList)
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(7.5);
       const breakdownLines: string[] = [];
       if (q.breakdown && q.breakdown.length > 0) {
-        const bdJoined = `Marking Scheme: ${q.breakdown.join(" | ")}`;
+        const bdJoined = `Marking Scheme: ${formatMarkingSchemeList(q.breakdown)}`;
         breakdownLines.push(...doc.splitTextToSize(bdJoined, contentWidth - 12));
       } else if (q.formatted_correct_answer && q.type !== "mcq") {
         breakdownLines.push(
@@ -552,6 +657,9 @@ export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void
         );
       }
 
+      // 6. Simulated Red Pen Assessor Feedback
+      doc.setFont("helvetica", "bolditalic");
+      doc.setFontSize(8);
       const evalStatus =
         q.marks_awarded >= q.max_marks
           ? "✓ Correct — Full Marks Awarded"
@@ -561,23 +669,26 @@ export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void
       const evalDetail = q.ai_reasoning ? `${evalStatus} — ${q.ai_reasoning}` : evalStatus;
       const evalLines = doc.splitTextToSize(`Assessor Red Pen: ${evalDetail}`, contentWidth - 12);
 
+      // Dynamic card height calculation with generous padding to prevent cramped vertical flow
       const cardHeight =
         6 +
-        promptLines.length * 4.2 +
-        subPartLines.length * 3.8 +
-        optionLines.length * 4.2 +
-        ansLines.length * 4.0 +
-        breakdownLines.length * 3.6 +
-        evalLines.length * 3.8 +
-        5;
+        promptLines.length * 4.4 +
+        (subPartLines.length > 0 ? 2 + subPartLines.length * 4.0 : 0) +
+        (optionLines.length > 0 ? 2 + optionLines.length * 4.2 : 0) +
+        (ansLines.length > 0 ? 2 + ansLines.length * 4.2 : 0) +
+        (breakdownLines.length > 0 ? 2 + breakdownLines.length * 3.8 : 0) +
+        (evalLines.length > 0 ? 2 + evalLines.length * 4.0 : 0) +
+        6;
 
-      ensureSpace(Math.min(cardHeight, 95));
-
-      const cardStartY = y;
+      if (cardHeight <= (pageHeight - 34)) {
+        ensureSpace(cardHeight);
+      } else {
+        ensureSpace(Math.min(cardHeight, 40));
+      }
 
       // Question Prompt + Margin Score Badge
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(8.8);
+      doc.setFontSize(8.5);
       doc.setTextColor(15, 23, 42);
       promptLines.forEach((line: string, lIdx: number) => {
         ensureSpace(5);
@@ -595,26 +706,26 @@ export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void
             align: "center",
           });
           doc.setFont("helvetica", "bold");
-          doc.setFontSize(8.8);
+          doc.setFontSize(8.5);
           doc.setTextColor(15, 23, 42);
         }
-        y += 4.2;
+        y += 4.4;
       });
 
-      // Sub-parts (a, b, c, d) exactly like Trainee Exam Paper
+      // Sub-parts (a, b, c, d)
       if (subPartLines.length > 0) {
-        y += 1;
+        y += 1.5;
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
         doc.setTextColor(30, 41, 59);
         subPartLines.forEach((spLine) => {
           ensureSpace(4.5);
           doc.text(spLine, margin + 4, y + 3.5);
-          y += 3.8;
+          y += 4.0;
         });
       }
 
-      // MCQ Options (A, B, C, D) in Trainee Exam Paper format
+      // MCQ Options (A, B, C, D)
       if (optionLines.length > 0) {
         y += 1.5;
         optionLines.forEach((optItem) => {
@@ -647,32 +758,32 @@ export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void
         ansLines.forEach((aLine: string) => {
           ensureSpace(4.5);
           doc.text(aLine, margin + 4, y + 3.5);
-          y += 4.0;
+          y += 4.2;
         });
       }
 
       // Official Marking Scheme / Breakdown
       if (breakdownLines.length > 0) {
-        y += 1;
+        y += 1.5;
         doc.setFont("helvetica", "italic");
         doc.setFontSize(7.5);
         doc.setTextColor(71, 85, 105);
         breakdownLines.forEach((bLine: string) => {
-          ensureSpace(4);
+          ensureSpace(4.2);
           doc.text(bLine, margin + 4, y + 3.2);
-          y += 3.6;
+          y += 3.8;
         });
       }
 
       // Simulated Red Pen Assessor Line
-      y += 1;
+      y += 1.5;
       doc.setFont("helvetica", "bolditalic");
-      doc.setFontSize(7.8);
+      doc.setFontSize(8);
       doc.setTextColor(220, 38, 38);
       evalLines.forEach((eLine: string) => {
-        ensureSpace(4);
-        doc.text(eLine, margin + 4, y + 3.2);
-        y += 3.8;
+        ensureSpace(4.5);
+        doc.text(eLine, margin + 4, y + 3.5);
+        y += 4.0;
       });
 
       y += 2.5;
@@ -680,8 +791,7 @@ export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void
       doc.setDrawColor(226, 232, 240);
       doc.setLineWidth(0.25);
       doc.line(margin, y, pageWidth - margin, y);
-      y += 2;
-      void cardStartY;
+      y += 3;
     });
 
     y += 3;
@@ -704,26 +814,29 @@ export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void
   );
 
   // 4. Overall Assessor Remarks & Official Verification Signatures
+  doc.setFont("helvetica", "bolditalic");
+  doc.setFontSize(8);
   const commentLines = doc.splitTextToSize(`"${data.trainer_comments}"`, contentWidth - 8);
-  const footerHeight = 36 + commentLines.length * 4;
+  const commentBoxH = Math.max(12, 8 + commentLines.length * 4.2);
+  const footerHeight = commentBoxH + 34;
   ensureSpace(footerHeight);
 
   doc.setFillColor(254, 242, 242);
   doc.setDrawColor(220, 38, 38);
   doc.setLineWidth(0.4);
-  doc.roundedRect(margin, y, contentWidth, 10 + commentLines.length * 4, 1.5, 1.5, "FD");
+  doc.roundedRect(margin, y, contentWidth, commentBoxH, 1.5, 1.5, "FD");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.setTextColor(153, 27, 27);
-  doc.text("OVERALL ASSESSOR / TRAINER EXAMINATION FEEDBACK REMARKS:", margin + 3, y + 5);
+  doc.text("OVERALL ASSESSOR / TRAINER EXAMINATION FEEDBACK REMARKS:", margin + 3, y + 4.8);
   doc.setFont("helvetica", "bolditalic");
   doc.setFontSize(8);
   doc.setTextColor(185, 28, 28);
   commentLines.forEach((cLine: string, idx: number) => {
-    doc.text(cLine, margin + 3, y + 9.2 + idx * 4);
+    doc.text(cLine, margin + 3, y + 9.2 + idx * 4.2);
   });
 
-  y += 15 + commentLines.length * 4;
+  y += commentBoxH + 5;
 
   // Signatures
   doc.setDrawColor(100, 116, 139);
@@ -743,10 +856,33 @@ export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void
   doc.text(`Date Evaluated: ${data.evaluated_at}`, margin, y + 14.5);
   doc.text("Official Stamp: Mukiria TTI Academic Verifier", pageWidth - margin - 80, y + 14.5);
 
-  // Page numbers on all pages
+  // Page numbers and running headers on all pages
   const pageCount = doc.getNumberOfPages();
   for (let p = 1; p <= pageCount; p++) {
     doc.setPage(p);
+    if (p > 1) {
+      // Running top header on pages 2+
+      doc.setFillColor(0, 9, 83);
+      doc.rect(margin, 10, contentWidth, 0.4, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(0, 9, 83);
+      doc.text(
+        `${data.institution} — ${data.exam_title} (${data.unit_code})`,
+        margin,
+        8.5
+      );
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.2);
+      doc.setTextColor(100, 116, 139);
+      doc.text(
+        `Candidate: ${data.student_name} (${data.reg_number})`,
+        pageWidth - margin,
+        8.5,
+        { align: "right" }
+      );
+    }
+
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(100, 116, 139);
@@ -761,4 +897,5 @@ export function exportGradedExamPDFClientSide(data: UnifiedGradedExamData): void
   const safeReg = data.reg_number.replace(/[^a-zA-Z0-9_-]/g, "_");
   const safeUnit = data.unit_code.replace(/[^a-zA-Z0-9_-]/g, "_");
   doc.save(`MTTI_GradedExam_${safeUnit}_${safeReg}.pdf`);
+  return doc;
 }

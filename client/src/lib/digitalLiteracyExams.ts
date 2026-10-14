@@ -174,7 +174,7 @@ export const DIGITAL_LITERACY_EXAMS: Exam[] = [
           {
             id: "dl1_b11",
             q_num: 11,
-            text: "11.\na) Describe the primary function of a word processing application and list two features that differentiate it from a plain text editor. (4 Marks)\nb) You are tasked with creating a newsletter in a word processing application. List four formatting options you would apply to make it visually appealing and easy to read. (4 Marks)\nc) What is the function of the following key combinations in Ms Office? (6 Marks)\n   i. CTRL + Z\n   ii. CTRL + X\n   iii. CTRL + V\nd) Describe three differences between a calculator and a computer (6 Marks)",
+            text: "Structured Assessment Tasks covering word processing capabilities, office shortcuts, and computer architecture.",
             type: "structured",
             marks: 20,
             critical_aspect: "Word processing capabilities, office shortcuts, and computer architecture",
@@ -224,7 +224,7 @@ export const DIGITAL_LITERACY_EXAMS: Exam[] = [
           {
             id: "dl1_b12",
             q_num: 12,
-            text: "12.\na) Explain the steps to insert a pre-designed table into a Word document to organize monthly sales data. (6 Marks)\nb) You have completed a critical financial report in a spreadsheet. Describe how you would save it to a specific network drive and then print only the first page. (4 Marks)\nc) A manager asks you to create a simple budget in a spreadsheet application. List four essential components of a spreadsheet you would use to build and organize this data. (4 Marks)\nd) When using the computer laboratory, several measures can be put in place to ensure computers are safe. Explain three measures. (6 Marks)",
+            text: "Structured Assessment Tasks covering Word tables, spreadsheet file operations, budget modeling, and computer lab safety.",
             type: "structured",
             marks: 20,
             critical_aspect: "Word tables, spreadsheet file operations, budget modeling, and computer lab safety",
@@ -274,7 +274,7 @@ export const DIGITAL_LITERACY_EXAMS: Exam[] = [
           {
             id: "dl1_b13",
             q_num: 13,
-            text: "13.\na) In a spreadsheet, explain the difference between a formula and a function, and provide an example of each. (6 Marks)\nb) Outline the steps to sort a column of customer names alphabetically in a spreadsheet. (4 Marks)\nc) Your company requires you to develop a job application package. Describe how you would use a word processing application to prepare a professional resume/CV, ensuring it meets typical job advertisement requirements. (6 Marks)\nd) Mary wanted to procure an operating system for use in the computer laboratory. State four factors she should consider before making the purchase. (4 Marks)",
+            text: "Structured Assessment Tasks covering spreadsheet calculation methods, sorting, CV formatting, and OS procurement evaluation.",
             type: "structured",
             marks: 20,
             critical_aspect: "Spreadsheet calculation methods, sorting, CV formatting, and OS procurement evaluation",

@@ -605,7 +605,7 @@ def build_cdacc_exam(unit_code: str, course_name: str, level: int, topics: list,
                 "type": "short_answer",
                 "correct_answer": "Grading criteria: Clarity of definition, logical architecture.",
                 "marks": 4,
-                "critical_aspect": f"Demonstrates comprehensive mastery of {outcome[:20].lower()}..."
+                "critical_aspect": f"Demonstrates comprehensive mastery of {outcome.lower().strip()}."
             })
             
         # Section B: exactly 4 questions (Choose 3), each 20 marks (Total = 60)
@@ -625,7 +625,7 @@ def build_cdacc_exam(unit_code: str, course_name: str, level: int, topics: list,
                 "type": "short_answer",
                 "correct_answer": "Grading rubrics: Methodology (8m), Equipment (6m), Risk Management (6m).",
                 "marks": 20,
-                "critical_aspect": f"Demonstrated capability for {topic[:20].lower()}..."
+                "critical_aspect": f"Demonstrated capability for {topic.lower().strip()}."
             })
             
     elif level == 4:
@@ -640,7 +640,7 @@ def build_cdacc_exam(unit_code: str, course_name: str, level: int, topics: list,
                 "type": "short_answer",
                 "correct_answer": 1 if not is_raw else "",
                 "marks": 2,
-                "critical_aspect": f"Selects standard practices for {topic[:20].lower()}."
+                "critical_aspect": f"Selects standard practices for {topic.lower().strip()}."
             })
             
         # Section B: exactly 3 questions (Choose 2), each 20 marks (Total = 40)
@@ -659,7 +659,7 @@ def build_cdacc_exam(unit_code: str, course_name: str, level: int, topics: list,
                 "type": "short_answer",
                 "correct_answer": "a) Setup requirements (12m). b) Validation criteria (8m).",
                 "marks": 20,
-                "critical_aspect": f"Formulates test cases for {topic[:20].lower()}."
+                "critical_aspect": f"Formulates test cases for {topic.lower().strip()}."
             })
             
     else:  # Level 3
@@ -674,7 +674,7 @@ def build_cdacc_exam(unit_code: str, course_name: str, level: int, topics: list,
                 "type": "short_answer",
                 "correct_answer": 0 if not is_raw else "",
                 "marks": 2,
-                "critical_aspect": f"Identifies baseline parameter controls for {topic[:20].lower()}."
+                "critical_aspect": f"Identifies baseline parameter controls for {topic.lower().strip()}."
             })
             
         # Section B: exactly 3 questions (Choose 2), each 20 marks (Total = 40)
@@ -693,7 +693,7 @@ def build_cdacc_exam(unit_code: str, course_name: str, level: int, topics: list,
                 "type": "short_answer",
                 "correct_answer": "a) Operational steps (12m). b) Risk mitigation (8m).",
                 "marks": 20,
-                "critical_aspect": f"Verifies values for {topic[:20].lower()}."
+                "critical_aspect": f"Verifies values for {topic.lower().strip()}."
             })
 
     payload = {
@@ -740,8 +740,8 @@ def build_cdacc_practical(unit_code, course_name, level, topics, outcomes):
             "title": f"TASK {i+1}: Practical implementation of {topic}",
             "marks": task_marks,
             "details": [
-                f"Preparation: Ensure all tools and software are correctly configured for {topic[:30]}.",
-                f"Execution: Demonstrate the ability to {outcome[:50].lower()}.",
+                f"Preparation: Ensure all tools and software are correctly configured for {topic.strip()}.",
+                f"Execution: Demonstrate the ability to {outcome.lower().strip()}.",
                 f"Output: Produce a verifiable output meeting industry standards."
             ]
         })
@@ -750,8 +750,8 @@ def build_cdacc_practical(unit_code, course_name, level, topics, outcomes):
             "category": f"Execution of Task {i+1}",
             "max_marks": task_marks,
             "criteria": [
-                { "description": f"Appropriate setup and tool selection for {topic[:20]}.", "marks": round(task_marks * 0.3) },
-                { "description": f"Successful demonstration of {outcome[:30]}.", "marks": round(task_marks * 0.5) },
+                { "description": f"Appropriate setup and tool selection for {topic.strip()}.", "marks": round(task_marks * 0.3) },
+                { "description": f"Successful demonstration of {outcome.strip()}.", "marks": round(task_marks * 0.5) },
                 { "description": "Quality and compliance of the final output.", "marks": round(task_marks * 0.2) }
             ]
         })
@@ -1695,7 +1695,7 @@ def generate_exam_results_pdf(payload):
     sec_a_title = clean_pdf_text(str(payload.get("sec_a_title") or f"SECTION A ({sec_a_max} MARKS) -- Answer ALL Questions").upper())
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(0, 9, 83)
-    pdf.cell(130, 5, sec_a_title[:65], ln=0)
+    pdf.cell(130, 5, sec_a_title, ln=0)
     pdf.set_font('Helvetica', 'B', 8.5)
     pdf.set_text_color(220, 38, 38)
     pdf.cell(52, 5, f"Subtotal: {sec_a_subtotal} / {sec_a_max} Marks", ln=1, align='R')
@@ -1716,7 +1716,7 @@ def generate_exam_results_pdf(payload):
     sec_b_title = clean_pdf_text(str(payload.get("sec_b_title") or f"SECTION B ({sec_b_max} MARKS) -- Answer ANY TWO Questions").upper())
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(0, 9, 83)
-    pdf.cell(130, 5, sec_b_title[:65], ln=0)
+    pdf.cell(130, 5, sec_b_title, ln=0)
     pdf.set_font('Helvetica', 'B', 8.5)
     pdf.set_text_color(220, 38, 38)
     pdf.cell(52, 5, f"Subtotal: {sec_b_subtotal} / {sec_b_max} Marks", ln=1, align='R')

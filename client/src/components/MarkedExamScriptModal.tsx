@@ -20,6 +20,7 @@ import { EXAM_THEME_TOKENS } from "@/lib/examThemeTokens";
 import {
   buildUnifiedGradedExamData,
   exportGradedExamPDFClientSide,
+  formatMarkingSchemeItem,
   type UnifiedGradedQuestion,
 } from "@/lib/exportGradedExamPdf";
 
@@ -84,7 +85,7 @@ export default function MarkedExamScriptModal({
         marks_awarded: q.marks_awarded,
         max_marks: q.max_marks,
         sub_parts: q.sub_parts,
-        breakdown: q.breakdown,
+        breakdown: q.breakdown?.map(formatMarkingSchemeItem),
         ai_reasoning: q.ai_reasoning,
       }));
 
@@ -98,7 +99,7 @@ export default function MarkedExamScriptModal({
         marks_awarded: q.marks_awarded,
         max_marks: q.max_marks,
         sub_parts: q.sub_parts,
-        breakdown: q.breakdown,
+        breakdown: q.breakdown?.map(formatMarkingSchemeItem),
         ai_reasoning: q.ai_reasoning,
       }));
 
@@ -198,6 +199,10 @@ export default function MarkedExamScriptModal({
         ? `${q.q_num}.`
         : `${q.q_num || idx + 1}.`;
 
+    let cleanPromptText = (q.text || "").trim();
+    const numPrefixRegex = new RegExp(`^(?:Q(?:uestion)?\\s*|Task\\s*)?${q.q_num}[\\.:\\)\\-\\s]+`, "i");
+    cleanPromptText = cleanPromptText.replace(numPrefixRegex, "").trim();
+
     return (
       <div
         key={q.question_id || idx}
@@ -212,7 +217,7 @@ export default function MarkedExamScriptModal({
                   {qLabel}
                 </span>
                 <span className="exam-question-prompt leading-snug whitespace-pre-line font-semibold text-slate-900">
-                  {q.text}
+                  {cleanPromptText}
                 </span>
               </div>
               <span className="exam-marks-badge shrink-0">
@@ -393,7 +398,7 @@ export default function MarkedExamScriptModal({
                 {q.breakdown && q.breakdown.length > 0 ? (
                   <ul className="list-disc list-inside space-y-0.5 text-[11px] text-slate-700">
                     {q.breakdown.map((item, bIdx) => (
-                      <li key={bIdx}>{item}</li>
+                      <li key={bIdx}>{formatMarkingSchemeItem(item)}</li>
                     ))}
                   </ul>
                 ) : (
