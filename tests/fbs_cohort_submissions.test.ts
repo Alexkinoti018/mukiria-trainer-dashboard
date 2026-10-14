@@ -13,8 +13,8 @@ describe("FBS5/6/J/26 Cohort Exam Submissions & Marks Safeguard", () => {
     expect(fbsRoster.length).toBe(29);
   });
 
-  it("verifies that every single FBS trainee has a recorded submission for 061155101A-WA1", () => {
-    const fbsSubmissions = MOCK_SUBMISSIONS.filter((s) => s.unit_code === "061155101A-WA1");
+  it("verifies that every single FBS trainee has a recorded submission for 061155101A", () => {
+    const fbsSubmissions = MOCK_SUBMISSIONS.filter((s) => s.unit_code === "061155101A");
 
     for (const trainee of fbsRoster) {
       const traineeAdm = (trainee.admNo || "").trim();

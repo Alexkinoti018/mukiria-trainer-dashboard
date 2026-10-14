@@ -36,8 +36,8 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
 
   // ─── TEST 1: ONLINE LOOKUP BY ADMISSION NUMBER ──────────────────────────────
   describe("Test 1: Successful Online Roster Lookup", () => {
-    it("should successfully look up student by admission number (10525) for unit 061155101A-WA1", async () => {
-      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=10525&unitCode=061155101A-WA1`);
+    it("should successfully look up student by admission number (10525) for unit 061155101A", async () => {
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=10525&unitCode=061155101A`);
       expect(res.status).toBe(200);
 
       const data = await res.json();
@@ -52,7 +52,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     });
 
     it("should successfully look up student from transcribed official roster (14179/S2026)", async () => {
-      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=14179/S2026&unitCode=061155101A-WA1`);
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=14179/S2026&unitCode=061155101A`);
       expect(res.status).toBe(200);
 
       const data = await res.json();
@@ -63,7 +63,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     });
 
     it("should resolve candidate when prefixed with class code (ITECH 6 MOD/14179/S2026)", async () => {
-      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=${encodeURIComponent("ITECH 6 MOD/14179/S2026")}&unitCode=061155101A-WA1`);
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=${encodeURIComponent("ITECH 6 MOD/14179/S2026")}&unitCode=061155101A`);
       expect(res.status).toBe(200);
 
       const data = await res.json();
@@ -72,7 +72,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     });
 
     it("should resolve Hospitality trainee (13254) for shared Digital Literacy common unit", async () => {
-      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=13254&unitCode=061155101A-WA1`);
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=13254&unitCode=061155101A`);
       expect(res.status).toBe(200);
 
       const data = await res.json();
@@ -82,7 +82,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     });
 
     it("should resolve Faith Mwende (13258) for Apply Digital Literacy written assessment 1", async () => {
-      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=13258&unitCode=061155101A-WA1`);
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=13258&unitCode=061155101A`);
       expect(res.status).toBe(200);
 
       const data = await res.json();
@@ -92,7 +92,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     });
 
     it("should resolve Eugene Murimi (12265) for Apply Digital Literacy written assessment 1", async () => {
-      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=12265&unitCode=061155101A-WA1`);
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=12265&unitCode=061155101A`);
       expect(res.status).toBe(200);
 
       const data = await res.json();
@@ -102,7 +102,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     });
 
     it("should resolve Brendah Mumbi (13231) for Apply Digital Literacy written assessment 1", async () => {
-      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=13231&unitCode=061155101A-WA1`);
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=13231&unitCode=061155101A`);
       expect(res.status).toBe(200);
 
       const data = await res.json();
@@ -167,7 +167,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     });
 
     it("should reject ICT4 candidate (14076) attempting to access Digital Literacy (WA1/WA2 removed for ICT4)", async () => {
-      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=14076&unitCode=061155101A-WA1`);
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=14076&unitCode=061155101A`);
       expect(res.status).toBe(404);
 
       const data = await res.json();
@@ -178,7 +178,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
   // ─── TEST 2: UNREGISTERED / CROSS-COHORT ERROR HANDLING (404) ───────────────
   describe("Test 2: Unregistered and Cross-Cohort Verification Guard", () => {
     it("should return HTTP 404 with exact institutional error for non-existent admission number", async () => {
-      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=NONEXISTENT_999&unitCode=061155101A-WA1`);
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=NONEXISTENT_999&unitCode=061155101A`);
       expect(res.status).toBe(404);
 
       const data = await res.json();
@@ -186,8 +186,8 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     });
 
     it("should return HTTP 404 when candidate belongs to different department (cross-cohort mismatch)", async () => {
-      // 99999 is registered in Electrical (EE/CU/01/4), NOT Digital Literacy (061155101A-WA1)
-      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=99999&unitCode=061155101A-WA1`);
+      // 99999 is registered in Electrical (EE/CU/01/4), NOT Digital Literacy (061155101A)
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=99999&unitCode=061155101A`);
       expect(res.status).toBe(404);
 
       const data = await res.json();
@@ -216,7 +216,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
   // ─── TEST 3: MISSING REGISTRATION NUMBER (400) ──────────────────────────────
   describe("Test 3: Missing or Empty Registration Number", () => {
     it("should return HTTP 400 when regNo parameter is completely omitted", async () => {
-      const res = await fetch(`${baseUrl}/trainees/lookup?unitCode=061155101A-WA1`);
+      const res = await fetch(`${baseUrl}/trainees/lookup?unitCode=061155101A`);
       expect(res.status).toBe(400);
 
       const data = await res.json();
@@ -224,7 +224,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     });
 
     it("should return HTTP 400 when regNo is empty or whitespace only", async () => {
-      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=%20%20%20&unitCode=061155101A-WA1`);
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=%20%20%20&unitCode=061155101A`);
       expect(res.status).toBe(400);
 
       const data = await res.json();
@@ -297,7 +297,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
         ]),
       };
 
-      const result = simulateOfflineLookup("13410", "061155101A-WA1", mockStorage);
+      const result = simulateOfflineLookup("13410", "061155101A", mockStorage);
       expect(result).not.toBeNull();
       expect(result?.name).toBe("RISPER MWENDE");
       expect(result?.classCode).toBe("Admin 5/6/J/2026");
@@ -310,7 +310,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
         ]),
       };
 
-      const result = simulateOfflineLookup("14255/S2026", "061155101A-WA1", mockStorage);
+      const result = simulateOfflineLookup("14255/S2026", "061155101A", mockStorage);
       expect(result).not.toBeNull();
       expect(result?.name).toBe("Kaumbuthu Belinda Mukiri");
       expect(result?.classCode).toBe("ITECH 6 MODULAR/S/2026");
@@ -318,7 +318,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
 
     it("should resolve candidate from in-memory official roster when storage cache is empty", () => {
       const mockStorage: Record<string, string> = {};
-      const result = simulateOfflineLookup("14022/S2026", "061155101A-WA1", mockStorage);
+      const result = simulateOfflineLookup("14022/S2026", "061155101A", mockStorage);
       expect(result).not.toBeNull();
       expect(result?.name).toBe("Ltumwa Lesoipa");
       expect(result?.classCode).toBe("ITECH 6 MODULAR/S/2026");
@@ -326,7 +326,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
 
     it("should return null for unregistered trainee offline", () => {
       const mockStorage: Record<string, string> = {};
-      const result = simulateOfflineLookup("FAKE_9999", "061155101A-WA1", mockStorage);
+      const result = simulateOfflineLookup("FAKE_9999", "061155101A", mockStorage);
       expect(result).toBeNull();
     });
   });
@@ -334,7 +334,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
   // ─── TEST 5: ZERO EMAIL FIELD INTEGRITY INVARIANTS ──────────────────────────
   describe("Test 5: Zero-Email Property Invariants across all outputs", () => {
     it("should ensure backend response strictly contains ZERO email properties", async () => {
-      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=10525&unitCode=061155101A-WA1`);
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=10525&unitCode=061155101A`);
       expect(res.status).toBe(200);
 
       const body = await res.json();
@@ -350,7 +350,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     });
 
     it("should ensure findTraineeInRoster helper returns zero email properties", () => {
-      const trainee = findTraineeInRoster("10525", "061155101A-WA1");
+      const trainee = findTraineeInRoster("10525", "061155101A");
       expect(trainee).not.toBeNull();
       if (trainee) {
         expect("email" in trainee).toBe(false);

@@ -73,7 +73,7 @@ describe("Part 1: Master Normalization Engine & Resolution Suite", () => {
     // 2. Exam targeted via target_cohorts: ["FBS5/6/J/26"]
     const examWithTargetCohort = {
       id: "exam-fbs-test",
-      unit_code: "061155101A-WA1",
+      unit_code: "061155101A",
       course_name: "Apply Digital Literacy",
       created_at: new Date().toISOString(),
       payload: {

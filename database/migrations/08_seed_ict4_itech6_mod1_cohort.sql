@@ -6,7 +6,7 @@
 -- Series: SEPTEMBER-DECEMBER 2026
 -- Units:
 --   1. Perform Computer Essentials (IT/CU/ICTA/CR/01/4/MA / 0611-651-21A)
---   2. Apply Digital Literacy (061155101A / 061155101A-WA1)
+--   2. Apply Digital Literacy (061155101A)
 -- Trainees: 21 Official Candidates (Strictly Zero Email Addresses)
 -- ============================================================================
 

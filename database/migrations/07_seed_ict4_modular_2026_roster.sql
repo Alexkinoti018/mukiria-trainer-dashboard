@@ -3,7 +3,7 @@
 -- Migration 07: Seed Official ICT4 MOD/S/2026 Cohort Roster & Unit Offerings
 -- Cohort: ICT4 MOD/S/2026 (Artisan in ICT / Level 4 Computing & Informatics)
 -- Units: 
---   1. Apply Digital Literacy (061155101A / 061155101A-WA1)
+--   1. Apply Digital Literacy (061155101A)
 --   2. Perform Computer Essentials (IT/CU/ICTA/CR/01/4/MA / 0611-651-21A)
 -- Trainees: 8 Official Candidates (Zero Email Addresses)
 -- ============================================================================

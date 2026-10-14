@@ -178,7 +178,7 @@ export default function HODDashboard() {
             </div>
             <div className="text-3xl font-extrabold text-foreground tracking-tight font-mono">{exams.length}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {exams.filter(e => e.unit_code.includes("061155101A")).length} Digital Literacy Standard Papers (WA1-WA3)
+              {exams.filter(e => e.unit_code.includes("061155101A")).length} Digital Literacy Standard Papers (CT1-CT3)
             </p>
           </motion.div>
 
@@ -445,7 +445,7 @@ export default function HODDashboard() {
 
             <div className="space-y-3">
               {[
-                { title: "Standard Written Assessments (WA1-3)", status: "Active & Ingested", icon: CheckCircle2, ok: true },
+                { title: "Standard Written Assessments (CT1-3)", status: "Active & Ingested", icon: CheckCircle2, ok: true },
                 { title: "Formative Practical Rubrics (Section B)", status: "40 Marks Configured", icon: CheckCircle2, ok: true },
                 { title: "Auto-Grader Deterministic & NLP Engine", status: "Active on Port 8000", icon: CheckCircle2, ok: true },
                 { title: "Departmental Records of Work (RoW)", status: "Ready for HOD Stamp", icon: CheckCircle2, ok: true },

@@ -280,7 +280,7 @@ BEGIN
     END IF;
 
     -- 8. Exams (Satisfy both relational schema and JSON payload schema)
-    SELECT id INTO v_exam_ict FROM Exams WHERE unit_code = '0415-451-21A-WA1' LIMIT 1;
+    SELECT id INTO v_exam_ict FROM Exams WHERE unit_code = '0415-451-21A' LIMIT 1;
     IF v_exam_ict IS NULL THEN
         INSERT INTO Exams (
             unit_id, class_id, trainer_id, unit_code, course_name, title,
@@ -290,7 +290,7 @@ BEGIN
             v_unit_ict,
             v_class_admin,
             v_trainer_muriithi,
-            '0415-451-21A-WA1',
+            '0415-451-21A',
             'Office Administration (Apply ICT Skills)',
             'Apply ICT Skills — Written Assessment 1 (Term Sept/Dec 2026)',
             120,
@@ -368,7 +368,7 @@ BEGIN
             exam_id, unit_code, trainee_id, reg_number, student_name, student_email,
             status, total_score, section_a, section_b, submitted_at, payload
         ) VALUES (
-            v_exam_ict, '0415-451-21A-WA1', v_trainee_risper, '13410', 'RISPER MWENDE', 'risper.mwende@mtti.ac.ke',
+            v_exam_ict, '0415-451-21A', v_trainee_risper, '13410', 'RISPER MWENDE', 'risper.mwende@mtti.ac.ke',
             'submitted', NULL,
             jsonb_build_array(
                 jsonb_build_object('question_id', 'wa1_a1', 'answer', 'System software controlling computer operations. Windows 11, Ubuntu Linux.'),
@@ -388,7 +388,7 @@ BEGIN
             exam_id, unit_code, trainee_id, reg_number, student_name, student_email,
             status, total_score, section_a, section_b, submitted_at, payload
         ) VALUES (
-            v_exam_ict, '0415-451-21A-WA1', v_trainee_alex, 'MTTI/DICT/2024/001', 'Alex Kinoti', 'student@mtti.ac.ke',
+            v_exam_ict, '0415-451-21A', v_trainee_alex, 'MTTI/DICT/2024/001', 'Alex Kinoti', 'student@mtti.ac.ke',
             'in_progress', NULL,
             jsonb_build_array(
                 jsonb_build_object('question_id', 'wa1_a1', 'answer', 'An operating system is the core software managing memory and processes.')

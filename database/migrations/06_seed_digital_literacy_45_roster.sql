@@ -1,7 +1,7 @@
 -- ============================================================================
 -- MUKIRIA TECHNICAL TRAINING INSTITUTE
 -- Migration 06: Seed Official Digital Literacy Roster (45 Trainees Across 4 Cohorts)
--- Unit: Apply Digital Literacy (061155101A / 061155101A-WA1)
+-- Unit: Apply Digital Literacy (061155101A)
 -- Cohorts: FBS 5 MOD/J/2026, FBS6 MOD/J/2026, LS5 MOD/S/2026, LS6 MOD/S/2026
 -- ============================================================================
 
@@ -27,10 +27,10 @@ ON CONFLICT (class_code) DO UPDATE SET
 -- 3. Ensure Digital Literacy Unit Offerings Exist
 INSERT INTO public.unit_offerings (id, unit_code, title, class_code, trainer_id, term, year)
 VALUES 
-  ('uo_fbs5_dl', '061155101A-WA1', 'Apply Digital Literacy', 'FBS 5 MOD/J/2026', 'user_trainer_001', 'Term 3', 2026),
-  ('uo_fbs6_dl', '061155101A-WA1', 'Apply Digital Literacy', 'FBS6 MOD/J/2026', 'user_trainer_001', 'Term 3', 2026),
-  ('uo_ls5_dl', '061155101A-WA1', 'Apply Digital Literacy', 'LS5 MOD/S/2026', 'user_trainer_001', 'Term 3', 2026),
-  ('uo_ls6_dl', '061155101A-WA1', 'Apply Digital Literacy', 'LS6 MOD/S/2026', 'user_trainer_001', 'Term 3', 2026)
+  ('uo_fbs5_dl', '061155101A', 'Apply Digital Literacy', 'FBS 5 MOD/J/2026', 'user_trainer_001', 'Term 3', 2026),
+  ('uo_fbs6_dl', '061155101A', 'Apply Digital Literacy', 'FBS6 MOD/J/2026', 'user_trainer_001', 'Term 3', 2026),
+  ('uo_ls5_dl', '061155101A', 'Apply Digital Literacy', 'LS5 MOD/S/2026', 'user_trainer_001', 'Term 3', 2026),
+  ('uo_ls6_dl', '061155101A', 'Apply Digital Literacy', 'LS6 MOD/S/2026', 'user_trainer_001', 'Term 3', 2026)
 ON CONFLICT (id) DO NOTHING;
 
 -- 4. Upsert 45 Official Trainees (Strictly Zero Email Addresses)

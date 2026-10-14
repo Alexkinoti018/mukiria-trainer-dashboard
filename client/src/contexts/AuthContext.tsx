@@ -76,7 +76,6 @@ const DEMO_USERS: Record<string, AuthUser> = {
     department_id: "dept-ci",
     assigned_units: [
       "ICT/CU/IT/CR/6/6",
-      "061155101A-WA1",
       "061155101A",
       "0415 451 21A",
       "IT/CU/ICTA/CR/01/4/MA",
@@ -95,7 +94,7 @@ const DEMO_USERS: Record<string, AuthUser> = {
     reg_number: "FBS 5 MOD/13254/12026",
     cohort_code: "FBS 5 MOD/J/2026",
     role: "trainee",
-    enrolled_units: ["061155101A", "061155101A-WA1"],
+    enrolled_units: ["061155101A"],
   },
 };
 
@@ -398,11 +397,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           const defaultEnrolledUnits = rosterMatch
             ? (rosterMatch.classCode.includes("FBS") || rosterMatch.classCode.includes("FBP") || rosterMatch.department?.includes("FBS"))
-              ? ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "061155101A-PRAC"]
+              ? ["061155101A", "061155101A-PRAC"]
               : (rosterMatch.classCode.includes("ADMIN") || rosterMatch.department?.includes("Business"))
-              ? ["0415-451-21A", "0415-451-21A-WA1", "0415-451-21A-WA2", "0415-451-21A-WA3", "0415-451-21A-PRAC"]
+              ? ["0415-451-21A", "0415-451-21A-PRAC"]
               : (rosterMatch.classCode.includes("LS") || rosterMatch.department?.includes("Civil"))
-              ? ["061155101A", "061155101A-WA1", "061155101A-WA2", "061155101A-WA3", "061155101A-PRAC"]
+              ? ["061155101A", "061155101A-PRAC"]
               : rosterMatch.classCode.includes("ITECH")
               ? ["IT/CU/ICTA/CR/01/6/MA", "ICT/CU/IT/CR/6/6"]
               : ["IT/CU/ICTA/CR/01/4/MA"]

@@ -3,9 +3,9 @@ import { formatSubPart } from "../client/src/pages/CandidatePortal";
 import { DIGITAL_LITERACY_EXAMS } from "../client/src/lib/digitalLiteracyExams";
 
 describe("Section B & Digital Literacy Exam 1 Persistence Safeguards", () => {
-  const mockExam = DIGITAL_LITERACY_EXAMS.find((e) => e.unit_code === "061155101A-WA1");
+  const mockExam = DIGITAL_LITERACY_EXAMS.find((e) => e.unit_code === "061155101A");
 
-  it("exam 061155101A-WA1 exists and has Section A and Section B questions", () => {
+  it("exam 061155101A exists and has Section A and Section B questions", () => {
     expect(mockExam).toBeDefined();
     expect(mockExam?.payload.section_a?.questions.length).toBe(10);
     expect(mockExam?.payload.section_b?.questions.length).toBe(3);
@@ -50,7 +50,7 @@ describe("Section B & Digital Literacy Exam 1 Persistence Safeguards", () => {
     const mockStorage: Record<string, string> = {};
     const regNo = "13258";
     const examId = mockExam?.id || "exam-061155101A-wa1";
-    const unitCode = "061155101A-WA1";
+    const unitCode = "061155101A";
 
     const answersDraft = {
       sectionAAnswers: {

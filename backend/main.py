@@ -770,7 +770,7 @@ def build_cdacc_practical(unit_code, course_name, level, topics, outcomes):
     return payload
 
 
-# Canonical standard mark breakdowns for Digital Literacy (061155101A-WA1)
+# Canonical standard mark breakdowns for Digital Literacy (061155101A)
 DEFAULT_BREAKDOWNS = {
     1: [
         {"criterion": "Definition of digital literacy (access, evaluate, create info)", "marks": 1},

@@ -81,20 +81,20 @@ export default function HODAnalytics() {
   // Unit Breakdown Comparison
   const unitComparisonData = [
     {
-      unit: "WA1: Office Productivity",
-      candidates: submissions.filter(s => s.unit_code.includes("WA1")).length || 18,
+      unit: "CT1: Office Productivity",
+      candidates: submissions.filter(s => (s as any).task_code === "CT1" || s.exam_id?.includes("wa1") || s.exam_id?.includes("ct1") || s.unit_code.includes("WA1")).length || 18,
       avgScore: 58,
       passRate: 88,
     },
     {
-      unit: "WA2: Architecture & OS",
-      candidates: submissions.filter(s => s.unit_code.includes("WA2")).length || 15,
+      unit: "CT2: Architecture & OS",
+      candidates: submissions.filter(s => (s as any).task_code === "CT2" || s.exam_id?.includes("wa2") || s.exam_id?.includes("ct2") || s.unit_code.includes("WA2")).length || 15,
       avgScore: 52,
       passRate: 78,
     },
     {
-      unit: "WA3: Networks & Cyber",
-      candidates: submissions.filter(s => s.unit_code.includes("WA3")).length || 14,
+      unit: "CT3: Networks & Cyber",
+      candidates: submissions.filter(s => (s as any).task_code === "CT3" || s.exam_id?.includes("wa3") || s.exam_id?.includes("ct3") || s.unit_code.includes("WA3")).length || 14,
       avgScore: 54,
       passRate: 82,
     },
@@ -102,9 +102,9 @@ export default function HODAnalytics() {
 
   // Theory (Section A) vs Practical (Section B) Performance
   const componentComparisonData = [
-    { name: "WA1 (Productivity)", theory: 24, practical: 34, maxTheory: 30, maxPractical: 40 },
-    { name: "WA2 (Architecture)", theory: 22, practical: 30, maxTheory: 30, maxPractical: 40 },
-    { name: "WA3 (Cyber & Cloud)", theory: 23, practical: 31, maxTheory: 30, maxPractical: 40 },
+    { name: "CT1 (Productivity)", theory: 24, practical: 34, maxTheory: 30, maxPractical: 40 },
+    { name: "CT2 (Architecture)", theory: 22, practical: 30, maxTheory: 30, maxPractical: 40 },
+    { name: "CT3 (Cyber & Cloud)", theory: 23, practical: 31, maxTheory: 30, maxPractical: 40 },
   ];
 
   const avgMarks = totalGraded > 0

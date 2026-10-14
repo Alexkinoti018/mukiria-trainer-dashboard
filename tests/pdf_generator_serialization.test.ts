@@ -108,7 +108,7 @@ describe("Graded Exam PDF Generator & Marking Scheme Serialization", () => {
       }).not.toThrow();
 
       expect(savedFiles.length).toBe(1);
-      expect(savedFiles[0]).toMatch(/^MTTI_GradedExam_061155101A-WA1_.*\.pdf$/);
+      expect(savedFiles[0]).toMatch(/^MTTI_GradedExam_061155101A_.*\.pdf$/);
     });
   });
 });

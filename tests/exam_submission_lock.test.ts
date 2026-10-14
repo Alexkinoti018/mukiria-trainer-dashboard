@@ -6,7 +6,7 @@ describe("Exam Submission Lockdown & Trainer Retake Authorization Engine", () =>
   describe("1. Submission Hash & Digital Seal", () => {
     it("should generate a consistent deterministic digital seal hash", () => {
       const regNo = "14179/S2026";
-      const unitCode = "061155101A-WA1";
+      const unitCode = "061155101A";
       const timestamp = "2026-10-15T10:00:00.000Z";
       const totalAnswers = 20;
 
@@ -18,9 +18,9 @@ describe("Exam Submission Lockdown & Trainer Retake Authorization Engine", () =>
     });
 
     it("should generate different hashes for different candidates or timestamps", () => {
-      const hashA = generateSubmissionHash("14179/S2026", "061155101A-WA1", "2026-10-15T10:00:00.000Z", 20);
-      const hashB = generateSubmissionHash("10525/S2026", "061155101A-WA1", "2026-10-15T10:00:00.000Z", 20);
-      const hashC = generateSubmissionHash("14179/S2026", "061155101A-WA1", "2026-10-15T11:00:00.000Z", 20);
+      const hashA = generateSubmissionHash("14179/S2026", "061155101A", "2026-10-15T10:00:00.000Z", 20);
+      const hashB = generateSubmissionHash("10525/S2026", "061155101A", "2026-10-15T10:00:00.000Z", 20);
+      const hashC = generateSubmissionHash("14179/S2026", "061155101A", "2026-10-15T11:00:00.000Z", 20);
 
       expect(hashA).not.toBe(hashB);
       expect(hashA).not.toBe(hashC);
@@ -92,7 +92,7 @@ describe("Exam Submission Lockdown & Trainer Retake Authorization Engine", () =>
 
     it("should lock a submission immediately upon final submit", () => {
       const submission = mockSubmitExam({
-        unit_code: "061155101A-WA1",
+        unit_code: "061155101A",
         exam_id: "exam-dl-1",
         student_name: "Nthiga Gakii Doris",
         reg_number: "14179/S2026",
@@ -109,7 +109,7 @@ describe("Exam Submission Lockdown & Trainer Retake Authorization Engine", () =>
 
     it("should reject subsequent submission attempts when locked", () => {
       mockSubmitExam({
-        unit_code: "061155101A-WA1",
+        unit_code: "061155101A",
         exam_id: "exam-dl-1",
         student_name: "Nthiga Gakii Doris",
         reg_number: "14179/S2026",
@@ -120,7 +120,7 @@ describe("Exam Submission Lockdown & Trainer Retake Authorization Engine", () =>
       // Attempting to submit again while locked must throw error
       expect(() => {
         mockSubmitExam({
-          unit_code: "061155101A-WA1",
+          unit_code: "061155101A",
           exam_id: "exam-dl-1",
           student_name: "Nthiga Gakii Doris",
           reg_number: "14179/S2026",
@@ -132,7 +132,7 @@ describe("Exam Submission Lockdown & Trainer Retake Authorization Engine", () =>
 
     it("should allow a second attempt after explicit trainer unlock and increment attempt_count to 2", () => {
       const initialSub = mockSubmitExam({
-        unit_code: "061155101A-WA1",
+        unit_code: "061155101A",
         exam_id: "exam-dl-1",
         student_name: "Nthiga Gakii Doris",
         reg_number: "14179/S2026",
@@ -157,7 +157,7 @@ describe("Exam Submission Lockdown & Trainer Retake Authorization Engine", () =>
 
       // Candidate submits Attempt 2
       const secondSub = mockSubmitExam({
-        unit_code: "061155101A-WA1",
+        unit_code: "061155101A",
         exam_id: "exam-dl-1",
         student_name: "Nthiga Gakii Doris",
         reg_number: "14179/S2026",
@@ -173,7 +173,7 @@ describe("Exam Submission Lockdown & Trainer Retake Authorization Engine", () =>
       // Attempting a third submission without another trainer unlock is blocked
       expect(() => {
         mockSubmitExam({
-          unit_code: "061155101A-WA1",
+          unit_code: "061155101A",
           exam_id: "exam-dl-1",
           student_name: "Nthiga Gakii Doris",
           reg_number: "14179/S2026",

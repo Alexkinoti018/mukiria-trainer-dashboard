@@ -49,7 +49,7 @@ export const MOCK_EXAMS: any = [
   },
   {
     "id": "exam-wa1-0415",
-    "unit_code": "0415-451-21A-WA1",
+    "unit_code": "0415-451-21A",
     "course_name": "Office Administration (Apply ICT Skills)",
     "created_at": "2026-08-22T08:00:00Z",
     "payload": {
@@ -183,7 +183,7 @@ export const MOCK_EXAMS: any = [
   },
   {
     "id": "exam-wa2-0415",
-    "unit_code": "0415-451-21A-WA2",
+    "unit_code": "0415-451-21A",
     "course_name": "Office Administration (Apply ICT Skills)",
     "created_at": "2026-08-22T08:00:00Z",
     "payload": {
@@ -293,7 +293,7 @@ export const MOCK_EXAMS: any = [
   },
   {
     "id": "exam-wa3-0415",
-    "unit_code": "0415-451-21A-WA3",
+    "unit_code": "0415-451-21A",
     "course_name": "Office Administration (Apply ICT Skills)",
     "created_at": "2026-08-22T08:00:00Z",
     "payload": {
@@ -692,7 +692,7 @@ export const MOCK_SUBMISSIONS: Submission[] = [
   ...FBS_COHORT_SUBMISSIONS,
   {
     id: "sub-harriet-061155101A",
-    unit_code: "061155101A-WA1",
+    unit_code: "061155101A",
     student_name: "Harriet Mwendwa",
     reg_number: "D/UPNUT/25042/069",
     section_a: [
@@ -845,7 +845,7 @@ export const MOCK_SUBMISSIONS: Submission[] = [
   },
   {
     id: "sub-005",
-    unit_code: "061155101A-WA1",
+    unit_code: "061155101A",
     student_name: "Yvonne Mwende",
     reg_number: "13254",
     section_a: [
@@ -871,7 +871,7 @@ export const MOCK_SUBMISSIONS: Submission[] = [
   },
   {
     id: "sub-006",
-    unit_code: "061155101A-WA1",
+    unit_code: "061155101A",
     student_name: "Muoki Muthoki",
     reg_number: "13263",
     section_a: [
@@ -897,7 +897,7 @@ export const MOCK_SUBMISSIONS: Submission[] = [
   },
   {
     id: "sub-007",
-    unit_code: "061155101A-WA1",
+    unit_code: "061155101A",
     student_name: "Vick Mutembei",
     reg_number: "14009",
     section_a: [
@@ -923,7 +923,7 @@ export const MOCK_SUBMISSIONS: Submission[] = [
   },
   {
     id: "sub-risper-0415",
-    unit_code: "0415-451-21A-WA1",
+    unit_code: "0415-451-21A",
     student_name: "RISPER MWENDE",
     reg_number: "13410",
     section_a: [
@@ -950,7 +950,7 @@ export const MOCK_SUBMISSIONS: Submission[] = [
   },
   {
     id: "sub-banta-0415",
-    unit_code: "0415-451-21A-WA1",
+    unit_code: "0415-451-21A",
     student_name: "Banta Micheni",
     reg_number: "13527",
     section_a: [

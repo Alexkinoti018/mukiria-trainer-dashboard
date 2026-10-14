@@ -51,7 +51,7 @@ const INITIAL_TRAINERS: TrainerComplianceRecord[] = [
     staffId: "MTTI/EMP/042",
     department: "Computing & Informatics",
     unitCode: "061155101A",
-    unitTitle: "Apply Digital Literacy (WA1-3)",
+    unitTitle: "Apply Digital Literacy (CT1-3)",
     learningPlanStatus: "Approved",
     sessionPlansCount: 12,
     sessionPlansTotal: 12,

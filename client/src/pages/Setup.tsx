@@ -538,13 +538,13 @@ export default function Setup() {
             </h3>
           </div>
           <p className="text-xs mb-3 leading-relaxed text-slate-600">
-            Share this URL pattern with trainees. Replace <code className="font-mono font-bold text-[#000953]">061155101A-WA1</code> with the actual unit code:
+            Share this URL pattern with trainees. Replace <code className="font-mono font-bold text-[#000953]">061155101A</code> with the actual unit code:
           </p>
           <div className="px-3 py-2.5 rounded-lg font-mono text-xs bg-slate-50 border border-slate-300 text-[#000953] font-bold">
-            https://your-domain.com/exam?unitCode=061155101A-WA1
+            https://your-domain.com/exam?unitCode=061155101A
           </div>
           <p className="text-xs mt-3 text-slate-500">
-            Active Term 3 2026 units: <code className="font-mono font-semibold text-slate-700">061155101A-WA1</code>, <code className="font-mono font-semibold text-slate-700">0415-451-21A-WA1</code>, <code className="font-mono font-semibold text-slate-700">IT/CU/ICTA/CR/01/4/MA</code>
+            Active Term 3 2026 units: <code className="font-mono font-semibold text-slate-700">061155101A</code>, <code className="font-mono font-semibold text-slate-700">0415-451-21A</code>, <code className="font-mono font-semibold text-slate-700">IT/CU/ICTA/CR/01/4/MA</code>
           </p>
         </motion.div>
       </div>

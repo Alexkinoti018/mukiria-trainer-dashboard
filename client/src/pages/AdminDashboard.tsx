@@ -861,9 +861,9 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Bridge 5: /trainee/exam?unitCode=061155101A-WA1 */}
+            {/* Bridge 5: /trainee/exam?unitCode=061155101A */}
             <div
-              onClick={() => setLocation("/trainee/exam?unitCode=061155101A-WA1")}
+              onClick={() => setLocation("/trainee/exam?unitCode=061155101A")}
               className="group cursor-pointer rounded-xl bg-gradient-to-br from-slate-900 to-[#000953]/80 border border-[#c48820]/40 p-4 hover:border-[#c48820] hover:shadow-lg hover:shadow-[#c48820]/10 transition-all flex flex-col justify-between col-span-1 sm:col-span-2 lg:col-span-2"
             >
               <div className="space-y-2">
@@ -876,7 +876,7 @@ export default function AdminDashboard() {
                   </span>
                 </div>
                 <h4 className="text-sm font-bold text-white group-hover:text-amber-300 transition-colors">
-                  Candidate Exam Gateway (061155101A-WA1)
+                  Candidate Exam Gateway (061155101A)
                 </h4>
                 <p className="text-xs text-slate-300">
                   Direct candidate interface for Digital Literacy Written Assessment 1. Test live admission
@@ -884,7 +884,7 @@ export default function AdminDashboard() {
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-bold text-amber-400">
-                <span>Open Candidate Exam View (/trainee/exam?unitCode=061155101A-WA1)</span>
+                <span>Open Candidate Exam View (/trainee/exam?unitCode=061155101A)</span>
                 <ExternalLink className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
