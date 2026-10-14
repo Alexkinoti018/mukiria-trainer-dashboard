@@ -16,7 +16,7 @@ export const DIGITAL_LITERACY_EXAMS: Exam[] = [
       class: "FBS5/6/J/26",
       target_cohorts: ["FBS5/6/J/26", "FBS 5 MOD", "FBS6 MOD", "LS5/6/S/26"],
       portal_visible: true,
-      assessment_category: "CAT",
+      assessment_category: "Exam",
       task_code: "CT1",
       series: "SEP – NOV 2026",
       time_allowed: "2 HOURS",

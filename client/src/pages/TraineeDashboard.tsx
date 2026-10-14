@@ -54,7 +54,7 @@ export default function TraineeDashboard() {
         }
       }
     } catch (e) {}
-    return true; // default true for registered candidates
+    return false; // Default false until attendance is explicitly recorded
   });
 
   const handleConfirmAttendance = () => {
@@ -247,11 +247,15 @@ export default function TraineeDashboard() {
               <div className="space-y-3">
                 {cohortExams.map((ex) => {
                   const { portalStatus } = ex;
-                  const existingSub = mySubmissions.find(
-                    (s) =>
-                      (s.unit_code && s.unit_code.trim().toUpperCase() === ex.code.trim().toUpperCase()) ||
-                      (s.exam_id && s.exam_id === ex.id)
-                  );
+                  const existingSub = mySubmissions.find((s) => {
+                    if (s.exam_id && ex.id) {
+                      return s.exam_id === ex.id;
+                    }
+                    if (s.task_code && ex.taskSlot) {
+                      return s.task_code.toUpperCase() === ex.taskSlot.toUpperCase();
+                    }
+                    return false;
+                  });
                   const statusBadgeStyle =
                     portalStatus.state === "open"
                       ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/25"
@@ -310,7 +314,7 @@ export default function TraineeDashboard() {
                           )
                         ) : portalStatus.canStart ? (
                           <Link
-                            href={`/trainee/exam?unitCode=${encodeURIComponent(ex.code)}&regNo=${encodeURIComponent(traineeRegNo)}`}
+                            href={`/trainee/exam?unitCode=${encodeURIComponent(ex.code)}&examId=${encodeURIComponent(ex.id)}&regNo=${encodeURIComponent(traineeRegNo)}`}
                           >
                             <a className="btn-primary px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 flex items-center gap-1.5 shadow-sm">
                               Start {portalStatus.categoryLabel}

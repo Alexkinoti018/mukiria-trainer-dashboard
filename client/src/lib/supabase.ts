@@ -308,10 +308,13 @@ export function evaluateExamPortalAvailability(
     payload.assessment_category ||
     (payload.type === "practical"
       ? "Practical"
-      : (payload.task_code || "").toUpperCase().startsWith("CT") ||
-        (payload.title || "").toUpperCase().includes("CAT") ||
-        (payload.title || "").toUpperCase().includes("WRITTEN ASSESSMENT")
+      : (payload.title || "").toUpperCase().includes("CAT") ||
+        (payload.task_code || "").toUpperCase().startsWith("CAT")
       ? "CAT"
+      : (payload.task_code || "").toUpperCase().startsWith("CT") ||
+        (payload.title || "").toUpperCase().includes("WRITTEN ASSESSMENT") ||
+        (payload.title || "").toUpperCase().includes("EXAM")
+      ? "Exam"
       : "Exam");
 
   if (!isVisible) {

@@ -5,7 +5,7 @@
  * URL: /exam?unitCode=061155101A-WA1
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearch } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -239,10 +239,30 @@ function DraftStatusBadge({
   return null;
 }
 
+export function doesSubMatchTargetExam(sub: Submission | null | undefined, targetExam: Exam | null | undefined): boolean {
+  if (!sub || !targetExam) return false;
+  // If exam_id is specified on both, strict match
+  if (sub.exam_id && targetExam.id) {
+    return sub.exam_id === targetExam.id;
+  }
+  // If task_code is specified on both, strict match
+  const subTask = (sub.task_code || "").trim().toUpperCase();
+  const examTask = (targetExam.payload?.task_code || "").trim().toUpperCase();
+  if (subTask && examTask) {
+    return subTask === examTask;
+  }
+  // If neither has distinct exam_id or task_code (legacy fallback), match unit_code
+  if (!sub.exam_id && !targetExam.id && !subTask && !examTask) {
+    return (sub.unit_code || "").trim().toUpperCase() === (targetExam.unit_code || "").trim().toUpperCase();
+  }
+  return false;
+}
+
 export default function CandidatePortal() {
   const search = useSearch();
   const params = new URLSearchParams(search);
   const unitCode = params.get("unitCode") ?? params.get("unit") ?? "";
+  const examId = params.get("examId") ?? params.get("exam_id") ?? params.get("id") ?? "";
   const { exams, submissions, submitExam } = useExam();
   const { user } = useAuth();
   const allAvailableExams: Exam[] = (exams || []).filter((ex) => ex.payload?.portal_visible === true);
@@ -405,34 +425,58 @@ export default function CandidatePortal() {
 
   // ── Load exam ─────────────────────────────────────────────
   useEffect(() => {
-    if (!unitCode) {
+    if (!unitCode && !examId) {
       setState("not_found");
       return;
     }
     loadExam();
-  }, [unitCode]);
+  }, [unitCode, examId]);
 
   const loadExam = async () => {
     setState("loading");
     try {
-      let foundExam = allAvailableExams.find((e) => e.unit_code.toUpperCase() === unitCode.toUpperCase());
-      
-      // Fallback to IndexedDB offline cache if not in memory
-      if (!foundExam) {
-        const cached = await getExamFromOffline(unitCode);
-        if (cached) {
-          foundExam = {
-            id: cached.id,
-            unit_code: cached.unit_code,
-            payload: cached.payload,
-            created_at: new Date(cached.cached_at).toISOString(),
-          } as Exam;
+      let foundExam: Exam | undefined;
+
+      // 1. If explicit examId is provided, look up by exact ID first
+      if (examId) {
+        foundExam = allAvailableExams.find((e) => e.id === examId);
+        if (!foundExam) {
+          const cached = await getExamFromOffline(examId);
+          if (cached) {
+            foundExam = {
+              id: cached.id,
+              unit_code: cached.unit_code,
+              payload: cached.payload,
+              created_at: new Date(cached.cached_at).toISOString(),
+            } as Exam;
+          }
+        }
+        if (!foundExam) {
+          foundExam = (MOCK_EXAMS as Exam[]).find((e) => e.id === examId);
         }
       }
 
-      // Direct fallback to MOCK_EXAMS
-      if (!foundExam) {
-        foundExam = (MOCK_EXAMS as Exam[]).find((e) => e.unit_code.toUpperCase() === unitCode.toUpperCase());
+      // 2. If no examId or exam not found by ID, fall back to unitCode
+      if (!foundExam && unitCode) {
+        foundExam = allAvailableExams.find((e) => e.unit_code.toUpperCase() === unitCode.toUpperCase());
+        
+        // Fallback to IndexedDB offline cache if not in memory
+        if (!foundExam) {
+          const cached = await getExamFromOffline(unitCode);
+          if (cached) {
+            foundExam = {
+              id: cached.id,
+              unit_code: cached.unit_code,
+              payload: cached.payload,
+              created_at: new Date(cached.cached_at).toISOString(),
+            } as Exam;
+          }
+        }
+
+        // Direct fallback to MOCK_EXAMS
+        if (!foundExam) {
+          foundExam = (MOCK_EXAMS as Exam[]).find((e) => e.unit_code.toUpperCase() === unitCode.toUpperCase());
+        }
       }
       
       if (!foundExam) {
@@ -464,14 +508,14 @@ export default function CandidatePortal() {
       }
       
       setExam(foundExam);
-      console.log("✅ [MTTI Portal] Exam loaded with Column Shielding:", foundExam.unit_code);
+      console.log("✅ [MTTI Portal] Exam loaded with Column Shielding:", foundExam.id || foundExam.unit_code);
 
       // Check if this trainee has an existing locked submission for this assessment
       const checkReg = (user?.reg_number || student.regNumber || "").trim().toUpperCase();
       if (checkReg) {
         const lockedSub = (submissions || []).find(
           (s) =>
-            (s.unit_code?.toUpperCase() === foundExam.unit_code.toUpperCase() || s.exam_id === foundExam.id) &&
+            doesSubMatchTargetExam(s, foundExam) &&
             (s.reg_number?.toUpperCase() === checkReg || (user?.id && s.trainee_id === user.id)) &&
             s.is_locked &&
             s.status !== "reopened"
@@ -489,7 +533,7 @@ export default function CandidatePortal() {
       }
 
       // Check if candidate already has an active in-progress assessment session (refresh recovery)
-      const ongoingSessionKey = `mtti_active_exam_session_${foundExam.unit_code}`;
+      const ongoingSessionKey = `mtti_active_exam_session_${foundExam.id || foundExam.unit_code}`;
       const savedSessionRaw = localStorage.getItem(ongoingSessionKey);
       if (savedSessionRaw) {
         try {
@@ -497,6 +541,7 @@ export default function CandidatePortal() {
           if (
             savedSession &&
             savedSession.state === "exam" &&
+            (!savedSession.examId || savedSession.examId === foundExam.id) &&
             savedSession.student?.name &&
             savedSession.student?.regNumber
           ) {
@@ -551,7 +596,7 @@ export default function CandidatePortal() {
       const maxAttempts = availability.maxAttempts || 1;
       const priorSubs = (submissions || []).filter(
         (s) =>
-          (s.unit_code?.toUpperCase() === exam.unit_code?.toUpperCase() || s.exam_id === exam.id) &&
+          doesSubMatchTargetExam(s, exam) &&
           s.reg_number?.toUpperCase() === regNo &&
           (s.status === "submitted" || s.status === "graded")
       );
@@ -913,7 +958,7 @@ export default function CandidatePortal() {
           const checkCandidateLock = (candidateReg: string, candidateName: string, candidateCohort: string): boolean => {
             const lockedSub = (submissions || []).find(
               (s) =>
-                (s.unit_code?.toUpperCase() === currentUnit || s.exam_id === exam?.id) &&
+                doesSubMatchTargetExam(s, exam) &&
                 (s.reg_number?.toUpperCase() === candidateReg.toUpperCase() ||
                   s.reg_number?.toUpperCase() === normReg ||
                   s.reg_number?.toUpperCase() === cleanReg) &&
@@ -1013,7 +1058,7 @@ export default function CandidatePortal() {
 
         const lockedSub = (submissions || []).find(
           (s) =>
-            (s.unit_code?.toUpperCase() === currentUnit || s.exam_id === exam?.id) &&
+            doesSubMatchTargetExam(s, exam) &&
             (s.reg_number?.toUpperCase() === regNo.toUpperCase() ||
               s.reg_number?.toUpperCase() === normReg ||
               s.reg_number?.toUpperCase() === cleanReg) &&
@@ -1080,6 +1125,35 @@ export default function CandidatePortal() {
       }
     } catch (e) {}
   }, [user, verifiedCohort]);
+
+  const isAttendanceRecorded = useMemo(() => {
+    const reg = (student.regNumber || user?.reg_number || "").trim().toUpperCase();
+    if (!reg) return false;
+    const coreReg = reg.match(/\b\d{4,6}\b/)?.[0] || "";
+    const match = OFFICIAL_MTTI_TRAINEES.find((t) => {
+      const adm = (t.admNo || t.regCode || "").trim().toUpperCase();
+      const admCore = (adm + " " + (t.regCode || "")).match(/\b\d{4,6}\b/)?.[0] || "";
+      return adm === reg || (coreReg && admCore && coreReg === admCore);
+    });
+    const studentId = match?.id || user?.id;
+    const cohort = match?.classCode || user?.cohort_code || verifiedCohort || "FBS5/6/J/26";
+    const keys = [
+      `mtti_class_register_${cohort}`,
+      `mtti_class_register_persisted_${cohort}`,
+      "mtti_class_register_FBS5/6/J/26",
+      "mtti_class_register_persisted_FBS5/6/J/26",
+    ];
+    try {
+      for (const k of keys) {
+        const raw = localStorage.getItem(k);
+        if (raw && studentId) {
+          const parsed = JSON.parse(raw);
+          if (parsed[studentId]?.signed === true) return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  }, [student.regNumber, user, verifiedCohort]);
 
   // ─────────────────────────────────────────────────────────
   // RENDER STATES
@@ -1681,17 +1755,31 @@ export default function CandidatePortal() {
               <span>Candidate: <strong className="text-[#000953]">{student.name}</strong> (Reg No: <span className="font-mono">{student.regNumber}</span>)</span>
             </div>
 
-            <div className="flex items-center justify-between p-3.5 rounded-xl mb-6 text-xs bg-emerald-50 border border-emerald-300 text-emerald-800">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>
-                  Assessment Attendance (MTTI/REG/CUR/03): <strong className="font-serif italic font-bold text-emerald-900 text-sm">attended</strong>
+            {isAttendanceRecorded ? (
+              <div className="flex items-center justify-between p-3.5 rounded-xl mb-6 text-xs bg-emerald-50 border border-emerald-300 text-emerald-800">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    Assessment Attendance (MTTI/REG/CUR/03): <strong className="font-serif italic font-bold text-emerald-900 text-sm">attended</strong>
+                  </span>
+                </div>
+                <span className="px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 font-bold text-[10px] uppercase">
+                  Recorded
                 </span>
               </div>
-              <span className="px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 font-bold text-[10px] uppercase">
-                Recorded
-              </span>
-            </div>
+            ) : (
+              <div className="flex items-center justify-between p-3.5 rounded-xl mb-6 text-xs bg-amber-50 border border-amber-200 text-amber-900">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>
+                    Assessment Attendance (MTTI/REG/CUR/03): <span className="font-semibold text-amber-950">Pending Confirmation</span>
+                  </span>
+                </div>
+                <span className="px-2 py-0.5 rounded bg-amber-200/80 text-amber-900 font-bold text-[10px] uppercase">
+                  Not Yet Started
+                </span>
+              </div>
+            )}
 
             <button
               onClick={() => {

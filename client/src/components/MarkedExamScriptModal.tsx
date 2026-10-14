@@ -777,46 +777,22 @@ export default function MarkedExamScriptModal({
               </div>
             )}
 
-            {/* Overall Assessor Remarks & Official Verification */}
-            <div className="question-block border-t-2 border-[#000953] pt-5 mt-8 space-y-4">
-              <div>
-                <h4 className="text-xs font-bold uppercase text-[#000953] mb-1">
-                  Overall Assessor / Trainer Examination Feedback Remarks:
-                </h4>
-                <div
-                  className="p-3.5 rounded-lg border-2 border-red-300 bg-red-50/40 text-red-900 text-sm font-semibold"
-                  style={{ fontFamily: "'Caveat', cursive, sans-serif", fontSize: "17px" }}
-                >
-                  "{unified.trainer_comments}"
+            {/* Overall Examination Feedback Remarks */}
+            {unified.trainer_comments && (
+              <div className="question-block border-t-2 border-[#000953] pt-5 mt-8 space-y-4">
+                <div>
+                  <h4 className="text-xs font-bold uppercase text-[#000953] mb-1">
+                    Overall Examination Feedback Remarks:
+                  </h4>
+                  <div
+                    className="p-3.5 rounded-lg border-2 border-red-300 bg-red-50/40 text-red-900 text-sm font-semibold"
+                    style={{ fontFamily: "'Caveat', cursive, sans-serif", fontSize: "17px" }}
+                  >
+                    "{unified.trainer_comments}"
+                  </div>
                 </div>
               </div>
-
-              {/* Signatures */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-4 text-xs font-bold text-slate-800">
-                <div className="border-t border-slate-400 pt-2">
-                  <p>
-                    Internal Assessor:{" "}
-                    <span className="font-semibold text-red-700">{unified.trainer_name}</span>
-                  </p>
-                  <p className="exam-footer-timestamp mt-1">
-                    Signature: {unified.trainer_name} (Digitally Signed via MTTI Portal)
-                  </p>
-                  <p className="exam-footer-timestamp">Date Evaluated: {unified.evaluated_at}</p>
-                </div>
-                <div className="border-t border-slate-400 pt-2">
-                  <p>
-                    Head of Department:{" "}
-                    <span className="font-semibold">{unified.department.split("\n")[0]}</span>
-                  </p>
-                  <p className="exam-footer-timestamp mt-1">
-                    Signature: __________________________
-                  </p>
-                  <p className="exam-footer-timestamp">
-                    Official Stamp: Mukiria TTI Academic Verifier
-                  </p>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 

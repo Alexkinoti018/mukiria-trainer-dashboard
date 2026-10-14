@@ -471,7 +471,7 @@ export function exportGradedExamPDFClientSide(
   doc.setTextColor(185, 28, 28);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
-  doc.text("ASSESSOR SCORE STAMP", pageWidth - margin - 23, 11, { align: "center" });
+  doc.text("OFFICIAL EXAMINATION SCORE", pageWidth - margin - 23, 11, { align: "center" });
   doc.setFontSize(14);
   doc.text(`${data.total_score} / ${data.total_marks}`, pageWidth - margin - 23, 18.5, { align: "center" });
   doc.setFontSize(8.5);
@@ -479,7 +479,7 @@ export function exportGradedExamPDFClientSide(
     align: "center",
   });
   doc.setFontSize(6.5);
-  doc.text(`Signed: ${data.trainer_name}`, pageWidth - margin - 23, 28.5, { align: "center" });
+  doc.text("VERIFIED EVALUATION RECORD", pageWidth - margin - 23, 28.5, { align: "center" });
 
   y = 43;
 
@@ -559,7 +559,7 @@ export function exportGradedExamPDFClientSide(
     isSectionB: boolean
   ) => {
     if (questions.length === 0) return;
-    ensureSpace(16);
+    ensureSpace(42);
 
     // Section Banner
     doc.setFillColor(0, 9, 83);
@@ -623,9 +623,9 @@ export function exportGradedExamPDFClientSide(
           const isCorrect = q.correct_option_index === oIdx;
           const letter = String.fromCharCode(65 + oIdx);
           let suffix = "";
-          if (isSelected && isCorrect) suffix = "  [CANDIDATE CHOICE — CORRECT ✓]";
-          else if (isSelected && !isCorrect) suffix = "  [CANDIDATE CHOICE — INCORRECT ✗]";
-          else if (!isSelected && isCorrect) suffix = "  [CORRECT ANSWER KEY ✓]";
+          if (isSelected && isCorrect) suffix = "  [CANDIDATE CHOICE — CORRECT]";
+          else if (isSelected && !isCorrect) suffix = "  [CANDIDATE CHOICE — INCORRECT]";
+          else if (!isSelected && isCorrect) suffix = "  [CORRECT ANSWER KEY]";
           const wrappedOpt = doc.splitTextToSize(`(${letter}) ${opt}${suffix}`, contentWidth - 14);
           wrappedOpt.forEach((l: string) => {
             optionLines.push({ text: l, isSelected, isCorrect });
@@ -636,11 +636,16 @@ export function exportGradedExamPDFClientSide(
       // 4. Candidate Response
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
+      const isUnattempted =
+        !q.formatted_answer ||
+        q.formatted_answer.trim() === "" ||
+        q.formatted_answer === "[No candidate response entered]";
+
       const ansLines =
         q.type === "mcq" && optionLines.length > 0
           ? []
           : doc.splitTextToSize(
-              `Candidate Response: ${q.formatted_answer || "[No candidate response entered]"}`,
+              `Candidate Response: ${isUnattempted && isSectionB ? "[Not attempted — Optional Question]" : q.formatted_answer || "[No candidate response entered]"}`,
               contentWidth - 12
             );
 
@@ -657,17 +662,23 @@ export function exportGradedExamPDFClientSide(
         );
       }
 
-      // 6. Simulated Red Pen Assessor Feedback
+      // 6. Assessor Feedback & Marks Evaluation
       doc.setFont("helvetica", "bolditalic");
       doc.setFontSize(8);
-      const evalStatus =
-        q.marks_awarded >= q.max_marks
-          ? "✓ Correct — Full Marks Awarded"
-          : q.marks_awarded > 0
-          ? `✓ Partial Credit (${q.marks_awarded}/${q.max_marks})`
-          : "✗ Incorrect / Missing Key Points";
+
+      let evalStatus = "";
+      if (q.marks_awarded >= q.max_marks) {
+        evalStatus = "Full Marks Awarded";
+      } else if (q.marks_awarded > 0) {
+        evalStatus = `Partial Credit (${q.marks_awarded}/${q.max_marks})`;
+      } else if (isUnattempted && isSectionB) {
+        evalStatus = "Optional Question — Not Attempted";
+      } else {
+        evalStatus = "Incorrect / Incomplete Response";
+      }
+
       const evalDetail = q.ai_reasoning ? `${evalStatus} — ${q.ai_reasoning}` : evalStatus;
-      const evalLines = doc.splitTextToSize(`Assessor Red Pen: ${evalDetail}`, contentWidth - 12);
+      const evalLines = doc.splitTextToSize(`Assessor Feedback: ${evalDetail}`, contentWidth - 12);
 
       // Dynamic card height calculation with generous padding to prevent cramped vertical flow
       const cardHeight =
@@ -699,10 +710,10 @@ export function exportGradedExamPDFClientSide(
           doc.setDrawColor(220, 38, 38);
           doc.setLineWidth(0.4);
           doc.roundedRect(pageWidth - margin - 24, y + 0.5, 23, 5.5, 1.5, 1.5, "FD");
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(8);
-          doc.setTextColor(220, 38, 38);
-          doc.text(`${q.marks_awarded} / ${q.max_marks}`, pageWidth - margin - 12.5, y + 4.3, {
+          const pillText = isUnattempted && isSectionB && q.marks_awarded === 0
+            ? `— / ${q.max_marks}`
+            : `${q.marks_awarded} / ${q.max_marks}`;
+          doc.text(pillText, pageWidth - margin - 12.5, y + 4.3, {
             align: "center",
           });
           doc.setFont("helvetica", "bold");
@@ -813,48 +824,31 @@ export function exportGradedExamPDFClientSide(
     true
   );
 
-  // 4. Overall Assessor Remarks & Official Verification Signatures
-  doc.setFont("helvetica", "bolditalic");
-  doc.setFontSize(8);
-  const commentLines = doc.splitTextToSize(`"${data.trainer_comments}"`, contentWidth - 8);
-  const commentBoxH = Math.max(12, 8 + commentLines.length * 4.2);
-  const footerHeight = commentBoxH + 34;
-  ensureSpace(footerHeight);
+  // 4. Overall Examination Feedback Remarks (Assessors block at bottom removed per instruction)
+  if (data.trainer_comments && data.trainer_comments.trim() !== "") {
+    doc.setFont("helvetica", "bolditalic");
+    doc.setFontSize(8);
+    const commentLines = doc.splitTextToSize(`"${data.trainer_comments}"`, contentWidth - 8);
+    const commentBoxH = Math.max(12, 8 + commentLines.length * 4.2);
+    ensureSpace(commentBoxH + 4);
 
-  doc.setFillColor(254, 242, 242);
-  doc.setDrawColor(220, 38, 38);
-  doc.setLineWidth(0.4);
-  doc.roundedRect(margin, y, contentWidth, commentBoxH, 1.5, 1.5, "FD");
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(153, 27, 27);
-  doc.text("OVERALL ASSESSOR / TRAINER EXAMINATION FEEDBACK REMARKS:", margin + 3, y + 4.8);
-  doc.setFont("helvetica", "bolditalic");
-  doc.setFontSize(8);
-  doc.setTextColor(185, 28, 28);
-  commentLines.forEach((cLine: string, idx: number) => {
-    doc.text(cLine, margin + 3, y + 9.2 + idx * 4.2);
-  });
+    doc.setFillColor(254, 242, 242);
+    doc.setDrawColor(220, 38, 38);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(margin, y, contentWidth, commentBoxH, 1.5, 1.5, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(153, 27, 27);
+    doc.text("OVERALL EXAMINATION FEEDBACK & REMARKS:", margin + 3, y + 4.8);
+    doc.setFont("helvetica", "bolditalic");
+    doc.setFontSize(8);
+    doc.setTextColor(185, 28, 28);
+    commentLines.forEach((cLine: string, idx: number) => {
+      doc.text(cLine, margin + 3, y + 9.2 + idx * 4.2);
+    });
 
-  y += commentBoxH + 5;
-
-  // Signatures
-  doc.setDrawColor(100, 116, 139);
-  doc.setLineWidth(0.3);
-  doc.line(margin, y + 6, margin + 80, y + 6);
-  doc.line(pageWidth - margin - 80, y + 6, pageWidth - margin, y + 6);
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(15, 23, 42);
-  doc.text(`Internal Assessor: ${data.trainer_name}`, margin, y + 10.5);
-  doc.text("Head of Department: Computing & Informatics", pageWidth - margin - 80, y + 10.5);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  doc.setTextColor(71, 85, 105);
-  doc.text(`Date Evaluated: ${data.evaluated_at}`, margin, y + 14.5);
-  doc.text("Official Stamp: Mukiria TTI Academic Verifier", pageWidth - margin - 80, y + 14.5);
+    y += commentBoxH + 4;
+  }
 
   // Page numbers and running headers on all pages
   const pageCount = doc.getNumberOfPages();

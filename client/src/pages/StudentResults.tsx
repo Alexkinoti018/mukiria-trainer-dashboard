@@ -202,7 +202,10 @@ export default function StudentResults() {
   const unifiedSubmissions = useMemo(() => {
     return submissions.map((sub) => {
       const matchedExam =
-        exams.find((e) => e.unit_code === sub.unit_code || e.id === sub.exam_id) || null;
+        exams.find((e) => sub.exam_id && e.id === sub.exam_id) ||
+        exams.find((e) => sub.task_code && e.payload?.task_code === sub.task_code) ||
+        exams.find((e) => e.unit_code === sub.unit_code) ||
+        null;
       const unified = buildUnifiedGradedExamData(sub, matchedExam, "Alexander Kinoti");
       return { sub, matchedExam, unified };
     });

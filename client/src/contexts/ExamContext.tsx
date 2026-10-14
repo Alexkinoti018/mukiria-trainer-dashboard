@@ -120,7 +120,10 @@ export function ExamProvider({ children }: { children: ReactNode }) {
 
         parsed = parsed.map((s) => {
           const mockSub = mockSubById.get(s.id);
-          const exam = loadedExams.find((e) => e.unit_code === s.unit_code || e.id === s.exam_id);
+          const exam =
+            loadedExams.find((e) => s.exam_id && e.id === s.exam_id) ||
+            loadedExams.find((e) => s.task_code && e.payload?.task_code === s.task_code) ||
+            loadedExams.find((e) => e.unit_code === s.unit_code);
           const validQIds = new Set([
             ...(exam?.payload?.section_a?.questions || []).map((q: any) => String(q.id)),
             ...(exam?.payload?.section_b?.questions || []).map((q: any) => String(q.id)),

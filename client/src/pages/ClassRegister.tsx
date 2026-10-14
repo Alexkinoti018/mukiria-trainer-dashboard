@@ -306,7 +306,7 @@ export default function ClassRegister() {
     }
     setAttendanceData(prev => ({
       ...prev,
-      [created.id]: { attendance: initAttendance, signed: true }
+      [created.id]: { attendance: initAttendance, signed: false }
     }));
     setIsAddStudentOpen(false);
     toast.success(`Student ${created.name} added to roster & database.`);
@@ -404,7 +404,7 @@ export default function ClassRegister() {
         }
         updated[t.id] = { 
           attendance: initAttendance,
-          signed: true // default signed for assessment register
+          signed: false
         };
       }
     });
@@ -421,7 +421,7 @@ export default function ClassRegister() {
             for (const [traineeId, sessions] of Object.entries(data.matrix as Record<string, Record<string, AttendanceStatus>>)) {
               merged[traineeId] = {
                 attendance: { ...(merged[traineeId]?.attendance || {}), ...sessions },
-                signed: merged[traineeId]?.signed ?? true,
+                signed: merged[traineeId]?.signed ?? false,
               };
             }
             persistLocally(merged);
@@ -1330,7 +1330,7 @@ export default function ClassRegister() {
                 </thead>
                 <tbody>
                   {classTrainees.map((trainee, idx) => {
-                    const isSigned = attendanceData[trainee.id]?.signed ?? true;
+                    const isSigned = attendanceData[trainee.id]?.signed ?? false;
                     const isOwnRecord =
                       user?.role === "trainee" &&
                       (trainee.id === user.id ||
