@@ -247,6 +247,11 @@ export default function TraineeDashboard() {
               <div className="space-y-3">
                 {cohortExams.map((ex) => {
                   const { portalStatus } = ex;
+                  const existingSub = mySubmissions.find(
+                    (s) =>
+                      (s.unit_code && s.unit_code.trim().toUpperCase() === ex.code.trim().toUpperCase()) ||
+                      (s.exam_id && s.exam_id === ex.id)
+                  );
                   const statusBadgeStyle =
                     portalStatus.state === "open"
                       ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/25"
@@ -277,7 +282,33 @@ export default function TraineeDashboard() {
                           <p className="text-xs text-muted-foreground truncate">{ex.subtitle}</p>
                         </div>
 
-                        {portalStatus.canStart ? (
+                        {existingSub ? (
+                          existingSub.status === "graded" ? (
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-500/10 text-emerald-700 border border-emerald-500/25 flex items-center gap-1 shadow-xs">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                Graded ({existingSub.total_score ?? "—"}/{ex.marks})
+                              </span>
+                              <Link href="/trainee/results">
+                                <a className="px-2.5 py-1 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition flex items-center gap-1 shadow-xs">
+                                  View Script
+                                </a>
+                              </Link>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-500/10 text-blue-700 border border-blue-500/25 flex items-center gap-1 shadow-xs">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                                Submitted
+                              </span>
+                              <Link href="/trainee/results">
+                                <a className="px-2.5 py-1 text-xs font-bold rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border transition flex items-center gap-1">
+                                  View Status
+                                </a>
+                              </Link>
+                            </div>
+                          )
+                        ) : portalStatus.canStart ? (
                           <Link
                             href={`/trainee/exam?unitCode=${encodeURIComponent(ex.code)}&regNo=${encodeURIComponent(traineeRegNo)}`}
                           >
@@ -294,8 +325,16 @@ export default function TraineeDashboard() {
                       </div>
 
                       <div className="pt-2 border-t border-border/60 flex flex-wrap items-center justify-between gap-2 text-[11px]">
-                        <span className={`px-2 py-0.5 rounded font-semibold border ${statusBadgeStyle}`}>
-                          {portalStatus.statusLabel}
+                        <span
+                          className={`px-2 py-0.5 rounded font-semibold border ${
+                            existingSub ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/25" : statusBadgeStyle
+                          }`}
+                        >
+                          {existingSub
+                            ? existingSub.status === "graded"
+                              ? "Completed • Official Script Graded"
+                              : "Submitted • Under Trainer Review"
+                            : portalStatus.statusLabel}
                         </span>
                         <div className="flex items-center gap-3 text-muted-foreground font-mono">
                           {portalStatus.availableFromFormatted && (
