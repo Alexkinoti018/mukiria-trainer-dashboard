@@ -70,6 +70,16 @@ const validateExamCompliance = (level: number, payload: ExamPayload): string[] =
   const sectionBTotal = sectionBQuestions.reduce((s, q) => s + (Number(q.marks) || 0), 0);
   const overallTotal = sectionATotal + sectionBTotal;
 
+  if (payload.assessment_category === "CAT" || payload.task_code?.startsWith("CAT")) {
+    if (sectionATotal < 15 || sectionATotal > 30) {
+      errors.push(`Continuous Assessment Test (CAT) must total between 15 and 30 marks (currently: ${sectionATotal}).`);
+    }
+    if (sectionBQuestions.length > 0) {
+      errors.push("Continuous Assessment Tests (CATs) must not have Section B questions.");
+    }
+    return errors;
+  }
+
   if (level === 3) {
     if (sectionATotal !== 20) errors.push(`Level 3 Section A must total exactly 20 marks (currently: ${sectionATotal}).`);
     if (sectionBTotal !== 30) errors.push(`Level 3 Section B must total exactly 30 marks (currently: ${sectionBTotal}).`);
@@ -1349,11 +1359,11 @@ export default function ExamBuilder() {
                   </div>
                 </div>
               ) : (
-                <>
-                  {/* Section A */}
+                payload.assessment_category === "CAT" ? (
                   <SectionEditor
                     section="a"
-                    title="Section A — Multiple Choice / Short Answer"
+                    badgeText="CAT"
+                    title="Continuous Assessment Test Questions (15–30 Marks)"
                     questions={payload.section_a?.questions || []}
                     sectionInstructions={payload.section_a?.instructions || ""}
                     expanded={expandedSection === "a"}
@@ -1366,24 +1376,43 @@ export default function ExamBuilder() {
                     }
                     unitLevel={getLevelFromUnitCode(unitCode)}
                   />
+                ) : (
+                  <>
+                    {/* Section A */}
+                    <SectionEditor
+                      section="a"
+                      title="Section A — Multiple Choice / Short Answer"
+                      questions={payload.section_a?.questions || []}
+                      sectionInstructions={payload.section_a?.instructions || ""}
+                      expanded={expandedSection === "a"}
+                      onToggle={() => setExpandedSection(expandedSection === "a" ? null : "a")}
+                      onUpdateQuestion={(idx, updates) => updateQuestion("a", idx, updates)}
+                      onAddQuestion={() => addQuestion("a")}
+                      onRemoveQuestion={(idx) => removeQuestion("a", idx)}
+                      onInstructionsChange={(v) =>
+                        setPayload((p) => ({ ...p, section_a: { ...p.section_a!, instructions: v } }))
+                      }
+                      unitLevel={getLevelFromUnitCode(unitCode)}
+                    />
 
-                  {/* Section B */}
-                  <SectionEditor
-                    section="b"
-                    title="Section B — Structured Questions"
-                    questions={payload.section_b?.questions || []}
-                    sectionInstructions={payload.section_b?.instructions || ""}
-                    expanded={expandedSection === "b"}
-                    onToggle={() => setExpandedSection(expandedSection === "b" ? null : "b")}
-                    onUpdateQuestion={(idx, updates) => updateQuestion("b", idx, updates)}
-                    onAddQuestion={() => addQuestion("b")}
-                    onRemoveQuestion={(idx) => removeQuestion("b", idx)}
-                    onInstructionsChange={(v) =>
-                      setPayload((p) => ({ ...p, section_b: { ...p.section_b!, instructions: v } }))
-                    }
-                    unitLevel={getLevelFromUnitCode(unitCode)}
-                  />
-                </>
+                    {/* Section B */}
+                    <SectionEditor
+                      section="b"
+                      title="Section B — Structured Questions"
+                      questions={payload.section_b?.questions || []}
+                      sectionInstructions={payload.section_b?.instructions || ""}
+                      expanded={expandedSection === "b"}
+                      onToggle={() => setExpandedSection(expandedSection === "b" ? null : "b")}
+                      onUpdateQuestion={(idx, updates) => updateQuestion("b", idx, updates)}
+                      onAddQuestion={() => addQuestion("b")}
+                      onRemoveQuestion={(idx) => removeQuestion("b", idx)}
+                      onInstructionsChange={(v) =>
+                        setPayload((p) => ({ ...p, section_b: { ...p.section_b!, instructions: v } }))
+                      }
+                      unitLevel={getLevelFromUnitCode(unitCode)}
+                    />
+                  </>
+                )
               )}
             </>
             )}
@@ -1404,6 +1433,7 @@ export default function ExamBuilder() {
 
 interface SectionEditorProps {
   section: "a" | "b";
+  badgeText?: string;
   title: string;
   questions: ExamQuestion[];
   sectionInstructions: string;
@@ -1418,6 +1448,7 @@ interface SectionEditorProps {
 
 function SectionEditor({
   section,
+  badgeText,
   title,
   questions,
   sectionInstructions,
@@ -1438,8 +1469,8 @@ function SectionEditor({
         className="w-full flex items-center justify-between px-5 py-4 text-left sticky top-0 z-10 bg-slate-50 border-b border-slate-200 hover:bg-slate-100/80 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold font-mono bg-[#000953] text-white shadow-sm">
-            {section.toUpperCase()}
+          <div className="min-w-7 px-2 h-7 rounded-lg flex items-center justify-center text-xs font-bold font-mono bg-[#000953] text-white shadow-sm">
+            {badgeText || section.toUpperCase()}
           </div>
           <span className="font-bold text-sm text-[#000953]">
             {title}

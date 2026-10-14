@@ -699,8 +699,12 @@ export default function MarkedExamScriptModal({
                     Evaluation Summary:
                   </span>
                   <span className="font-bold text-[#000953]">
-                    Sec A: {unified.sec_a_awarded}/{unified.sec_a_max} | Sec B:{" "}
-                    {unified.sec_b_awarded}/{unified.sec_b_max}
+                    {unified.is_cat ||
+                    unified.total_marks <= 30 ||
+                    (unified.task_code || "").toUpperCase().startsWith("CAT") ||
+                    (unified.sec_b_max === 0 && unified.section_b.length === 0)
+                      ? `Total Score: ${unified.total_score} / ${unified.total_marks} (${unified.percentage}%)`
+                      : `Sec A: ${unified.sec_a_awarded}/${unified.sec_a_max} | Sec B: ${unified.sec_b_awarded}/${unified.sec_b_max}`}
                   </span>
                 </div>
               </div>
@@ -721,16 +725,19 @@ export default function MarkedExamScriptModal({
               )}
             </div>
 
-            {/* SECTION A: Compulsory Objective / Short Answer Questions */}
-            {unified.section_a.length > 0 && (
+            {/* Unified Question List for CAT or Section A/B for Written Exams */}
+            {unified.is_cat ||
+            unified.total_marks <= 30 ||
+            (unified.task_code || "").toUpperCase().startsWith("CAT") ||
+            (unified.sec_b_max === 0 && unified.section_b.length === 0) ? (
               <div className="mb-8">
                 <div className="flex flex-wrap items-center justify-between border-b-2 border-[#000953] pb-1.5 mb-2">
                   <div>
                     <h3 className="exam-section-heading uppercase tracking-wide text-[#000953]">
-                      SECTION A ({unified.sec_a_max} MARKS)
+                      CONTINUOUS ASSESSMENT TEST ({unified.total_marks} MARKS)
                     </h3>
                     <p className="text-xs text-slate-600 font-medium">
-                      {unified.section_a_instructions}
+                      {unified.section_a_instructions || "Answer ALL questions in the spaces provided."}
                     </p>
                   </div>
                   {showRedPen && (
@@ -738,7 +745,7 @@ export default function MarkedExamScriptModal({
                       className="text-red-600 font-bold text-base"
                       style={{ fontFamily: "'Caveat', cursive, sans-serif" }}
                     >
-                      Section A Subtotal: {unified.sec_a_awarded} / {unified.sec_a_max}
+                      Total Score: {unified.total_score} / {unified.total_marks} marks
                     </span>
                   )}
                 </div>
@@ -747,34 +754,64 @@ export default function MarkedExamScriptModal({
                   {unified.section_a.map((q, idx) => renderQuestionBlock(q, idx, false))}
                 </div>
               </div>
-            )}
+            ) : (
+              <>
+                {/* SECTION A: Compulsory Objective / Short Answer Questions */}
+                {unified.section_a.length > 0 && (
+                  <div className="mb-8">
+                    <div className="flex flex-wrap items-center justify-between border-b-2 border-[#000953] pb-1.5 mb-2">
+                      <div>
+                        <h3 className="exam-section-heading uppercase tracking-wide text-[#000953]">
+                          SECTION A ({unified.sec_a_max} MARKS)
+                        </h3>
+                        <p className="text-xs text-slate-600 font-medium">
+                          {unified.section_a_instructions}
+                        </p>
+                      </div>
+                      {showRedPen && (
+                        <span
+                          className="text-red-600 font-bold text-base"
+                          style={{ fontFamily: "'Caveat', cursive, sans-serif" }}
+                        >
+                          Section A Subtotal: {unified.sec_a_awarded} / {unified.sec_a_max}
+                        </span>
+                      )}
+                    </div>
 
-            {/* SECTION B: Structured & Practical Tasks */}
-            {unified.section_b.length > 0 && (
-              <div className="mb-8">
-                <div className="flex flex-wrap items-center justify-between border-b-2 border-[#000953] pb-1.5 mb-2">
-                  <div>
-                    <h3 className="exam-section-heading uppercase tracking-wide text-[#000953]">
-                      SECTION B ({unified.sec_b_max} MARKS)
-                    </h3>
-                    <p className="text-xs text-slate-600 font-medium">
-                      {unified.section_b_instructions}
-                    </p>
+                    <div className="space-y-4 mt-3">
+                      {unified.section_a.map((q, idx) => renderQuestionBlock(q, idx, false))}
+                    </div>
                   </div>
-                  {showRedPen && (
-                    <span
-                      className="text-red-600 font-bold text-base"
-                      style={{ fontFamily: "'Caveat', cursive, sans-serif" }}
-                    >
-                      Section B Subtotal: {unified.sec_b_awarded} / {unified.sec_b_max}
-                    </span>
-                  )}
-                </div>
+                )}
 
-                <div className="space-y-5 mt-3">
-                  {unified.section_b.map((q, idx) => renderQuestionBlock(q, idx, true))}
-                </div>
-              </div>
+                {/* SECTION B: Structured & Practical Tasks */}
+                {unified.section_b.length > 0 && (
+                  <div className="mb-8">
+                    <div className="flex flex-wrap items-center justify-between border-b-2 border-[#000953] pb-1.5 mb-2">
+                      <div>
+                        <h3 className="exam-section-heading uppercase tracking-wide text-[#000953]">
+                          SECTION B ({unified.sec_b_max} MARKS)
+                        </h3>
+                        <p className="text-xs text-slate-600 font-medium">
+                          {unified.section_b_instructions}
+                        </p>
+                      </div>
+                      {showRedPen && (
+                        <span
+                          className="text-red-600 font-bold text-base"
+                          style={{ fontFamily: "'Caveat', cursive, sans-serif" }}
+                        >
+                          Section B Subtotal: {unified.sec_b_awarded} / {unified.sec_b_max}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-5 mt-3">
+                      {unified.section_b.map((q, idx) => renderQuestionBlock(q, idx, true))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Overall Examination Feedback Remarks */}

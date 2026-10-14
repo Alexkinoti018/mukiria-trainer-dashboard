@@ -1250,7 +1250,11 @@ export default function CandidatePortal() {
                           {ex.payload?.title || ex.course_name}
                         </h3>
                         <p className="text-xs text-slate-600 line-clamp-2">
-                          {ex.payload?.instructions || "Section A (30 Marks compulsory) and Section B (40 Marks structured questions)."}
+                          {ex.payload?.instructions || (
+                            ((ex.payload?.total_marks || 0) <= 30 || ex.payload?.assessment_category === "CAT" || (ex.payload?.task_code || "").toUpperCase().startsWith("CAT"))
+                              ? `Continuous Assessment Test (${ex.payload?.total_marks || 15} Marks). Answer ALL questions in the spaces provided.`
+                              : "Section A (30 Marks compulsory) and Section B (40 Marks structured questions)."
+                          )}
                         </p>
                         <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
                           <span
@@ -1713,7 +1717,17 @@ export default function CandidatePortal() {
               {[
                 { label: "Duration", value: `${exam?.payload.duration_minutes} min`, icon: Clock },
                 { label: "Total Marks", value: `${exam?.payload.total_marks}`, icon: Award },
-                { label: "Structure", value: "Section A + B", icon: BookOpen },
+                {
+                  label: "Structure",
+                  value:
+                    (exam?.payload?.total_marks ?? 100) <= 30 ||
+                    exam?.payload?.assessment_category === "CAT" ||
+                    (exam?.payload?.task_code || "").toUpperCase().startsWith("CAT") ||
+                    !exam?.payload?.section_b?.questions?.length
+                      ? "Continuous Test"
+                      : "Section A + B",
+                  icon: BookOpen,
+                },
               ].map((item) => (
                 <div
                   key={item.label}
@@ -1744,8 +1758,31 @@ export default function CandidatePortal() {
             </div>
 
             <div className="space-y-2 mb-6 text-xs text-slate-600 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-              {exam?.payload.section_a && <p>• <strong className="text-[#000953]">Section A:</strong> {exam?.payload.section_a.instructions}</p>}
-              {exam?.payload.section_b && <p>• <strong className="text-[#000953]">Section B:</strong> {exam?.payload.section_b.instructions}</p>}
+              {(exam?.payload?.total_marks ?? 100) <= 30 ||
+              exam?.payload?.assessment_category === "CAT" ||
+              (exam?.payload?.task_code || "").toUpperCase().startsWith("CAT") ||
+              !exam?.payload?.section_b?.questions?.length ? (
+                <p>
+                  • <strong className="text-[#000953]">Instructions:</strong>{" "}
+                  {exam?.payload.section_a?.instructions ||
+                    "Answer ALL questions in this continuous assessment test in the spaces provided."}
+                </p>
+              ) : (
+                <>
+                  {exam?.payload.section_a && (
+                    <p>
+                      • <strong className="text-[#000953]">Section A:</strong>{" "}
+                      {exam?.payload.section_a.instructions}
+                    </p>
+                  )}
+                  {exam?.payload.section_b && (
+                    <p>
+                      • <strong className="text-[#000953]">Section B:</strong>{" "}
+                      {exam?.payload.section_b.instructions}
+                    </p>
+                  )}
+                </>
+              )}
               <p>• Your answers are automatically saved to local storage and sync safely.</p>
               <p>• The exam countdown begins immediately when you click the start button below.</p>
             </div>
@@ -1800,7 +1837,12 @@ export default function CandidatePortal() {
 
   // ── EXAM STATE ────────────────────────────────────────────
   if (state === "exam" && exam) {
-    const isInSectionA = currentSection === "a";
+    const isSingleSectionTest =
+      (exam.payload?.total_marks ?? 100) <= 30 ||
+      exam.payload?.assessment_category === "CAT" ||
+      (exam.payload?.task_code || "").toUpperCase().startsWith("CAT") ||
+      !exam.payload?.section_b?.questions?.length;
+    const isInSectionA = isSingleSectionTest || currentSection === "a";
     const questions = isInSectionA
       ? (exam.payload?.section_a?.questions || [])
       : (exam.payload?.section_b?.questions || []);
@@ -1911,43 +1953,59 @@ export default function CandidatePortal() {
             </div>
           </div>
 
-          {/* Section tabs */}
-          <div className="flex gap-2.5 mb-5">
-            {(["a", "b"] as const).map((sec) => {
-              const secLabel = sec === "a" ? "Section A (Theory / Concepts)" : "Section B (Structured Practical)";
-              const secQuestions = sec === "a" ? (exam.payload?.section_a?.questions || []) : (exam.payload?.section_b?.questions || []);
-              const secAnswered = sec === "a"
-                ? Object.keys(sectionAAnswers).filter((k) => sectionAAnswers[k] !== undefined && sectionAAnswers[k] !== "").length
-                : Object.keys(sectionBAnswers).filter((k) => sectionBAnswers[k]?.trim()).length;
-              const isActive = currentSection === sec;
+          {/* Section tabs / CAT Unified Header */}
+          {isSingleSectionTest ? (
+            <div className="flex items-center justify-between gap-3 mb-5 px-4 sm:px-5 py-3 rounded-xl bg-white border border-slate-300 shadow-sm">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#c48820]" />
+                <span className="text-xs font-bold uppercase tracking-wider text-[#000953]">
+                  Continuous Assessment Test ({exam.payload?.total_marks || 15} Marks — All Questions Compulsory)
+                </span>
+              </div>
+              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-slate-100 text-[#000953] border border-slate-200">
+                {Object.keys(sectionAAnswers).filter((k) => sectionAAnswers[k] !== undefined && sectionAAnswers[k] !== "").length} / {questions.length} Answered
+              </span>
+            </div>
+          ) : (
+            <div className="flex gap-2.5 mb-5">
+              {(["a", "b"] as const).map((sec) => {
+                const secLabel = sec === "a" ? "Section A (Theory / Concepts)" : "Section B (Structured Practical)";
+                const secQuestions = sec === "a" ? (exam.payload?.section_a?.questions || []) : (exam.payload?.section_b?.questions || []);
+                const secAnswered = sec === "a"
+                  ? Object.keys(sectionAAnswers).filter((k) => sectionAAnswers[k] !== undefined && sectionAAnswers[k] !== "").length
+                  : Object.keys(sectionBAnswers).filter((k) => sectionBAnswers[k]?.trim()).length;
+                const isActive = currentSection === sec;
 
-              return (
-                <button
-                  key={sec}
-                  onClick={() => { setCurrentSection(sec); setCurrentQIndex(0); }}
-                  className={`flex items-center gap-2.5 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border shadow-sm ${
-                    isActive
-                      ? "bg-[#000953] border-[#000953] text-white shadow"
-                      : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-                  }`}
-                >
-                  <span>{secLabel}</span>
-                  <span className={`text-xs font-mono px-2 py-0.5 rounded font-bold ${
-                    isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700 border border-slate-200"
-                  }`}>
-                    {secAnswered}/{secQuestions.length}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+                return (
+                  <button
+                    key={sec}
+                    onClick={() => { setCurrentSection(sec); setCurrentQIndex(0); }}
+                    className={`flex items-center gap-2.5 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border shadow-sm ${
+                      isActive
+                        ? "bg-[#000953] border-[#000953] text-white shadow"
+                        : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>{secLabel}</span>
+                    <span className={`text-xs font-mono px-2 py-0.5 rounded font-bold ${
+                      isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700 border border-slate-200"
+                    }`}>
+                      {secAnswered}/{secQuestions.length}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Section Instructions Banner */}
           <div className="mb-5 p-3.5 rounded-xl text-xs flex items-center gap-3 bg-[#fef6e7] border border-[#c48820]/50 text-slate-900">
             <Info className="w-4 h-4 shrink-0 text-[#c48820]" />
             <span>
-              <strong>Section {currentSection.toUpperCase()} Instructions:</strong>{" "}
-              {currentSection === "a"
+              <strong>{isSingleSectionTest ? "Instructions:" : `Section ${currentSection.toUpperCase()} Instructions:`}</strong>{" "}
+              {isSingleSectionTest
+                ? exam.payload?.section_a?.instructions || exam.payload?.instructions || "Answer ALL questions in the spaces provided."
+                : currentSection === "a"
                 ? exam.payload?.section_a?.instructions || "Answer ALL questions in this section."
                 : exam.payload?.section_b?.instructions || "Answer ALL structured/practical questions in this section."}
             </span>
@@ -1967,7 +2025,7 @@ export default function CandidatePortal() {
               <div className="flex items-start justify-between gap-3.5 mb-4 pb-4 border-b border-slate-200">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   <div className="px-2.5 py-1 rounded-lg flex items-center justify-center text-xs font-bold font-mono bg-[#000953] text-white shrink-0 shadow-sm">
-                    Q{currentQ?.q_num || (isInSectionA ? currentQIndex + 1 : (exam.payload?.section_a?.questions?.length || 10) + currentQIndex + 1)}
+                    Q{currentQ?.q_num || (isSingleSectionTest ? currentQIndex + 1 : isInSectionA ? currentQIndex + 1 : (exam.payload?.section_a?.questions?.length || 10) + currentQIndex + 1)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-base font-semibold leading-relaxed whitespace-pre-line text-[#0f172a]">
@@ -2107,7 +2165,11 @@ export default function CandidatePortal() {
                   <div className="flex justify-between items-center text-xs text-slate-500 px-1 pt-0.5 flex-wrap gap-2">
                     <span className="flex items-center gap-1.5">
                       <span className="font-semibold text-slate-700">
-                        {isInSectionA ? "Section A (Short Answer)" : "Section B (Practical & Structured)"}
+                        {isSingleSectionTest
+                          ? "Continuous Assessment"
+                          : isInSectionA
+                          ? "Section A (Short Answer)"
+                          : "Section B (Practical & Structured)"}
                       </span>
                       <span className="text-slate-400">• Drag bottom-right corner to expand further</span>
                     </span>
@@ -2136,9 +2198,12 @@ export default function CandidatePortal() {
             <button
               onClick={() => {
                 if (currentQIndex > 0) setCurrentQIndex((i) => i - 1);
-                else if (currentSection === "b") { setCurrentSection("a"); setCurrentQIndex((exam.payload?.section_a?.questions?.length || 1) - 1); }
+                else if (!isSingleSectionTest && currentSection === "b") {
+                  setCurrentSection("a");
+                  setCurrentQIndex((exam.payload?.section_a?.questions?.length || 1) - 1);
+                }
               }}
-              disabled={currentSection === "a" && currentQIndex === 0}
+              disabled={(isSingleSectionTest || currentSection === "a") && currentQIndex === 0}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed transition-all bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-100"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -2148,7 +2213,7 @@ export default function CandidatePortal() {
             {/* Question numbers grid */}
             <div className="flex gap-1.5 flex-wrap justify-center max-w-md">
               {questions.map((q, qi) => {
-                const isAnswered = currentSection === "a"
+                const isAnswered = isSingleSectionTest || currentSection === "a"
                   ? sectionAAnswers[q.id] !== undefined && sectionAAnswers[q.id] !== ""
                   : sectionBAnswers[q.id]?.trim();
                 const isCurrent = qi === currentQIndex;
@@ -2181,7 +2246,7 @@ export default function CandidatePortal() {
                 Next
                 <ChevronRight className="w-4 h-4" />
               </button>
-            ) : currentSection === "a" ? (
+            ) : (!isSingleSectionTest && currentSection === "a") ? (
               <button
                 onClick={() => { setCurrentSection("b"); setCurrentQIndex(0); }}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm"
@@ -2192,13 +2257,13 @@ export default function CandidatePortal() {
             ) : (
               <button
                 onClick={() => {
-                  if (confirm("Submit your final exam? This cannot be undone.")) handleSubmit();
+                  if (confirm(isSingleSectionTest ? "Submit your continuous assessment test? This cannot be undone." : "Submit your final exam? This cannot be undone.")) handleSubmit();
                 }}
                 disabled={submitting}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition active:scale-[0.98] disabled:opacity-50"
               >
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                {submitting ? "Submitting..." : "Submit Final Exam"}
+                {submitting ? "Submitting..." : isSingleSectionTest ? "Submit CAT" : "Submit Final Exam"}
               </button>
             )}
           </div>

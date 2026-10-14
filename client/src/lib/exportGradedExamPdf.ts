@@ -59,6 +59,7 @@ export interface UnifiedGradedExamData {
   time_allowed: string;
   task_code: string;
   evaluated_at: string;
+  is_cat?: boolean;
   instructions: string[];
   section_a_instructions: string;
   section_b_instructions: string;
@@ -379,8 +380,22 @@ export function buildUnifiedGradedExamData(
       "en-GB",
       { day: "numeric", month: "long", year: "numeric" }
     ),
+    is_cat:
+      totalMarks <= 30 ||
+      (exam?.payload as any)?.assessment_category === "CAT" ||
+      (submission.task_code || (exam?.payload as any)?.task_code || "").toUpperCase().startsWith("CAT") ||
+      (secBMax === 0 && unifiedSecB.length === 0),
     instructions: Array.isArray((exam?.payload as any)?.instructions)
       ? (exam?.payload as any).instructions
+      : totalMarks <= 30 ||
+        (exam?.payload as any)?.assessment_category === "CAT" ||
+        (submission.task_code || (exam?.payload as any)?.task_code || "").toUpperCase().startsWith("CAT") ||
+        (secBMax === 0 && unifiedSecB.length === 0)
+      ? [
+          "Confirm that this continuous assessment test contains the correct unit title and code before beginning.",
+          "Answer ALL questions in the spaces provided.",
+          "Marks for each question or sub-question are indicated in brackets ( ).",
+        ]
       : [
           "Confirm that this paper contains the correct unit title and code before beginning.",
           "Answer ALL questions in Section A and Section B in the spaces provided.",
@@ -388,7 +403,12 @@ export function buildUnifiedGradedExamData(
         ],
     section_a_instructions:
       exam?.payload?.section_a?.instructions ||
-      `Answer ALL questions in this section (${secAMax} Marks).`,
+      (totalMarks <= 30 ||
+      (exam?.payload as any)?.assessment_category === "CAT" ||
+      (submission.task_code || (exam?.payload as any)?.task_code || "").toUpperCase().startsWith("CAT") ||
+      (secBMax === 0 && unifiedSecB.length === 0)
+        ? `Answer ALL questions in this continuous assessment test (${totalMarks} Marks).`
+        : `Answer ALL questions in this section (${secAMax} Marks).`),
     section_b_instructions:
       exam?.payload?.section_b?.instructions ||
       `Answer ALL structured/practical questions in this section (${secBMax} Marks).`,
@@ -516,13 +536,29 @@ export function exportGradedExamPDFClientSide(
   drawMetaRow(rightColX, y + 12, "UNIT CODE:", data.unit_code, colW);
   drawMetaRow(leftColX, y + 18, "UNIT NAME:", data.unit_name, colW);
   drawMetaRow(rightColX, y + 18, "CLASS & SERIES:", `${data.class_code} (${data.series})`, colW);
-  drawMetaRow(
-    leftColX,
-    y + 24,
-    "SECTION A & B:",
-    `Sec A: ${data.sec_a_awarded}/${data.sec_a_max}  |  Sec B: ${data.sec_b_awarded}/${data.sec_b_max}`,
-    colW
-  );
+  const isCAT =
+    data.is_cat ||
+    data.total_marks <= 30 ||
+    data.task_code.toUpperCase().startsWith("CAT") ||
+    (data.sec_b_max === 0 && data.section_b.length === 0);
+
+  if (isCAT) {
+    drawMetaRow(
+      leftColX,
+      y + 24,
+      "TOTAL SCORE:",
+      `${data.total_score} / ${data.total_marks}  (${data.percentage}%)`,
+      colW
+    );
+  } else {
+    drawMetaRow(
+      leftColX,
+      y + 24,
+      "SECTION A & B:",
+      `Sec A: ${data.sec_a_awarded}/${data.sec_a_max}  |  Sec B: ${data.sec_b_awarded}/${data.sec_b_max}`,
+      colW
+    );
+  }
   drawMetaRow(rightColX, y + 24, "COMPETENCY STATUS:", data.status_label, colW);
 
   y += 34;
@@ -808,21 +844,31 @@ export function exportGradedExamPDFClientSide(
     y += 3;
   };
 
-  renderSection(
-    `SECTION A: CORE CONCEPTS & SHORT ANSWERS (${data.sec_a_max} MARKS)`,
-    data.section_a_instructions,
-    `Section A Subtotal: ${data.sec_a_awarded} / ${data.sec_a_max}`,
-    data.section_a,
-    false
-  );
+  if (isCAT) {
+    renderSection(
+      `CONTINUOUS ASSESSMENT TEST (${data.total_marks} MARKS)`,
+      data.section_a_instructions || "Answer ALL questions in the spaces provided.",
+      `Total Score: ${data.total_score} / ${data.total_marks}`,
+      data.section_a,
+      false
+    );
+  } else {
+    renderSection(
+      `SECTION A: CORE CONCEPTS & SHORT ANSWERS (${data.sec_a_max} MARKS)`,
+      data.section_a_instructions,
+      `Section A Subtotal: ${data.sec_a_awarded} / ${data.sec_a_max}`,
+      data.section_a,
+      false
+    );
 
-  renderSection(
-    `SECTION B: STRUCTURED & PRACTICAL TASKS (${data.sec_b_max} MARKS)`,
-    data.section_b_instructions,
-    `Section B Subtotal: ${data.sec_b_awarded} / ${data.sec_b_max}`,
-    data.section_b,
-    true
-  );
+    renderSection(
+      `SECTION B: STRUCTURED & PRACTICAL TASKS (${data.sec_b_max} MARKS)`,
+      data.section_b_instructions,
+      `Section B Subtotal: ${data.sec_b_awarded} / ${data.sec_b_max}`,
+      data.section_b,
+      true
+    );
+  }
 
   // 4. Overall Examination Feedback Remarks (Assessors block at bottom removed per instruction)
   if (data.trainer_comments && data.trainer_comments.trim() !== "") {

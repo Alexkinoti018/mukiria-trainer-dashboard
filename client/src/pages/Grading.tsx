@@ -1122,7 +1122,12 @@ export default function Grading() {
                                 <div className="flex items-center gap-2">
                                   <span className="w-1.5 h-4 bg-[#c48820] rounded-full" />
                                   <h4 className="text-xs font-bold text-[#000953] uppercase tracking-wide">
-                                    SECTION A ({unified.sec_a_max} MARKS)
+                                    {unified.is_cat ||
+                                    unified.total_marks <= 30 ||
+                                    (sub.task_code || "").toUpperCase().startsWith("CAT") ||
+                                    (unified.sec_b_max === 0 && unified.section_b.length === 0)
+                                      ? `CONTINUOUS ASSESSMENT TEST (${unified.total_marks} MARKS)`
+                                      : `SECTION A (${unified.sec_a_max} MARKS)`}
                                   </h4>
                                 </div>
                                 <p className="text-[11px] text-slate-600 mt-0.5 pl-3.5">
@@ -1130,7 +1135,12 @@ export default function Grading() {
                                 </p>
                               </div>
                               <span className="font-mono text-xs font-bold text-[#000953]">
-                                Section A Subtotal: {unified.sec_a_awarded} / {unified.sec_a_max} marks
+                                {unified.is_cat ||
+                                unified.total_marks <= 30 ||
+                                (sub.task_code || "").toUpperCase().startsWith("CAT") ||
+                                (unified.sec_b_max === 0 && unified.section_b.length === 0)
+                                  ? `Total Score: ${unified.sec_a_awarded} / ${unified.total_marks} marks`
+                                  : `Section A Subtotal: ${unified.sec_a_awarded} / ${unified.sec_a_max} marks`}
                               </span>
                             </div>
                             <div className="space-y-3">
@@ -1312,7 +1322,12 @@ export default function Grading() {
                         )}
 
                         {/* Section B — Structured Practical & Application */}
-                        {unified.section_b.length > 0 && (
+                        {unified.section_b.length > 0 &&
+                          !(
+                            unified.is_cat ||
+                            unified.total_marks <= 30 ||
+                            (sub.task_code || "").toUpperCase().startsWith("CAT")
+                          ) && (
                           <div>
                             <div className="flex flex-wrap items-center justify-between mb-3 pb-2 border-b-2 border-[#000953]">
                               <div>

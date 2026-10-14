@@ -40,8 +40,8 @@ export const COMPUTER_ESSENTIALS_CATS: Exam[] = [
       type: "written",
       instructions: "1. Answer ALL questions in the spaces provided;\n2. Total marks: 15 Marks;\n3. Time Allowed: 30 Minutes;\n4. Ensure technical precision and clear handwriting/typing.",
       section_a: {
-        title: "Section A: Continuous Assessment Test (15 Marks)",
-        instructions: "Answer ALL questions in this section.",
+        title: "Continuous Assessment Test (15 Marks)",
+        instructions: "Answer ALL questions in the spaces provided.",
         total_marks: 15,
         questions: [
           {
@@ -130,8 +130,8 @@ export const COMPUTER_ESSENTIALS_CATS: Exam[] = [
       type: "written",
       instructions: "1. Answer ALL questions in the spaces provided;\n2. Total marks: 15 Marks;\n3. Time Allowed: 30 Minutes.",
       section_a: {
-        title: "Section A: Continuous Assessment Test (15 Marks)",
-        instructions: "Answer ALL questions in this section.",
+        title: "Continuous Assessment Test (15 Marks)",
+        instructions: "Answer ALL questions in the spaces provided.",
         total_marks: 15,
         questions: [
           {
@@ -218,8 +218,8 @@ export const COMPUTER_ESSENTIALS_CATS: Exam[] = [
       type: "written",
       instructions: "1. Answer ALL questions in the spaces provided;\n2. Total marks: 15 Marks;\n3. Time Allowed: 30 Minutes.",
       section_a: {
-        title: "Section A: Continuous Assessment Test (15 Marks)",
-        instructions: "Answer ALL questions in this section.",
+        title: "Continuous Assessment Test (15 Marks)",
+        instructions: "Answer ALL questions in the spaces provided.",
         total_marks: 15,
         questions: [
           {
@@ -306,8 +306,8 @@ export const COMPUTER_ESSENTIALS_CATS: Exam[] = [
       type: "written",
       instructions: "1. Answer ALL questions in the spaces provided;\n2. Total marks: 15 Marks;\n3. Time Allowed: 30 Minutes.",
       section_a: {
-        title: "Section A: Continuous Assessment Test (15 Marks)",
-        instructions: "Answer ALL questions in this section.",
+        title: "Continuous Assessment Test (15 Marks)",
+        instructions: "Answer ALL questions in the spaces provided.",
         total_marks: 15,
         questions: [
           {
@@ -392,8 +392,8 @@ export const COMPUTER_ESSENTIALS_CATS: Exam[] = [
       type: "written",
       instructions: "1. Answer ALL questions in the spaces provided;\n2. Total marks: 15 Marks;\n3. Time Allowed: 30 Minutes.",
       section_a: {
-        title: "Section A: Continuous Assessment Test (15 Marks)",
-        instructions: "Answer ALL questions in this section.",
+        title: "Continuous Assessment Test (15 Marks)",
+        instructions: "Answer ALL questions in the spaces provided.",
         total_marks: 15,
         questions: [
           {
@@ -484,8 +484,8 @@ export const APPLY_ICT_SKILLS_CATS: Exam[] = [
       type: "written",
       instructions: "1. Answer ALL questions in the spaces provided;\n2. Total marks: 15 Marks;\n3. Time Allowed: 30 Minutes.",
       section_a: {
-        title: "Section A: Continuous Assessment Test (15 Marks)",
-        instructions: "Answer ALL questions in this section.",
+        title: "Continuous Assessment Test (15 Marks)",
+        instructions: "Answer ALL questions in the spaces provided.",
         total_marks: 15,
         questions: [
           {
@@ -571,8 +571,8 @@ export const APPLY_ICT_SKILLS_CATS: Exam[] = [
       type: "written",
       instructions: "1. Answer ALL questions in the spaces provided;\n2. Total marks: 15 Marks;\n3. Time Allowed: 30 Minutes.",
       section_a: {
-        title: "Section A: Continuous Assessment Test (15 Marks)",
-        instructions: "Answer ALL questions in this section.",
+        title: "Continuous Assessment Test (15 Marks)",
+        instructions: "Answer ALL questions in the spaces provided.",
         total_marks: 15,
         questions: [
           {
@@ -659,8 +659,8 @@ export const APPLY_ICT_SKILLS_CATS: Exam[] = [
       type: "written",
       instructions: "1. Answer ALL questions in the spaces provided;\n2. Total marks: 15 Marks;\n3. Time Allowed: 30 Minutes.",
       section_a: {
-        title: "Section A: Continuous Assessment Test (15 Marks)",
-        instructions: "Answer ALL questions in this section.",
+        title: "Continuous Assessment Test (15 Marks)",
+        instructions: "Answer ALL questions in the spaces provided.",
         total_marks: 15,
         questions: [
           {
@@ -749,8 +749,8 @@ export const DIGITAL_LITERACY_CATS: Exam[] = [
       type: "written",
       instructions: "1. Answer ALL questions in the spaces provided;\n2. Total marks: 15 Marks;\n3. Time Allowed: 30 Minutes.",
       section_a: {
-        title: "Section A: Continuous Assessment Test (15 Marks)",
-        instructions: "Answer ALL questions in this section.",
+        title: "Continuous Assessment Test (15 Marks)",
+        instructions: "Answer ALL questions in the spaces provided.",
         total_marks: 15,
         questions: [
           {
@@ -833,8 +833,8 @@ export const DIGITAL_LITERACY_CATS: Exam[] = [
       type: "written",
       instructions: "1. Answer ALL questions in the spaces provided;\n2. Total marks: 15 Marks;\n3. Time Allowed: 30 Minutes.",
       section_a: {
-        title: "Section A: Continuous Assessment Test (15 Marks)",
-        instructions: "Answer ALL questions in this section.",
+        title: "Continuous Assessment Test (15 Marks)",
+        instructions: "Answer ALL questions in the spaces provided.",
         total_marks: 15,
         questions: [
           {
@@ -920,8 +920,8 @@ export const DIGITAL_LITERACY_CATS: Exam[] = [
       type: "written",
       instructions: "1. Answer ALL questions in the spaces provided;\n2. Total marks: 15 Marks;\n3. Time Allowed: 30 Minutes.",
       section_a: {
-        title: "Section A: Continuous Assessment Test (15 Marks)",
-        instructions: "Answer ALL questions in this section.",
+        title: "Continuous Assessment Test (15 Marks)",
+        instructions: "Answer ALL questions in the spaces provided.",
         total_marks: 15,
         questions: [
           {
@@ -1005,8 +1005,8 @@ export const DIGITAL_LITERACY_CATS: Exam[] = [
       type: "written",
       instructions: "1. Answer ALL questions in the spaces provided;\n2. Total marks: 15 Marks;\n3. Time Allowed: 30 Minutes.",
       section_a: {
-        title: "Section A: Continuous Assessment Test (15 Marks)",
-        instructions: "Answer ALL questions in this section.",
+        title: "Continuous Assessment Test (15 Marks)",
+        instructions: "Answer ALL questions in the spaces provided.",
         total_marks: 15,
         questions: [
           {
@@ -1092,8 +1092,8 @@ export const DIGITAL_LITERACY_CATS: Exam[] = [
       type: "written",
       instructions: "1. Answer ALL questions in the spaces provided;\n2. Total marks: 15 Marks;\n3. Time Allowed: 30 Minutes.",
       section_a: {
-        title: "Section A: Continuous Assessment Test (15 Marks)",
-        instructions: "Answer ALL questions in this section.",
+        title: "Continuous Assessment Test (15 Marks)",
+        instructions: "Answer ALL questions in the spaces provided.",
         total_marks: 15,
         questions: [
           {
