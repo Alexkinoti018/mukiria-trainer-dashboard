@@ -46,6 +46,7 @@ export interface ExamSection {
 export type AssessmentCategory = "CAT" | "Exam" | "Practical" | "Assignment" | "Project";
 
 export interface ExamPayload {
+  institution?: string;
   title: string;
   duration_minutes: number;
   total_marks: number;
@@ -384,6 +385,7 @@ export function evaluateExamPortalAvailability(
 export interface Exam {
   id: string;
   unit_code: string;
+  unit_id?: string;
   course_name: string;
   payload: ExamPayload;
   created_at: string;

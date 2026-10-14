@@ -551,22 +551,23 @@ export function sanitizeExamForStudent(exam: any) {
 
 // ─── 2. MANDATORY MODIFICATION 3: FOREIGN KEY TRAVERSAL ON SUBMISSIONS ────────
 // Submissions -> Exams -> Unit_Offerings -> trainer_id
-export function verifyTrainerSubmissionsAssigned(trainerId: string, examId: string): boolean {
+export function verifyTrainerSubmissionsAssigned(trainerId: string, examId?: string): boolean {
+  if (!examId) return false;
   const exam = DB.exams.find(e => e.id === examId);
   if (!exam) return false;
 
   // Traversal: Exam -> Unit_Offerings -> trainer_id
-  const offering = DB.unit_offerings.find(uo => uo.unit_id === exam.unit_id && uo.trainer_id === trainerId);
+  const offering = DB.unit_offerings.find(uo => (exam.unit_id ? uo.unit_id === exam.unit_id : uo.unit_code === exam.unit_code) && uo.trainer_id === trainerId);
   return !!offering;
 }
 
 // ─── 3. MANDATORY MODIFICATION 4: HOD DEPARTMENT SCOPE ────────────────────────
-export function verifyHODDepartmentScope(hodDepartmentId: string | undefined, examId: string): boolean {
-  if (!hodDepartmentId) return false;
+export function verifyHODDepartmentScope(hodDepartmentId: string | undefined, examId?: string): boolean {
+  if (!hodDepartmentId || !examId) return false;
   const exam = DB.exams.find(e => e.id === examId);
   if (!exam) return false;
 
-  const offering = DB.unit_offerings.find(uo => uo.unit_id === exam.unit_id);
+  const offering = DB.unit_offerings.find(uo => (exam.unit_id ? uo.unit_id === exam.unit_id : uo.unit_code === exam.unit_code));
   return offering?.department_id === hodDepartmentId;
 }
 
