@@ -12,6 +12,7 @@ import {
 } from "./db.ts";
 import { FBS_COHORT_SUBMISSIONS } from "../client/src/lib/fbsCohortSubmissions.ts";
 import { DIGITAL_LITERACY_EXAMS } from "../client/src/lib/digitalLiteracyExams.ts";
+import { CURRICULUM_CATS } from "../client/src/lib/curriculumContinuousAssessments.ts";
 
 export interface AuthenticatedUser {
   id: string;
@@ -86,6 +87,7 @@ export const DB = {
   ],
   exams: [
     ...DIGITAL_LITERACY_EXAMS,
+    ...CURRICULUM_CATS,
     {
       id: "exam-cr-001",
       unit_id: "unit-cr-6",

@@ -7,9 +7,11 @@
 import type { Exam, Submission } from "./supabase";
 import { DIGITAL_LITERACY_EXAMS } from "./digitalLiteracyExams";
 import { FBS_COHORT_SUBMISSIONS } from "./fbsCohortSubmissions";
+import { CURRICULUM_CATS } from "./curriculumContinuousAssessments";
 
 export const MOCK_EXAMS: any = [
   ...DIGITAL_LITERACY_EXAMS,
+  ...CURRICULUM_CATS,
   {
     id: "exam-essentials-mod1",
     unit_id: "unit-essentials-4",
