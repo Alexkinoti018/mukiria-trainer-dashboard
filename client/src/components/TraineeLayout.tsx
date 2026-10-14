@@ -20,6 +20,7 @@ import {
   Zap,
   TrendingUp,
   BookOpen,
+  CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -33,6 +34,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { icon: LayoutDashboard, label: "My Dashboard", path: "/trainee/dashboard" },
   { icon: FileText, label: "Upcoming Exams", path: "/trainee/exam" },
+  { icon: CheckCircle2, label: "Assessment Attendance", path: "/trainee/attendance" },
   { icon: ClipboardCheck, label: "Assignments & Evidence", path: "/trainee/assignments" },
   { icon: BarChart3, label: "My Results", path: "/trainee/results" },
 ];

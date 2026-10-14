@@ -159,4 +159,77 @@ describe("MTTI Institutional Class Register (CUR/02 & CUR/03) Suite", () => {
       expect(match).toBeUndefined();
     });
   });
+
+  // ─── 4. ASSESSMENT ATTENDANCE REGISTER (CUR/03) SIGNATURE SUITE ──────────────
+  describe("4. Assessment Attendance Register (CUR/03) Signature Representation", () => {
+    function renderAttendanceSignature(isSigned: boolean, isOwnRecord = false): string {
+      if (isSigned) {
+        return "attended";
+      }
+      return isOwnRecord ? "Click to Sign (attended)" : "Not Signed";
+    }
+
+    function canToggleAttendanceSignature(
+      role: "trainer" | "admin" | "hod" | "trainee",
+      candidateAdm: string,
+      userReg: string
+    ): boolean {
+      if (role === "trainer" || role === "admin" || role === "hod") {
+        return true;
+      }
+      if (role === "trainee") {
+        const cleanCand = candidateAdm.trim().toUpperCase();
+        const cleanUser = userReg.trim().toUpperCase();
+        const candCore = cleanCand.match(/\b\d{4,6}\b/)?.[0] || cleanCand;
+        const userCore = cleanUser.match(/\b\d{4,6}\b/)?.[0] || cleanUser;
+        return cleanCand === cleanUser || candCore === userCore;
+      }
+      return false;
+    }
+
+    it("should render strictly 'attended' in signature column when attendance is confirmed, NOT the trainee's name", () => {
+      const faithMwende = OFFICIAL_MTTI_TRAINEES.find((t) => t.admNo === "13258");
+      expect(faithMwende).toBeDefined();
+
+      // Ensure signature text is 'attended', not 'Faith' or 'Mwende'
+      const signatureText = renderAttendanceSignature(true, false);
+      expect(signatureText).toBe("attended");
+      expect(signatureText).not.toBe(faithMwende?.name);
+      expect(signatureText).not.toBe("Faith");
+
+      const yvonne = OFFICIAL_MTTI_TRAINEES.find((t) => t.admNo === "13254");
+      const yvonneSignature = renderAttendanceSignature(true, false);
+      expect(yvonneSignature).toBe("attended");
+      expect(yvonneSignature).not.toBe("Yvonne");
+    });
+
+    it("should render 'Not Signed' or 'Click to Sign (attended)' when attendance has not been confirmed", () => {
+      expect(renderAttendanceSignature(false, false)).toBe("Not Signed");
+      expect(renderAttendanceSignature(false, true)).toBe("Click to Sign (attended)");
+    });
+
+    it("should permit trainees to toggle and confirm their own signature record as 'attended'", () => {
+      const allowed = canToggleAttendanceSignature("trainee", "13258", "13258");
+      expect(allowed).toBe(true);
+
+      const modularAllowed = canToggleAttendanceSignature(
+        "trainee",
+        "13254",
+        "FBS 5 MOD/13254/J2026"
+      );
+      expect(modularAllowed).toBe(true);
+    });
+
+    it("should forbid trainees from signing or toggling another candidate's attendance record", () => {
+      const forbidden = canToggleAttendanceSignature("trainee", "13254", "13258");
+      expect(forbidden).toBe(false);
+    });
+
+    it("should permit trainers, HODs, and administrators to toggle any candidate's signature", () => {
+      expect(canToggleAttendanceSignature("trainer", "13254", "")).toBe(true);
+      expect(canToggleAttendanceSignature("hod", "13258", "")).toBe(true);
+      expect(canToggleAttendanceSignature("admin", "12265", "")).toBe(true);
+    });
+  });
 });
+

@@ -940,6 +940,42 @@ export default function CandidatePortal() {
     [exam, unitCode]
   );
 
+  const markCandidateAttendanceAttended = useCallback((traineeName: string, regNo: string) => {
+    try {
+      const cleanReg = regNo.trim().toUpperCase();
+      const coreReg = cleanReg.match(/\b\d{4,6}\b/)?.[0] || "";
+      const match = OFFICIAL_MTTI_TRAINEES.find((t) => {
+        const adm = (t.admNo || t.regCode || "").trim().toUpperCase();
+        const admCore = (adm + " " + (t.regCode || "")).match(/\b\d{4,6}\b/)?.[0] || "";
+        return (
+          adm === cleanReg ||
+          (coreReg && admCore && coreReg === admCore) ||
+          t.name.trim().toLowerCase() === traineeName.trim().toLowerCase()
+        );
+      });
+      const studentId = match?.id || user?.id;
+      const cohort = match?.classCode || user?.cohort_code || verifiedCohort || "FBS5/6/J/26";
+      const keys = [
+        `mtti_class_register_${cohort}`,
+        `mtti_class_register_persisted_${cohort}`,
+        "mtti_class_register_FBS5/6/J/26",
+        "mtti_class_register_persisted_FBS5/6/J/26",
+      ];
+      if (studentId) {
+        keys.forEach((k) => {
+          const raw = localStorage.getItem(k);
+          const parsed = raw ? JSON.parse(raw) : {};
+          const rec = parsed[studentId] || { attendance: {} };
+          parsed[studentId] = {
+            ...rec,
+            signed: true,
+          };
+          localStorage.setItem(k, JSON.stringify(parsed));
+        });
+      }
+    } catch (e) {}
+  }, [user, verifiedCohort]);
+
   // ─────────────────────────────────────────────────────────
   // RENDER STATES
   // ─────────────────────────────────────────────────────────
@@ -1447,13 +1483,26 @@ export default function CandidatePortal() {
               <p>• The exam countdown begins immediately when you click the start button below.</p>
             </div>
 
-            <div className="flex items-center gap-2.5 p-3.5 rounded-xl mb-6 text-xs bg-slate-100 border border-slate-200 text-slate-800">
+            <div className="flex items-center gap-2.5 p-3.5 rounded-xl mb-4 text-xs bg-slate-100 border border-slate-200 text-slate-800">
               <Shield className="w-4 h-4 shrink-0 text-[#c48820]" />
               <span>Candidate: <strong className="text-[#000953]">{student.name}</strong> (Reg No: <span className="font-mono">{student.regNumber}</span>)</span>
             </div>
 
+            <div className="flex items-center justify-between p-3.5 rounded-xl mb-6 text-xs bg-emerald-50 border border-emerald-300 text-emerald-800">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>
+                  Assessment Attendance (MTTI/REG/CUR/03): <strong className="font-serif italic font-bold text-emerald-900 text-sm">attended</strong>
+                </span>
+              </div>
+              <span className="px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 font-bold text-[10px] uppercase">
+                Recorded
+              </span>
+            </div>
+
             <button
               onClick={() => {
+                markCandidateAttendanceAttended(student.name, student.regNumber);
                 setState("exam");
                 startTimer();
               }}

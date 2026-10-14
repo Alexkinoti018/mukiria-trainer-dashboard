@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import TraineeLayout from "@/components/TraineeLayout";
 import { Link } from "wouter";
 import { useAuth, findRosterTraineeByIdentifier } from "@/contexts/AuthContext";
 import { useExam } from "@/contexts/ExamContext";
 import { useTrainees } from "@/contexts/TraineeContext";
 import { evaluateExamPortalAvailability, doesExamMatchTraineeCohort } from "@/lib/supabase";
+import { toast } from "sonner";
 import {
   GraduationCap,
   BookOpen,
@@ -15,6 +16,7 @@ import {
   Clock,
   Lock,
   Calendar,
+  CheckCircle2,
 } from "lucide-react";
 
 export default function TraineeDashboard() {
@@ -31,6 +33,55 @@ export default function TraineeDashboard() {
   const traineeRegNo = user?.reg_number || rosterEntry?.regCode || rosterEntry?.admNo || "FBS 5 MOD/13254/12026";
   const cohortCode = user?.cohort_code || rosterEntry?.classCode || "FBS 5 MOD/J/2026";
   const department = rosterEntry?.department || "Academic Department";
+
+  // Check Assessment Attendance Status for this Trainee (CUR/03)
+  const [attendanceSigned, setAttendanceSigned] = useState<boolean>(() => {
+    try {
+      const keys = [
+        `mtti_class_register_${cohortCode}`,
+        `mtti_class_register_persisted_${cohortCode}`,
+        "mtti_class_register_FBS5/6/J/26",
+        "mtti_class_register_persisted_FBS5/6/J/26",
+      ];
+      for (const k of keys) {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const studentId = rosterEntry?.id || user?.id;
+          if (studentId && parsed[studentId]?.signed !== undefined) {
+            return !!parsed[studentId].signed;
+          }
+        }
+      }
+    } catch (e) {}
+    return true; // default true for registered candidates
+  });
+
+  const handleConfirmAttendance = () => {
+    const studentId = rosterEntry?.id || user?.id || "trainee-fbs";
+    const keys = [
+      `mtti_class_register_${cohortCode}`,
+      `mtti_class_register_persisted_${cohortCode}`,
+      "mtti_class_register_FBS5/6/J/26",
+      "mtti_class_register_persisted_FBS5/6/J/26",
+    ];
+    keys.forEach((k) => {
+      try {
+        const raw = localStorage.getItem(k);
+        const parsed = raw ? JSON.parse(raw) : {};
+        const rec = parsed[studentId] || { attendance: {} };
+        parsed[studentId] = {
+          ...rec,
+          signed: true,
+        };
+        localStorage.setItem(k, JSON.stringify(parsed));
+      } catch (e) {}
+    });
+    setAttendanceSigned(true);
+    toast.success("Assessment Attendance Confirmed: 'attended'", {
+      description: "Your official signature has been recorded as 'attended' in MTTI/REG/CUR/03.",
+    });
+  };
 
   // Strictly filter ONLY assessments explicitly allocated (portal_visible === true) to this trainee's cohort
   const cohortExams = useMemo(() => {
@@ -111,6 +162,54 @@ export default function TraineeDashboard() {
           <div className="flex items-center gap-2 text-xs font-semibold bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
             <ShieldCheck className="w-4 h-4 text-[#c48820]" />
             <span>Zero-Email Roster Verified</span>
+          </div>
+        </div>
+
+        {/* Assessment Attendance Register Quick Action & Status (MTTI/REG/CUR/03) */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-card border-2 border-border shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm font-bold text-foreground">
+                  Assessment Attendance Register (MTTI/REG/CUR/03)
+                </h3>
+                <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-primary/10 text-primary">
+                  Official CDACC Register
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Attendance signature confirms your presence for continuous and summative assessments.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 flex-wrap">
+            {attendanceSigned ? (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-semibold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>
+                  Signature: <strong className="font-serif italic font-bold text-emerald-900 text-sm">attended</strong>
+                </span>
+              </div>
+            ) : (
+              <button
+                onClick={handleConfirmAttendance}
+                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm transition animate-pulse flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                Click to Sign ('attended')
+              </button>
+            )}
+
+            <Link href="/trainee/attendance">
+              <a className="px-3.5 py-2 rounded-xl text-xs font-bold text-foreground bg-muted hover:bg-muted/80 border border-border transition flex items-center gap-1.5">
+                View Cohort Register
+                <ArrowRight className="w-3.5 h-3.5" />
+              </a>
+            </Link>
           </div>
         </div>
 

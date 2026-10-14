@@ -176,6 +176,9 @@ function Router() {
       <Route path="/trainee/dashboard">
         <ProtectedRoute allowedRoles={["trainee"]}><TraineeDashboard /></ProtectedRoute>
       </Route>
+      <Route path="/trainee/attendance">
+        <ProtectedRoute allowedRoles={["trainee", "trainer", "hod", "admin"]}><ClassRegister /></ProtectedRoute>
+      </Route>
       <Route path="/trainee/assignments">
         <ProtectedRoute allowedRoles={["trainee", "admin"]}><TraineeAssignments /></ProtectedRoute>
       </Route>
@@ -223,7 +226,7 @@ function Router() {
         <ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>
       </Route>
       <Route path="/class-register">
-        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><ClassRegister /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod", "trainee"]}><ClassRegister /></ProtectedRoute>
       </Route>
       <Route path="/assessment-marks">
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><AssessmentMarks /></ProtectedRoute>

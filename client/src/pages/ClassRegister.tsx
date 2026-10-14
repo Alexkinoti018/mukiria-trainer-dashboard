@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
+import { useLocation } from "wouter";
 import TrainerLayout from "@/components/TrainerLayout";
+import TraineeLayout from "@/components/TraineeLayout";
 import { 
   Save, 
   Printer, 
@@ -108,11 +110,47 @@ const MTTI_CLASSES: ClassConfig[] = [
 export default function ClassRegister() {
   const { trainees, addTrainee, updateTrainee, deleteTrainee, resetToOfficialRoster } = useTrainees();
   const { user } = useAuth();
+  const [location] = useLocation();
   const canEditRegister = user?.role === "trainer" || user?.role === "admin" || user?.role === "hod";
+  const isTraineeViewer = user?.role === "trainee";
 
   // Mode: "CUR/02" (General Class Register) or "CUR/03" (Assessment Attendance Register)
-  const [formMode, setFormMode] = useState<"CUR/02" | "CUR/03">("CUR/02");
-  const [selectedClassCode, setSelectedClassCode] = useState<string>("ICT4/ITECH6/S/26 MOD 1");
+  const [formMode, setFormMode] = useState<"CUR/02" | "CUR/03">(() => {
+    if (isTraineeViewer || location.includes("/attendance")) return "CUR/03";
+    return "CUR/02";
+  });
+  const [selectedClassCode, setSelectedClassCode] = useState<string>(() => {
+    if (user?.role === "trainee") {
+      if (user.cohort_code) {
+        const found = MTTI_CLASSES.find(
+          (c) =>
+            c.code.toLowerCase().includes(user.cohort_code!.toLowerCase()) ||
+            user.cohort_code!.toLowerCase().includes(c.code.toLowerCase())
+        );
+        if (found) return found.code;
+        if (user.cohort_code.toUpperCase().includes("FBS")) return "FBS5/6/J/26";
+      }
+      return "FBS5/6/J/26";
+    }
+    return "ICT4/ITECH6/S/26 MOD 1";
+  });
+
+  // Align selected class code to trainee's registered cohort from official roster
+  useEffect(() => {
+    if (isTraineeViewer && user) {
+      const myTrainee = trainees.find(
+        (t) =>
+          (t.admNo && user.reg_number && t.admNo.trim().toUpperCase() === user.reg_number.trim().toUpperCase()) ||
+          (t.name && user.name && t.name.trim().toLowerCase() === user.name.trim().toLowerCase())
+      );
+      if (myTrainee?.classCode) {
+        const found = MTTI_CLASSES.find((c) => c.code === myTrainee.classCode || myTrainee.classCode.includes(c.code));
+        if (found) setSelectedClassCode(found.code);
+        else if (myTrainee.classCode.includes("FBS")) setSelectedClassCode("FBS5/6/J/26");
+      }
+    }
+  }, [isTraineeViewer, user, trainees]);
+
   const academicContext = useMemo(() => getAcademicContext(), []);
 
   // State: Mapping traineeId -> attendance record
@@ -527,20 +565,43 @@ export default function ClassRegister() {
 
   // Toggle Signature in CUR/03
   const toggleSignature = (studentId: string) => {
-    if (!canEditRegister) {
-      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can record attendance signatures.");
+    const targetTrainee = classTrainees.find((t) => t.id === studentId);
+    const isOwnRecord =
+      user?.role === "trainee" &&
+      (studentId === user.id ||
+        (targetTrainee?.admNo &&
+          user.reg_number &&
+          targetTrainee.admNo.trim().toUpperCase() === user.reg_number.trim().toUpperCase()) ||
+        (targetTrainee?.name &&
+          user.name &&
+          targetTrainee.name.trim().toLowerCase() === user.name.trim().toLowerCase()));
+
+    if (!canEditRegister && !isOwnRecord) {
+      if (user?.role === "trainee") {
+        toast.error("Trainees can only confirm attendance for their own registration record.");
+      } else {
+        toast.error("Forbidden: Only assigned trainers, HODs, and administrators can record attendance signatures.");
+      }
       return;
     }
-    setAttendanceData(prev => {
+
+    setAttendanceData((prev) => {
       const rec = prev[studentId] || { attendance: {} };
-      return {
+      const nextSigned = !rec.signed;
+      const updated = {
         ...prev,
         [studentId]: {
           ...rec,
-          signed: !rec.signed
-        }
+          signed: nextSigned,
+        },
       };
+      persistLocally(updated);
+      return updated;
     });
+
+    if (user?.role === "trainee") {
+      toast.success("Assessment attendance confirmed: 'attended'");
+    }
   };
 
   // Calculations for CUR/02
@@ -761,20 +822,17 @@ export default function ClassRegister() {
     }
   };
 
-  return (
-    <TrainerLayout 
-      title={formMode === "CUR/02" ? "General Class Register (MTTI/REG/CUR/02)" : "Assessment Attendance Register (MTTI/REG/CUR/03)"} 
-      subtitle="Official MTTI institutional registers with multi-class roster auto-calculations"
-    >
-      <div className="space-y-6 pb-20">
-        
-        {/* Top Control Bar (Print:hidden) */}
-        <div className="bg-card border border-border p-4 rounded-xl shadow-sm space-y-4 print:hidden">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            
-            {/* Form Mode Selector (CUR/02 vs CUR/03) */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-muted-foreground uppercase">Template:</span>
+  const pageContent = (
+    <div className="space-y-6 pb-20">
+      
+      {/* Top Control Bar (Print:hidden) */}
+      <div className="bg-card border border-border p-4 rounded-xl shadow-sm space-y-4 print:hidden">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          
+          {/* Form Mode Selector (CUR/02 vs CUR/03) */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-muted-foreground uppercase">Template:</span>
+            {!isTraineeViewer && (
               <button
                 onClick={() => setFormMode("CUR/02")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
@@ -785,54 +843,60 @@ export default function ClassRegister() {
               >
                 CUR/02: General Class Register
               </button>
-              <button
-                onClick={() => setFormMode("CUR/03")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  formMode === "CUR/03"
-                    ? "bg-[#000953] text-white shadow-sm"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border"
-                }`}
-              >
-                CUR/03: Assessment Attendance
-              </button>
-            </div>
+            )}
+            <button
+              onClick={() => setFormMode("CUR/03")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                formMode === "CUR/03"
+                  ? "bg-[#000953] text-white shadow-sm"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border"
+              }`}
+            >
+              CUR/03: Assessment Attendance
+            </button>
+          </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={handleReset}
-                className="p-2 border border-border rounded-lg text-muted-foreground hover:text-foreground"
-                title="Reset to official MTTI 58 trainees"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-              <button 
-                onClick={() => setIsQRModalOpen(true)}
-                className="h-9 px-3.5 flex items-center gap-1.5 bg-[#000953] hover:bg-[#000953]/90 text-white rounded-lg text-xs font-bold transition shadow-sm border border-[#c48820]/50"
-                title="Generate and print official QR Door Poster for workshop / laboratory entry"
-              >
-                <QrCode className="w-4 h-4 text-[#c48820]" /> Door QR Poster
-              </button>
-              <button 
-                onClick={handleSyncQRCheckIns}
-                className="h-9 px-3.5 flex items-center gap-1.5 bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border rounded-lg text-xs font-bold transition shadow-sm"
-                title="Sync trainees who scanned the door QR code into this session register"
-              >
-                <RefreshCw className="w-4 h-4 text-emerald-500" /> Sync Door Check-Ins
-              </button>
-              <button 
-                onClick={() => window.print()} 
-                className="h-9 px-3.5 flex items-center gap-2 bg-black text-white hover:bg-black/80 rounded-lg text-xs font-bold transition shadow-sm"
-              >
-                <Printer className="w-4 h-4" /> Print Form
-              </button>
-              <button 
-                onClick={handleSave} 
-                disabled={isSaving} 
-                className="h-9 px-3.5 flex items-center gap-2 bg-primary text-primary-foreground hover:opacity-90 rounded-lg text-xs font-bold transition shadow-sm"
-              >
-                <Save className="w-4 h-4" /> {isSaving ? "Saving..." : "Save"}
-              </button>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {canEditRegister && (
+              <>
+                <button
+                  onClick={handleReset}
+                  className="p-2 border border-border rounded-lg text-muted-foreground hover:text-foreground"
+                  title="Reset to official MTTI 58 trainees"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => setIsQRModalOpen(true)}
+                  className="h-9 px-3.5 flex items-center gap-1.5 bg-[#000953] hover:bg-[#000953]/90 text-white rounded-lg text-xs font-bold transition shadow-sm border border-[#c48820]/50"
+                  title="Generate and print official QR Door Poster for workshop / laboratory entry"
+                >
+                  <QrCode className="w-4 h-4 text-[#c48820]" /> Door QR Poster
+                </button>
+                <button 
+                  onClick={handleSyncQRCheckIns}
+                  className="h-9 px-3.5 flex items-center gap-1.5 bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border rounded-lg text-xs font-bold transition shadow-sm"
+                  title="Sync trainees who scanned the door QR code into this session register"
+                >
+                  <RefreshCw className="w-4 h-4 text-emerald-500" /> Sync Door Check-Ins
+                </button>
+              </>
+            )}
+            <button 
+              onClick={() => window.print()} 
+              className="h-9 px-3.5 flex items-center gap-2 bg-black text-white hover:bg-black/80 rounded-lg text-xs font-bold transition shadow-sm"
+            >
+              <Printer className="w-4 h-4" /> Print Form
+            </button>
+            <button 
+              onClick={handleSave} 
+              disabled={isSaving} 
+              className="h-9 px-3.5 flex items-center gap-2 bg-primary text-primary-foreground hover:opacity-90 rounded-lg text-xs font-bold transition shadow-sm"
+            >
+              <Save className="w-4 h-4" /> {isSaving ? "Saving..." : "Save"}
+            </button>
+            {canEditRegister && (
               <button 
                 onClick={handleSaveAndSyncRoW} 
                 disabled={isSaving} 
@@ -841,8 +905,25 @@ export default function ClassRegister() {
               >
                 <Sparkles className="w-4 h-4" /> Save & Sync RoW
               </button>
-            </div>
+            )}
           </div>
+        </div>
+
+        {/* Trainee Guidance Banner */}
+        {isTraineeViewer && (
+          <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>
+                Assessment Attendance Register (CUR/03) for <strong>{activeClassConfig.name}</strong>.
+                Click your signature cell in the table below to confirm your attendance as <strong>'attended'</strong>.
+              </span>
+            </div>
+            <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-blue-100 font-bold shrink-0">
+              {user?.reg_number || user?.name}
+            </span>
+          </div>
+        )}
 
           {/* Class Selector Bar: Dropdown + Scrollable Quick-Switch Pills */}
           <div className="border-t border-border pt-3 space-y-2.5">
@@ -1229,49 +1310,93 @@ export default function ClassRegister() {
                     <th className="border border-black p-2 text-left w-40">ADM NO</th>
                     <th className="border border-black p-2 text-left">TRAINEE NAME</th>
                     <th className="border border-black p-2 text-center w-44">SIGNATURE</th>
-                    <th className="border border-black p-2 text-center w-20 print:hidden">ACTION</th>
+                    {canEditRegister && (
+                      <th className="border border-black p-2 text-center w-20 print:hidden">ACTION</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
                   {classTrainees.map((trainee, idx) => {
                     const isSigned = attendanceData[trainee.id]?.signed ?? true;
+                    const isOwnRecord =
+                      user?.role === "trainee" &&
+                      (trainee.id === user.id ||
+                        (trainee.admNo &&
+                          user.reg_number &&
+                          trainee.admNo.trim().toUpperCase() === user.reg_number.trim().toUpperCase()) ||
+                        (trainee.name &&
+                          user.name &&
+                          trainee.name.trim().toLowerCase() === user.name.trim().toLowerCase()));
+
                     return (
-                      <tr key={trainee.id} className="border-b border-black hover:bg-gray-50 transition">
+                      <tr
+                        key={trainee.id}
+                        className={`border-b border-black transition ${
+                          isOwnRecord ? "bg-amber-50/40 hover:bg-amber-50/70" : "hover:bg-gray-50"
+                        }`}
+                      >
                         <td className="border border-black p-2 text-center font-bold">{idx + 1}.</td>
                         <td className="border border-black p-2 font-mono font-medium">{trainee.admNo}</td>
-                        <td className="border border-black p-2 font-bold uppercase">{trainee.name}</td>
-                        <td 
-                          onClick={() => toggleSignature(trainee.id)}
-                          className="border border-black p-2 text-center cursor-pointer select-none"
-                          title="Click to toggle trainee signature status"
-                        >
-                          {isSigned ? (
-                            <div className="flex items-center justify-center gap-1 font-mono text-[11px] font-bold text-emerald-800 print:text-black">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 print:hidden" />
-                              <span className="italic font-serif">{trainee.name.split(" ")[0]}</span>
-                            </div>
-                          ) : (
-                            <span className="text-gray-400 print:invisible italic">Not Signed</span>
-                          )}
-                        </td>
-                        <td className="border border-black p-2 text-center print:hidden bg-white">
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              onClick={() => handleOpenEditStudent(trainee)}
-                              className="p-1 text-blue-600 hover:bg-blue-100 rounded"
-                              title="Edit Student Details"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteStudent(trainee.id, trainee.name)}
-                              className="p-1 text-red-600 hover:bg-red-100 rounded"
-                              title="Remove Student"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                        <td className="border border-black p-2 font-bold uppercase">
+                          <div className="flex items-center gap-1.5">
+                            <span>{trainee.name}</span>
+                            {isOwnRecord && (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#000953] text-white print:hidden">
+                                YOU
+                              </span>
+                            )}
                           </div>
                         </td>
+                        <td 
+                          onClick={() => toggleSignature(trainee.id)}
+                          className={`border border-black p-2 text-center select-none ${
+                            canEditRegister || isOwnRecord ? "cursor-pointer hover:bg-emerald-50/50" : "cursor-default"
+                          }`}
+                          title={
+                            canEditRegister
+                              ? "Click to toggle candidate signature status"
+                              : isOwnRecord
+                              ? "Click to confirm your assessment attendance ('attended')"
+                              : "Candidate signature status"
+                          }
+                        >
+                          {isSigned ? (
+                            <div className="flex items-center justify-center gap-1.5 font-mono text-[11px] font-bold text-emerald-800 print:text-black">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 print:hidden" />
+                              <span className="italic font-serif font-bold text-emerald-700 print:text-black text-xs">attended</span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 print:invisible italic">
+                              {isOwnRecord ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px] animate-pulse">
+                                  Click to Sign (attended)
+                                </span>
+                              ) : (
+                                "Not Signed"
+                              )}
+                            </span>
+                          )}
+                        </td>
+                        {canEditRegister && (
+                          <td className="border border-black p-2 text-center print:hidden bg-white">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => handleOpenEditStudent(trainee)}
+                                className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+                                title="Edit Student Details"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteStudent(trainee.id, trainee.name)}
+                                className="p-1 text-red-600 hover:bg-red-100 rounded"
+                                title="Remove Student"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
@@ -1516,7 +1641,26 @@ export default function ClassRegister() {
           }}
         />
 
-      </div>
+    </div>
+  );
+
+  if (isTraineeViewer) {
+    return (
+      <TraineeLayout
+        title="Assessment Attendance Register (MTTI/REG/CUR/03)"
+        subtitle={`${user?.name || "Candidate"} • ${user?.reg_number || user?.cohort_code || activeClassConfig.code}`}
+      >
+        {pageContent}
+      </TraineeLayout>
+    );
+  }
+
+  return (
+    <TrainerLayout 
+      title={formMode === "CUR/02" ? "General Class Register (MTTI/REG/CUR/02)" : "Assessment Attendance Register (MTTI/REG/CUR/03)"} 
+      subtitle="Official MTTI institutional registers with multi-class roster auto-calculations"
+    >
+      {pageContent}
     </TrainerLayout>
   );
 }
