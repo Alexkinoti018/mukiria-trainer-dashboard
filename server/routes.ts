@@ -1459,11 +1459,15 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), (req: Authentic
   });
 
   if (existingSub) {
-    if (existingSub.status !== "in_progress" && exam_id !== "exam-061155101A-wa1" && exam.unit_code !== "061155101A-WA1") {
-      res.status(400).json({ error: "Locked: Submission has already been completed and cannot be modified" });
+    const isAlreadyLocked = Boolean((existingSub as any).is_locked) || existingSub.status === "submitted" || existingSub.status === "graded";
+    if (isAlreadyLocked && existingSub.status !== "reopened" && existingSub.status !== "in_progress") {
+      res.status(400).json({ error: "Locked: Submission has already been completed and cannot be modified without trainer authorization" });
       return;
     }
     existingSub.status = "submitted";
+    (existingSub as any).is_locked = true;
+    (existingSub as any).attempt_count = ((existingSub as any).attempt_count || 1);
+    (existingSub as any).locked_at = new Date().toISOString();
     existingSub.section_a = gradedA;
     existingSub.section_b = section_b || existingSub.section_b || [];
     existingSub.total_score = objectiveScore;
@@ -1480,6 +1484,9 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), (req: Authentic
     reg_number: user.reg_number || "10525",
     student_name: user.name,
     status: "submitted",
+    is_locked: true,
+    attempt_count: 1,
+    locked_at: new Date().toISOString(),
     total_score: objectiveScore,
     section_a: gradedA,
     section_b: section_b || [],
@@ -1603,6 +1610,24 @@ apiRouter.post("/submissions/:id/grade", requireRoles("trainer", "admin"), (req:
   sub.total_score = marks_awarded ?? sub.total_score;
   sub.status = "graded";
   res.json({ success: true, updated: sub });
+});
+
+// ─── ENDPOINT: POST /api/submissions/:id/reopen (Trainer Retake Authorization) ─
+apiRouter.post("/submissions/:id/reopen", requireRoles("trainer", "admin"), (req: AuthenticatedRequest, res: Response) => {
+  const sub = DB.submissions.find(s => s.id === req.params.id);
+  if (!sub) {
+    res.status(404).json({ error: "Submission not found" });
+    return;
+  }
+  const { reason, trainer_name } = req.body;
+  (sub as any).is_locked = false;
+  sub.status = "reopened";
+  (sub as any).attempt_count = ((sub as any).attempt_count || 1) + 1;
+  (sub as any).reopened_at = new Date().toISOString();
+  (sub as any).reopened_by = trainer_name || req.user?.name || "Alexander Kinoti";
+  (sub as any).reopen_reason = reason || "Trainer-authorized retake / second attempt";
+  (sub as any).updated_at = new Date().toISOString();
+  res.json({ success: true, submission: sub });
 });
 
 // ─── ENDPOINT: GET /api/assessment-marks/:offeringId (Draft vs Published) ─────

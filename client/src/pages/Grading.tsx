@@ -30,6 +30,8 @@ import {
   Loader2,
   PenTool,
   FileCheck,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import TrainerLayout from "@/components/TrainerLayout";
 import MarkedExamScriptModal from "@/components/MarkedExamScriptModal";
@@ -75,7 +77,7 @@ const TASK_SLOT_LABELS: Record<AssessmentTaskSlot, string> = {
 };
 
 export default function Grading() {
-  const { exams, submissions, gradeSubmission } = useExam();
+  const { exams, submissions, gradeSubmission, reopenSubmissionForRetake } = useExam();
   const { trainees, uploads, awardUploadMark } = useTrainees();
   const [loading, setLoading] = useState(true);
   const [selectedUnit, setSelectedUnit] = useState<string>("all");
@@ -926,12 +928,24 @@ export default function Grading() {
                       </div>
                     )}
 
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider border ${
-                      sub.status === "graded" || sub.status === "reviewed"
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider border flex items-center gap-1.5 ${
+                      sub.is_locked
+                        ? "bg-slate-100 text-slate-800 border-slate-300"
+                        : sub.status === "reopened"
+                        ? "bg-amber-100 text-amber-900 border-amber-300"
+                        : sub.status === "graded" || sub.status === "reviewed"
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                         : "bg-amber-50 text-[#c48820] border-amber-200"
                     }`}>
-                      {sub.status}
+                      {sub.is_locked && <Lock className="w-3 h-3 text-slate-500" />}
+                      {sub.status === "reopened" && <Clock className="w-3 h-3 text-amber-600 animate-spin" />}
+                      <span>
+                        {sub.is_locked
+                          ? `Submitted (Locked)${sub.attempt_count && sub.attempt_count > 1 ? ` • Att. ${sub.attempt_count}` : ""}`
+                          : sub.status === "reopened"
+                          ? `Retake Active (Att. ${(sub.attempt_count || 1) + 1})`
+                          : sub.status}
+                      </span>
                     </span>
 
                     {isExpanded ? (
@@ -1009,6 +1023,34 @@ export default function Grading() {
                                 Mark as Reviewed
                               </button>
                             )}
+
+                            {/* Trainer-Controlled Unlock / Retake Action */}
+                            {sub.is_locked ? (
+                              <button
+                                onClick={() => {
+                                  if (
+                                    confirm(
+                                      `Unlock examination session for ${sub.student_name} (${sub.reg_number})?\n\nThis will reopen the candidate portal for this assessment and authorize Attempt #${(sub.attempt_count || 1) + 1}.`
+                                    )
+                                  ) {
+                                    reopenSubmissionForRetake(sub.id, "Trainer authorized second attempt", "Alexander Kinoti");
+                                    toast.success("Exam Session Unlocked", {
+                                      description: `${sub.student_name} can now re-enter the assessment room for Attempt #${(sub.attempt_count || 1) + 1}.`,
+                                    });
+                                  }
+                                }}
+                                className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#c48820] hover:bg-[#b07718] text-[#000953] shadow-sm transition active:scale-[0.98]"
+                                title="Unlock this exam session to grant a retake or second attempt"
+                              >
+                                <Unlock className="w-3.5 h-3.5" />
+                                Unlock for Retake / Second Attempt
+                              </button>
+                            ) : sub.status === "reopened" ? (
+                              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300 shadow-xs">
+                                <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                                <span>Retake Active (Attempt #{(sub.attempt_count || 1) + 1} Authorized)</span>
+                              </div>
+                            ) : null}
                           </div>
 
                           {/* Marksheet Assessment Slot Selector */}

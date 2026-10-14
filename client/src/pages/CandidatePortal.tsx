@@ -28,11 +28,11 @@ import {
   Maximize2,
   Minimize2,
 } from "lucide-react";
-import { useExam, sanitizeExamForStudent } from "@/contexts/ExamContext";
+import { useExam, sanitizeExamForStudent, generateSubmissionHash } from "@/contexts/ExamContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
 import { MOCK_EXAMS } from "@/lib/mockData";
-import { evaluateExamPortalAvailability, type Exam } from "@/lib/supabase";
+import { evaluateExamPortalAvailability, type Exam, type Submission } from "@/lib/supabase";
 import { getCanonicalAssessmentTitle } from "@/lib/assessmentTaxonomy";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
@@ -55,6 +55,7 @@ type PortalState =
   | "instructions"
   | "exam"
   | "submitted"
+  | "locked"
   | "error";
 
 interface StudentInfo {
@@ -257,6 +258,7 @@ export default function CandidatePortal() {
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [lockedSubmission, setLockedSubmission] = useState<Submission | null>(null);
   const [isExpandedTextarea, setIsExpandedTextarea] = useState(false);
 
   const getWordCount = useCallback((text: string) => {
@@ -464,6 +466,28 @@ export default function CandidatePortal() {
       setExam(foundExam);
       console.log("✅ [MTTI Portal] Exam loaded with Column Shielding:", foundExam.unit_code);
 
+      // Check if this trainee has an existing locked submission for this assessment
+      const checkReg = (user?.reg_number || student.regNumber || "").trim().toUpperCase();
+      if (checkReg) {
+        const lockedSub = (submissions || []).find(
+          (s) =>
+            (s.unit_code?.toUpperCase() === foundExam.unit_code.toUpperCase() || s.exam_id === foundExam.id) &&
+            (s.reg_number?.toUpperCase() === checkReg || (user?.id && s.trainee_id === user.id)) &&
+            s.is_locked &&
+            s.status !== "reopened"
+        );
+        if (lockedSub) {
+          setLockedSubmission(lockedSub);
+          setStudent({
+            name: lockedSub.student_name,
+            regNumber: lockedSub.reg_number,
+            cohortCode: user?.cohort_code || "Active Register",
+          });
+          setState("locked");
+          return;
+        }
+      }
+
       // Check if candidate already has an active in-progress assessment session (refresh recovery)
       const ongoingSessionKey = `mtti_active_exam_session_${foundExam.unit_code}`;
       const savedSessionRaw = localStorage.getItem(ongoingSessionKey);
@@ -611,6 +635,19 @@ export default function CandidatePortal() {
         setSubmissionId(id);
         
         submitExam(payload);
+
+        const nowIso = new Date().toISOString();
+        const seal = generateSubmissionHash(regNo, exam.unit_code, nowIso, sectionAPayload.length + sectionBPayload.length);
+        setLockedSubmission({
+          ...payload,
+          id,
+          is_locked: true,
+          attempt_count: 1,
+          submission_hash: seal,
+          locked_at: nowIso,
+          submitted_at: nowIso,
+          created_at: nowIso,
+        });
 
         // 1. Buffer submission in IndexedDB offline store
         await saveSubmissionToOffline({
@@ -873,6 +910,32 @@ export default function CandidatePortal() {
             `/api/trainees/lookup?regNo=${encodeURIComponent(regNo)}&unitCode=${encodeURIComponent(currentUnit)}`
           );
 
+          const checkCandidateLock = (candidateReg: string, candidateName: string, candidateCohort: string): boolean => {
+            const lockedSub = (submissions || []).find(
+              (s) =>
+                (s.unit_code?.toUpperCase() === currentUnit || s.exam_id === exam?.id) &&
+                (s.reg_number?.toUpperCase() === candidateReg.toUpperCase() ||
+                  s.reg_number?.toUpperCase() === normReg ||
+                  s.reg_number?.toUpperCase() === cleanReg) &&
+                s.is_locked &&
+                s.status !== "reopened"
+            );
+            if (lockedSub) {
+              setStudent({
+                name: candidateName,
+                regNumber: candidateReg,
+                cohortCode: candidateCohort,
+              });
+              setLockedSubmission(lockedSub);
+              setState("locked");
+              toast.warning("Assessment Session Closed", {
+                description: "This assessment has been submitted and is currently closed.",
+              });
+              return true;
+            }
+            return false;
+          };
+
           if (res.ok) {
             const data = await res.json();
             setStudent((prev) => ({
@@ -884,6 +947,12 @@ export default function CandidatePortal() {
             setIsVerified(true);
             setVerifiedCohort(data.cohortCode);
             setVerificationError(null);
+
+            if (checkCandidateLock(regNo, data.fullName, data.cohortCode)) {
+              setIsVerifying(false);
+              return;
+            }
+
             toast.success(`Verified: ${data.fullName}`, {
               description: `Verified in class register (${data.cohortCode})`,
             });
@@ -906,6 +975,12 @@ export default function CandidatePortal() {
               setIsVerified(true);
               setVerifiedCohort(offlineMatch.classCode);
               setVerificationError(null);
+
+              if (checkCandidateLock(regNo, offlineMatch!.name, offlineMatch!.classCode)) {
+                setIsVerifying(false);
+                return;
+              }
+
               toast.success(`Verified: ${offlineMatch.name}`, {
                 description: `Verified in class register (${offlineMatch.classCode})`,
               });
@@ -935,6 +1010,26 @@ export default function CandidatePortal() {
         setIsVerified(true);
         setVerifiedCohort(offlineMatch.classCode);
         setVerificationError(null);
+
+        const lockedSub = (submissions || []).find(
+          (s) =>
+            (s.unit_code?.toUpperCase() === currentUnit || s.exam_id === exam?.id) &&
+            (s.reg_number?.toUpperCase() === regNo.toUpperCase() ||
+              s.reg_number?.toUpperCase() === normReg ||
+              s.reg_number?.toUpperCase() === cleanReg) &&
+            s.is_locked &&
+            s.status !== "reopened"
+        );
+        if (lockedSub) {
+          setLockedSubmission(lockedSub);
+          setState("locked");
+          toast.warning("Assessment Session Closed", {
+            description: "This assessment has been submitted and is currently closed.",
+          });
+          setIsVerifying(false);
+          return;
+        }
+
         toast.success(`Verified (Offline): ${offlineMatch.name}`, {
           description: `Verified in class register (${offlineMatch.classCode})`,
         });
@@ -947,7 +1042,7 @@ export default function CandidatePortal() {
 
       setIsVerifying(false);
     },
-    [exam, unitCode]
+    [exam, unitCode, submissions]
   );
 
   const markCandidateAttendanceAttended = useCallback((traineeName: string, regNo: string) => {
@@ -1193,6 +1288,95 @@ export default function CandidatePortal() {
           <p className="mt-6 text-xs max-w-sm text-slate-500">
             Your certified trainer will grade your submission. Official results and marked scripts will be communicated through your student results portal.
           </p>
+        </motion.div>
+      </PortalShell>
+    );
+  }
+
+  if (state === "locked") {
+    return (
+      <PortalShell>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-xl mx-auto py-10"
+        >
+          <div className="bg-white rounded-2xl border-2 border-[#000953] shadow-xl p-6 sm:p-8 text-center space-y-6">
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-[#000953] text-[#c48820] flex items-center justify-center shadow-lg border-2 border-[#c48820]">
+              <Lock className="w-10 h-10" />
+            </div>
+
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 mb-3">
+                <AlertCircle className="w-3.5 h-3.5" />
+                Assessment Session Closed
+              </div>
+              <h2 className="text-2xl font-black text-[#000953]">
+                Submission Received & Session Closed
+              </h2>
+              <p className="text-sm text-slate-600 mt-1">
+                {exam?.payload?.title || exam?.course_name || "Official Assessment"} ({exam?.unit_code})
+              </p>
+            </div>
+
+            {/* Candidate & Verification Ledger */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left space-y-2.5 text-xs">
+              <div className="flex justify-between items-center py-1 border-b border-slate-200">
+                <span className="text-slate-500 font-semibold">Candidate Name:</span>
+                <span className="font-bold text-[#000953]">{student.name || lockedSubmission?.student_name}</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-slate-200">
+                <span className="text-slate-500 font-semibold">Admission / Reg Number:</span>
+                <span className="font-mono font-bold text-slate-800">{student.regNumber || lockedSubmission?.reg_number}</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-slate-200">
+                <span className="text-slate-500 font-semibold">Assessment Status:</span>
+                <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-300">
+                  Submitted & Locked [Attempt #{lockedSubmission?.attempt_count || 1}]
+                </span>
+              </div>
+              {(lockedSubmission?.locked_at || lockedSubmission?.submitted_at) && (
+                <div className="flex justify-between items-center py-1 border-b border-slate-200">
+                  <span className="text-slate-500 font-semibold">Sealed Timestamp:</span>
+                  <span className="font-mono text-slate-700">
+                    {new Date(lockedSubmission.locked_at || lockedSubmission.submitted_at!).toLocaleString()}
+                  </span>
+                </div>
+              )}
+              {lockedSubmission?.submission_hash && (
+                <div className="flex flex-col py-1 gap-1">
+                  <span className="text-slate-500 font-semibold">Institutional Digital Hash / Seal:</span>
+                  <span className="font-mono text-[11px] bg-slate-200/80 px-2.5 py-1.5 rounded text-slate-800 break-all select-all border border-slate-300">
+                    {lockedSubmission.submission_hash}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Core Instruction Alert */}
+            <div className="p-4 rounded-xl bg-amber-50/90 border border-amber-300 text-left text-xs text-amber-900 flex items-start gap-3">
+              <Shield className="w-5 h-5 text-[#c48820] shrink-0 mt-0.5" />
+              <div>
+                <strong className="font-bold block text-[#000953] mb-1">Notice to Candidate:</strong>
+                This assessment has been submitted and is currently closed. If you require a retake or extension, please consult your trainer.
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+              <a
+                href="/trainee/dashboard"
+                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#000953] hover:bg-[#000e7a] text-white shadow-md transition text-center"
+              >
+                Return to Trainee Dashboard
+              </a>
+              <a
+                href="/trainee/assignments"
+                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-sm transition text-center"
+              >
+                View Assignments & Evidence
+              </a>
+            </div>
+          </div>
         </motion.div>
       </PortalShell>
     );

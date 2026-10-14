@@ -12,6 +12,24 @@ interface ExamContextType {
   updateExamSchedule: (unitCodeOrId: string, scheduleUpdates: Partial<Exam["payload"]>) => void;
   submitExam: (submission: Omit<Submission, "id" | "created_at" | "updated_at">) => void;
   gradeSubmission: (id: string, updates: Partial<Submission>) => void;
+  reopenSubmissionForRetake: (id: string, reason?: string, trainerName?: string) => void;
+}
+
+export function generateSubmissionHash(
+  regNumber: string,
+  unitCode: string,
+  timestamp: string,
+  answersCount: number
+): string {
+  const raw = `${(regNumber || "").trim().toUpperCase()}:${(unitCode || "").trim().toUpperCase()}:${timestamp}:${answersCount}`;
+  let hash = 0;
+  for (let i = 0; i < raw.length; i++) {
+    const char = raw.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0;
+  }
+  const hex = Math.abs(hash).toString(16).padStart(8, "0").toUpperCase();
+  return `MTTI-SEAL-${hex}-${timestamp.slice(0, 10).replace(/-/g, "")}`;
 }
 
 export function sanitizeExamForStudent(exam: Exam): Exam {
@@ -277,6 +295,18 @@ export function ExamProvider({ children }: { children: ReactNode }) {
           (submissionPayload.trainee_id && s.trainee_id === submissionPayload.trainee_id))
     );
 
+    const nowIso = new Date().toISOString();
+    const existing = existingIdx >= 0 ? allSubmissions[existingIdx] : null;
+
+    // Strict Submission Lock: Once submitted and locked, reject any subsequent attempt unless reopened by trainer
+    if (existing && existing.is_locked && existing.status !== "reopened") {
+      throw new Error("Locked: This assessment has already been submitted and sealed. Retakes must be unlocked by the certified trainer.");
+    }
+
+    const currentAttempt = (existing?.attempt_count || 0) + 1;
+    const totalAns = (submissionPayload.section_a?.length || 0) + (submissionPayload.section_b?.length || 0);
+    const subHash = generateSubmissionHash(submissionPayload.reg_number, submissionPayload.unit_code, nowIso, totalAns);
+
     let updated: Submission[];
     let targetSub: Submission;
 
@@ -285,14 +315,26 @@ export function ExamProvider({ children }: { children: ReactNode }) {
         ...allSubmissions[existingIdx],
         ...submissionPayload,
         status: "submitted",
-        updated_at: new Date().toISOString(),
+        is_locked: true,
+        attempt_count: currentAttempt,
+        submission_hash: subHash,
+        locked_at: nowIso,
+        submitted_at: nowIso,
+        updated_at: nowIso,
       };
       updated = allSubmissions.map((s, idx) => (idx === existingIdx ? targetSub : s));
     } else {
       targetSub = {
         ...submissionPayload,
         id: `sub-${nanoid(8)}`,
-        created_at: new Date().toISOString(),
+        status: "submitted",
+        is_locked: true,
+        attempt_count: currentAttempt,
+        submission_hash: subHash,
+        locked_at: nowIso,
+        submitted_at: nowIso,
+        created_at: nowIso,
+        updated_at: nowIso,
       };
       updated = [...allSubmissions, targetSub];
     }
@@ -300,6 +342,32 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     setAllSubmissions(updated);
     localStorage.setItem("mukiria_submissions", JSON.stringify(updated));
     syncSubmissionWithMarksheet(targetSub, exams);
+  };
+
+  const reopenSubmissionForRetake = (id: string, reason?: string, trainerName?: string) => {
+    const target = allSubmissions.find((s) => s.id === id);
+    if (!target) return;
+
+    const nowIso = new Date().toISOString();
+    const reopenedSub: Submission = {
+      ...target,
+      is_locked: false,
+      status: "reopened" as const,
+      reopened_at: nowIso,
+      reopened_by: trainerName || "Alexander Kinoti",
+      reopen_reason: reason || "Trainer-authorized retake / second attempt",
+      updated_at: nowIso,
+    };
+
+    const updated = allSubmissions.map((sub: Submission) => (sub.id === id ? reopenedSub : sub));
+    setAllSubmissions(updated);
+    localStorage.setItem("mukiria_submissions", JSON.stringify(updated));
+
+    try {
+      localStorage.removeItem(`mtti_active_exam_session_${target.unit_code}`);
+      localStorage.removeItem(`mtti_exam_answers_${target.unit_code}`);
+      localStorage.removeItem(`mtti_exam_answers_${target.unit_code}_${target.reg_number}`);
+    } catch (e) {}
   };
 
   const gradeSubmission = (id: string, updates: Partial<Submission>) => {
@@ -327,6 +395,7 @@ export function ExamProvider({ children }: { children: ReactNode }) {
         updateExamSchedule,
         submitExam,
         gradeSubmission,
+        reopenSubmissionForRetake,
       }}
     >
       {children}

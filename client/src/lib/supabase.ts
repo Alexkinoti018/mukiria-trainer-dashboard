@@ -463,10 +463,17 @@ export interface Submission {
   reg_number: string;
   section_a: StudentAnswer[];
   section_b: StudentAnswer[];
-  status: "pending" | "graded" | "reviewed" | "submitted" | "in_progress";
+  status: "pending" | "graded" | "reviewed" | "submitted" | "in_progress" | "reopened";
   total_score: number | null;
   trainer_comments?: string;
   submitted_at?: string;
+  is_locked?: boolean;
+  attempt_count?: number;
+  submission_hash?: string;
+  locked_at?: string;
+  reopened_at?: string;
+  reopened_by?: string;
+  reopen_reason?: string;
   payload?: any;
   created_at: string;
   updated_at?: string;
