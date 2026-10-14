@@ -889,13 +889,15 @@ export default function ClassRegister() {
             >
               <Printer className="w-4 h-4" /> Print Form
             </button>
-            <button 
-              onClick={handleSave} 
-              disabled={isSaving} 
-              className="h-9 px-3.5 flex items-center gap-2 bg-primary text-primary-foreground hover:opacity-90 rounded-lg text-xs font-bold transition shadow-sm"
-            >
-              <Save className="w-4 h-4" /> {isSaving ? "Saving..." : "Save"}
-            </button>
+            {canEditRegister && (
+              <button 
+                onClick={handleSave} 
+                disabled={isSaving} 
+                className="h-9 px-3.5 flex items-center gap-2 bg-primary text-primary-foreground hover:opacity-90 rounded-lg text-xs font-bold transition shadow-sm"
+              >
+                <Save className="w-4 h-4" /> {isSaving ? "Saving..." : "Save"}
+              </button>
+            )}
             {canEditRegister && (
               <button 
                 onClick={handleSaveAndSyncRoW} 
@@ -936,7 +938,10 @@ export default function ClassRegister() {
                 <select
                   value={selectedClassCode}
                   onChange={(e) => setSelectedClassCode(e.target.value)}
-                  className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs font-bold text-foreground focus:ring-1 focus:ring-primary outline-none max-w-md w-full truncate shadow-sm cursor-pointer"
+                  disabled={isTraineeViewer}
+                  className={`bg-background border border-border rounded-lg px-3 py-1.5 text-xs font-bold text-foreground outline-none max-w-md w-full truncate shadow-sm ${
+                    isTraineeViewer ? "cursor-not-allowed opacity-90 bg-muted/30" : "cursor-pointer focus:ring-1 focus:ring-primary"
+                  }`}
                 >
                   {MTTI_CLASSES.map(cls => (
                     <option key={cls.code} value={cls.code}>
@@ -949,36 +954,40 @@ export default function ClassRegister() {
                 </span>
               </div>
 
-              <button
-                onClick={handleOpenAddStudent}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-sm shrink-0 whitespace-nowrap"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Add Student
-              </button>
+              {canEditRegister && (
+                <button
+                  onClick={handleOpenAddStudent}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-sm shrink-0 whitespace-nowrap"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Student
+                </button>
+              )}
             </div>
 
-            {/* Quick Switch Pills with shrink-0 min-w-max */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1.5 pt-1 scrollbar-thin">
-              <span className="text-[11px] font-bold text-muted-foreground uppercase whitespace-nowrap shrink-0">
-                Quick Switch:
-              </span>
-              {MTTI_CLASSES.map(cls => (
-                <button
-                  key={cls.code}
-                  onClick={() => setSelectedClassCode(cls.code)}
-                  className={`shrink-0 min-w-max px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 ${
-                    selectedClassCode === cls.code
-                      ? "bg-[#c48820] text-black font-bold shadow-sm"
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border"
-                  }`}
-                >
-                  <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                  <span className="font-bold">{cls.subject}</span>
-                  <span className="text-[10px] opacity-80 shrink-0 font-mono">({cls.code})</span>
-                </button>
-              ))}
-            </div>
+            {/* Quick Switch Pills with shrink-0 min-w-max (Trainer / Staff only) */}
+            {!isTraineeViewer && (
+              <div className="flex items-center gap-2 overflow-x-auto pb-1.5 pt-1 scrollbar-thin">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase whitespace-nowrap shrink-0">
+                  Quick Switch:
+                </span>
+                {MTTI_CLASSES.map(cls => (
+                  <button
+                    key={cls.code}
+                    onClick={() => setSelectedClassCode(cls.code)}
+                    className={`shrink-0 min-w-max px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 ${
+                      selectedClassCode === cls.code
+                        ? "bg-[#c48820] text-black font-bold shadow-sm"
+                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border"
+                    }`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                    <span className="font-bold">{cls.subject}</span>
+                    <span className="text-[10px] opacity-80 shrink-0 font-mono">({cls.code})</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -1097,7 +1106,9 @@ export default function ClassRegister() {
                     <th rowSpan={2} className="border border-black p-1 text-center w-12 text-[10px] leading-tight">Possible<br/>Hrs</th>
                     <th rowSpan={2} className="border border-black p-1 text-center w-12 text-[10px] leading-tight">Actual<br/>Hrs</th>
                     <th rowSpan={2} className="border border-black p-1 text-center w-16 text-[10px] leading-tight">Actual<br/>Attendance %</th>
-                    <th rowSpan={2} className="border border-black p-1 text-center w-16 text-xs print:hidden">Action</th>
+                    {canEditRegister && (
+                      <th rowSpan={2} className="border border-black p-1 text-center w-16 text-xs print:hidden">Action</th>
+                    )}
                   </tr>
                   {/* Header Row 2: #, ADMISSION NO, NAMES + 30 sub-session cells */}
                   <tr className="bg-gray-50 border-b border-black font-bold">
@@ -1165,24 +1176,26 @@ export default function ClassRegister() {
                         <td className="border border-black p-1 text-center font-mono font-bold text-xs">
                           {stats.totalMarkedSessions > 0 ? `${stats.percentage}%` : ""}
                         </td>
-                        <td className="border border-black p-1 text-center print:hidden bg-white">
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              onClick={() => handleOpenEditStudent(trainee)}
-                              className="p-1 text-blue-600 hover:bg-blue-100 rounded"
-                              title="Edit Student Details"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteStudent(trainee.id, trainee.name)}
-                              className="p-1 text-red-600 hover:bg-red-100 rounded"
-                              title="Remove Student"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
+                        {canEditRegister && (
+                          <td className="border border-black p-1 text-center print:hidden bg-white">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => handleOpenEditStudent(trainee)}
+                                className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+                                title="Edit Student Details"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteStudent(trainee.id, trainee.name)}
+                                className="p-1 text-red-600 hover:bg-red-100 rounded"
+                                title="Remove Student"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
