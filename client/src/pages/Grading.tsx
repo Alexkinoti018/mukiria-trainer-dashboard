@@ -64,14 +64,14 @@ const getLevelFromUnitCode = (code: string): number => {
 };
 
 const TASK_SLOT_LABELS: Record<AssessmentTaskSlot, string> = {
-  CT1: "CT1 (CAT 1)",
-  CT2: "CT2 (CAT 2)",
-  CT3: "CT3 (CAT 3)",
-  CP1: "CP1 (Prac 1)",
-  CP2: "CP2 (Prac 2)",
-  CP3: "CP3 (Prac 3)",
-  Assignment: "Assignment",
-  Project: "Project (40%)",
+  CT1: "Written Assessment I (CT1)",
+  CT2: "Written Assessment II (CT2)",
+  CT3: "Written Assessment III (CT3)",
+  CP1: "Practical Assessment I (CP1)",
+  CP2: "Practical Assessment II (CP2)",
+  CP3: "Practical Assessment III (CP3)",
+  Assignment: "Continuous Assessment Test (CAT)",
+  Project: "Course Project",
 };
 
 export default function Grading() {
@@ -685,14 +685,14 @@ export default function Grading() {
           className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 text-[#0f172a] shadow-sm focus:outline-none focus:border-[#000953]"
         >
           <option value="all">All Assessment Slots</option>
-          <option value="CT1">CT1 (CAT 1)</option>
-          <option value="CT2">CT2 (CAT 2)</option>
-          <option value="CT3">CT3 (CAT 3)</option>
-          <option value="CP1">CP1 (Practical 1)</option>
-          <option value="CP2">CP2 (Practical 2)</option>
-          <option value="CP3">CP3 (Practical 3)</option>
-          <option value="Assignment">Assignment</option>
-          <option value="Project">Project (40%)</option>
+          <option value="CT1">Written Assessment I (CT1)</option>
+          <option value="CT2">Written Assessment II (CT2)</option>
+          <option value="CT3">Written Assessment III (CT3)</option>
+          <option value="CP1">Practical Assessment I (CP1)</option>
+          <option value="CP2">Practical Assessment II (CP2)</option>
+          <option value="CP3">Practical Assessment III (CP3)</option>
+          <option value="Assignment">Continuous Assessment Test (CAT)</option>
+          <option value="Project">Course Project</option>
         </select>
 
         <select
@@ -1694,23 +1694,24 @@ export default function Grading() {
         unitTitle="PERFORM COMPUTER NETWORKING"
         qualificationCode="061006T4ICT - ICT TECHNICIAN LEVEL 6"
         assessorName="MR Muthomi"
-        onSave={(total, pct, comp, feed) => {
+        onSave={(total, pct, comp, feed, slot = "CP1") => {
           const candName = selectedPracticalCandidate?.name || "Nthiga Gakii Doris";
           const candReg = selectedPracticalCandidate?.regCode || "14179/S2026";
           const matched = findMatchingTrainee(trainees, {
             regNumber: candReg,
             studentName: candName,
           });
+          const targetSlot = (slot || "CP1") as AssessmentTaskSlot;
           if (matched) {
             syncScoreToContinuousMarksheet({
               traineeId: matched.id,
-              taskCode: "CP1",
+              taskCode: targetSlot,
               percentageScore: pct,
               unitOfferingId: "uo_1",
             });
           }
           toast.success("Practical Assessment Saved & Synced to Marksheet", {
-            description: `${candName}: ${total}/50 (${pct}%) on CP1 — ${comp ? "COMPETENT [✓]" : "NOT YET COMPETENT"}`
+            description: `${candName}: ${total}/50 (${pct}%) on ${targetSlot} — ${comp ? "COMPETENT [✓]" : "NOT YET COMPETENT"}`
           });
         }}
       />

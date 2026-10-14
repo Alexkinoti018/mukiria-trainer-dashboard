@@ -33,6 +33,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
 import { MOCK_EXAMS } from "@/lib/mockData";
 import { evaluateExamPortalAvailability, type Exam } from "@/lib/supabase";
+import { getCanonicalAssessmentTitle } from "@/lib/assessmentTaxonomy";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
 import {
@@ -1069,8 +1070,7 @@ export default function CandidatePortal() {
                               {ex.unit_code}
                             </span>
                             <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-50 text-[#c48820] border border-amber-200">
-                              {portalStatus.categoryLabel}
-                              {ex.payload?.task_code ? ` • ${ex.payload.task_code}` : ""}
+                              {getCanonicalAssessmentTitle((ex.payload?.task_code || "CT1") as any)}
                             </span>
                           </div>
                           <span className="text-xs text-slate-500 font-mono font-semibold">
@@ -1112,7 +1112,7 @@ export default function CandidatePortal() {
                             }}
                             className="px-4 py-2 text-xs font-bold rounded-lg flex items-center gap-1.5 bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition"
                           >
-                            Select {portalStatus.categoryLabel}
+                            Start Assessment
                             <ChevronRight className="w-3.5 h-3.5" />
                           </button>
                         ) : (

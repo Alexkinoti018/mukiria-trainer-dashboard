@@ -534,14 +534,14 @@ export default function UploadGrading() {
                         onChange={(e) => setModalTaskCode(e.target.value)}
                         className="w-full px-3 py-2 border border-border rounded-xl bg-background text-foreground text-xs font-semibold focus:ring-1 focus:ring-primary outline-none"
                       >
-                        <option value="CP1">CP1 — Continuous Practical Task 1</option>
-                        <option value="CP2">CP2 — Continuous Practical Task 2</option>
-                        <option value="CP3">CP3 — Continuous Practical Task 3</option>
-                        <option value="CT1">CT1 — CAT 1 / Written Assessment 1</option>
-                        <option value="CT2">CT2 — CAT 2 / Written Assessment 2</option>
-                        <option value="CT3">CT3 — CAT 3 / Written Assessment 3</option>
-                        <option value="Assignment">Assignment — Continuous Theory Assignment (100%)</option>
-                        <option value="Project">Project — Course Project / Practical Checklist (40%)</option>
+                        <option value="CT1">TYPE 1: Written Assessment I (CT1 • Theory 100%)</option>
+                        <option value="CT2">TYPE 2: Written Assessment II (CT2 • Theory 100%)</option>
+                        <option value="CT3">TYPE 3: Written Assessment III (CT3 • Theory 100%)</option>
+                        <option value="CP1">TYPE 4a: Practical Assessment I (CP1 • Checklist 100%)</option>
+                        <option value="CP2">TYPE 4b: Practical Assessment II (CP2 • Checklist 100%)</option>
+                        <option value="CP3">TYPE 4c: Practical Assessment III (CP3 • Checklist 100%)</option>
+                        <option value="CAT">TYPE 5: Continuous Assessment Test (CAT • Flexible 15–30 Marks)</option>
+                        <option value="PROJECT">TYPE 6: Course Project (Discretionary Portfolio / Rubric)</option>
                       </select>
                     </div>
 

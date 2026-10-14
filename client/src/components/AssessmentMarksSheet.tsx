@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useTrainees, findMatchingTrainee, syncScoreToContinuousMarksheet } from "@/contexts/TraineeContext";
 import { useExam } from "@/contexts/ExamContext";
 import ObservationChecklistMarkingModal from "./ObservationChecklistMarkingModal";
+import { calculateCdaccWeightedMark } from "@/lib/assessmentTaxonomy";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -14,11 +15,16 @@ interface AssessmentRow {
   regCode: string;
   admNo: string;
   name: string;
-  ctScores: (number | string)[];
-  cpScores: (number | string)[];
+  ctScores: (number | string)[]; // Strictly [CT1, CT2, CT3]
+  cpScores: (number | string)[]; // Strictly [CP1, CP2, CP3]
   ctAvg: number;
   cpAvg: number;
   weightedMark: number;
+  internalContribution: number;
+  passedTheoryHurdle: boolean;
+  passedPracticalHurdle: boolean;
+  isCompetent: boolean;
+  gradeBand: "Distinction" | "Credit" | "Pass" | "Refer";
 }
 
 export function AssessmentMarksSheet() {
@@ -43,12 +49,14 @@ export function AssessmentMarksSheet() {
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [syncVersion, setSyncVersion] = useState(0);
 
-  const [ctCount, setCtCount] = useState(3);
-  const [cpCount, setCpCount] = useState(3);
+  // Canonical 3 Continuous Theory and 3 Continuous Practical slots
+  const ctCount = 3;
+  const cpCount = 3;
 
   const [rows, setRows] = useState<AssessmentRow[]>([]);
   const [isObservationModalOpen, setIsObservationModalOpen] = useState(false);
   const [selectedCandidateForPractical, setSelectedCandidateForPractical] = useState<AssessmentRow | null>(null);
+  const [selectedPracticalSlot, setSelectedPracticalSlot] = useState<"CP1" | "CP2" | "CP3">("CP1");
 
   const { trainees, uploads } = useTrainees();
   const { exams, submissions } = useExam();
@@ -228,7 +236,7 @@ export function AssessmentMarksSheet() {
 
         const ctAvg = calculateAverages(initCtScores);
         const cpAvg = calculateAverages(initCpScores);
-        const weightedMark = calculateWeighted(ctAvg, cpAvg, targetLevel);
+        const cdacc = calculateCdaccWeightedMark(ctAvg, cpAvg, targetLevel);
 
         return {
           id: t.id,
@@ -240,23 +248,38 @@ export function AssessmentMarksSheet() {
           cpScores: initCpScores,
           ctAvg,
           cpAvg,
-          weightedMark,
+          weightedMark: cdacc.weightedMark,
+          internalContribution: cdacc.internalCertificationContribution,
+          passedTheoryHurdle: cdacc.passedTheoryHurdle,
+          passedPracticalHurdle: cdacc.passedPracticalHurdle,
+          isCompetent: cdacc.isCompetent,
+          gradeBand: cdacc.gradeBand,
         };
       })
     );
   }, [selectedClass, trainees, uploads, submissions, exams, ctCount, cpCount, syncVersion]);
 
-  // Recalculate everything when scores or level change
+  // Recalculate CDACC double-hurdle weighting and 60% internal certification contribution when scores or level change
   useEffect(() => {
     setRows((prev) =>
       prev.map((row) => {
         const ctAvg = calculateAverages(row.ctScores);
         const cpAvg = calculateAverages(row.cpScores);
-        const weightedMark = calculateWeighted(ctAvg, cpAvg, level);
-        return { ...row, ctAvg, cpAvg, weightedMark };
+        const cdacc = calculateCdaccWeightedMark(ctAvg, cpAvg, level);
+        return {
+          ...row,
+          ctAvg,
+          cpAvg,
+          weightedMark: cdacc.weightedMark,
+          internalContribution: cdacc.internalCertificationContribution,
+          passedTheoryHurdle: cdacc.passedTheoryHurdle,
+          passedPracticalHurdle: cdacc.passedPracticalHurdle,
+          isCompetent: cdacc.isCompetent,
+          gradeBand: cdacc.gradeBand,
+        };
       })
     );
-  }, [level, ctCount, cpCount]);
+  }, [level]);
 
   const handleScoreChange = (rowId: string, type: 'ct' | 'cp', index: number, value: string) => {
     if (isLocked) {
@@ -275,10 +298,16 @@ export function AssessmentMarksSheet() {
         } else {
           newRow.cpScores = [...row.cpScores];
           newRow.cpScores[index] = value;
-          newRow.cpAvg = calculateAverages(newRow.cpScores);
         }
         newRow.ctAvg = calculateAverages(newRow.ctScores);
-        newRow.weightedMark = calculateWeighted(newRow.ctAvg, newRow.cpAvg, level);
+        newRow.cpAvg = calculateAverages(newRow.cpScores);
+        const cdacc = calculateCdaccWeightedMark(newRow.ctAvg, newRow.cpAvg, level);
+        newRow.weightedMark = cdacc.weightedMark;
+        newRow.internalContribution = cdacc.internalCertificationContribution;
+        newRow.passedTheoryHurdle = cdacc.passedTheoryHurdle;
+        newRow.passedPracticalHurdle = cdacc.passedPracticalHurdle;
+        newRow.isCompetent = cdacc.isCompetent;
+        newRow.gradeBand = cdacc.gradeBand;
         return newRow;
       })
     );
@@ -358,6 +387,11 @@ export function AssessmentMarksSheet() {
         ctAvg: 0,
         cpAvg: 0,
         weightedMark: 0,
+        internalContribution: 0,
+        passedTheoryHurdle: false,
+        passedPracticalHurdle: false,
+        isCompetent: false,
+        gradeBand: "Refer",
       },
     ]);
     toast.success("Candidate row added.");
@@ -370,17 +404,6 @@ export function AssessmentMarksSheet() {
     }
     setRows((prev) => prev.filter((row) => row.id !== id).map((row, idx) => ({ ...row, sn: idx + 1 })));
     toast.info("Candidate row removed.");
-  };
-
-  const addColumn = (type: 'ct' | 'cp') => {
-    if (isLocked) return;
-    if (type === 'ct') {
-      setCtCount(c => c + 1);
-      setRows(prev => prev.map(row => ({ ...row, ctScores: [...row.ctScores, ""] })));
-    } else {
-      setCpCount(c => c + 1);
-      setRows(prev => prev.map(row => ({ ...row, cpScores: [...row.cpScores, ""] })));
-    }
   };
 
   const submitData = async () => {
@@ -814,32 +837,30 @@ export function AssessmentMarksSheet() {
             <thead>
               <tr className="bg-slate-100 print:bg-slate-100">
                 <th className="p-2 border border-black font-bold text-center w-10 min-w-[36px]" rowSpan={2}>S/N</th>
-                <th className="p-2 border border-black font-bold text-center w-40 min-w-[140px]" rowSpan={2}>Candidate’s Reg Code</th>
+                <th className="p-2 border border-black font-bold text-center w-36 min-w-[130px]" rowSpan={2}>Candidate’s Reg Code</th>
                 <th className="p-2 border border-black font-bold text-center w-28 min-w-[95px]" rowSpan={2}>ADM NO</th>
-                <th className="p-2 border border-black font-bold text-center min-w-[200px]" rowSpan={2}>Candidate’s Name</th>
-                <th className="p-2 border border-black font-bold text-center" colSpan={ctCount + 1}>
+                <th className="p-2 border border-black font-bold text-center min-w-[180px]" rowSpan={2}>Candidate’s Name</th>
+                <th className="p-2 border border-black font-bold text-center" colSpan={4}>
                   Continuous Theory (CT) Marks (100%)
-                  <button onClick={() => addColumn('ct')} className="ml-2 font-bold hover:underline print:hidden text-[#000953]" title="Add Theory Assessment Column">[+]</button>
                 </th>
-                <th className="p-2 border border-black font-bold text-center" colSpan={cpCount + 1}>
+                <th className="p-2 border border-black font-bold text-center" colSpan={4}>
                   Continuous Practical (CP) Marks (100%)
-                  <button onClick={() => addColumn('cp')} className="ml-2 font-bold hover:underline print:hidden text-[#000953]" title="Add Practical Assessment Column">[+]</button>
                 </th>
-                <th className="p-2 border border-black font-bold text-center w-24 min-w-[80px]" rowSpan={2}>Weighted marks</th>
+                <th className="p-2 border border-black font-bold text-center w-20 min-w-[70px]" rowSpan={2} title="Weighted continuous assessment mark per course Level">Weighted (100%)</th>
+                <th className="p-2 border border-black font-bold text-center w-20 min-w-[70px]" rowSpan={2} title="TVET CDACC 60% Formative Internal Certification Contribution">Internal (60%)</th>
+                <th className="p-2 border border-black font-bold text-center w-24 min-w-[85px]" rowSpan={2} title="CDACC Double-Hurdle Rule: Candidate must achieve ≥ 50% in both Theory Average & Practical Average">CDACC Verdict</th>
                 <th className="p-2 border-none font-bold text-center print:hidden w-12" rowSpan={2}></th>
               </tr>
               <tr className="bg-slate-100 print:bg-slate-100">
-                {Array.from({ length: ctCount }).map((_, i) => (
-                  <th key={`cth-${i}`} className="p-1.5 border border-black text-center font-bold w-14 min-w-[54px]">
-                    CT {i + 1}
-                  </th>
-                ))}
-                <th className="p-1.5 border border-black text-center font-bold bg-[#e5e5e5] w-20 min-w-[65px]">AVERAGE</th>
+                <th className="p-1.5 border border-black text-center font-bold w-14 min-w-[48px]" title="Written Assessment I (Exam 1)">CT 1</th>
+                <th className="p-1.5 border border-black text-center font-bold w-14 min-w-[48px]" title="Written Assessment II (Exam 2)">CT 2</th>
+                <th className="p-1.5 border border-black text-center font-bold w-14 min-w-[48px]" title="Written Assessment III (Exam 3)">CT 3</th>
+                <th className="p-1.5 border border-black text-center font-bold bg-[#e5e5e5] w-16 min-w-[55px]">AVERAGE</th>
                 
-                {Array.from({ length: cpCount }).map((_, i) => (
-                  <th key={`cph-${i}`} className="p-1.5 border border-black text-center font-bold w-14 min-w-[48px]">CP {i + 1}</th>
-                ))}
-                <th className="p-1.5 border border-black text-center font-bold bg-[#e5e5e5] w-20 min-w-[65px]">AVERAGE</th>
+                <th className="p-1.5 border border-black text-center font-bold w-14 min-w-[48px]" title="Practical Assessment I (Prac 1)">CP 1</th>
+                <th className="p-1.5 border border-black text-center font-bold w-14 min-w-[48px]" title="Practical Assessment II (Prac 2)">CP 2</th>
+                <th className="p-1.5 border border-black text-center font-bold w-14 min-w-[48px]" title="Practical Assessment III (Prac 3)">CP 3</th>
+                <th className="p-1.5 border border-black text-center font-bold bg-[#e5e5e5] w-16 min-w-[55px]">AVERAGE</th>
               </tr>
             </thead>
             <tbody>
@@ -884,7 +905,7 @@ export function AssessmentMarksSheet() {
                       />
                     </td>
                     
-                    {/* CT Scores */}
+                    {/* CT Scores (CT1, CT2, CT3) */}
                     {row.ctScores.map((score, i) => (
                       <td key={`ct-${i}`} className="p-1 border border-black text-center">
                         <input 
@@ -907,7 +928,7 @@ export function AssessmentMarksSheet() {
                       {hasTheoryScores ? Math.round(row.ctAvg) : ""}
                     </td>
                     
-                    {/* CP Scores */}
+                    {/* CP Scores (CP1, CP2, CP3) */}
                     {row.cpScores.map((score, i) => (
                       <td key={`cp-${i}`} className="p-1 border border-black text-center">
                         <input 
@@ -929,9 +950,29 @@ export function AssessmentMarksSheet() {
                       {row.cpScores.some(s => s !== "" && !isNaN(Number(s))) ? Math.round(row.cpAvg) : ""}
                     </td>
                     
-                    {/* Weighted Marks */}
+                    {/* Weighted Marks (100%) */}
                     <td className="p-1.5 border border-black text-center font-bold bg-[#e5e5e5] text-black text-xs">
-                      {hasScores ? row.weightedMark : ""}
+                      {hasScores ? `${row.weightedMark}%` : ""}
+                    </td>
+
+                    {/* Internal Certification Contribution (60%) */}
+                    <td className="p-1.5 border border-black text-center font-bold bg-[#f3f4f6] text-black text-xs" title="60% Formative Certification Contribution">
+                      {hasScores ? `${row.internalContribution}/60` : ""}
+                    </td>
+
+                    {/* CDACC Double Hurdle Verdict */}
+                    <td className="p-1.5 border border-black text-center font-bold text-xs" title={`Theory: ${row.passedTheoryHurdle ? "Passed" : "Refer"} (≥50%) | Practical: ${row.passedPracticalHurdle ? "Passed" : "Refer"} (≥50%)`}>
+                      {hasScores ? (
+                        row.isCompetent ? (
+                          <span className="text-emerald-700 print:text-black font-bold">
+                            Competent [✓]
+                          </span>
+                        ) : (
+                          <span className="text-amber-700 print:text-black font-semibold">
+                            Refer [NYC]
+                          </span>
+                        )
+                      ) : ""}
                     </td>
                     
                     {/* Action buttons (print:hidden) */}
@@ -940,10 +981,11 @@ export function AssessmentMarksSheet() {
                         <button
                           onClick={() => {
                             setSelectedCandidateForPractical(row);
+                            setSelectedPracticalSlot("CP1");
                             setIsObservationModalOpen(true);
                           }}
                           className="text-amber-600 hover:text-amber-800 font-bold p-1 rounded hover:bg-amber-50 transition"
-                          title={`Evaluate Practical Observation Checklist for ${row.name}`}
+                          title={`Evaluate Practical Observation Checklist for ${row.name} (CP1/CP2/CP3)`}
                         >
                           <PenTool className="w-3.5 h-3.5" />
                         </button>
@@ -966,18 +1008,22 @@ export function AssessmentMarksSheet() {
         {/* Footer Notes & Official TVET CDACC Sign-Off Block */}
         <div className="mt-6 text-[11px] space-y-4 avoid-break" style={{ fontFamily: 'Maiandra GD, Calibri, sans-serif' }}>
           <div>
-            <p className="font-bold mb-1">Note:</p>
+            <p className="font-bold mb-1">Canonical Continuous Assessment Standards (TVET CDACC):</p>
             <ol className="list-decimal pl-5 space-y-0.5 text-slate-800 print:text-black">
-              <li>There is no limit on the number of formative assessment tests for theory as well as practical and hence the marks sheet can be adjusted as necessary.</li>
+              <li>Continuous Formative Assessment recognizes strictly: Continuous Theory (CT1, CT2, CT3) and Continuous Practical (CP1, CP2, CP3).</li>
+              <li>CDACC Double-Hurdle Rule: Candidate MUST attain at least 50% in Theory Average (CT) AND at least 50% in Practical Average (CP) to be certified as "Competent". Failing either hurdle results in "Refer [NYC]".</li>
               <li>The marks in the average column for CT and CP are the ones to be entered in the Council’s Assessment Portal.</li>
-              <li>To arrive at Weighted marks, use Average marks for Theory and Practical as per the ratio below depending on the level of the course:</li>
+              <li>To arrive at Weighted marks, use Average marks for Theory and Practical as per the level ratio below:</li>
             </ol>
             <div className="mt-2 space-y-0.5 font-bold ml-5 text-black">
-              <p>Level 6 = ( Theory × 0.5) + ( Practical × 0.5)</p>
-              <p>Level 5 = ( Theory × 0.4) + ( Practical × 0.6)</p>
-              <p>Level 4 = ( Theory × 0.3) + ( Practical × 0.7)</p>
-              <p>Level 3 = ( Theory × 0.2) + ( Practical × 0.8)</p>
+              <p>Level 6 = ( Theory × 0.50 ) + ( Practical × 0.50 )</p>
+              <p>Level 5 = ( Theory × 0.40 ) + ( Practical × 0.60 )</p>
+              <p>Level 4 = ( Theory × 0.30 ) + ( Practical × 0.70 )</p>
+              <p>Level 3 = ( Theory × 0.20 ) + ( Practical × 0.80 )</p>
             </div>
+            <p className="mt-2 text-slate-800 print:text-black font-semibold ml-5">
+              * Internal Certification Contribution: Formative continuous assessment contributes 60% towards the final TVET CDACC National Qualification award.
+            </p>
           </div>
 
           {/* Official TVET CDACC Approval Block */}
@@ -1049,19 +1095,23 @@ export function AssessmentMarksSheet() {
         onClose={() => setIsObservationModalOpen(false)}
         candidateName={selectedCandidateForPractical?.name || "Nthiga Gakii Doris"}
         candidateRegCode={selectedCandidateForPractical?.admNo || selectedCandidateForPractical?.regCode || "14179/S2026"}
+        candidateId={selectedCandidateForPractical?.id}
+        targetSlot={selectedPracticalSlot}
         unitCode={unitCode}
         unitTitle={unitTitle}
-        onSave={(total, pct, comp, feed) => {
+        onSave={(total, pct, comp, feed, slot) => {
           if (selectedCandidateForPractical) {
-            handleScoreChange(selectedCandidateForPractical.id, 'cp', 0, String(pct));
+            const chosenSlot = slot || selectedPracticalSlot || "CP1";
+            const slotIdx = chosenSlot === "CP3" ? 2 : chosenSlot === "CP2" ? 1 : 0;
+            handleScoreChange(selectedCandidateForPractical.id, 'cp', slotIdx, String(pct));
             syncScoreToContinuousMarksheet({
               traineeId: selectedCandidateForPractical.id,
-              taskCode: "CP1",
+              taskCode: chosenSlot,
               percentageScore: pct,
               unitOfferingId,
               level,
             });
-            toast.success(`Recorded ${total}/50 (${pct}%) on CP1 for ${selectedCandidateForPractical.name}`);
+            toast.success(`Recorded ${total}/50 (${pct}%) on ${chosenSlot} for ${selectedCandidateForPractical.name}`);
           }
         }}
       />

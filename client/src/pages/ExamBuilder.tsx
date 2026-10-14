@@ -1122,23 +1122,43 @@ export default function ExamBuilder() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div>
                       <label className="block text-xs font-bold mb-1 text-slate-700">
-                        Assessment Type / Category
+                        Canonical Assessment Type
                       </label>
                       <select
-                        value={payload.assessment_category || "CAT"}
-                        onChange={(e) =>
+                        value={payload.task_code || "CT1"}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const mappedCategory: AssessmentCategory =
+                            val === "CP1" || val === "CP2" || val === "CP3"
+                              ? "Practical"
+                              : val === "PROJECT"
+                              ? "Project"
+                              : val === "CAT"
+                              ? "CAT"
+                              : "Exam";
+                          const defaultMarks =
+                            val === "CAT"
+                              ? (payload.total_marks && payload.total_marks <= 30 && payload.total_marks >= 15 ? payload.total_marks : 30)
+                              : (payload.total_marks || 100);
+
                           setPayload((p) => ({
                             ...p,
-                            assessment_category: e.target.value as AssessmentCategory,
-                          }))
-                        }
+                            task_code: val,
+                            assessment_category: mappedCategory,
+                            type: mappedCategory === "Practical" ? "practical" : "written",
+                            total_marks: defaultMarks,
+                          }));
+                        }}
                         className="w-full px-3 py-2 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-[#0f172a] focus:outline-none focus:border-[#000953]"
                       >
-                        <option value="CAT">CAT (Continuous Assessment Test)</option>
-                        <option value="Exam">Summative / Written Exam</option>
-                        <option value="Practical">Practical Assessment</option>
-                        <option value="Assignment">Online Assignment</option>
-                        <option value="Project">Portfolio Project</option>
+                        <option value="CT1">TYPE 1: Written Assessment I (CT1 • Theory 100%)</option>
+                        <option value="CT2">TYPE 2: Written Assessment II (CT2 • Theory 100%)</option>
+                        <option value="CT3">TYPE 3: Written Assessment III (CT3 • Theory 100%)</option>
+                        <option value="CP1">TYPE 4a: Practical Assessment I (CP1 • Checklist 100%)</option>
+                        <option value="CP2">TYPE 4b: Practical Assessment II (CP2 • Checklist 100%)</option>
+                        <option value="CP3">TYPE 4c: Practical Assessment III (CP3 • Checklist 100%)</option>
+                        <option value="CAT">TYPE 5: Continuous Assessment Test (CAT • Flexible 15–30 Marks)</option>
+                        <option value="PROJECT">TYPE 6: Course Project (Discretionary Portfolio / Rubric)</option>
                       </select>
                     </div>
 
@@ -1156,12 +1176,14 @@ export default function ExamBuilder() {
                         }
                         className="w-full px-3 py-2 rounded-lg text-xs font-mono font-bold bg-white border border-slate-300 text-[#000953] focus:outline-none focus:border-[#000953]"
                       >
-                        <option value="CT1">CT1 — Written / Theory CAT 1</option>
-                        <option value="CT2">CT2 — Written / Theory CAT 2</option>
-                        <option value="CT3">CT3 — Written / Theory CAT 3</option>
-                        <option value="CP1">CP1 — Practical Assessment 1</option>
-                        <option value="CP2">CP2 — Practical Assessment 2</option>
-                        <option value="CP3">CP3 — Practical Assessment 3</option>
+                        <option value="CT1">CT1 — Written Assessment I (Theory 100%)</option>
+                        <option value="CT2">CT2 — Written Assessment II (Theory 100%)</option>
+                        <option value="CT3">CT3 — Written Assessment III (Theory 100%)</option>
+                        <option value="CP1">CP1 — Practical Assessment I (Checklist 100%)</option>
+                        <option value="CP2">CP2 — Practical Assessment II (Checklist 100%)</option>
+                        <option value="CP3">CP3 — Practical Assessment III (Checklist 100%)</option>
+                        <option value="CAT">CAT — Discretionary (Normalizes to CT1/CT2/CT3)</option>
+                        <option value="PROJECT">PROJECT — Course Project (Feeds into CP1/CP2/CP3)</option>
                       </select>
                     </div>
 

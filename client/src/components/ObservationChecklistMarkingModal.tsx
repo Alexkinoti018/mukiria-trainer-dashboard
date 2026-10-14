@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, 
@@ -351,12 +351,20 @@ interface ObservationChecklistMarkingModalProps {
   onClose: () => void;
   candidateName?: string;
   candidateRegCode?: string;
+  candidateId?: string;
+  targetSlot?: "CP1" | "CP2" | "CP3";
   assessorName?: string;
   unitCode?: string;
   unitTitle?: string;
   qualificationCode?: string;
   initialScores?: Record<number, number>;
-  onSave?: (totalObtained: number, percentage: number, isCompetent: boolean, feedback: string) => void;
+  onSave?: (
+    totalObtained: number,
+    percentage: number,
+    isCompetent: boolean,
+    feedback: string,
+    slot?: "CP1" | "CP2" | "CP3"
+  ) => void;
 }
 
 export default function ObservationChecklistMarkingModal({
@@ -364,6 +372,8 @@ export default function ObservationChecklistMarkingModal({
   onClose,
   candidateName,
   candidateRegCode,
+  candidateId,
+  targetSlot = "CP1",
   assessorName,
   unitCode,
   unitTitle,
@@ -372,6 +382,15 @@ export default function ObservationChecklistMarkingModal({
   onSave
 }: ObservationChecklistMarkingModalProps) {
   const { trainees } = useTrainees();
+
+  // Active Continuous Practical target slot (CP1, CP2, or CP3)
+  const [activeSlot, setActiveSlot] = useState<"CP1" | "CP2" | "CP3">(targetSlot || "CP1");
+
+  useEffect(() => {
+    if (targetSlot) {
+      setActiveSlot(targetSlot);
+    }
+  }, [targetSlot]);
 
   // Active rubric preset
   const [selectedPresetId, setSelectedPresetId] = useState<string>("repair_maintenance");
@@ -465,10 +484,10 @@ export default function ObservationChecklistMarkingModal({
 
   const handleSaveMarks = () => {
     if (onSave) {
-      onSave(totalObtained, percentage, isCompetent, feedback);
+      onSave(totalObtained, percentage, isCompetent, feedback, activeSlot);
     }
-    toast.success("Practical Assessment Saved Online!", {
-      description: `${candidate}: Scored ${totalObtained}/${totalAvailable} (${percentage}%) — ${isCompetent ? "COMPETENT [✓]" : "NOT YET COMPETENT"}`
+    toast.success(`Practical Assessment (${activeSlot}) Saved Online!`, {
+      description: `${candidate}: Scored ${totalObtained}/${totalAvailable} (${percentage}%) on ${activeSlot} — ${isCompetent ? "COMPETENT [✓]" : "NOT YET COMPETENT"}`
     });
   };
 
@@ -589,17 +608,43 @@ export default function ObservationChecklistMarkingModal({
                 }`}>
                   {isCompetent ? "Competent [✓]" : "Not yet competent"}
                 </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold uppercase">
+                  Target: {activeSlot}
+                </span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
                   {venue}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                Candidate: <strong className="text-white">{candidate}</strong> ({candidateReg}) — Total: <strong className="text-red-400">{totalObtained} / {totalAvailable} ({percentage}%)</strong>
+                Candidate: <strong className="text-white">{candidate}</strong> ({candidateReg}) — Target: <strong className="text-emerald-400 font-mono">{activeSlot} (Practical)</strong> — Total: <strong className="text-red-400">{totalObtained} / {totalAvailable} ({percentage}%)</strong>
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Target Practical Slot Selector (CP1, CP2, CP3) */}
+            <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-lg border border-slate-700">
+              <span className="text-[11px] font-bold text-slate-400 px-1.5 uppercase">Slot:</span>
+              {(["CP1", "CP2", "CP3"] as const).map((slotKey) => (
+                <button
+                  key={slotKey}
+                  type="button"
+                  onClick={() => {
+                    setActiveSlot(slotKey);
+                    toast.info(`Target Continuous Practical slot set to ${slotKey}`);
+                  }}
+                  className={`px-2 py-0.5 rounded text-xs font-mono font-bold transition ${
+                    activeSlot === slotKey
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                  title={`Record marks directly into Continuous Practical ${slotKey}`}
+                >
+                  {slotKey}
+                </button>
+              ))}
+            </div>
+
             {/* View Mode Switcher */}
             <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-lg border border-slate-700">
               <button
