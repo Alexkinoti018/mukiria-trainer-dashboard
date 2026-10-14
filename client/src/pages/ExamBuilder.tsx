@@ -248,7 +248,7 @@ export default function ExamBuilder() {
       setUnitCode(genResult.unit_code);
       setCourseName(genResult.course_name);
       setUnitName(u.unit_title || "");
-      setClassCode(u.department?.includes("Civil") ? "CE6/M/S/24" : u.department?.includes("Survey") ? "LS6/M/24" : "ITECH6/M/24");
+      setClassCode(u.department?.includes("Civil") ? "CE6/S/26" : u.department?.includes("Survey") ? "LS6/M/24" : "ITECH6/M/24");
       setSeries("MAY-AUG 2026");
       setPayload(genResult.payload);
       setIsCreating(true);

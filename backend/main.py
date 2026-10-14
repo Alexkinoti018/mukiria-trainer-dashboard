@@ -2265,7 +2265,7 @@ class APIHandler(BaseHTTPRequestHandler):
                         unit_code = "CON/OS/CM/CR/01/6"
                         unit_name = "Apply Construction Management Principles"
                         course_name = "Diploma in Civil Engineering (Level 6)"
-                        class_code = class_code or "CE6/M/S/24"
+                        class_code = class_code or "CE6/S/26"
                 elif any(k in combined_low for k in ["business", "office administration", "accounting", "secretarial", "human resource"]):
                     department = "Business and Office Administration"
                     if not unit_code or len(unit_code) < 6 or "/" not in unit_code:
