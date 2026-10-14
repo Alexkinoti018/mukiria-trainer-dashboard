@@ -1021,8 +1021,8 @@ export default function ExamBuilder() {
                     <textarea
                       value={payload.instructions}
                       onChange={(e) => setPayload((p) => ({ ...p, instructions: e.target.value }))}
-                      rows={2}
-                      className="w-full px-3 py-2 rounded-lg text-sm resize-none bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
+                      rows={4}
+                      className="w-full px-3.5 py-2.5 rounded-lg text-sm resize-y min-h-[100px] leading-relaxed bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
                     />
                   </div>
                 </div>
@@ -1450,8 +1450,8 @@ function SectionEditor({
                 <textarea
                   value={sectionInstructions}
                   onChange={(e) => onInstructionsChange(e.target.value)}
-                  rows={2}
-                  className="w-full px-3 py-2 rounded-lg text-sm resize-none bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
+                  rows={3}
+                  className="w-full px-3.5 py-2.5 rounded-lg text-sm resize-y min-h-[85px] leading-relaxed bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
                 />
               </div>
 
@@ -1539,8 +1539,8 @@ function QuestionEditor({ question, index, section, onUpdate, onRemove, canRemov
         value={question.text}
         onChange={(e) => onUpdate({ text: e.target.value })}
         placeholder={`Question ${index + 1} text...`}
-        rows={2}
-        className="w-full px-3 py-2 rounded-lg text-sm resize-none bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
+        rows={4}
+        className="w-full px-3.5 py-2.5 rounded-lg text-sm resize-y min-h-[110px] leading-relaxed bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
       />
 
       <div className="flex gap-2 items-center">
@@ -1618,8 +1618,8 @@ function QuestionEditor({ question, index, section, onUpdate, onRemove, canRemov
             value={question.correct_answer as string}
             onChange={(e) => onUpdate({ correct_answer: e.target.value })}
             placeholder="Key points to award marks..."
-            rows={2}
-            className="w-full px-3 py-2 rounded-lg text-sm resize-none bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
+            rows={4}
+            className="w-full px-3.5 py-2.5 rounded-lg text-sm resize-y min-h-[110px] leading-relaxed bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
           />
         </div>
       )}

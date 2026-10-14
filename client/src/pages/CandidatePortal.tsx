@@ -25,6 +25,8 @@ import {
   Info,
   Search,
   Lock,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { useExam, sanitizeExamForStudent } from "@/contexts/ExamContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -254,6 +256,13 @@ export default function CandidatePortal() {
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [isExpandedTextarea, setIsExpandedTextarea] = useState(false);
+
+  const getWordCount = useCallback((text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return 0;
+    return trimmed.split(/\s+/).length;
+  }, []);
 
   // Strictly bind authenticated trainee identity so trainees cannot impersonate another candidate
   useEffect(() => {
@@ -1765,12 +1774,35 @@ export default function CandidatePortal() {
 
               {/* Short Answer / Practical / Essay / Structured / Open-ended text */}
               {(qType === "short" || qType === "short_answer" || qType === "practical" || qType === "essay" || qType === "structured" || !currentQ?.type) && (
-                <div className="space-y-2">
-                  <div className="text-[11px] font-bold text-[#000953] uppercase tracking-wider mb-1">
-                    {isInSectionA
-                      ? "Candidate Written Response:"
-                      : "Candidate Written / Practical Procedure Response:"}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="text-[11px] font-bold text-[#000953] uppercase tracking-wider flex items-center gap-1.5">
+                      <span>
+                        {isInSectionA
+                          ? "Candidate Written Response (Short Answer):"
+                          : "Candidate Written / Practical Procedure Response (Structured):"}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsExpandedTextarea((prev) => !prev)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-[#000953] border border-slate-300 transition shadow-xs cursor-pointer"
+                      title={isExpandedTextarea ? "Restore standard size" : "Expand to extra large writing area"}
+                    >
+                      {isExpandedTextarea ? (
+                        <>
+                          <Minimize2 className="w-3.5 h-3.5 text-[#000953]" />
+                          <span>Standard View</span>
+                        </>
+                      ) : (
+                        <>
+                          <Maximize2 className="w-3.5 h-3.5 text-[#000953]" />
+                          <span>Expand Writing Space</span>
+                        </>
+                      )}
+                    </button>
                   </div>
+
                   <textarea
                     value={
                       isInSectionA
@@ -1790,16 +1822,36 @@ export default function CandidatePortal() {
                         ? "Write your concise answer, definition, formula, or shortcut key here..."
                         : "Type your structured response, steps, procedures, or practical explanation here (e.g. a) ..., b) ..., c) ..., d) ...)..."
                     }
-                    rows={isInSectionA ? 5 : 9}
-                    className="w-full px-4 py-3.5 rounded-xl text-sm resize-y bg-[#fffdfa] border-2 border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-4 focus:ring-[#000953]/10 leading-relaxed font-sans shadow-inner"
+                    rows={isExpandedTextarea ? 22 : isInSectionA ? 8 : 16}
+                    className={`w-full px-4 sm:px-5 py-3.5 sm:py-4 rounded-xl text-base leading-relaxed resize-y bg-[#fffdfa] focus:bg-white border-2 border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-4 focus:ring-[#000953]/15 font-sans shadow-inner transition-[height,border-color,box-shadow] ${
+                      isExpandedTextarea
+                        ? "min-h-[560px] sm:min-h-[640px]"
+                        : isInSectionA
+                        ? "min-h-[220px] sm:min-h-[260px]"
+                        : "min-h-[380px] sm:min-h-[460px]"
+                    }`}
                   />
-                  <div className="flex justify-between items-center text-xs text-slate-500 px-1 pt-1">
-                    <span>{isInSectionA ? "Section A (Short Answer)" : "Section B (Practical & Structured)"}</span>
-                    <span className="font-mono">
+
+                  <div className="flex justify-between items-center text-xs text-slate-500 px-1 pt-0.5 flex-wrap gap-2">
+                    <span className="flex items-center gap-1.5">
+                      <span className="font-semibold text-slate-700">
+                        {isInSectionA ? "Section A (Short Answer)" : "Section B (Practical & Structured)"}
+                      </span>
+                      <span className="text-slate-400">• Drag bottom-right corner to expand further</span>
+                    </span>
+                    <span className="font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                      {getWordCount(
+                        String(
+                          (isInSectionA
+                            ? sectionAAnswers[currentQ?.id]
+                            : sectionBAnswers[currentQ?.id]) || ""
+                        )
+                      )}{" "}
+                      words •{" "}
                       {(isInSectionA
                         ? String(sectionAAnswers[currentQ?.id] || "").length
                         : String(sectionBAnswers[currentQ?.id] || "").length)}{" "}
-                      characters
+                      chars
                     </span>
                   </div>
                 </div>

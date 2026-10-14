@@ -1443,8 +1443,8 @@ export default function Grading() {
                               setTrainerComments((prev) => ({ ...prev, [sub.id]: val }));
                             }}
                             placeholder="Enter overall competency remarks, constructive feedback, or recommendations for trainee..."
-                            rows={3}
-                            className="w-full text-xs p-3 rounded-lg resize-y bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
+                            rows={4}
+                            className="w-full text-sm p-3.5 rounded-lg resize-y min-h-[110px] leading-relaxed bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
                           />
                         </div>
 

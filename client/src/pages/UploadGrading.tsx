@@ -210,7 +210,7 @@ export default function UploadGrading() {
                       <textarea 
                         value={tempComment}
                         onChange={(e) => setTempComment(e.target.value)}
-                        className="w-full px-3 py-2 border border-border rounded-md text-sm min-h-[60px] bg-background text-foreground"
+                        className="w-full px-3 py-2 border border-border rounded-md text-sm min-h-[90px] resize-y leading-relaxed bg-background text-foreground"
                         placeholder="Feedback..."
                       />
                     </div>
@@ -573,7 +573,7 @@ export default function UploadGrading() {
                         value={modalComments}
                         onChange={(e) => setModalComments(e.target.value)}
                         placeholder="Provide formative feedback for the candidate..."
-                        className="w-full px-3.5 py-2.5 border border-border rounded-xl bg-background text-foreground text-xs min-h-[85px] focus:ring-2 focus:ring-primary outline-none"
+                        className="w-full px-3.5 py-2.5 border border-border rounded-xl bg-background text-foreground text-sm min-h-[120px] resize-y leading-relaxed focus:ring-2 focus:ring-primary outline-none"
                       />
                     </div>
 
