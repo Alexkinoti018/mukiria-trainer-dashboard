@@ -847,8 +847,6 @@ export function AssessmentMarksSheet() {
                   Continuous Practical (CP) Marks (100%)
                 </th>
                 <th className="p-2 border border-black font-bold text-center w-20 min-w-[70px]" rowSpan={2} title="Weighted continuous assessment mark per course Level">Weighted (100%)</th>
-                <th className="p-2 border border-black font-bold text-center w-20 min-w-[70px]" rowSpan={2} title="TVET CDACC 60% Formative Internal Certification Contribution">Internal (60%)</th>
-                <th className="p-2 border border-black font-bold text-center w-24 min-w-[85px]" rowSpan={2} title="CDACC Double-Hurdle Rule: Candidate must achieve ≥ 50% in both Theory Average & Practical Average">CDACC Verdict</th>
                 <th className="p-2 border-none font-bold text-center print:hidden w-12" rowSpan={2}></th>
               </tr>
               <tr className="bg-slate-100 print:bg-slate-100">
@@ -953,26 +951,6 @@ export function AssessmentMarksSheet() {
                     {/* Weighted Marks (100%) */}
                     <td className="p-1.5 border border-black text-center font-bold bg-[#e5e5e5] text-black text-xs">
                       {hasScores ? `${row.weightedMark}%` : ""}
-                    </td>
-
-                    {/* Internal Certification Contribution (60%) */}
-                    <td className="p-1.5 border border-black text-center font-bold bg-[#f3f4f6] text-black text-xs" title="60% Formative Certification Contribution">
-                      {hasScores ? `${row.internalContribution}/60` : ""}
-                    </td>
-
-                    {/* CDACC Double Hurdle Verdict */}
-                    <td className="p-1.5 border border-black text-center font-bold text-xs" title={`Theory: ${row.passedTheoryHurdle ? "Passed" : "Refer"} (≥50%) | Practical: ${row.passedPracticalHurdle ? "Passed" : "Refer"} (≥50%)`}>
-                      {hasScores ? (
-                        row.isCompetent ? (
-                          <span className="text-emerald-700 print:text-black font-bold">
-                            Competent [✓]
-                          </span>
-                        ) : (
-                          <span className="text-amber-700 print:text-black font-semibold">
-                            Refer [NYC]
-                          </span>
-                        )
-                      ) : ""}
                     </td>
                     
                     {/* Action buttons (print:hidden) */}
