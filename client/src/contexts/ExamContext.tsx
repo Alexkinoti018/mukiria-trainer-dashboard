@@ -97,9 +97,8 @@ export function ExamProvider({ children }: { children: ReactNode }) {
           return e;
         });
         const existingIds = new Set(refreshedParsed.map((e) => e.id));
-        const existingUnits = new Set(refreshedParsed.map((e) => e.unit_code));
         const missingMocks = (MOCK_EXAMS as Exam[]).filter(
-          (m) => !existingIds.has(m.id) && !existingUnits.has(m.unit_code)
+          (m) => !existingIds.has(m.id)
         );
         loadedExams = [...refreshedParsed, ...missingMocks];
         setExams(loadedExams);

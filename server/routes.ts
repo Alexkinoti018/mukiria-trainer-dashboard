@@ -84,6 +84,8 @@ export const DB = {
     { id: "uo-it4-1", term_id: "term-2026", class_id: "ICT4 MOD/S/2026", unit_code: "IT/CU/ICTA/CR/01/4/MA", unit_id: "unit-essentials-4", trainer_id: "trainer-001", department_id: "dept-ci" },
     { id: "uo-mod1-1", term_id: "term-2026", class_id: "ICT4/ITECH6/S/26 MOD 1", unit_code: "IT/CU/ICTA/CR/01/4/MA", unit_id: "unit-essentials-4", trainer_id: "trainer-001", department_id: "dept-ci" },
     { id: "uo-mod1-2", term_id: "term-2026", class_id: "ICT4/ITECH6/S/2026 MOD 1", unit_code: "IT/CU/ICTA/CR/01/4/MA", unit_id: "unit-essentials-4", trainer_id: "trainer-001", department_id: "dept-ci" },
+    { id: "uo-admin-1", term_id: "term-2026", class_id: "ADMIN5/6/J/26 MOD 3", unit_code: "0415-451-21A", unit_id: "unit-ict-admin", trainer_id: "trainer-001", department_id: "dept-business" },
+    { id: "uo-admin-2", term_id: "term-2026", class_id: "ADMIN5/6/J/26", unit_code: "0415-451-21A", unit_id: "unit-ict-admin", trainer_id: "trainer-001", department_id: "dept-business" },
   ],
   exams: [
     ...DIGITAL_LITERACY_EXAMS,

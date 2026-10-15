@@ -923,6 +923,8 @@ export const MOCK_SUBMISSIONS: Submission[] = [
   },
   {
     id: "sub-risper-0415",
+    exam_id: "exam-wa1-0415",
+    task_code: "CT1",
     unit_code: "0415-451-21A",
     student_name: "RISPER MWENDE",
     reg_number: "13410",
@@ -950,6 +952,8 @@ export const MOCK_SUBMISSIONS: Submission[] = [
   },
   {
     id: "sub-banta-0415",
+    exam_id: "exam-wa1-0415",
+    task_code: "CT1",
     unit_code: "0415-451-21A",
     student_name: "Banta Micheni",
     reg_number: "13527",
