@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
+import { applyRollCallToRegister } from "@/lib/attendanceStorage";
 
 interface Trainee {
   id: string;
@@ -30,6 +31,8 @@ interface AttendanceQuickMarkModalProps {
   onClose: () => void;
   classCode: string;
   sessionPlanId: string;
+  weekNumber?: number;
+  sessionIndex?: number;
   onSaveComplete: (traineeCount: number, presentCount: number) => void;
 }
 
@@ -58,12 +61,26 @@ export default function AttendanceQuickMarkModal({
   onClose,
   classCode,
   sessionPlanId,
+  weekNumber = 1,
+  sessionIndex = 1,
   onSaveComplete
 }: AttendanceQuickMarkModalProps) {
   const [trainees, setTrainees] = useState<Trainee[]>([]);
   const [attendance, setAttendance] = useState<Record<string, "X" | "0">>({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [targetWeek, setTargetWeek] = useState<number>(() => {
+    const fromId = sessionPlanId.match(/w(\d+)/i);
+    return weekNumber || (fromId ? parseInt(fromId[1]) : 1);
+  });
+  const [targetSession, setTargetSession] = useState<number>(sessionIndex || 1);
+
+  useEffect(() => {
+    const fromId = sessionPlanId.match(/w(\d+)/i);
+    if (weekNumber) setTargetWeek(weekNumber);
+    else if (fromId) setTargetWeek(parseInt(fromId[1]));
+    if (sessionIndex) setTargetSession(sessionIndex);
+  }, [weekNumber, sessionIndex, sessionPlanId]);
 
   useEffect(() => {
     if (isOpen) {
@@ -168,11 +185,15 @@ export default function AttendanceQuickMarkModal({
       registers[sessionPlanId] = attendance;
       localStorage.setItem("mtti_attendance_registers", JSON.stringify(registers));
 
-      // 2. Dispatch to backend API / PostgreSQL
+      // 2. Direct synchronization into canonical class attendance register
+      applyRollCallToRegister(classCode, targetWeek, targetSession, attendance);
+
+      // 3. Dispatch to backend API / PostgreSQL with exact week and session index
       const recordsToPersist = trainees.map((t) => ({
         unit_offering_id: "uo-1",
         trainee_id: t.id,
-        week_number: 1,
+        week_number: targetWeek,
+        session_index: targetSession,
         session_date: new Date().toISOString().split("T")[0],
         status: attendance[t.id] === "X" ? "present" : "absent",
         hours_attended: 2.0,
@@ -183,12 +204,13 @@ export default function AttendanceQuickMarkModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           unit_offering_id: "uo-1",
+          class_code: classCode,
           session_plan_id: sessionPlanId,
           records: recordsToPersist,
         }),
       }).catch(err => console.warn("Background bulk attendance save notice:", err));
 
-      // 3. Supabase upsert if configured
+      // 4. Supabase upsert if configured
       if (isSupabaseConfigured() && sessionPlanId) {
         try {
           const payload = trainees.map((t) => ({
@@ -205,7 +227,7 @@ export default function AttendanceQuickMarkModal({
         }
       }
 
-      toast.success(`Register saved successfully! ${presentCount}/${trainees.length} Trainees Present.`);
+      toast.success(`Register saved successfully! ${presentCount}/${trainees.length} Trainees Present in Week ${targetWeek}, Session ${targetSession}.`);
       onSaveComplete(trainees.length, presentCount);
       onClose();
     } catch (err: any) {
@@ -220,13 +242,20 @@ export default function AttendanceQuickMarkModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-xl bg-card border border-border text-foreground font-sans rounded-xl p-6 shadow-2xl">
         <DialogHeader className="border-b border-border pb-3">
-          <DialogTitle className="text-lg font-bold flex items-center gap-2 text-[#000953]">
-            <CheckCircle2 className="w-5 h-5 text-[#c48820]" />
-            MTTI Class Attendance Register
-          </DialogTitle>
+          <div className="flex items-center justify-between gap-2">
+            <DialogTitle className="text-lg font-bold flex items-center gap-2 text-[#000953]">
+              <CheckCircle2 className="w-5 h-5 text-[#c48820]" />
+              MTTI Class Roll Call & Attendance Register
+            </DialogTitle>
+            <div className="flex items-center gap-1.5 text-xs font-bold bg-[#000953]/10 text-[#000953] px-2.5 py-1 rounded-md border border-[#000953]/20">
+              <span>Wk {targetWeek}</span>
+              <span>•</span>
+              <span>Sess {targetSession}</span>
+            </div>
+          </div>
           <DialogDescription className="text-xs text-muted-foreground mt-1">
-            Rapid marking register for Class: <strong className="text-foreground">{classCode}</strong>.
-            All marked present ('X') by default. Click any row to mark absent ('0').
+            Roll call register for Class: <strong className="text-foreground">{classCode}</strong>.
+            All marked present ('X') by default. Click any row to toggle absent ('0') / present ('X').
           </DialogDescription>
         </DialogHeader>
 

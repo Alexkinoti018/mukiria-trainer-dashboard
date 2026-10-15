@@ -1,5 +1,37 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach } from "vitest";
 import { OFFICIAL_MTTI_TRAINEES, Trainee } from "../client/src/contexts/TraineeContext";
+
+// Provide Storage mock for Node test runner environment
+class MockStorage implements Storage {
+  private store: Record<string, string> = {};
+  get length() {
+    return Object.keys(this.store).length;
+  }
+  clear() {
+    this.store = {};
+  }
+  getItem(key: string) {
+    return this.store[key] ?? null;
+  }
+  key(index: number) {
+    return Object.keys(this.store)[index] ?? null;
+  }
+  removeItem(key: string) {
+    delete this.store[key];
+  }
+  setItem(key: string, value: string) {
+    this.store[key] = String(value);
+  }
+}
+
+beforeAll(() => {
+  if (typeof globalThis.localStorage === "undefined") {
+    (globalThis as any).localStorage = new MockStorage();
+  }
+  if (typeof globalThis.sessionStorage === "undefined") {
+    (globalThis as any).sessionStorage = new MockStorage();
+  }
+});
 
 // Pure attendance helper functions matching ClassRegister.tsx
 type AttendanceStatus = "X" | "0" | "";
@@ -231,5 +263,90 @@ describe("MTTI Institutional Class Register (CUR/02 & CUR/03) Suite", () => {
       expect(canToggleAttendanceSignature("admin", "12265", "")).toBe(true);
     });
   });
+
+  // ─── 5. PERSISTENCE & ROLL CALL LIFECYCLE (WEEKS 1 TO 10 DATA RETENTION) ───
+  describe("5. Attendance Persistence, Multi-Session Independence & Roll Call Sync", () => {
+    beforeEach(() => {
+      localStorage.clear();
+    });
+
+    it("should resolve canonical storage keys across all cohort representation aliases", async () => {
+      const { getCanonicalAttendanceClassKey } = await import("../client/src/lib/attendanceStorage");
+
+      expect(getCanonicalAttendanceClassKey("ICT4/ITECH6/S/26 MOD 1")).toBe("ICT4_ITECH6");
+      expect(getCanonicalAttendanceClassKey("ITECH 6 MODULAR/S/2026")).toBe("ICT4_ITECH6");
+      expect(getCanonicalAttendanceClassKey("ICT4 MOD/S/2026")).toBe("ICT4_ITECH6");
+
+      expect(getCanonicalAttendanceClassKey("ADMIN5/6/J/26 MOD 3")).toBe("ADMIN5_6");
+      expect(getCanonicalAttendanceClassKey("ADMIN4/5/6/S/26 MOD 1")).toBe("ADMIN5_6");
+
+      expect(getCanonicalAttendanceClassKey("FBS5/6/J/26")).toBe("FBS5_6");
+      expect(getCanonicalAttendanceClassKey("FBS 5 MOD/J/2026")).toBe("FBS5_6");
+      expect(getCanonicalAttendanceClassKey("FBS6 MOD/12026")).toBe("FBS5_6");
+
+      expect(getCanonicalAttendanceClassKey("LS5/6/S/26")).toBe("LS5_6");
+    });
+
+    it("should apply roll call into canonical class register without losing weeks beyond week 3", async () => {
+      const { applyRollCallToRegister, loadClassAttendanceRegister, saveClassAttendanceRegister } = await import(
+        "../client/src/lib/attendanceStorage"
+      );
+
+      // 1. Seed initial 3 weeks
+      const seedData = {
+        tr_fbs5_01: {
+          attendance: {
+            W1_S1: "X" as const,
+            W1_S2: "X" as const,
+            W1_S3: "X" as const,
+            W2_S1: "X" as const,
+            W2_S2: "X" as const,
+            W2_S3: "X" as const,
+            W3_S1: "X" as const,
+            W3_S2: "X" as const,
+            W3_S3: "X" as const,
+          },
+          signed: true,
+        },
+      };
+      saveClassAttendanceRegister("FBS5/6/J/26", seedData);
+
+      // 2. Perform roll call for Week 5, Session 2
+      applyRollCallToRegister("FBS 5 MOD/J/2026", 5, 2, {
+        tr_fbs5_01: "X",
+        tr_fbs5_02: "0",
+      });
+
+      // 3. Load via any cohort alias and verify all weeks are preserved
+      const reloaded = loadClassAttendanceRegister("FBS5/6/J/26");
+      expect(reloaded["tr_fbs5_01"]).toBeDefined();
+      expect(reloaded["tr_fbs5_01"].attendance["W1_S1"]).toBe("X");
+      expect(reloaded["tr_fbs5_01"].attendance["W3_S3"]).toBe("X");
+      expect(reloaded["tr_fbs5_01"].attendance["W5_S2"]).toBe("X");
+
+      expect(reloaded["tr_fbs5_02"]).toBeDefined();
+      expect(reloaded["tr_fbs5_02"].attendance["W5_S2"]).toBe("0");
+    });
+
+    it("should maintain multi-session independence in the same week without overwrites", async () => {
+      const { applyRollCallToRegister, loadClassAttendanceRegister } = await import(
+        "../client/src/lib/attendanceStorage"
+      );
+
+      // Mark Session 1, Session 2, and Session 3 in Week 6
+      applyRollCallToRegister("ICT4/ITECH6/S/26 MOD 1", 6, 1, { tr_it6_01: "X" });
+      applyRollCallToRegister("ICT4/ITECH6/S/26 MOD 1", 6, 2, { tr_it6_01: "0" });
+      applyRollCallToRegister("ICT4/ITECH6/S/26 MOD 1", 6, 3, { tr_it6_01: "X" });
+
+      const reloaded = loadClassAttendanceRegister("ICT4/ITECH6/S/26 MOD 1");
+      const att = reloaded["tr_it6_01"].attendance;
+
+      // All 3 sessions in Week 6 must coexist simultaneously
+      expect(att["W6_S1"]).toBe("X");
+      expect(att["W6_S2"]).toBe("0");
+      expect(att["W6_S3"]).toBe("X");
+    });
+  });
 });
+
 

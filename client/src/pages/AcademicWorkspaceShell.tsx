@@ -1623,6 +1623,8 @@ export default function AcademicWorkspaceShell() {
         onClose={() => setIsSigning(false)}
         classCode={activeClass}
         sessionPlanId={currentSessionPlanId}
+        weekNumber={activeWeek}
+        sessionIndex={1}
         onSaveComplete={handleAttendanceComplete}
       />
 

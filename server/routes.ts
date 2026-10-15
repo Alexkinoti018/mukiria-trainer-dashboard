@@ -1008,6 +1008,7 @@ apiRouter.get("/attendance", async (req: AuthenticatedRequest, res: Response) =>
             trainee_id: r.trainee_id,
             week_number: Number(r.week_number),
             session_date: typeof r.session_date === "object" ? r.session_date.toISOString().split("T")[0] : String(r.session_date),
+            session_index: Number(r.session_index || 1),
             status: r.status,
             hours_attended: Number(r.hours_attended || 2.0),
             remarks: r.remarks || "",
@@ -1116,11 +1117,12 @@ apiRouter.post("/attendance/mark", async (req: AuthenticatedRequest, res: Respon
 
     // 2. Persistent Storage Sync
     const persistent = loadPersistentAttendance();
+    const targetSession = Number(session_index || 1);
     const existingIdx = persistent.findIndex(
       r => r.unit_offering_id === unit_offering_id &&
            r.trainee_id === trainee_id &&
-           r.week_number === Number(week_number) &&
-           (r.session_date === session_date || r.session_index === Number(session_index))
+           Number(r.week_number) === Number(week_number) &&
+           Number(r.session_index || 1) === targetSession
     );
 
     const now = new Date().toISOString();
@@ -1259,19 +1261,20 @@ apiRouter.post("/attendance/bulk", async (req: AuthenticatedRequest, res: Respon
     const now = new Date().toISOString();
 
     for (const item of itemsToProcess) {
+      const sIdx = Number(item.session_index || 1);
       const idx = persistent.findIndex(
         r => r.unit_offering_id === item.unit_offering_id &&
              r.trainee_id === item.trainee_id &&
-             r.week_number === item.week_number &&
-             (r.session_date === item.session_date || (item.session_index !== undefined && r.session_index === item.session_index))
+             Number(r.week_number) === Number(item.week_number) &&
+             Number(r.session_index || 1) === sIdx
       );
       const rec: AttendanceRecord = {
         id: idx >= 0 ? persistent[idx].id : `att_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
         unit_offering_id: item.unit_offering_id,
         trainee_id: item.trainee_id,
-        week_number: item.week_number,
+        week_number: Number(item.week_number),
         session_date: item.session_date,
-        session_index: item.session_index,
+        session_index: sIdx,
         status: item.status,
         hours_attended: item.hours_attended || 2.0,
         remarks: item.remarks || "",

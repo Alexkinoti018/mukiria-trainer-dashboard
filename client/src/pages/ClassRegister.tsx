@@ -27,18 +27,18 @@ import { useTrainees, OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { getStoredRecordsOfWork, saveStoredRecordsOfWork } from "@/lib/mockSessionPlans";
 import WorkshopDoorQRModal from "@/components/WorkshopDoorQRModal";
+import AttendanceQuickMarkModal from "@/components/AttendanceQuickMarkModal";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { getAttendanceScansFromOffline, enqueueSyncItem } from "@/lib/offlineStore";
 import { syncEngine } from "@/lib/syncEngine";
 import { getAcademicContext } from "@/lib/academicCalendar";
-
-// --- Types ---
-type AttendanceStatus = "X" | "0" | "";
-
-interface StudentAttendanceRecord {
-  attendance: Record<string, AttendanceStatus>; // key: "W{week}_S{session}"
-  signed?: boolean; // For MTTI/REG/CUR/03 Assessment Attendance
-}
+import {
+  AttendanceStatus,
+  StudentAttendanceRecord,
+  loadClassAttendanceRegister,
+  saveClassAttendanceRegister,
+  getCanonicalAttendanceClassKey,
+} from "@/lib/attendanceStorage";
 
 const WEEKS = 10;
 const SESSIONS_PER_WEEK = 3;
@@ -158,6 +158,7 @@ export default function ClassRegister() {
   const [hoursPerSession, setHoursPerSession] = useState<number>(2);
   const [isSaving, setIsSaving] = useState(false);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+  const [isRollCallOpen, setIsRollCallOpen] = useState(false);
 
   // Student Add / Edit Modal State
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
@@ -366,31 +367,14 @@ export default function ClassRegister() {
     }
   };
 
-  // Local persistence helper
+  // Local persistence helper leveraging canonical storage keys
   const persistLocally = (data: Record<string, StudentAttendanceRecord>) => {
-    try {
-      localStorage.setItem(`mtti_class_register_${selectedClassCode}`, JSON.stringify(data));
-      localStorage.setItem(`mtti_class_register_persisted_${selectedClassCode}`, JSON.stringify(data));
-    } catch (e) {
-      console.warn("Error caching attendance locally:", e);
-    }
+    saveClassAttendanceRegister(selectedClassCode, data);
   };
 
-  // Rehydrate attendance tracking: Load from localStorage immediately, then rehydrate from backend PostgreSQL / API
+  // Rehydrate attendance tracking: Load from canonical storage immediately, then rehydrate from backend PostgreSQL / API
   useEffect(() => {
-    const storageKey = `mtti_class_register_${selectedClassCode}`;
-    const backupKey = `mtti_class_register_persisted_${selectedClassCode}`;
-    let initialLoaded: Record<string, StudentAttendanceRecord> = {};
-
-    try {
-      const raw = localStorage.getItem(storageKey) || localStorage.getItem(backupKey);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === "object" && Object.keys(parsed).length > 0) {
-          initialLoaded = parsed;
-        }
-      }
-    } catch (e) {}
+    const initialLoaded = loadClassAttendanceRegister(selectedClassCode);
 
     // Populate any trainees missing records
     const updated = { ...initialLoaded };
@@ -419,12 +403,15 @@ export default function ClassRegister() {
           setAttendanceData(prev => {
             const merged = { ...prev };
             for (const [traineeId, sessions] of Object.entries(data.matrix as Record<string, Record<string, AttendanceStatus>>)) {
+              if (!merged[traineeId]) {
+                merged[traineeId] = { attendance: {}, signed: false };
+              }
               merged[traineeId] = {
-                attendance: { ...(merged[traineeId]?.attendance || {}), ...sessions },
-                signed: merged[traineeId]?.signed ?? false,
+                attendance: { ...(merged[traineeId].attendance || {}), ...sessions },
+                signed: merged[traineeId].signed ?? false,
               };
             }
-            persistLocally(merged);
+            saveClassAttendanceRegister(selectedClassCode, merged);
             return merged;
           });
         }
@@ -433,6 +420,31 @@ export default function ClassRegister() {
         console.warn("Backend attendance rehydration notice:", err);
       });
   }, [selectedClassCode, classTrainees]);
+
+  // Reactive listener for roll call updates taken anywhere in the application
+  useEffect(() => {
+    const handleAttendanceUpdated = () => {
+      const refreshed = loadClassAttendanceRegister(selectedClassCode);
+      if (Object.keys(refreshed).length > 0) {
+        setAttendanceData(prev => {
+          const merged = { ...prev };
+          for (const [traineeId, rec] of Object.entries(refreshed)) {
+            if (!merged[traineeId]) {
+              merged[traineeId] = rec;
+            } else {
+              merged[traineeId] = {
+                attendance: { ...(merged[traineeId].attendance || {}), ...(rec.attendance || {}) },
+                signed: rec.signed ?? merged[traineeId].signed,
+              };
+            }
+          }
+          return merged;
+        });
+      }
+    };
+    window.addEventListener("mtti-attendance-updated", handleAttendanceUpdated);
+    return () => window.removeEventListener("mtti-attendance-updated", handleAttendanceUpdated);
+  }, [selectedClassCode]);
 
   // Toggle Attendance Cell in CUR/02
   const toggleAttendance = (studentId: string, week: number, session: number) => {
@@ -762,12 +774,29 @@ export default function ClassRegister() {
   };
 
   // Sync to Record of Work
-  const handleSaveAndSyncRoW = () => {
+  const handleSaveAndSyncRoW = async () => {
     if (!canEditRegister) {
       toast.error("Forbidden: Only assigned trainers, HODs, and administrators can sync records of work.");
       return;
     }
     setIsSaving(true);
+
+    // 1. First persist attendance locally and to the backend API
+    persistLocally(attendanceData);
+    try {
+      await fetch("/api/attendance/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          unit_offering_id: "uo-1",
+          class_code: selectedClassCode,
+          attendanceData,
+        }),
+      });
+    } catch (apiErr) {
+      console.warn("Backend bulk attendance save notice:", apiErr);
+    }
+
     let presentCount = 0;
     classTrainees.forEach(t => {
       const rec = attendanceData[t.id];
@@ -866,6 +895,13 @@ export default function ClassRegister() {
                   title="Reset to official MTTI 58 trainees"
                 >
                   <RotateCcw className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => setIsRollCallOpen(true)}
+                  className="h-9 px-3.5 flex items-center gap-1.5 bg-[#c48820] hover:bg-[#b0781a] text-black rounded-lg text-xs font-bold transition shadow-sm"
+                  title="Take rapid roll call for this class and sync into register"
+                >
+                  <UserCheck className="w-4 h-4" /> Roll Call
                 </button>
                 <button 
                   onClick={() => setIsQRModalOpen(true)}
@@ -1651,6 +1687,21 @@ export default function ClassRegister() {
             venue: "Workshop 3 / Computer Lab",
             trainer_name: user?.name || "Dr. J. Muriithi",
             safety_requirements: "Strictly observe workstation ergonomics, equipment handling protocols, and protective gear."
+          }}
+        />
+
+        {/* Rapid Roll Call Modal */}
+        <AttendanceQuickMarkModal
+          isOpen={isRollCallOpen}
+          onClose={() => setIsRollCallOpen(false)}
+          classCode={selectedClassCode}
+          sessionPlanId={`sp-${selectedClassCode.replace(/[^a-zA-Z0-9]/g, "-")}-w${academicContext.currentWeek}`}
+          weekNumber={academicContext.currentWeek}
+          sessionIndex={1}
+          onSaveComplete={(traineeCount, presentCount) => {
+            const reloaded = loadClassAttendanceRegister(selectedClassCode);
+            setAttendanceData(reloaded);
+            toast.success(`Roll Call updated: ${presentCount}/${traineeCount} present.`);
           }}
         />
 
