@@ -235,6 +235,8 @@ export default function ClassRegister() {
         (selectedClassCode.includes("ICT4") || selectedClassCode.includes("ITECH6")) &&
         (t.classCode.includes("ITECH") || t.classCode.includes("ICT4") || t.classCode.includes("MOD 1"))
       ) return true;
+      if (selectedClassCode.includes("ADMIN") && selectedClassCode.includes("MOD 3") && t.classCode.includes("MOD 3")) return true;
+      if (selectedClassCode.includes("ADMIN") && selectedClassCode.includes("MOD 1") && t.classCode.includes("MOD 1")) return true;
       if (selectedClassCode.includes("ADMIN") && t.classCode.includes("ADMIN")) return true;
       if (selectedClassCode.includes("FBS") && t.classCode.includes("FBS")) return true;
       if (selectedClassCode.includes("LS") && t.classCode.includes("LS")) return true;
@@ -298,11 +300,11 @@ export default function ClassRegister() {
       }),
     }).catch(err => console.warn("Backend trainee save notice:", err));
 
-    // Populate initial attendance
+    // Populate initial attendance across all 10 instructional weeks
     const initAttendance: Record<string, AttendanceStatus> = {};
-    for (let w = 1; w <= 3; w++) {
+    for (let w = 1; w <= WEEKS; w++) {
       for (let s = 1; s <= SESSIONS_PER_WEEK; s++) {
-        initAttendance[`W${w}_S${s}`] = "X";
+        initAttendance[`W${w}_S${s}`] = w <= 3 ? "X" : "";
       }
     }
     setAttendanceData(prev => ({
@@ -376,21 +378,27 @@ export default function ClassRegister() {
   useEffect(() => {
     const initialLoaded = loadClassAttendanceRegister(selectedClassCode);
 
-    // Populate any trainees missing records
+    // Populate any trainees missing records across all 10 instructional weeks
     const updated = { ...initialLoaded };
     classTrainees.forEach((t, idx) => {
-      if (!updated[t.id]) {
-        const initAttendance: Record<string, AttendanceStatus> = {};
-        for (let w = 1; w <= 3; w++) {
-          for (let s = 1; s <= SESSIONS_PER_WEEK; s++) {
-            initAttendance[`W${w}_S${s}`] = (idx === 3 && w === 2 && s === 2) ? "0" : "X";
+      const existingAtt = updated[t.id]?.attendance || {};
+      const fullAttendance: Record<string, AttendanceStatus> = { ...existingAtt };
+      for (let w = 1; w <= WEEKS; w++) {
+        for (let s = 1; s <= SESSIONS_PER_WEEK; s++) {
+          const sessKey = `W${w}_S${s}`;
+          if (fullAttendance[sessKey] === undefined) {
+            if (w <= 3) {
+              fullAttendance[sessKey] = (idx === 3 && w === 2 && s === 2) ? "0" : "X";
+            } else {
+              fullAttendance[sessKey] = "";
+            }
           }
         }
-        updated[t.id] = { 
-          attendance: initAttendance,
-          signed: false
-        };
       }
+      updated[t.id] = { 
+        attendance: fullAttendance,
+        signed: updated[t.id]?.signed ?? false,
+      };
     });
 
     setAttendanceData(updated);
@@ -406,8 +414,17 @@ export default function ClassRegister() {
               if (!merged[traineeId]) {
                 merged[traineeId] = { attendance: {}, signed: false };
               }
+              const currentAtt = merged[traineeId].attendance || {};
+              const nextAtt = { ...currentAtt };
+              for (const [sessKey, val] of Object.entries(sessions)) {
+                if (val === "X" || val === "0") {
+                  nextAtt[sessKey] = val;
+                } else if (nextAtt[sessKey] === undefined) {
+                  nextAtt[sessKey] = val;
+                }
+              }
               merged[traineeId] = {
-                attendance: { ...(merged[traineeId].attendance || {}), ...sessions },
+                attendance: nextAtt,
                 signed: merged[traineeId].signed ?? false,
               };
             }
@@ -479,6 +496,7 @@ export default function ClassRegister() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         unit_offering_id: "uo-1",
+        class_code: selectedClassCode,
         trainee_id: studentId,
         week_number: week,
         session_index: session,
@@ -525,6 +543,7 @@ export default function ClassRegister() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         unit_offering_id: "uo-1",
+        class_code: selectedClassCode,
         records: recordsToSync,
       }),
     }).catch(err => console.warn("Bulk mark sync warning:", err));
@@ -568,6 +587,7 @@ export default function ClassRegister() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         unit_offering_id: "uo-1",
+        class_code: selectedClassCode,
         records: recordsToSync,
       }),
     }).catch(err => console.warn("Bulk week sync warning:", err));

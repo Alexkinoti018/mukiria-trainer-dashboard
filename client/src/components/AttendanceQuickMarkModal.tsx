@@ -42,6 +42,8 @@ function getOfficialRosterForClass(code: string): Trainee[] {
   const matched = OFFICIAL_MTTI_TRAINEES.filter(t => {
     if (t.classCode === code) return true;
     if ((norm.includes("ICT4") || norm.includes("ITECH6") || norm.includes("MOD 1")) && t.classCode.includes("ICT4/ITECH6")) return true;
+    if (norm.includes("ADMIN") && norm.includes("MOD 3") && t.classCode.includes("MOD 3")) return true;
+    if (norm.includes("ADMIN") && norm.includes("MOD 1") && t.classCode.includes("MOD 1")) return true;
     if (norm.includes("ADMIN") && t.classCode.includes("ADMIN")) return true;
     if (norm.includes("FBS") && t.classCode.includes("FBS")) return true;
     if (norm.includes("LS") && t.classCode.includes("LS")) return true;

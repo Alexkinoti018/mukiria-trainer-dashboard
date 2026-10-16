@@ -277,14 +277,50 @@ describe("MTTI Institutional Class Register (CUR/02 & CUR/03) Suite", () => {
       expect(getCanonicalAttendanceClassKey("ITECH 6 MODULAR/S/2026")).toBe("ICT4_ITECH6");
       expect(getCanonicalAttendanceClassKey("ICT4 MOD/S/2026")).toBe("ICT4_ITECH6");
 
-      expect(getCanonicalAttendanceClassKey("ADMIN5/6/J/26 MOD 3")).toBe("ADMIN5_6");
-      expect(getCanonicalAttendanceClassKey("ADMIN4/5/6/S/26 MOD 1")).toBe("ADMIN5_6");
+      expect(getCanonicalAttendanceClassKey("ADMIN5/6/J/26 MOD 3")).toBe("ADMIN5_6_MOD3");
+      expect(getCanonicalAttendanceClassKey("ADMIN4/5/6/S/26 MOD 1")).toBe("ADMIN4_5_6_MOD1");
 
       expect(getCanonicalAttendanceClassKey("FBS5/6/J/26")).toBe("FBS5_6");
       expect(getCanonicalAttendanceClassKey("FBS 5 MOD/J/2026")).toBe("FBS5_6");
       expect(getCanonicalAttendanceClassKey("FBS6 MOD/12026")).toBe("FBS5_6");
 
       expect(getCanonicalAttendanceClassKey("LS5/6/S/26")).toBe("LS5_6");
+    });
+
+    it("should isolate ADMIN MOD 3 and ADMIN MOD 1 registers without data collision or wiping", async () => {
+      const { saveClassAttendanceRegister, loadClassAttendanceRegister } = await import(
+        "../client/src/lib/attendanceStorage"
+      );
+
+      // Save ADMIN MOD 3 with Week 4 marked
+      const mod3Data = {
+        tr_adm_01: {
+          attendance: { W1_S1: "X" as const, W4_S1: "X" as const },
+          signed: true,
+        },
+      };
+      saveClassAttendanceRegister("ADMIN5/6/J/26 MOD 3", mod3Data);
+
+      // Save ADMIN MOD 1 with Week 7 marked
+      const mod1Data = {
+        tr_adm_12: {
+          attendance: { W1_S1: "X" as const, W7_S2: "X" as const },
+          signed: true,
+        },
+      };
+      saveClassAttendanceRegister("ADMIN4/5/6/S/26 MOD 1", mod1Data);
+
+      // Reload MOD 3: tr_adm_01 must still have W4_S1 and not be overwritten by MOD 1
+      const reloadedMod3 = loadClassAttendanceRegister("ADMIN5/6/J/26 MOD 3");
+      expect(reloadedMod3["tr_adm_01"]).toBeDefined();
+      expect(reloadedMod3["tr_adm_01"].attendance["W4_S1"]).toBe("X");
+      expect(reloadedMod3["tr_adm_12"]).toBeUndefined();
+
+      // Reload MOD 1: tr_adm_12 must still have W7_S2 and not be overwritten by MOD 3
+      const reloadedMod1 = loadClassAttendanceRegister("ADMIN4/5/6/S/26 MOD 1");
+      expect(reloadedMod1["tr_adm_12"]).toBeDefined();
+      expect(reloadedMod1["tr_adm_12"].attendance["W7_S2"]).toBe("X");
+      expect(reloadedMod1["tr_adm_01"]).toBeUndefined();
     });
 
     it("should apply roll call into canonical class register without losing weeks beyond week 3", async () => {
@@ -345,6 +381,55 @@ describe("MTTI Institutional Class Register (CUR/02 & CUR/03) Suite", () => {
       expect(att["W6_S1"]).toBe("X");
       expect(att["W6_S2"]).toBe("0");
       expect(att["W6_S3"]).toBe("X");
+    });
+
+    it("should persist marked columns across all 10 weeks and prevent empty strings from wiping marked sessions", async () => {
+      const { applyRollCallToRegister, loadClassAttendanceRegister, saveClassAttendanceRegister } = await import(
+        "../client/src/lib/attendanceStorage"
+      );
+
+      // Seed all 10 weeks for trainee
+      const fullRegister: Record<string, any> = {
+        tr_it6_01: {
+          attendance: {},
+          signed: true,
+        },
+      };
+
+      for (let w = 1; w <= 10; w++) {
+        for (let s = 1; s <= 3; s++) {
+          fullRegister.tr_it6_01.attendance[`W${w}_S${s}`] = "X";
+        }
+      }
+
+      saveClassAttendanceRegister("ICT4/ITECH6/S/26 MOD 1", fullRegister);
+
+      // Simulate an older backup key having empty strings for weeks 4-10
+      const staleKey = "mtti_class_register_persisted_ICT4_ITECH6";
+      const staleData = {
+        tr_it6_01: {
+          attendance: {
+            W1_S1: "X",
+            W4_S1: "",
+            W10_S3: "",
+          },
+          signed: false,
+        },
+      };
+      localStorage.setItem(staleKey, JSON.stringify(staleData));
+
+      // Reload register: loadClassAttendanceRegister must NOT allow stale empty strings to overwrite marked "X"
+      const reloaded = loadClassAttendanceRegister("ICT4/ITECH6/S/26 MOD 1");
+      expect(reloaded["tr_it6_01"].attendance["W1_S1"]).toBe("X");
+      expect(reloaded["tr_it6_01"].attendance["W4_S1"]).toBe("X");
+      expect(reloaded["tr_it6_01"].attendance["W10_S3"]).toBe("X");
+
+      // Verify roll call update to week 10 session 3
+      applyRollCallToRegister("ICT4/ITECH6/S/26 MOD 1", 10, 3, { tr_it6_01: "0" });
+      const afterRollCall = loadClassAttendanceRegister("ICT4/ITECH6/S/26 MOD 1");
+      expect(afterRollCall["tr_it6_01"].attendance["W10_S3"]).toBe("0");
+      expect(afterRollCall["tr_it6_01"].attendance["W10_S2"]).toBe("X");
+      expect(afterRollCall["tr_it6_01"].attendance["W1_S1"]).toBe("X");
     });
   });
 });

@@ -1090,9 +1090,9 @@ apiRouter.post("/attendance/mark", async (req: AuthenticatedRequest, res: Respon
       try {
         const sql = `
           INSERT INTO attendance_register (
-            unit_offering_id, trainee_id, week_number, session_date, status, hours_attended, remarks, marked_by, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-          ON CONFLICT (unit_offering_id, trainee_id, week_number, session_date)
+            unit_offering_id, trainee_id, week_number, session_date, session_index, status, hours_attended, remarks, marked_by, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+          ON CONFLICT (unit_offering_id, trainee_id, week_number, session_index, session_date)
           DO UPDATE SET
             status = EXCLUDED.status,
             hours_attended = COALESCE(EXCLUDED.hours_attended, attendance_register.hours_attended),
@@ -1106,6 +1106,7 @@ apiRouter.post("/attendance/mark", async (req: AuthenticatedRequest, res: Respon
           trainee_id,
           Number(week_number),
           session_date,
+          Number(session_index || 1),
           normStatus,
           Number(hours_attended),
           remarks,
@@ -1232,9 +1233,9 @@ apiRouter.post("/attendance/bulk", async (req: AuthenticatedRequest, res: Respon
           for (const item of itemsToProcess) {
             const sql = `
               INSERT INTO attendance_register (
-                unit_offering_id, trainee_id, week_number, session_date, status, hours_attended, remarks, updated_at
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-              ON CONFLICT (unit_offering_id, trainee_id, week_number, session_date)
+                unit_offering_id, trainee_id, week_number, session_date, session_index, status, hours_attended, remarks, updated_at
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+              ON CONFLICT (unit_offering_id, trainee_id, week_number, session_index, session_date)
               DO UPDATE SET
                 status = EXCLUDED.status,
                 hours_attended = COALESCE(EXCLUDED.hours_attended, attendance_register.hours_attended),
@@ -1246,6 +1247,7 @@ apiRouter.post("/attendance/bulk", async (req: AuthenticatedRequest, res: Respon
               item.trainee_id,
               item.week_number,
               item.session_date,
+              item.session_index || 1,
               item.status,
               item.hours_attended || 2.0,
               item.remarks || "",

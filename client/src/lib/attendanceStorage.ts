@@ -18,6 +18,8 @@ export interface StudentAttendanceRecord {
 export function getCanonicalAttendanceClassKey(code: string): string {
   const norm = (code || "").toUpperCase();
   if (norm.includes("ICT") || norm.includes("ITECH")) return "ICT4_ITECH6";
+  if (norm.includes("ADMIN") && norm.includes("MOD 3")) return "ADMIN5_6_MOD3";
+  if (norm.includes("ADMIN") && norm.includes("MOD 1")) return "ADMIN4_5_6_MOD1";
   if (norm.includes("ADMIN")) return "ADMIN5_6";
   if (norm.includes("FBS")) return "FBS5_6";
   if (norm.includes("LS") || norm.includes("SURVEY")) return "LS5_6";
@@ -45,6 +47,12 @@ export function getStorageKeysForClass(classCode: string): string[] {
     keys.add("mtti_class_register_ICT4/ITECH6/S/26 MOD 1");
     keys.add("mtti_class_register_ITECH 6 MODULAR/S/2026");
     keys.add("mtti_class_register_ICT4 MOD/S/2026");
+  } else if (canonical === "ADMIN5_6_MOD3") {
+    keys.add("mtti_class_register_ADMIN5/6/J/26 MOD 3");
+    keys.add("mtti_class_register_ADMIN5_6_MOD3");
+  } else if (canonical === "ADMIN4_5_6_MOD1") {
+    keys.add("mtti_class_register_ADMIN4/5/6/S/26 MOD 1");
+    keys.add("mtti_class_register_ADMIN4_5_6_MOD1");
   } else if (canonical === "ADMIN5_6") {
     keys.add("mtti_class_register_ADMIN5/6/J/26 MOD 3");
     keys.add("mtti_class_register_ADMIN4/5/6/S/26 MOD 1");
@@ -79,10 +87,14 @@ export function loadClassAttendanceRegister(classCode: string): Record<string, S
               };
             }
             if (rec?.attendance && typeof rec.attendance === "object") {
-              merged[studentId].attendance = {
-                ...merged[studentId].attendance,
-                ...rec.attendance,
-              };
+              for (const [sessKey, val] of Object.entries(rec.attendance as Record<string, AttendanceStatus>)) {
+                // Ensure marked sessions ('X' or '0') are preserved and never overwritten by empty strings
+                if (val === "X" || val === "0") {
+                  merged[studentId].attendance[sessKey] = val;
+                } else if (merged[studentId].attendance[sessKey] === undefined) {
+                  merged[studentId].attendance[sessKey] = val;
+                }
+              }
             }
             if (rec?.signed !== undefined) {
               merged[studentId].signed = merged[studentId].signed || rec.signed;
