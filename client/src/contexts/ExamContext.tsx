@@ -74,6 +74,10 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     const storedExams = localStorage.getItem("mukiria_exams");
     const storedSubmissions = localStorage.getItem("mukiria_submissions");
 
+    const EXAM_CONSENT_VERSION = "2026-10-16-trainer-consent-v2";
+    const storedVersion = localStorage.getItem("mtti_exam_consent_version");
+    const isConsentVersionOutdated = storedVersion !== EXAM_CONSENT_VERSION;
+
     let loadedExams: Exam[] = MOCK_EXAMS;
     if (storedExams) {
       try {
@@ -83,12 +87,17 @@ export function ExamProvider({ children }: { children: ReactNode }) {
         const refreshedParsed = parsed.map((e) => {
           const mockMatch = mockExamById.get(e.id) || mockExamByUnit.get(e.unit_code);
           if (mockMatch) {
+            const effectivePortalVisible = isConsentVersionOutdated
+              ? (mockMatch.payload?.portal_visible === true)
+              : (e.payload?.portal_visible ?? mockMatch.payload?.portal_visible);
+
             return {
               ...mockMatch,
               ...e,
               payload: {
                 ...mockMatch.payload,
                 ...e.payload,
+                portal_visible: effectivePortalVisible,
                 section_a: mockMatch.payload.section_a || e.payload?.section_a,
                 section_b: mockMatch.payload.section_b || e.payload?.section_b,
               },
@@ -103,13 +112,16 @@ export function ExamProvider({ children }: { children: ReactNode }) {
         loadedExams = [...refreshedParsed, ...missingMocks];
         setExams(loadedExams);
         localStorage.setItem("mukiria_exams", JSON.stringify(loadedExams));
+        localStorage.setItem("mtti_exam_consent_version", EXAM_CONSENT_VERSION);
       } catch {
         setExams(MOCK_EXAMS);
         localStorage.setItem("mukiria_exams", JSON.stringify(MOCK_EXAMS));
+        localStorage.setItem("mtti_exam_consent_version", EXAM_CONSENT_VERSION);
       }
     } else {
       setExams(MOCK_EXAMS);
       localStorage.setItem("mukiria_exams", JSON.stringify(MOCK_EXAMS));
+      localStorage.setItem("mtti_exam_consent_version", EXAM_CONSENT_VERSION);
     }
 
     if (storedSubmissions) {

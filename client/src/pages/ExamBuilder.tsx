@@ -151,7 +151,7 @@ const EMPTY_PAYLOAD = (): ExamPayload => ({
   duration_minutes: 90,
   total_marks: 100,
   instructions: "Answer ALL questions in Section A and ANY TWO questions in Section B.",
-  portal_visible: true,
+  portal_visible: false,
   assessment_category: "CAT",
   task_code: "CT1",
   available_from: "",
