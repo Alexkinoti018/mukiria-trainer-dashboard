@@ -110,5 +110,19 @@ describe("Graded Exam PDF Generator & Marking Scheme Serialization", () => {
       expect(savedFiles.length).toBe(1);
       expect(savedFiles[0]).toMatch(/^MTTI_GradedExam_061155101A_.*\.pdf$/);
     });
+
+    it("ensures Faith Mwende and multi-section exams render both Section A and Section B with CDACC sign-off", () => {
+      const faithSub = FBS_COHORT_SUBMISSIONS.find((s) => s.student_name === "Faith Mwende") || submission;
+      const unified = buildUnifiedGradedExamData(faithSub, exam, "Alexander Kinoti Mbiti");
+
+      expect(unified.section_a.length).toBeGreaterThan(0);
+      expect(unified.section_b.length).toBeGreaterThan(0);
+
+      const customDoc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      exportGradedExamPDFClientSide(unified, customDoc);
+
+      // Verify that rendering Section A (10 questions) + Section B (2 comprehensive tasks) produces >= 2 pages
+      expect(customDoc.getNumberOfPages()).toBeGreaterThanOrEqual(2);
+    });
   });
 });

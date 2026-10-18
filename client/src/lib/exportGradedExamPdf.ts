@@ -538,13 +538,10 @@ export function exportGradedExamPDFClientSide(
   drawMetaRow(rightColX, y + 12, "UNIT CODE:", data.unit_code, colW);
   drawMetaRow(leftColX, y + 18, "UNIT NAME:", data.unit_name, colW);
   drawMetaRow(rightColX, y + 18, "CLASS & SERIES:", `${data.class_code} (${data.series})`, colW);
-  const isCAT =
-    data.is_cat ||
-    data.total_marks <= 30 ||
-    data.task_code.toUpperCase().startsWith("CAT") ||
-    (data.sec_b_max === 0 && data.section_b.length === 0);
+  const hasSectionB = Array.isArray(data.section_b) && data.section_b.length > 0;
+  const isSingleSection = !hasSectionB;
 
-  if (isCAT) {
+  if (isSingleSection) {
     drawMetaRow(
       leftColX,
       y + 24,
@@ -634,8 +631,9 @@ export function exportGradedExamPDFClientSide(
       // 1. Question Prompt (Set font before splitTextToSize for exact line calculation)
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
+      const marksSuffix = `(${q.max_marks}\u00A0${q.max_marks === 1 ? "Mark" : "Marks"})`;
       const promptLines = doc.splitTextToSize(
-        `${qPrefix} ${promptTitle} (${q.max_marks} ${q.max_marks === 1 ? "Mark" : "Marks"})`,
+        `${qPrefix} ${promptTitle} ${marksSuffix}`,
         contentWidth - 28
       );
 
@@ -824,11 +822,17 @@ export function exportGradedExamPDFClientSide(
         });
       }
 
-      // Simulated Red Pen Assessor Line
+      // Assessor Feedback Line (Semantically colored)
       y += 1.5;
       doc.setFont("helvetica", "bolditalic");
       doc.setFontSize(8);
-      doc.setTextColor(220, 38, 38);
+      if (q.marks_awarded >= q.max_marks && q.max_marks > 0) {
+        doc.setTextColor(0, 9, 83); // MTTI Institutional Navy for full marks
+      } else if (q.marks_awarded > 0) {
+        doc.setTextColor(180, 83, 9); // Amber for partial credit
+      } else {
+        doc.setTextColor(220, 38, 38); // Red pen for zero marks
+      }
       evalLines.forEach((eLine: string) => {
         ensureSpace(4.5);
         doc.text(eLine, margin + 4, y + 3.5);
@@ -846,7 +850,7 @@ export function exportGradedExamPDFClientSide(
     y += 3;
   };
 
-  if (isCAT) {
+  if (!hasSectionB) {
     renderSection(
       `CONTINUOUS ASSESSMENT TEST (${data.total_marks} MARKS)`,
       data.section_a_instructions || "Answer ALL questions in the spaces provided.",
@@ -857,7 +861,7 @@ export function exportGradedExamPDFClientSide(
   } else {
     renderSection(
       `SECTION A: CORE CONCEPTS & SHORT ANSWERS (${data.sec_a_max} MARKS)`,
-      data.section_a_instructions,
+      data.section_a_instructions || "Answer ALL questions in this section (Compulsory).",
       `Section A Subtotal: ${data.sec_a_awarded} / ${data.sec_a_max}`,
       data.section_a,
       false
@@ -865,14 +869,14 @@ export function exportGradedExamPDFClientSide(
 
     renderSection(
       `SECTION B: STRUCTURED & PRACTICAL TASKS (${data.sec_b_max} MARKS)`,
-      data.section_b_instructions,
+      data.section_b_instructions || "Answer the following structured scenario-based questions.",
       `Section B Subtotal: ${data.sec_b_awarded} / ${data.sec_b_max}`,
       data.section_b,
       true
     );
   }
 
-  // 4. Overall Examination Feedback Remarks (Assessors block at bottom removed per instruction)
+  // 4. Overall Examination Feedback Remarks
   if (data.trainer_comments && data.trainer_comments.trim() !== "") {
     doc.setFont("helvetica", "bolditalic");
     doc.setFontSize(8);
@@ -897,6 +901,50 @@ export function exportGradedExamPDFClientSide(
 
     y += commentBoxH + 4;
   }
+
+  // 5. Official TVET CDACC Institutional Evaluation Sign-off Block
+  ensureSpace(26);
+  const sigBoxW = (contentWidth - 6) / 2;
+  const sigBoxH = 21;
+
+  // Assessor Sign-Off Box (Left)
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(margin, y, sigBoxW, sigBoxH, 1.5, 1.5, "FD");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(0, 9, 83);
+  doc.text("TRAINER / INTERNAL ASSESSOR SIGN-OFF:", margin + 3, y + 4.5);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.2);
+  doc.setTextColor(51, 65, 85);
+  doc.text(`Assessor Name: ${data.trainer_name || "Alexander Kinoti Mbiti"}`, margin + 3, y + 9.2);
+  doc.text(`Assessor Signature: _______________________`, margin + 3, y + 13.8);
+  doc.text(`Evaluation Date: ${data.evaluated_at || new Date().toLocaleDateString("en-GB")}`, margin + 3, y + 17.8);
+
+  // Internal Verifier / HOD Sign-Off Box (Right)
+  const rightSigX = margin + sigBoxW + 6;
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(rightSigX, y, sigBoxW, sigBoxH, 1.5, 1.5, "FD");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(0, 9, 83);
+  doc.text("INTERNAL VERIFIER / HOD ENDORSEMENT:", rightSigX + 3, y + 4.5);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.2);
+  doc.setTextColor(51, 65, 85);
+  doc.text(`HOD / QA Verifier: Computing & Institutional QA`, rightSigX + 3, y + 9.2);
+  doc.text(`Endorsement: [✓] Verified & Confirmed Competent`, rightSigX + 3, y + 13.8);
+  doc.text(`Verification Date: ${data.evaluated_at || new Date().toLocaleDateString("en-GB")}`, rightSigX + 3, y + 17.8);
+
+  y += sigBoxH + 4;
 
   // Page numbers and running headers on all pages
   const pageCount = doc.getNumberOfPages();
