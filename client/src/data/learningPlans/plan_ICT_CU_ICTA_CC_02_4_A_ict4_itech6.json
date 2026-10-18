@@ -1,0 +1,580 @@
+{
+  "metadata": {
+    "formNumber": "MTTI/F/CUR/02",
+    "institution": "MUKIRIA TECHNICAL TRAINING INSTITUTE",
+    "unitTitle": "COMPUTER REPAIR AND MAINTENANCE",
+    "unitCode": "ICT/CU/ICTA/CC/02/4/A",
+    "trainerName": "GREENWOOD N. MAERIA",
+    "level": "4&6",
+    "dateOfPreparation": "MAY 2025",
+    "dateOfRevision": "08/05/2026",
+    "numberOfTrainees": 27,
+    "cohortCode": "ICT4/J/26/ITECH6/J/26",
+    "skillsSummary": [
+      "This unit specifies competencies required to perform computer repair and Maintenance. It involves performing troubleshooting, disassembling of faulty components, repairing/replacing faulty components, testing of component functionality upgradation and testing of hardware and  software."
+    ],
+    "elementsAndPerformanceCriteria": [
+      {
+        "elementTitle": "1. Perform troubleshooting",
+        "criteria": [
+          "Perform troubleshooting"
+        ]
+      },
+      {
+        "elementTitle": "3. Repair faulty components (disassemble faulty components, repair/replace and reassemble faulty components)",
+        "criteria": [
+          "disassemble faulty components",
+          "repair/replace and reassemble faulty components"
+        ]
+      },
+      {
+        "elementTitle": "4. Test computer functionality",
+        "criteria": [
+          "Test computer functionality"
+        ]
+      },
+      {
+        "elementTitle": "5. Perform computer maintenance",
+        "criteria": [
+          "Perform computer maintenance"
+        ]
+      }
+    ],
+    "preparedBy": {
+      "name": "GREENWOOD N. MAERIA",
+      "date": "08/05/2026"
+    },
+    "approvedBy": {
+      "name": "LYDIA KITHEKA",
+      "date": "",
+      "title": "DP Academics"
+    }
+  },
+  "schedule": [
+    {
+      "week": 1,
+      "sessionNumber": "1.1",
+      "sessionTitle": "Introduction to C.R.M. & User Data Process",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Explain purpose, scope, and document faulty computer user data."
+      ],
+      "trainerActivities": [
+        "Facilitate discussion, demonstrate documentation forms."
+      ],
+      "traineeActivities": [
+        "Share experiences, practice filling sample fault logs."
+      ],
+      "resourcesAndRefs": [
+        "\u201cComputer Repair and Maintenance \u201d by John Doe. Chambers, M. (2014). Troubleshoo ting your PC for dummies (7th ed.). John Wiley & Sons. sample forms, projector."
+      ],
+      "assessments": [
+        "Oral Qs, review of completed sample logs."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 1,
+      "sessionNumber": "1.2",
+      "sessionTitle": "Troubleshooting Approaches",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Identify troubleshooting approaches."
+      ],
+      "trainerActivities": [
+        "Present systematic approaches (e.g., divide & conquer). Use case examples."
+      ],
+      "traineeActivities": [
+        "Group discussion on applying approaches to given scenarios."
+      ],
+      "resourcesAndRefs": [
+        "OS manuals, case studies, projector."
+      ],
+      "assessments": [
+        "Group presentation  on approaches, Q&A."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "2.1",
+      "sessionTitle": "Identifying Common Hardware Faults",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Identify basic computer hardware faults.)"
+      ],
+      "trainerActivities": [
+        "Demo real faulty components (RAM, HDD, PSU). Explain symptoms."
+      ],
+      "traineeActivities": [
+        "Inspect samples, identify and describe faults in groups."
+      ],
+      "resourcesAndRefs": [
+        "Sample faulty components, magnifying glasses, symptom charts."
+      ],
+      "assessments": [
+        "Group presentation on fault identification, observation checklist."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "2.2",
+      "sessionTitle": "Methods of Information Gathering",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Apply data gathering techniques."
+      ],
+      "trainerActivities": [
+        "Explain and demonstrate tools (checklists, interviews, observation)."
+      ],
+      "traineeActivities": [
+        "Practice using checklists and forms in simulated scenarios."
+      ],
+      "resourcesAndRefs": [
+        "User reports, forms, checklists."
+      ],
+      "assessments": [
+        "Practical assessment on completing an information-gathering checklist."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "3.1",
+      "sessionTitle": "User Data Analysis & Problem Identification",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Analyze user data to identify problems."
+      ],
+      "trainerActivities": [
+        "Guide analysis workshop using complex case studies."
+      ],
+      "traineeActivities": [
+        "Analyze provided user reports, identify root cause."
+      ],
+      "resourcesAndRefs": [
+        "Complex case study reports, whiteboards for group work."
+      ],
+      "assessments": [
+        "Submission of group analysis report (portfolio evidence)."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "3.2",
+      "sessionTitle": "Determining Solutions & Hypothesis Testing",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Determine solutions and apply hypothesis testing."
+      ],
+      "trainerActivities": [
+        "Explain hypothesis logic (if-then). Demonstrate testing one variable at a time."
+      ],
+      "traineeActivities": [
+        "Develop test plans for given faults, present logical steps."
+      ],
+      "resourcesAndRefs": [
+        "Troubleshooting flowcharts, scenario cards."
+      ],
+      "assessments": [
+        "Presentation of test plans, peer critique."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "3.3",
+      "sessionTitle": "LO1 Integrated Practical Assessment",
+      "learningOutcomes": [
+        "Apply all LO1 competencies to a simulated user case."
+      ],
+      "trainerActivities": [
+        "Brief assessment, provide scenario, supervise."
+      ],
+      "traineeActivities": [
+        "Receive scenario, gather data, analyze, propose & test hypothesis, document solution."
+      ],
+      "resourcesAndRefs": [
+        "Assessment briefs, isolated workstations."
+      ],
+      "assessments": [
+        "Formative Practical Assessment\u00a0(Observation Checklist, Product Checklist)."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "4.1",
+      "sessionTitle": "Selection of Replacement Components",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Select computer components for replacement per factors."
+      ],
+      "trainerActivities": [
+        "Explain compatibility, cost, warranty. Use catalogues/datasheets."
+      ],
+      "traineeActivities": [
+        "Identify suitable replacements for given faulty components in scenarios."
+      ],
+      "resourcesAndRefs": [
+        "Hardware catalogues, spec sheets, compatibility charts."
+      ],
+      "assessments": [
+        "Oral quiz on factors, product checklist for selection exercise."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "4.2",
+      "sessionTitle": "Tool Identification & Assembly",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Identify and assemble repair tools."
+      ],
+      "trainerActivities": [
+        "Demonstrate full toolkit, explain use of each tool."
+      ],
+      "traineeActivities": [
+        "Conduct toolkit inventory, practice correct handling."
+      ],
+      "resourcesAndRefs": [
+        "Complete repair toolkits, tool identification charts."
+      ],
+      "assessments": [
+        "Observation checklist on tool handling, oral test on tool purpose."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "5.1",
+      "sessionTitle": "Safety Procedures in the Workshop",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Observe safety procedures (PPE, equipment, emergency)."
+      ],
+      "trainerActivities": [
+        "Conduct safety briefing, demo PPE use, fire extinguisher types."
+      ],
+      "traineeActivities": [
+        "Participate in safety drill, don/doff PPE, locate safety equipment."
+      ],
+      "resourcesAndRefs": [
+        "PPE kits, fire extinguisher (training), first aid kit, safety signage."
+      ],
+      "assessments": [
+        "Mandatory Pass/Fail Safety Demonstration."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "5.2",
+      "sessionTitle": "Disassembly Process",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Disassemble computer components safely."
+      ],
+      "trainerActivities": [
+        "Live demo of systematic disassembly of a desktop PC."
+      ],
+      "traineeActivities": [
+        "Perform supervised disassembly of non-faulty PCs in pairs."
+      ],
+      "resourcesAndRefs": [
+        "Desktop PCs, screwdriver sets, anti-static mats/wrist straps."
+      ],
+      "assessments": [
+        "Practical checklist on safe disassembly steps."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "6.1",
+      "sessionTitle": "Repair/Replacement Techniques",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Repair or replace faulty components per manual."
+      ],
+      "trainerActivities": [
+        "Demo specific repairs (e.g., RAM reseat, HDD replace, fan swap) using manuals."
+      ],
+      "traineeActivities": [
+        "Practice targeted repairs on fault-seeded machines using provided manuals."
+      ],
+      "resourcesAndRefs": [
+        "Fault-seeded PCs, component manuals, spare parts."
+      ],
+      "assessments": [
+        "Practical assessment: successful repair/replacement of assigned fault."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "6.2",
+      "sessionTitle": "Proper Disposal of E-Waste",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Dispose of faulty/obsolete components per procedures."
+      ],
+      "trainerActivities": [
+        "Present e-waste categories, hazards, and local disposal regulations/methods."
+      ],
+      "traineeActivities": [
+        "Sort sample components into correct disposal categories."
+      ],
+      "resourcesAndRefs": [
+        "Sample obsolete components, e-waste sorting bins, disposal guidelines."
+      ],
+      "assessments": [
+        "Oral on disposal methods, observation of sorting activity."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "7.1",
+      "sessionTitle": "LO2 Integrated Project - Part 1",
+      "learningOutcomes": [
+        "Begin full repair cycle project (Troubleshoot & Plan)."
+      ],
+      "trainerActivities": [
+        "Launch project, brief on multi-fault systems, form groups, guide initial diagnosis."
+      ],
+      "traineeActivities": [
+        "Groups receive project PC, perform LO1 steps to diagnose, create repair plan/parts list."
+      ],
+      "resourcesAndRefs": [
+        "Project PCs, toolkits, diagnostic software, project logbooks."
+      ],
+      "assessments": [
+        "Submission of initial diagnosis and repair plan (portfolio)."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "7.2",
+      "sessionTitle": "LO2 Integrated Project - Part 2",
+      "learningOutcomes": [
+        "Execute repair cycle (Repair, Test, Dispose)."
+      ],
+      "trainerActivities": [
+        "Supervise practical work, ensure safety compliance, mentor."
+      ],
+      "traineeActivities": [
+        "Execute repair plan, replace/repair components, test basic functionality, dispose waste."
+      ],
+      "resourcesAndRefs": [
+        "Spare parts, tools, safety equipment, e-waste bins."
+      ],
+      "assessments": [
+        "Formative Project Assessment\u00a0(Observation, Third-party report, completed logbook)."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "8.1",
+      "sessionTitle": "Performing POST & Initial Diagnostics",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Perform Power-On Self-Test (POST)."
+      ],
+      "trainerActivities": [
+        "Demo POST process, interpret common beep codes/on-screen messages."
+      ],
+      "traineeActivities": [
+        "Boot lab PCs, observe POST, record results/error messages."
+      ],
+      "resourcesAndRefs": [
+        "Functional & fault-seeded PCs, POST code charts."
+      ],
+      "assessments": [
+        "Practical observation, completed POST result logs."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "8.2",
+      "sessionTitle": "Component Testing Techniques & Tools",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Perform component tests using techniques/tools."
+      ],
+      "trainerActivities": [
+        "Demo diagnostic software (e.g., MemTest86, HDD diagnostics), hardware testers."
+      ],
+      "traineeActivities": [
+        "Run diagnostic tests on assigned components, record outputs."
+      ],
+      "resourcesAndRefs": [
+        "PCs with diagnostic software, multimeters, PSU testers."
+      ],
+      "assessments": [
+        "Product checklist of tests performed, printouts/screenshots of results."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "9.1",
+      "sessionTitle": "Evaluation of Test Results",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Evaluate test results to determine functionality."
+      ],
+      "trainerActivities": [
+        "Guide on interpreting diagnostic outputs (pass/fail, thresholds, benchmarks)."
+      ],
+      "traineeActivities": [
+        "Analyze provided and self-generated test results, make pass/fail judgments."
+      ],
+      "resourcesAndRefs": [
+        "Sample diagnostic reports, evaluation rubrics."
+      ],
+      "assessments": [
+        "Analysis of a diagnostic report, justifying conclusion."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "9.2",
+      "sessionTitle": "Generating Functionality Reports",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Generate computer component's functionality report."
+      ],
+      "trainerActivities": [
+        "Present report template, explain structure (findings, conclusion, recommendation)."
+      ],
+      "traineeActivities": [
+        "Compose a professional report based on their own or sample test data."
+      ],
+      "resourcesAndRefs": [
+        "Report templates, sample reports."
+      ],
+      "assessments": [
+        "Submission of a completed functionality report (portfolio evidence)."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "10.1",
+      "sessionTitle": "LO3 Practical Test",
+      "learningOutcomes": [
+        "Conduct full testing and reporting on an unknown system."
+      ],
+      "trainerActivities": [
+        "Set up assessment stations with PCs having known (to trainer) issues."
+      ],
+      "traineeActivities": [
+        "Isolate, test, evaluate, and report on the functionality of key components."
+      ],
+      "resourcesAndRefs": [
+        "Assessment stations, all diagnostic tools, report templates."
+      ],
+      "assessments": [
+        "Formative Practical Test\u00a0(Observation + Submitted Report)."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "10.2",
+      "sessionTitle": "Project Integration & Review",
+      "learningOutcomes": [
+        "Integrate testing phase into the LO2 project and review."
+      ],
+      "trainerActivities": [
+        "Facilitate session for trainees to test their repaired project PCs and update logs."
+      ],
+      "traineeActivities": [
+        "Perform full functionality test on their project PC, update project documentation."
+      ],
+      "resourcesAndRefs": [
+        "Project PCs, diagnostic tools."
+      ],
+      "assessments": [
+        "Updated project logbook with test results and report."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "11.1",
+      "sessionTitle": "Introduction to Maintenance & Scheduling",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Explain maintenance types and prepare schedules."
+      ],
+      "trainerActivities": [
+        "Lecture on preventive/corrective maintenance. Demo schedule templates (weekly, monthly)."
+      ],
+      "traineeActivities": [
+        "Identify maintenance types from scenarios. Draft a schedule for a lab PC."
+      ],
+      "resourcesAndRefs": [
+        "Maintenance plan templates, scenario cards."
+      ],
+      "assessments": [
+        "Submission of a drafted maintenance schedule."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "11.2",
+      "sessionTitle": "Performing Maintenance Procedures",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Perform computer maintenance using utilities."
+      ],
+      "trainerActivities": [
+        "Demo software utilities (disk cleanup, defrag, updates) and hardware cleaning."
+      ],
+      "traineeActivities": [
+        "Perform guided maintenance on lab PCs (software & physical)."
+      ],
+      "resourcesAndRefs": [
+        "PCs, cleaning kits, compressed air, maintenance software."
+      ],
+      "assessments": [
+        "Observation checklist of maintenance tasks performed."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "12.1",
+      "sessionTitle": "Generating Maintenance Reports",
+      "learningOutcomes": [
+        "By the end of the lesson, the trainees should:\u00a0Generate computer maintenance report."
+      ],
+      "trainerActivities": [
+        "Show sample reports, explain data to include (tasks done, findings, next schedule)."
+      ],
+      "traineeActivities": [
+        "Write a report based on the maintenance they performed in session 11.2."
+      ],
+      "resourcesAndRefs": [
+        "Maintenance report templates."
+      ],
+      "assessments": [
+        "Submission of completed maintenance report."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "12.2",
+      "sessionTitle": "Unit Wrap-up & Final Portfolio Submission",
+      "learningOutcomes": [
+        "Review all unit competencies and finalize portfolios."
+      ],
+      "trainerActivities": [
+        "Facilitate review session, check portfolio completeness, administer final practical and oral tests."
+      ],
+      "traineeActivities": [
+        "Compile portfolio, participate in review, sit for final practical and oral tests."
+      ],
+      "resourcesAndRefs": [
+        "Portfolio checklist, final theory Practical checklist."
+      ],
+      "assessments": [
+        "Final Practical and oral tests,\u00a0Final Portfolio of Evidence."
+      ],
+      "reflectionsAndDate": ""
+    }
+  ]
+}

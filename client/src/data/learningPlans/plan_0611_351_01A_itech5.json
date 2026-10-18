@@ -1,0 +1,541 @@
+{
+  "metadata": {
+    "formNumber": "MTTI/F/CUR/02",
+    "institution": "MUKIRIA TECHNICAL TRAINING INSTITUTE",
+    "unitTitle": "APPLY COMPUTER PROGRAMMING PRINCIPLES",
+    "unitCode": "0611 351 01A",
+    "trainerName": "ADAMS LANGAT",
+    "level": "5",
+    "dateOfPreparation": "2026-05-06",
+    "dateOfRevision": "2026-05-06",
+    "numberOfTrainees": 11,
+    "cohortCode": "ITECH5/J/M/25",
+    "skillsSummary": [
+      "This unit covers the competencies required to apply computer programming principles. It involves applying computer programming skills, demonstrating structured programming skills and demonstrating object-oriented programming skills."
+    ],
+    "elementsAndPerformanceCriteria": [
+      {
+        "elementTitle": "Apply computer programming principles",
+        "criteria": [
+          "Programming language types are identified as per the user requirements",
+          "Programming paradigms are applied as per user requirements.",
+          "Program development life cycle is applied as per the work requirements.",
+          "Program design tools are applied as per the user requirements.",
+          "Program writing tools are identified as per the system requirements.",
+          "Identifiers are declared as per program design specification.",
+          "Initialization of variables and constants is performed according to program design specifications.",
+          "User-defined data types are applied as per system requirements.",
+          "Computer program input is created as per program design.",
+          "Data control structures in a program are applied as per program design requirements.",
+          "Data structures in a program are applied as per program design specifications.",
+          "Computer program subroutines are created as per user needs.",
+          "Computer program output is coded as per user requirements.",
+          "Computer program debugging is performed as per work procedures.",
+          "Computer program is compiled as per system requirements.",
+          "Objects and classes are implemented as per work procedures.",
+          "Objects methods are declared as per application requirements",
+          "Namespaces are applied as per wok procedures",
+          "Data abstraction concepts are applied as per work procedures.",
+          "Object encapsulations are applied as per work procedures.",
+          "Class templates are implemented as per application requirements.",
+          "Class inheritance is implemented as per application requirements.",
+          "Polymorphism is implemented as per application requirements."
+        ]
+      }
+    ],
+    "preparedBy": {
+      "name": "ADAMS KIPKIRUI LANGAT",
+      "date": "08/05/2026"
+    },
+    "approvedBy": {
+      "name": "LYDIA KITHEKA",
+      "date": "",
+      "title": "DP Academics"
+    }
+  },
+  "schedule": [
+    {
+      "week": 1,
+      "sessionNumber": "1",
+      "sessionTitle": "Programming language types are identified as per the user requirements",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design a programming language type based on user requirements  - Configure a programming language type for a specific user requirement  - Implement a programming language type for a user-defined problem"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Introduce programming language types and their applications  2. Demonstrate configuring a programming language type  3. Guide trainees in implementing a programming language type"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply programming language types to solve a real-world problem  2. Configure a programming language type for a given user requirement  3. Implement a programming language type for a user-defined problem"
+      ],
+      "resourcesAndRefs": [
+        "1. Programming language documentation and examples  2. Programming language configuration tools  3. Programming language development tools"
+      ],
+      "assessments": [
+        "1. Present the designed programming language type and its implementation  2. Verify the configured programming language type meets the user requirement  3. Test and debug the implemented programming language type"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 1,
+      "sessionNumber": "2",
+      "sessionTitle": "Programming paradigms are applied as per user requirements.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design a program using object-oriented programming (OOP) principles  - Implement a program using functional programming (FP) paradigm  - Troubleshoot a program using imperative programming (IP) paradigm"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate OOP concepts and best practices  2. Configure a FP environment and provide examples  3. Provide a sample program and troubleshooting scenarios"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply OOP principles to design a program  2. Implement a program using FP principles  3. Troubleshoot the program using IP principles"
+      ],
+      "resourcesAndRefs": [
+        "1. Java or Python programming software  2. Haskell or Lisp programming software  3. C or C++ programming software"
+      ],
+      "assessments": [
+        "1. Submit a program design document  2. Run and test the implemented program  3. Submit a troubleshooting report"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "1",
+      "sessionTitle": "Program development life cycle is applied as per the work requirements.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Apply the program development life cycle to meet work requirements  - Design a program development plan that meets work requirements  - Implement a program development plan to meet work requirements"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate the program development life cycle stages  2. Guide trainees in designing a program development plan  3. Facilitate trainees in implementing a program development plan"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Identify and explain the stages of the program development life cycle  2. Design a program development plan for a given work requirement  3. Implement a program development plan for a given work requirement"
+      ],
+      "resourcesAndRefs": [
+        "1. Program development life cycle diagram, work requirements document  2. Program development plan template, work requirements document  3. Program development plan, work requirements document"
+      ],
+      "assessments": [
+        "1. Present a program development plan for a given work requirement  2. Submit a program development plan for review  3. Present the implemented program development plan"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "2",
+      "sessionTitle": "Program design tools are applied as per the user requirements.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design a program using CDACC principles  - Identify user requirements for program design  - Configure program design tools for user requirements"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate CDACC principles and tools  2. Guide trainees in identifying user requirements  3. Configure program design tools for demonstration"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply CDACC principles to design a program  2. Identify and document user requirements  3. Configure program design tools for own program"
+      ],
+      "resourcesAndRefs": [
+        "1. CDACC manual, design templates  2. User requirement templates, interview guides  3. Program design software, user manuals"
+      ],
+      "assessments": [
+        "1.   2.   3."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "1",
+      "sessionTitle": "Program writing tools are identified as per the system requirements.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Identify and list program writing tools required for a given system requirement  - Configure a program writing tool to meet a specific system requirement  - Design a program writing tool to meet a specific system requirement"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate the use of program writing tools in a real-world scenario.  2. Guide trainees in configuring a program writing tool for a given system requirement.  3. Facilitate a group discussion on designing program writing tools for a given system requirement."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply the identified program writing tools to a given system requirement.  2. Configure a program writing tool to meet a specific system requirement.  3. Design a program writing tool to meet a specific system requirement."
+      ],
+      "resourcesAndRefs": [
+        "1. Integrated Development Environment (IDE) software, programming language documentation  2. Program writing tool documentation, system requirement specifications  3. System requirement specifications, program writing tool design guidelines"
+      ],
+      "assessments": [
+        "1. Present a list of identified program writing tools and explain their application in the given scenario.  2. Demonstrate the configured program writing tool and explain its application in the given scenario.  3. Present a design for a program writing tool and explain its application in the given scenario."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "2",
+      "sessionTitle": "Identifiers are declared as per program design specification.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design identifiers for a program according to its design specification  - Explain the impact of incorrect identifiers on program execution  - Configure a program to use declared identifiers"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate the importance of identifiers in program design  2. Explain the consequences of incorrect identifiers  3. Configure a program to use declared identifiers"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply the design specification to declare identifiers  2. Troubleshoot a program with incorrect identifiers  3. Configure a program to use declared identifiers"
+      ],
+      "resourcesAndRefs": [
+        "1. Program design specification document  2. Program execution logs  3. Program configuration tool"
+      ],
+      "assessments": [
+        "1. Design a program with declared identifiers  2. Analyze a program with incorrect identifiers  3. Configure a program to use declared identifiers"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "1",
+      "sessionTitle": "Initialization of variables and constants is performed according to program design specifications.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design and initialize variables and constants in a program according to specifications  - Explain the importance of proper initialization of variables and constants in program design  - Troubleshoot and debug issues related to variable and constant initialization in a program"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate the process of variable and constant initialization.  2. Discuss the implications of improper initialization on program behavior.  3. Guide the trainees in identifying and resolving initialization-related issues."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply the demonstrated process to initialize variables and constants in a given program.  2. Describe the consequences of improper initialization and propose solutions.  3. Apply problem-solving skills to troubleshoot and debug initialization issues in a given program."
+      ],
+      "resourcesAndRefs": [
+        "1. Integrated Development Environment (IDE) software  2. Program design documentation  3. Debugging tools and documentation"
+      ],
+      "assessments": [
+        "1. Implement the initialization process in a program and demonstrate its functionality.  2. Prepare a written report on the importance of proper initialization.  3. Present a case study of troubleshooting and debugging initialization issues."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "2",
+      "sessionTitle": "User-defined data types are applied as per system requirements.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design and implement user-defined data types to meet system requirements  - Configure user-defined data types to optimize system performance  - Troubleshoot issues related to user-defined data types in a system"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate the creation of user-defined data types using a programming language.  2. Explain the importance of data type optimization and provide examples.  3. Identify and explain common issues related to user-defined data types."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply user-defined data types to solve a given problem scenario.  2. Configure user-defined data types to optimize system performance in a given scenario.  3. Troubleshoot issues related to user-defined data types in a given system scenario."
+      ],
+      "resourcesAndRefs": [
+        "1. Programming language software and sample problem scenarios.  2. System performance optimization tools and documentation.  3. System documentation and troubleshooting tools."
+      ],
+      "assessments": [
+        "1.   2.   3."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "1",
+      "sessionTitle": "Computer program input is created as per program design.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design a program input data structure  - Create a program input data file  - Implement program input data validation"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate program design principles  2. Configure program input data file format  3. Troubleshoot program input data validation issues"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply design principles to create a program input data structure  2. Apply configured format to create a program input data file  3. Apply program input data validation techniques"
+      ],
+      "resourcesAndRefs": [
+        "1. Program design tools and software  2. Text editor or program input data file creation tool  3. Program input data validation tools and software"
+      ],
+      "assessments": [
+        "1. Verify the designed data structure meets program requirements  2. Verify the created data file meets program input requirements  3. Verify the implemented validation meets program requirements"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "2",
+      "sessionTitle": "Data control structures in a program are applied as per program design requirements.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design a program using control structures to meet specific requirements  - Implement control structures in a program to control the flow of data  - Troubleshoot and debug a program that uses control structures"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate the application of control structures in a program.  2. Configure a program to use control structures for data control.  3. Troubleshoot a program that uses control structures."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply control structures in a program to meet specific design requirements.  2. Implement control structures in a program to control the flow of data.  3. Troubleshoot and debug a program that uses control structures."
+      ],
+      "resourcesAndRefs": [
+        "1. Programming software and sample programs  2. Programming software and sample programs  3. Programming software and sample programs"
+      ],
+      "assessments": [
+        "1. Submit a program that demonstrates the application of control structures.  2. Troubleshoot a program that uses control structures for data control.  3. Debug a program that uses control structures."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "1",
+      "sessionTitle": "Data structures in a program are applied as per program design specifications.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design and apply data structures to meet program requirements  - Configure and implement data structures in a program  - Troubleshoot and optimize data structures in a program"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate data structure design principles and best practices.  2. Configure and implement data structures in a sample program.  3. Troubleshoot and optimize data structures in a sample program."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply data structures to a given program design specification.  2. Configure and implement data structures in a given program.  3. Troubleshoot and optimize data structures in a given program."
+      ],
+      "resourcesAndRefs": [
+        "1. Data structure design tools and software  2. Programming software and data structure implementation tools  3. Debugging tools and performance analysis software"
+      ],
+      "assessments": [
+        "1. Present and justify the chosen data structure design.  2. Troubleshoot and debug data structure implementation issues.  3. Justify and present optimization decisions made."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "2",
+      "sessionTitle": "Computer program subroutines are created as per user needs.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design a subroutine to perform a specific task  - Explain the benefits of using subroutines in programming  - Implement a subroutine in a given program"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate the process of creating a subroutine  2. Configure a simple program using subroutines  3. Implement a subroutine in a sample program"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply the concept of subroutine creation to a given problem  2. Troubleshoot a program with subroutines  3. Implement a subroutine in a given program"
+      ],
+      "resourcesAndRefs": [
+        "1. Integrated Development Environment (IDE) software  2. Programming textbook  3. Sample program code"
+      ],
+      "assessments": [
+        "1. Submit a written report on the designed subroutine  2. Participate in a group discussion on the benefits of subroutines  3. Present the implemented subroutine to the class"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "1",
+      "sessionTitle": "Computer program output is coded as per user requirements.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design a program to meet user specifications  - Apply coding principles to meet user requirements  - Implement user requirements into a working program  - Troubleshoot program output to meet user requirements"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate how to write a program from user requirements  2. Guide trainees on coding best practices  3. Walk trainees through the implementation process  4. Show trainees how to debug a program"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Write a program based on user requirements  2. Apply coding principles to a given user requirement  3. Implement user requirements into a working program  4. Troubleshoot program output to meet user requirements"
+      ],
+      "resourcesAndRefs": [
+        "1. Integrated Development Environment (IDE) software  2. Coding standards documentation  3. Compiler or interpreter software  4. Debugging tools and software"
+      ],
+      "assessments": [
+        "1.   2.   3.   4."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "2",
+      "sessionTitle": "Computer program debugging is performed as per work procedures.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Troubleshoot program errors using debugging tools and procedures  - Analyze and interpret program debug output to identify and fix errors  - Document debugging procedures and results for future reference"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate the use of debugging tools and procedures.  2. Guide trainees in analyzing and interpreting debug output.  3. Model documentation of debugging procedures and results."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply debugging tools and procedures to troubleshoot program errors.  2. Analyze and interpret debug output to identify and fix errors.  3. Document debugging procedures and results."
+      ],
+      "resourcesAndRefs": [
+        "1. Debugging software and tools  2. Debugging software and tools  3. Documentation software"
+      ],
+      "assessments": [
+        "1. Troubleshoot program errors using debugging tools and procedures  2. Analyze and interpret debug output to identify and fix errors  3. Document debugging procedures and results"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "1",
+      "sessionTitle": "Computer program is compiled as per system requirements.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design a program that meets specific system requirements  - Compile a program to ensure it meets system requirements  - Troubleshoot issues with compiled program"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate how to write a program that meets system requirements.  2. Guide trainees in compiling a program to meet system requirements.  3. Model troubleshooting process for compiled program issues."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Write a program that meets system requirements.  2. Compile a program to meet system requirements.  3. Troubleshoot issues with compiled program."
+      ],
+      "resourcesAndRefs": [
+        "1. Text editor or IDE, system requirements documentation  2. Compiler, system requirements documentation  3. Debugging tools, system requirements documentation"
+      ],
+      "assessments": [
+        "1. Submit program code for review and feedback.  2. Test compiled program to ensure it meets system requirements.  3. Present solution to issue with compiled program."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "2",
+      "sessionTitle": "Objects and classes are implemented as per work procedures.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design and implement a class to manage inventory  - Apply object-oriented programming principles to manage data  - Implement object and class relationships to manage data"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate how to create a class in a programming language  2. Explain the concept of object-oriented programming and its benefits  3. Demonstrate how to create object and class relationships in a programming language"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Configure a class to manage inventory using a programming language  2. Apply object-oriented programming principles to design and implement a data management system  3. Design and implement object and class relationships to manage data using a programming language"
+      ],
+      "resourcesAndRefs": [
+        "1. Programming language software and a sample inventory dataset  2. Object-oriented programming documentation and a sample data management scenario  3. Programming language software and a sample data management scenario"
+      ],
+      "assessments": [
+        "1. Implement and test the class to ensure it meets the requirements  2. Troubleshoot and optimize the data management system to ensure it meets the requirements  3. Test and validate the object and class relationships to ensure they meet the requirements"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "1",
+      "sessionTitle": "Objects methods are declared as per application requirements",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Determine the correct method to declare objects in an application  - Explain the use of constructors in object declaration  - Identify and correct common errors in object declaration  - Implement object declaration in a real-world application scenario"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate different object declaration methods in a sample application  2. Explain the concept of constructors and their role in object declaration  3. Troubleshoot common errors in object declaration in a sample code  4. Walk through a real-world application scenario and demonstrate object declaration"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply different object declaration methods in a coding exercise  2. Design a simple class with a constructor to create objects  3. Troubleshoot and correct errors in object declaration in a coding exercise  4. Implement object declaration in a real-world application scenario"
+      ],
+      "resourcesAndRefs": [
+        "1. Integrated Development Environment (IDE) with object-oriented programming features  2. Whiteboard or presentation software  3. Sample code with errors and debugging tools  4. Real-world application code or a case study"
+      ],
+      "assessments": [
+        "1.   2.   3.   4."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "2",
+      "sessionTitle": "Namespaces are applied as per wok procedures",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate understanding of namespace application in work procedures  - Configure namespaces in a work procedure  - Apply namespaces in a real-world scenario  - Troubleshoot namespace application issues"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Explain the importance of namespaces in work procedures  2. Guide trainees in configuring namespaces  3. Provide a real-world scenario for namespace application  4. Discuss common namespace application issues"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Identify and label namespaces in a given scenario  2. Configure namespaces in a work procedure template  3. Apply namespaces to a real-world scenario  4. Troubleshoot namespace application issues in a case study"
+      ],
+      "resourcesAndRefs": [
+        "1. Work procedure manual, example scenarios  2. Namespace configuration tool, work procedure template  3. Real-world scenario case study, namespace guidelines  4. Namespace troubleshooting guide, case study"
+      ],
+      "assessments": [
+        "1. Complete a namespace application exercise  2. Submit configured namespace template for review  3. Present namespace application plan for feedback  4. Submit troubleshooting plan for review"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "1",
+      "sessionTitle": "Data abstraction concepts are applied as per work procedures.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design and apply data abstraction concepts to simplify complex work procedures  - Configure data abstraction techniques to improve data analysis and visualization  - Troubleshoot data abstraction errors and apply corrective actions"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate the application of data abstraction concepts in a real-world scenario.  2. Configure a data abstraction technique to improve data analysis and visualization.  3. Troubleshoot data abstraction errors and apply corrective actions."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply data abstraction concepts to simplify a complex work procedure.  2. Configure a data abstraction technique to improve data analysis and visualization.  3. Troubleshoot and correct data abstraction errors."
+      ],
+      "resourcesAndRefs": [
+        "1. Sample work procedures, data abstraction templates  2. Data analysis software, data visualization tools  3. Error logs, troubleshooting guides"
+      ],
+      "assessments": [
+        "1.   2.   3."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "2",
+      "sessionTitle": "Object encapsulations are applied as per work procedures.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design and implement object encapsulation in software development  - Explain the benefits of object encapsulation in software development  - Troubleshoot object encapsulation issues in software development"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate object-oriented programming principles  2. Discuss the advantages of object-oriented programming  3. Identify and explain common encapsulation errors"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply object encapsulation in a given programming task  2. Configure a simple program to demonstrate encapsulation  3. Troubleshoot and fix encapsulation issues in a given program"
+      ],
+      "resourcesAndRefs": [
+        "1. Integrated Development Environment (IDE) software  2. Object-oriented programming documentation  3. Error handling documentation"
+      ],
+      "assessments": [
+        "1.   2.   3."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "1",
+      "sessionTitle": "Class templates are implemented as per application requirements.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design a template for a specific application  - Configure a template for a specific application  - Implement a template for a specific application"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate how to identify application requirements  2. Explain how to identify configuration requirements  3. Show how to implement a template for a specific application"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply knowledge to design a template for a specific application  2. Troubleshoot a template configuration issue  3. Implement a template for a specific application"
+      ],
+      "resourcesAndRefs": [
+        "1. Template design software  2. Application software  3. Application software"
+      ],
+      "assessments": [
+        "1. Submit a designed template for review  2. Demonstrate configuration of a template  3. Submit a implemented template for review"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "2",
+      "sessionTitle": "Class inheritance is implemented as per application requirements.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design a class hierarchy to implement inheritance in an application  - Configure the application to use the designed class hierarchy  - Troubleshoot issues with class inheritance in the application  - Implement class inheritance in a real-world application scenario"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate how to create a base class and a derived class in a programming language.  2. Explain how to configure the application to use the newly created class hierarchy.  3. Discuss common issues that may arise when implementing class inheritance and how to troubleshoot them.  4. Provide a case study of a real-world application that uses class inheritance and explain its implementation."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Create a simple class hierarchy and implement inheritance in a provided code snippet.  2. Apply the designed class hierarchy to a sample application and configure it to use the inherited classes.  3. Identify and troubleshoot a sample application with inheritance issues and apply fixes.  4. Design and implement class inheritance in a real-world application scenario and present the solution."
+      ],
+      "resourcesAndRefs": [
+        "1. Integrated Development Environment (IDE) with a programming language (e.g., Java, C++)  2. Sample application code and IDE with debugging tools  3. Debugging tools and error logs  4. Real-world application code and documentation"
+      ],
+      "assessments": [
+        "1.   2.   3.   4."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "1",
+      "sessionTitle": "Polymorphism is implemented as per application requirements.",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Design and implement polymorphic classes to meet application requirements  - Configure the application to use polymorphism effectively  - Troubleshoot polymorphism-related issues in the application  - Evaluate the effectiveness of polymorphism implementation in the application"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Demonstrate polymorphism using a real-world example.  2. Configure the application to use polymorphism.  3. Identify and troubleshoot common polymorphism-related issues.  4. Evaluate the effectiveness of polymorphism implementation."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Apply polymorphism in a given scenario.  2. Configure the application to apply polymorphism in a given scenario.  3. Troubleshoot polymorphism-related issues in a given scenario.  4. Evaluate the effectiveness of polymorphism implementation in a given scenario."
+      ],
+      "resourcesAndRefs": [
+        "1. Integrated Development Environment (IDE) with polymorphism features  2. Polymorphism configuration guide and application code  3. Polymorphism troubleshooting guide and application code  4. Polymorphism evaluation checklist and application code"
+      ],
+      "assessments": [
+        "1.   2.   3.   4."
+      ],
+      "reflectionsAndDate": ""
+    }
+  ]
+}

@@ -9,6 +9,9 @@ import planEe5DigitalLiteracy from "../client/src/data/learningPlans/plan_0611_4
 import planItech5WorkEthics from "../client/src/data/learningPlans/plan_IT_OS_ICTA_BC_02_5_MA_itech5.json";
 import planItech5InstallSoftware from "../client/src/data/learningPlans/plan_IT_OS_ICTA_CR_01_5_MA_itech5.json";
 import planMisManageIS from "../client/src/data/learningPlans/plan_IT_OS_ICT_CR_8_6_mis.json";
+import planItech5Programming from "../client/src/data/learningPlans/plan_0611_351_01A_itech5.json";
+import planItech6WebsiteDesign from "../client/src/data/learningPlans/plan_IT_CU_ICT_CR_5_6_itech6.json";
+import planIct4RepairGreenwood from "../client/src/data/learningPlans/plan_ICT_CU_ICTA_CC_02_4_A_ict4_itech6.json";
 import {
   OFFICIAL_LEARNING_PLANS,
   getOfficialLearningPlan,
@@ -467,9 +470,98 @@ describe("Learning Plan Fidelity & Verbatim Digitization Suite (Form MTTI/F/CUR/
     });
   });
 
+  describe("Official Plan: APPLY COMPUTER PROGRAMMING PRINCIPLES (0611 351 01A / ITECH5/J/M/25)", () => {
+    const progPlan = planItech5Programming as LearningPlanRecord;
+
+    it("should extract metadata verbatim for Computer Programming Principles", () => {
+      expect(progPlan.metadata.unitTitle).toBe("APPLY COMPUTER PROGRAMMING PRINCIPLES");
+      expect(progPlan.metadata.unitCode).toBe("0611 351 01A");
+      expect(progPlan.metadata.trainerName).toBe("ADAMS LANGAT");
+      expect(progPlan.metadata.level).toBe("5");
+      expect(progPlan.metadata.numberOfTrainees).toBe(11);
+      expect(progPlan.metadata.cohortCode).toBe("ITECH5/J/M/25");
+      expect(progPlan.metadata.formNumber).toBe("MTTI/F/CUR/02");
+    });
+
+    it("should extract exactly 1 element block with 23 criteria", () => {
+      expect(progPlan.metadata.elementsAndPerformanceCriteria.length).toBe(1);
+      expect(progPlan.metadata.elementsAndPerformanceCriteria[0].criteria.length).toBe(23);
+    });
+
+    it("should contain exactly 23 scheduled sessions across 12 weeks", () => {
+      expect(progPlan.schedule.length).toBe(23);
+      expect(progPlan.schedule[0].sessionTitle).toBe(
+        "Programming language types are identified as per the user requirements"
+      );
+      expect(progPlan.schedule[22].sessionTitle).toBe(
+        "Polymorphism is implemented as per application requirements."
+      );
+    });
+  });
+
+  describe("Official Plan: WEBSITE DESIGN (IT/CU/ICT/CR/5/6 / ITECH6/M/S/24)", () => {
+    const webPlan = planItech6WebsiteDesign as LearningPlanRecord;
+
+    it("should extract metadata verbatim for Website Design", () => {
+      expect(webPlan.metadata.unitTitle).toBe("WEBSITE DESIGN");
+      expect(webPlan.metadata.unitCode).toBe("IT/CU/ICT/CR/5/6");
+      expect(webPlan.metadata.trainerName).toBe("ADAMS LANGAT");
+      expect(webPlan.metadata.level).toBe("6");
+      expect(webPlan.metadata.numberOfTrainees).toBe(20);
+      expect(webPlan.metadata.cohortCode).toBe("ITECH6/M/S/24");
+      expect(webPlan.metadata.formNumber).toBe("MTTI/F/CUR/02");
+    });
+
+    it("should extract exactly 1 element block with 29 criteria", () => {
+      expect(webPlan.metadata.elementsAndPerformanceCriteria.length).toBe(1);
+      expect(webPlan.metadata.elementsAndPerformanceCriteria[0].criteria.length).toBe(29);
+    });
+
+    it("should contain exactly 24 scheduled sessions across 12 weeks", () => {
+      expect(webPlan.schedule.length).toBe(24);
+      expect(webPlan.schedule[0].sessionTitle).toBe(
+        "Gather data required for web site development"
+      );
+      expect(webPlan.schedule[23].sessionTitle).toBe("END OF TERM ASSESMENT");
+    });
+  });
+
+  describe("Official Plan: COMPUTER REPAIR AND MAINTENANCE (ICT/CU/ICTA/CC/02/4/A / ICT4/J/26/ITECH6/J/26)", () => {
+    const repairPlan = planIct4RepairGreenwood as LearningPlanRecord;
+
+    it("should extract metadata verbatim for Greenwood Computer Repair", () => {
+      expect(repairPlan.metadata.unitTitle).toBe("COMPUTER REPAIR AND MAINTENANCE");
+      expect(repairPlan.metadata.unitCode).toBe("ICT/CU/ICTA/CC/02/4/A");
+      expect(repairPlan.metadata.trainerName).toBe("GREENWOOD N. MAERIA");
+      expect(repairPlan.metadata.level).toBe("4&6");
+      expect(repairPlan.metadata.numberOfTrainees).toBe(27);
+      expect(repairPlan.metadata.cohortCode).toBe("ICT4/J/26/ITECH6/J/26");
+      expect(repairPlan.metadata.formNumber).toBe("MTTI/F/CUR/02");
+    });
+
+    it("should extract exactly 4 element blocks with 5 criteria", () => {
+      expect(repairPlan.metadata.elementsAndPerformanceCriteria.length).toBe(4);
+      const totalCriteria = repairPlan.metadata.elementsAndPerformanceCriteria.reduce(
+        (sum, el) => sum + el.criteria.length,
+        0
+      );
+      expect(totalCriteria).toBe(5);
+    });
+
+    it("should contain exactly 25 scheduled sessions across 12 weeks", () => {
+      expect(repairPlan.schedule.length).toBe(25);
+      expect(repairPlan.schedule[0].sessionTitle).toBe(
+        "Introduction to C.R.M. & User Data Process"
+      );
+      expect(repairPlan.schedule[24].sessionTitle).toBe(
+        "Unit Wrap-up & Final Portfolio Submission"
+      );
+    });
+  });
+
   describe("Lookup & UI Model Conversion Integrity", () => {
-    it("should ensure all 13 official digitized plans are loaded into OFFICIAL_LEARNING_PLANS", () => {
-      expect(OFFICIAL_LEARNING_PLANS.length).toBe(13);
+    it("should ensure all 16 official digitized plans are loaded into OFFICIAL_LEARNING_PLANS", () => {
+      expect(OFFICIAL_LEARNING_PLANS.length).toBe(16);
     });
 
     it("should successfully retrieve plan by unit code 'IT/CU/ICTA/CR/04/4/MA'", () => {
@@ -488,6 +580,25 @@ describe("Learning Plan Fidelity & Verbatim Digitization Suite (Form MTTI/F/CUR/
       const retrieved = getOfficialLearningPlan("IT/OS/ICT/CR/8/6");
       expect(retrieved).toBeDefined();
       expect(retrieved?.metadata.unitTitle).toBe("MANAGE INFORMATION SYSTEM");
+    });
+
+    it("should successfully retrieve plan by unit code '0611 351 01A'", () => {
+      const retrieved = getOfficialLearningPlan("0611 351 01A");
+      expect(retrieved).toBeDefined();
+      expect(retrieved?.metadata.trainerName).toBe("ADAMS LANGAT");
+      expect(retrieved?.metadata.cohortCode).toBe("ITECH5/J/M/25");
+    });
+
+    it("should successfully retrieve plan by unit code 'IT/CU/ICT/CR/5/6'", () => {
+      const retrieved = getOfficialLearningPlan("IT/CU/ICT/CR/5/6");
+      expect(retrieved).toBeDefined();
+      expect(retrieved?.metadata.unitTitle).toBe("WEBSITE DESIGN");
+    });
+
+    it("should successfully retrieve plan by unit code 'ICT/CU/ICTA/CC/02/4/A'", () => {
+      const retrieved = getOfficialLearningPlan("ICT/CU/ICTA/CC/02/4/A");
+      expect(retrieved).toBeDefined();
+      expect(retrieved?.metadata.trainerName).toBe("GREENWOOD N. MAERIA");
     });
   });
 });

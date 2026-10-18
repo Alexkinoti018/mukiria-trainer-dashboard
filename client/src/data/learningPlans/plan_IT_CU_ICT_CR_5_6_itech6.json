@@ -1,0 +1,558 @@
+{
+  "metadata": {
+    "formNumber": "MTTI/F/CUR/02",
+    "institution": "MUKIRIA TECHNICAL TRAINING INSTITUTE",
+    "unitTitle": "WEBSITE DESIGN",
+    "unitCode": "IT/CU/ICT/CR/5/6",
+    "trainerName": "ADAMS LANGAT",
+    "level": "6",
+    "dateOfPreparation": "2026-05-05",
+    "dateOfRevision": "",
+    "numberOfTrainees": 20,
+    "cohortCode": "ITECH6/M/S/24",
+    "skillsSummary": [
+      "This unit specifies competencies required Design a Website. It involves gathering data required, determining website design tool, developing functional website, host website developed and perform website routine maintenance."
+    ],
+    "elementsAndPerformanceCriteria": [
+      {
+        "elementTitle": "Website Design Competencies",
+        "criteria": [
+          "Host Website developed",
+          "Importance of website testing",
+          "Components of the website functionalities",
+          "Creation, update and archiving of contents",
+          "Generate maintenance report as per internal policy",
+          "Gather data required",
+          "Meaning of web terms.",
+          "Importance of website",
+          "Types of websites",
+          "Website requirements",
+          "Web Programming languages",
+          "Types of website authoring tools",
+          "Criteria of choosing website authoring tools",
+          "Installation and configuration of website authoring tools",
+          "Use of website authoring tools",
+          "Determine Website design tool",
+          "Html coding",
+          "Scripting",
+          "Java Scripting",
+          "PHP",
+          "Database creation",
+          "Database linkage",
+          "Develop functional website",
+          "Website hosting process",
+          ".Factors to consider when selecting a host",
+          "Legal and regulatory requirements",
+          "Domain name",
+          "Uploading web site",
+          "Security measures"
+        ]
+      }
+    ],
+    "preparedBy": {
+      "name": "ADAMS KIPKIRUI LANGAT",
+      "date": "07/01/2026"
+    },
+    "approvedBy": {
+      "name": "LYDIA KITHEKA",
+      "date": "",
+      "title": "DP Academics"
+    }
+  },
+  "schedule": [
+    {
+      "week": 1,
+      "sessionNumber": "1",
+      "sessionTitle": "Gather data required for web site development",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate how to identify and gather client requirements for a website project  - Apply techniques to research and analyze target audience for the website  - Design a sitemap and wireframes to organize the website structure and content  - Implement a content plan and inventory for the website"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Guide trainees through the process of conducting a client interview to gather website requirements  2. Provide instruction on user persona development and audience research methods  3. Demonstrate the process of creating sitemaps and wireframes using design software  4. Guide trainees through the steps of creating a content plan and inventory"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Participate in a mock client interview to practice gathering website requirements  2. Create user personas based on provided audience research data  3. Develop a sitemap and wireframes for a sample website project  4. Develop a content plan and inventory for the sample website project"
+      ],
+      "resourcesAndRefs": [
+        "1. Sample client interview questions, website requirement gathering templates  2. User persona templates, online audience research tools  3. Sitemap and wireframing software (e.g., Balsamiq, Figma), website structure best practices  4. Content planning templates, content inventory examples"
+      ],
+      "assessments": [
+        "1. Trainees submit a summary of the client requirements gathered during the mock interview  2. Trainees present their developed user personas and key audience insights  3. Trainees submit their sitemap and wireframe designs for review  4. Trainees present their content plan and inventory for the website"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 1,
+      "sessionNumber": "2",
+      "sessionTitle": "Determine Website design tool",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the ability to identify and evaluate different website design tools based on specific project requirements  - Apply the selected website design tool to create a basic website layout and structure  - Implement basic design principles and techniques using the selected website design tool  - Troubleshoot common issues and challenges encountered when using the selected website design tool"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Provide an overview of popular website design tools, highlighting their features, capabilities, and use cases.  2. Demonstrate the process of using the selected website design tool to create a simple website layout, including adding pages, sections, and basic design elements.  3. Provide an overview of web design principles, such as color theory, typography, and layout, and demonstrate how to apply them using the selected website design tool.  4. Introduce common issues and challenges that may arise when using the selected website design tool, and demonstrate strategies for troubleshooting and resolving them."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Research and compare various website design tools, considering factors such as ease of use, functionality, and compatibility with project requirements.  2. Trainees will use the selected website design tool to create a basic website layout and structure for their project.  3. Trainees will apply design principles and techniques to enhance the visual appeal and usability of their website layout.  4. Trainees will work through simulated or real-world issues related to the use of the website design tool and apply troubleshooting techniques to resolve them."
+      ],
+      "resourcesAndRefs": [
+        "1. Laptops, internet access, presentation materials on website design tools.  2. Laptops with the selected website design tool installed, project requirements, and sample website layouts.  3. Laptops with the selected website design tool, design resources (e.g., color palettes, font libraries), and examples of well-designed websites.  4. Laptops with the selected website design tool, documentation, and online resources for troubleshooting."
+      ],
+      "assessments": [
+        "1. Trainees will select a website design tool that best fits their project requirements and justify their choice.  2. Trainees will present their created website layout and receive feedback from the trainer and peers.  3. Trainees will receive feedback from the trainer and peers on the effectiveness of their design implementation.  4. Trainees will demonstrate their ability to identify and resolve issues encountered when using the website design tool."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "1",
+      "sessionTitle": "HTML Coding",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the ability to design a hotel booking system user interface using HTML and CSS  - Apply JavaScript to implement dynamic functionality in the hotel booking system  - Configure a backend server using Node.js to handle hotel booking requests  - Implement a database solution to store and retrieve hotel booking data"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Guide trainees through the process of creating a basic HTML structure and applying CSS styling to create an appealing and responsive hotel booking system interface  2. Demonstrate how to use JavaScript to add interactivity and dynamic behavior to the hotel booking system, such as form validation and date selection  3. Guide trainees through the process of setting up a Node.js server to receive and process hotel booking requests, including data storage and retrieval  4. Demonstrate how to set up a database (e.g., MongoDB, MySQL) to store and manage hotel booking data, and how to integrate it with the Node.js server"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Develop a hotel booking system user interface using HTML and CSS, incorporating elements such as forms, buttons, and layout  2. Integrate JavaScript into the hotel booking system to enhance the user experience, including features like date picker, form validation, and room availability checking  3. Develop a Node.js server to handle hotel booking requests, including creating API endpoints, managing data storage, and integrating with the front-end application  4. Integrate a database solution into the hotel booking system to store and retrieve booking data, ensuring data persistence and consistency"
+      ],
+      "resourcesAndRefs": [
+        "1. HTML and CSS reference materials, web development tools (e.g., text editor, web browser)  2. JavaScript reference materials, web development tools (e.g., text editor, web browser)  3. Node.js documentation, web development tools (e.g., text editor, web server)  4. Database management system documentation (e.g., MongoDB, MySQL), web development tools (e.g., text editor, database management tool)"
+      ],
+      "assessments": [
+        "1. Evaluate the trainee's hotel booking system interface for visual appeal, responsiveness, and adherence to best practices  2. Assess the trainee's ability to effectively integrate JavaScript into the hotel booking system and create a seamless user experience  3. Evaluate the trainee's ability to configure a functional Node.js server that can handle hotel booking requests and integrate with the front-end application  4. Assess the trainee's ability to successfully implement a database solution and integrate it with the Node.js server to manage hotel booking data"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "2",
+      "sessionTitle": "Types of scripting languages and functions of scripting languages",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the ability to identify and differentiate between common scripting languages such as Bash, Python, and JavaScript  - Apply the basic syntax and structure of a scripting language (e.g., Bash, Python) to create a simple script that performs a specific task  - Explain the key functions and use cases of scripting languages in various domains, such as system administration, data analysis, and web development  - Troubleshoot and debug simple scripting language issues, such as syntax errors, variable assignment problems, and logical errors"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Present an overview of popular scripting languages, their syntax, and use cases.  2. Demonstrate the process of writing a basic script, including variables, control structures, and functions.  3. Discuss real-world examples of how scripting languages are used in different industries and applications.  4. Demonstrate common troubleshooting techniques, including the use of debugging tools and error messages."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Participate in a guided discussion to identify the key features and applications of different scripting languages.  2. Develop a short script (e.g., a Bash or Python script) that performs a simple task such as file manipulation or system automation.  3. Participate in a brainstorming session to identify potential use cases for scripting languages in their own work or personal projects.  4. Practice debugging a provided script with known issues, using the techniques discussed."
+      ],
+      "resourcesAndRefs": [
+        "1. Presentation slides, sample scripts in various languages, online references.  2. Code editor, scripting language documentation, sample scripts.  3. Industry case studies, online articles, and tutorials.  4. Scripting language documentation, debugging tools, sample scripts with intentional errors."
+      ],
+      "assessments": [
+        "1. Trainee can list and describe at least three scripting languages and their primary functions.  2. Trainee can create and execute a functional script that meets the specified requirements.  3. Trainee can provide at least three examples of how scripting languages can be applied in different contexts.  4. Trainee can identify and resolve at least two common scripting language issues in a given script."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "1",
+      "sessionTitle": "JavaScript Statements and JavaScript Variables",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the proper syntax and usage of JavaScript statements, including assignment, arithmetic, and logical operators  - Apply the concept of JavaScript variables to store and manipulate data  - Implement JavaScript statements and variables to solve simple programming problems  - Troubleshoot and debug issues related to JavaScript statements and variables"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Introduce the basic syntax of JavaScript statements and provide examples of their usage. Guide trainees through hands-on exercises to practice writing statements.  2. Explain the purpose and usage of variables in JavaScript, including variable declaration, assignment, and data types. Demonstrate variable-related operations.  3. Present a set of programming challenges and guide trainees through the process of solving them using JavaScript statements and variables.  4. Introduce common syntax errors and logical issues that can arise when working with JavaScript statements and variables. Demonstrate debugging techniques using browser developer tools."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Write JavaScript code to demonstrate the application of various statements, such as variable assignment, arithmetic operations, and logical comparisons.  2. Create and use variables to store and manipulate different data types, such as numbers, strings, and booleans.  3. Analyze the given programming problems, plan the solution, and write JavaScript code to implement the solution.  4. Identify and fix errors in provided JavaScript code samples, using debugging tools and techniques to identify and resolve issues."
+      ],
+      "resourcesAndRefs": [
+        "1. Code editor (e.g., Visual Studio Code), JavaScript reference documentation  2. Code editor, JavaScript reference documentation  3. Code editor, JavaScript reference documentation, problem-solving worksheets  4. Code editor, browser developer tools (e.g., Chrome DevTools, Firefox Developer Tools), JavaScript reference documentation"
+      ],
+      "assessments": [
+        "1. Evaluate trainees' ability to correctly write and apply JavaScript statements in a given scenario.  2. Assess trainees' understanding of variables by having them complete exercises involving variable declaration, assignment, and data manipulation.  3. Evaluate trainees' ability to apply their knowledge of JavaScript statements and variables to solve practical programming problems.  4. Assess trainees' ability to troubleshoot and debug problems related to JavaScript statements and variables in a given code snippet."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "2",
+      "sessionTitle": "JavaScript Data Types and  Functions",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the use of primitive and non-primitive data types in JavaScript  - Apply the use of functions to perform specific tasks in JavaScript  - Demonstrate the use of built-in JavaScript functions to manipulate data  - Design and implement custom functions to solve complex problems"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Explain the different data types in JavaScript, including numbers, strings, booleans, null, undefined, and objects  2. Introduce the syntax and structure of functions, including parameters, return values, and function expressions  3. Showcase various built-in functions, such as string, array, and math functions, and their practical applications  4. Discuss the process of creating and structuring custom functions, including the use of parameters, return values, and function scope"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Identify the data types of given variables and perform basic operations on them  2. Create and call functions to perform simple calculations and manipulations  3. Use built-in functions to perform common data manipulation tasks  4. Develop and test custom functions to address specific programming challenges"
+      ],
+      "resourcesAndRefs": [
+        "1. JavaScript reference guides, online code editors  2. JavaScript function documentation, sample code snippets  3. JavaScript standard library documentation, online code playgrounds  4. JavaScript function design patterns, online coding tutorials"
+      ],
+      "assessments": [
+        "1. Correctly classify the data types of sample variables  2. Implement a function to solve a given problem  3. Apply appropriate built-in functions to solve a given data manipulation problem  4. Implement a custom function to solve a complex problem"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "1",
+      "sessionTitle": "JavaScript Objects and Events",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the creation and manipulation of JavaScript objects using object literals, constructors, and prototypes  - Apply event handling techniques to respond to user interactions in a web page using JavaScript  - Design and implement a simple interactive user interface using JavaScript objects and events  - Troubleshoot common issues related to JavaScript objects and events, and apply appropriate debugging techniques"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Introduce the concept of JavaScript objects and their different creation methods. Provide examples and guide the trainees through hands-on exercises.  2. Explain the concept of events in JavaScript, including common event types and how to attach event listeners to HTML elements.  3. Guide the trainees through the process of creating a simple user interface, such as a modal window or a dropdown menu, using JavaScript objects and event handling.  4. Introduce common problems that may arise when working with JavaScript objects and events, and demonstrate effective debugging strategies using browser developer tools."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Create various types of JavaScript objects using object literals, constructors, and prototypes. Experiment with adding, modifying, and accessing object properties and methods.  2. Implement event handlers for different user interactions (e.g., click, hover, keypress) and demonstrate their functionality on a web page.  3. Develop a user interface component that demonstrates the integration of JavaScript objects and event handling to create an interactive experience.  4. Identify and resolve issues in provided code samples related to object creation, property access, and event handling, using appropriate debugging techniques."
+      ],
+      "resourcesAndRefs": [
+        "1. Code editor (e.g., Visual Studio Code), JavaScript reference documentation  2. Web browser, JavaScript event reference documentation  3. Code editor, JavaScript libraries (e.g., jQuery, React, Angular)  4. Browser developer tools (e.g., Chrome DevTools, Firefox Developer Tools), JavaScript debugging reference materials"
+      ],
+      "assessments": [
+        "1. Assess the trainees' understanding by having them create a complex object with nested properties and methods, and then demonstrate its usage.  2. Evaluate the trainees' ability to create a web page with multiple interactive elements that respond to various user events.  3. Assess the trainees' ability to create a functional and visually appealing user interface component that responds to user interactions.  4. Evaluate the trainees' ability to diagnose and fix issues in a complex JavaScript-based application that utilizes objects and events."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "2",
+      "sessionTitle": "JavaScript String, Numbers and Arrays",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the creation and manipulation of JavaScript strings  - Apply JavaScript number operations and conversions  - Implement the creation and manipulation of JavaScript arrays  - Design a simple program that utilizes strings, numbers, and arrays"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Explain the different string methods and their use cases  2. Introduce numeric data types and demonstrate arithmetic operations  3. Explain array structure, indexing, and common array methods  4. Guide trainees through the development of a mini-project"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Practice creating and modifying strings using various string methods  2. Implement number-based calculations and type conversions  3. Create and modify arrays using various array functions  4. Develop a program that integrates the concepts of strings, numbers, and arrays"
+      ],
+      "resourcesAndRefs": [
+        "1. JavaScript reference guides, code editor  2. JavaScript math functions documentation, calculator  3. JavaScript array methods reference, code editor  4. Integrated development environment (IDE), sample programs"
+      ],
+      "assessments": [
+        "1. Assess trainee's ability to perform common string operations  2. Evaluate trainee's understanding of number manipulation  3. Assess trainee's proficiency in working with arrays  4. Evaluate the trainee's ability to apply the learned concepts in a practical scenario"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "1",
+      "sessionTitle": "Importance of PHP and PHP Syntax",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the importance of PHP in web development and its key features  - Configure a basic PHP development environment  - Apply basic PHP syntax and language constructs  - Design a simple PHP-based web page"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Introduce PHP as a server-side scripting language, highlighting its widespread use in web development and its key features such as dynamic content generation, database integration, and cross-platform compatibility  2. Guide learners through the installation and setup of a PHP development environment, including a web server (e.g., Apache or Nginx) and a text editor or IDE  3. Introduce the fundamental syntax of PHP, including variables, data types, operators, control structures, and functions  4. Demonstrate the integration of PHP with HTML to create dynamic web pages, including the use of PHP to generate content and handle user input"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Participate in a discussion on the advantages of using PHP for web development, citing real-world examples of PHP-powered websites and applications  2. Install and configure a PHP development environment on their own devices, following the trainer's instructions  3. Practice writing and executing simple PHP scripts that demonstrate the use of variables, data types, operators, and control structures  4. Develop a simple PHP-based web page that includes dynamic content and user input handling"
+      ],
+      "resourcesAndRefs": [
+        "1. Presentation slides, sample PHP scripts, and online resources on PHP  2. Installation guides for PHP, Apache/Nginx, and text editors/IDEs  3. PHP language reference, sample PHP scripts, and online coding platforms  4. PHP and HTML reference materials, web development frameworks (e.g., Laravel, CodeIgniter)"
+      ],
+      "assessments": [
+        "1. Learners will explain the key reasons for using PHP in web development and identify at least three major features of the language  2. Learners will successfully set up a PHP development environment and demonstrate the ability to create and run a simple PHP script  3. Learners will create a PHP script that demonstrates the correct use of variables, data types, operators, and control structures  4. Learners will design and implement a basic PHP-based web page that displays dynamic content and handles user input"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "2",
+      "sessionTitle": "PHP Variables and PHP Data Types",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the declaration and usage of PHP variables with different data types  - Apply the appropriate PHP data types based on the requirements of the program  - Demonstrate the use of variable scope and variable lifetime in PHP  - Implement variable type conversion and type juggling in PHP programs"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Explain the concept of variables in PHP, including their declaration, assignment, and naming conventions  2. Introduce the various data types available in PHP (e.g., scalar, compound, special) and their characteristics  3. Explain the concept of variable scope (local, global, static) and variable lifetime (function-level, script-level)  4. Demonstrate the use of type conversion functions (e.g., settype(), intval(), floatval()) and type juggling in PHP"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Participate in hands-on exercises to declare and use variables with different data types (e.g., integers, floats, strings, booleans)  2. Analyze sample scenarios and determine the most suitable data types to use in PHP programs  3. Participate in exercises to create and use variables with different scopes and lifetimes  4. Practice writing PHP code that involves type conversion and type juggling"
+      ],
+      "resourcesAndRefs": [
+        "1. PHP documentation, sample code examples  2. PHP data type reference, coding exercises  3. PHP scope and lifetime documentation, sample code  4. PHP type conversion and juggling reference, coding exercises"
+      ],
+      "assessments": [
+        "1. Assess trainees' ability to correctly declare and use variables with different data types in a PHP script  2. Evaluate trainees' ability to select and use the appropriate data types in PHP programs  3. Assess trainees' understanding of variable scope and lifetime through code-based assessments  4. Evaluate trainees' ability to correctly apply type conversion and type juggling techniques in PHP programs"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "1",
+      "sessionTitle": "PHP Functions and PHP Arrays",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the creation and usage of custom PHP functions  - Apply the concepts of PHP arrays, including indexing, manipulation, and traversal  - Implement the use of built-in PHP array functions to perform common array-related tasks  - Design and implement a PHP script that combines the use of functions and arrays to solve a practical problem"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Explain the syntax and structure of PHP functions, including parameters and return values. Provide examples of user-defined functions.  2. Explain the different types of PHP arrays (indexed, associative, and multidimensional) and demonstrate common array operations such as creating, accessing, and modifying array elements.  3. Introduce and demonstrate the usage of various built-in PHP array functions, such as array_push(), array_pop(), array_merge(), and array_search().  4. Provide a real-world problem scenario and guide the participants through the process of designing a solution using PHP functions and arrays."
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Participants will create their own PHP functions with different parameters and return types, and test them in a PHP development environment.  2. Participants will create various types of PHP arrays, perform array operations, and write scripts to manipulate and traverse the arrays.  3. Participants will practice using the introduced array functions in their own PHP scripts to solve array-related problems.  4. Participants will work on developing a PHP script that incorporates both functions and arrays to solve the given problem scenario."
+      ],
+      "resourcesAndRefs": [
+        "1. PHP documentation, sample code snippets, integrated development environment (IDE) or code editor  2. PHP documentation, sample code snippets, integrated development environment (IDE) or code editor  3. PHP documentation, sample code snippets, integrated development environment (IDE) or code editor  4. PHP documentation, sample code snippets, integrated development environment (IDE) or code editor"
+      ],
+      "assessments": [
+        "1. Participants will be asked to write a PHP script that utilizes multiple self-defined functions to perform specific tasks.  2. Participants will be asked to write a PHP script that creates and manipulates arrays to solve a specific problem.  3. Participants will be asked to write a PHP script that utilizes multiple built-in array functions to perform a specific task.  4. Participants will present their PHP script solution and demonstrate its functionality to the class."
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "2",
+      "sessionTitle": "PHP Forms",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the creation of a basic PHP form to collect user input  - Apply form validation techniques to ensure data integrity  - Design a PHP form with dynamic elements and interactivity  - Troubleshoot common PHP form-related issues and implement error handling"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Explain the structure and components of a PHP form, including the use of HTML form elements and PHP script to handle form submissions  2. Discuss common form validation methods, including server-side and client-side validation, and demonstrate their implementation in PHP  3. Introduce techniques for creating dynamic forms, such as using AJAX, jQuery, or JavaScript to update form elements based on user interactions  4. Discuss common PHP form-related issues, such as form submission errors, file uploads, and security vulnerabilities, and demonstrate appropriate error handling techniques"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Develop a simple PHP form to collect user information such as name, email, and message  2. Implement form validation rules to check for required fields, email format, and other relevant validations  3. Develop a PHP form with dynamic features, such as cascading dropdown menus or real-time field validation  4. Identify and resolve issues in a PHP form, including implementing error handling and security measures"
+      ],
+      "resourcesAndRefs": [
+        "1. PHP documentation, code editor, web server  2. PHP documentation, code examples, validation libraries  3. PHP documentation, JavaScript libraries (e.g., jQuery, AJAX), code examples  4. PHP documentation, error handling libraries, security best practices"
+      ],
+      "assessments": [
+        "1. Assess the trainee's ability to create a functional PHP form and handle form submissions  2. Evaluate the trainee's ability to apply appropriate form validation techniques  3. Assess the trainee's ability to design and implement a PHP form with dynamic elements  4. Evaluate the trainee's ability to troubleshoot and handle errors in a PHP form"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "1",
+      "sessionTitle": "Database creation",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the process of creating a relational database using a DBMS  - Apply SQL commands to manipulate data within the created database  - Design and implement database backup and restoration procedures  - Troubleshoot common database connectivity and performance issues"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Guide trainees through the steps of creating a new database, defining tables, and establishing relationships  2. Provide examples and guide trainees through SQL queries for data insertion, retrieval, updating, and deletion  3. Demonstrate backup and restoration techniques using the DBMS tools  4. Guide trainees through the identification and resolution of database connection problems and performance bottlenecks"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Independently create a relational database with appropriate tables and relationships  2. Practice executing various SQL commands to interact with the database  3. Perform database backups and restorations independently  4. Diagnose and address database-related issues in a practical scenario"
+      ],
+      "resourcesAndRefs": [
+        "1. DBMS software (e.g., MySQL, PostgreSQL, SQLite), sample database schemas  2. SQL syntax reference, sample SQL scripts  3. DBMS backup and restore utilities, sample backup scripts  4. Database performance monitoring tools, troubleshooting documentation"
+      ],
+      "assessments": [
+        "1. Evaluate the trainees' created database for proper structure and functionality  2. Assess trainees' ability to correctly perform SQL operations on the database  3. Evaluate the trainees' ability to successfully backup and restore the database  4. Assess the trainees' ability to identify and resolve database-related problems"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "2",
+      "sessionTitle": "Database linkage",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the process of connecting a MYSQL database to a web application  - Apply MYSQL queries to perform CRUD (Create, Read, Update, Delete) operations on a database  - Design a relational database schema to support a web application  - Troubleshoot common issues in MYSQL database connectivity and query execution"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Guide learners through the steps to establish a connection between a MYSQL database and a web application using PHP or Python  2. Demonstrate the syntax and usage of common MYSQL query types, including SELECT, INSERT, UPDATE, and DELETE  3. Guide learners through the process of identifying entities, attributes, and relationships to create a normalized database schema  4. Discuss common error messages and troubleshooting techniques for MYSQL database connectivity and query execution problems"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Configure the necessary database connection parameters and write code to connect to the MYSQL database from a web application  2. Write MYSQL queries to perform various data manipulation tasks on a sample database  3. Develop a relational database schema for a given web application use case, including defining tables, columns, and relationships  4. Identify and resolve issues in sample code that demonstrates MYSQL database connectivity and query execution"
+      ],
+      "resourcesAndRefs": [
+        "1. MYSQL workbench, PHP or Python development environment, web server software  2. MYSQL documentation, sample database schema  3. Database design best practices, MYSQL workbench  4. MYSQL error documentation, debugging tools"
+      ],
+      "assessments": [
+        "1. Learners will implement a functional web application that can read and write data to a MYSQL database  2. Learners will execute a set of MYSQL queries to manipulate data in the database  3. Learners will present their database schema design and explain the rationale behind their choices  4. Learners will demonstrate their ability to identify and fix issues in MYSQL database integration code"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "1",
+      "sessionTitle": "Website hosting process and",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the process of setting up a website hosting account with a service provider  - Apply the key factors to consider when selecting a web hosting service provider  - Demonstrate the process of transferring an existing website to a new hosting provider  - Design a hosting infrastructure plan for a small-to-medium-sized website, considering scalability and redundancy"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Guide learners through the step-by-step process of creating a hosting account, including domain registration, server configuration, and account management  2. Discuss the important factors such as server performance, storage, bandwidth, security, customer support, and pricing  3. Guide learners through the steps of migrating a website, including domain transfer, database and content migration, and DNS configuration  4. Provide a case study scenario and guide learners through the process of designing a hosting infrastructure plan that meets the website's requirements"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Learners will create their own hosting account and configure the necessary settings  2. Learners will research and evaluate different hosting providers based on the discussed factors  3. Learners will practice transferring a sample website to a new hosting provider  4. Learners will create a hosting infrastructure plan for the given scenario, including server configuration, load balancing, and backup strategies"
+      ],
+      "resourcesAndRefs": [
+        "1. Web hosting service provider platform, domain registration tools  2. Comparison websites for web hosting providers, industry reports and reviews  3. Website migration tools, FTP/SFTP clients, database management software  4. Cloud hosting platforms, content delivery network (CDN) services, database management tools"
+      ],
+      "assessments": [
+        "1. Learners will successfully set up a hosting account and demonstrate the ability to manage their website's hosting  2. Learners will create a comparative analysis of web hosting providers and justify their selection of a suitable provider  3. Learners will successfully migrate a website to a new hosting provider without any downtime or data loss  4. Learners will present their hosting infrastructure plan and justify the design decisions based on the given requirements"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "2",
+      "sessionTitle": "Factors to consider when selecting a web hosting platform",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate understanding of the key factors to consider when selecting a web hosting platform  - Apply the evaluation criteria to compare different web hosting platforms  - Design a web hosting plan that meets the specific requirements of a given scenario  - Troubleshoot common issues related to web hosting platforms"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Introduce the session and provide an overview of the key factors to consider when selecting a web hosting platform  2. Guide trainees through a step-by-step process of evaluating web hosting platforms based on the identified factors  3. Provide a realistic scenario and guide trainees through the process of selecting the most appropriate web hosting platform  4. Introduce common web hosting issues and demonstrate troubleshooting techniques"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Participate in a group discussion to identify the most important factors to consider  2. Individually or in pairs, research and compare various web hosting platforms using the evaluation criteria  3. Develop a web hosting plan for the given scenario, considering the key factors and their importance  4. Participate in hands-on activities to identify and resolve web hosting-related problems"
+      ],
+      "resourcesAndRefs": [
+        "1. Presentation slides, sample web hosting platform comparison charts  2. Laptops/computers, internet access, web hosting platform comparison tools  3. Scenario description, web hosting platform information, pricing and feature comparison  4. Troubleshooting guides, web hosting platform documentation, sample web hosting issues"
+      ],
+      "assessments": [
+        "1. Completed worksheet identifying the key factors and their importance  2. Presentation of the web hosting platform comparison and recommendations  3. Submission of the web hosting plan with a justification for the selected platform  4. Successful resolution of web hosting-related problems during the hands-on activities"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "1",
+      "sessionTitle": "Legal and regulatory requirements and Domain name",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate understanding of legal and regulatory requirements for domain name registration in Kenya  - Apply the process of domain name registration in Kenya  - Implement strategies to protect and manage a registered domain name  - Troubleshoot common issues related to domain name registration and management"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Provide an overview of the legal and regulatory framework governing domain name registration in Kenya, including relevant laws, policies, and guidelines  2. Guide trainees through the step-by-step process of domain name registration, including selecting a registrar, choosing a domain name, and completing the registration  3. Discuss best practices for domain name management, including renewal, security, and dispute resolution  4. Provide examples of common domain name-related issues and guide trainees through the troubleshooting process"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Discuss the key legal and regulatory requirements for domain name registration and their importance  2. Participate in a hands-on exercise to register a domain name using an accredited registrar  3. Develop a plan for maintaining and protecting a registered domain name  4. Participate in a case study-based exercise to identify and resolve domain name-related problems"
+      ],
+      "resourcesAndRefs": [
+        "1. Copies of relevant laws, policies, and guidelines; sample domain name registration forms  2. Laptop or computer with internet access, domain name registrar website  3. Samples of domain name renewal and management policies, information on domain name dispute resolution  4. Case studies of domain name-related issues, troubleshooting guides"
+      ],
+      "assessments": [
+        "1. Explain the legal and regulatory requirements for domain name registration in Kenya  2. Successfully register a domain name and provide proof of registration  3. Describe strategies for protecting and managing a registered domain name  4. Demonstrate the ability to troubleshoot and resolve common domain name-related issues"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "2",
+      "sessionTitle": "Uploading web site",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the process of uploading a website to a web server  - Apply basic security measures to protect a website from common threats  - Design a backup and recovery plan for a website  - Troubleshoot common website hosting and deployment issues"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Guide learners through the steps of uploading a website using FTP or web-based tools  2. Discuss common website security vulnerabilities and best practices for mitigation  3. Explain the importance of website backups and guide learners through the backup process  4. Provide scenarios of website hosting and deployment problems and guide learners through the troubleshooting process"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Learners practice uploading a sample website to a web server  2. Learners configure security settings for a website, such as SSL/TLS, password protection, and file permissions  3. Learners create a backup of the website and test the restoration process  4. Learners identify and resolve simulated website hosting and deployment issues"
+      ],
+      "resourcesAndRefs": [
+        "1. FTP client software, web-based file management tools  2. Web server security configuration tools, SSL/TLS certificates  3. Backup software, cloud storage services  4. Web server logs, diagnostic tools"
+      ],
+      "assessments": [
+        "1. Learners successfully upload a website and verify its accessibility  2. Learners demonstrate the implementation of security measures and test the website's resilience  3. Learners successfully restore the website from a backup and verify its functionality  4. Learners demonstrate the ability to troubleshoot and resolve website hosting and deployment problems"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "1",
+      "sessionTitle": "website security",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the configuration of a web server with secure protocols and settings  - Apply web application security best practices to protect against common vulnerabilities  - Design a secure network architecture for a website, including firewalls, intrusion detection, and monitoring  - Implement security measures to protect against web-based attacks, such as distributed denial-of-service (DDoS) and bot attacks"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Provide an overview of common web server security configurations, including HTTPS, SSL/TLS, and server hardening techniques  2. Discuss common web application vulnerabilities, such as SQL injection, cross-site scripting (XSS), and cross-site request forgery (CSRF), and demonstrate mitigation techniques  3. Explain the principles of secure network architecture for websites, including the use of firewalls, intrusion detection systems, and monitoring tools  4. Demonstrate techniques for mitigating DDoS and bot attacks, including the use of content delivery networks (CDNs), rate limiting, and bot detection"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Configure a web server with secure protocols and settings in a lab environment  2. Implement security measures to protect a web application against common vulnerabilities in a lab environment  3. Create a network diagram and configuration for a secure website infrastructure in a lab environment  4. Configure security measures to protect a website against DDoS and bot attacks in a lab environment"
+      ],
+      "resourcesAndRefs": [
+        "1. Web server software (e.g., Apache, Nginx), SSL/TLS certificates, security hardening guides  2. Web application security frameworks (e.g., OWASP), secure coding guidelines, vulnerability scanning tools  3. Network security devices (e.g., firewalls, IDS/IPS), network monitoring tools, network security best practices  4. DDoS mitigation services, bot detection tools, web application firewalls (WAFs)"
+      ],
+      "assessments": [
+        "1. Assess the trainee's ability to correctly configure the web server with secure settings  2. Evaluate the trainee's ability to identify and mitigate web application vulnerabilities  3. Assess the trainee's ability to design a secure network architecture for a website  4. Evaluate the trainee's ability to implement effective security measures against web-based attacks"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "2",
+      "sessionTitle": "Importance of website testing",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the importance of website testing in ensuring a high-quality user experience  - Apply different website testing techniques to identify and address common issues  - Design a comprehensive website testing plan for a given web application  - Implement a website testing strategy to ensure continuous quality improvement"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Discuss the key aspects of website testing, including functionality, usability, performance, and security  2. Introduce various website testing methods, such as unit testing, integration testing, and end-to-end testing  3. Guide trainees through the process of creating a website testing plan, including test scenarios, test cases, and test data  4. Discuss the importance of integrating website testing into the software development lifecycle and the role of automation"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Participate in a group discussion on the impact of website testing on customer satisfaction and business success  2. Perform a series of website tests on a provided sample website and document the findings  3. Develop a website testing plan for a hypothetical web application, considering various testing types and stakeholder requirements  4. Propose a strategy for implementing continuous website testing and quality assurance practices in a web development project"
+      ],
+      "resourcesAndRefs": [
+        "1. Presentation slides, sample websites, and case studies  2. Web development tools (e.g., Selenium, Cypress, Postman), sample websites  3. Template for website testing plan, examples of testing plans  4. Case studies on successful website testing strategies, automation tools"
+      ],
+      "assessments": [
+        "1. Identify and explain at least three benefits of comprehensive website testing  2. Demonstrate the ability to select and apply appropriate testing techniques to identify and resolve website issues  3. Present and justify the key components of the website testing plan developed for the hypothetical web application  4. Demonstrate the ability to recommend a website testing strategy that aligns with the principles of continuous integration and continuous deployment"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "1",
+      "sessionTitle": "Components of the website functionalities",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the ability to identify and describe the key components of a website's functionality  - Apply the principles of responsive web design to configure a website's layout and user interface  - Design and implement a content management system (CMS) for a website  - Troubleshoot common website functionality issues and implement appropriate solutions"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Provide an overview of the common components of website functionality, such as navigation, content management, user interaction, and backend systems  2. Demonstrate the use of responsive web design techniques, including the use of CSS media queries and flexible grid systems  3. Explain the key features and functionalities of a CMS, and demonstrate the process of setting up and configuring a CMS platform  4. Introduce common website functionality issues, such as broken links, slow page load times, and user interface problems, and demonstrate troubleshooting techniques"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Participate in a group discussion to identify and discuss the various components of website functionality  2. Implement a responsive layout for a sample website using HTML and CSS  3. Develop a simple CMS-powered website, including creating content types, managing content, and setting up user roles and permissions  4. Identify and resolve functionality issues in a sample website, using appropriate tools and techniques"
+      ],
+      "resourcesAndRefs": [
+        "1. Presentation slides, sample websites, and technical documentation  2. Web development tools (e.g., text editor, web browser), CSS frameworks (e.g., Bootstrap, Foundation)  3. CMS platforms (e.g., WordPress, Drupal, Joomla), CMS development tools and plugins  4. Web development tools (e.g., browser developer tools, website performance testing tools), technical documentation and online resources"
+      ],
+      "assessments": [
+        "1. Trainee can list and explain the key components of website functionality  2. Trainee can create a responsive website layout that adapts to different screen sizes  3. Trainee can create and manage a CMS-powered website with custom content types and user roles  4. Trainee can identify and resolve common website functionality issues"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "2",
+      "sessionTitle": "Creation, update and archiving of website contents",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the process of creating a new website page using a content management system (CMS)  - Apply techniques to update and modify existing website content  - Design an effective website content archiving system  - Implement a website content backup and restoration process"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Provide a step-by-step guide on creating a new webpage in a CMS, highlighting key considerations  2. Demonstrate methods for updating text, images, and other elements on a webpage  3. Discuss the importance of archiving website content and present strategies for implementation  4. Guide learners through the steps of backing up and restoring website content"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Learners create a new webpage in the CMS, applying best practices discussed  2. Learners update content on an existing webpage in the CMS  3. Learners develop a plan for archiving website content, including file organization and storage  4. Learners configure a website backup and restoration process in the CMS"
+      ],
+      "resourcesAndRefs": [
+        "1. CMS software (e.g., WordPress, Drupal), web design templates  2. CMS software, web design tools (e.g., image editors)  3. Cloud storage solutions, content management best practices  4. CMS backup and restore functionality, cloud storage integration"
+      ],
+      "assessments": [
+        "1. Learners present their newly created webpage and explain the process  2. Learners showcase the updated webpage and discuss the changes made  3. Learners present their website content archiving plan and explain its key components  4. Learners demonstrate the backup and restoration of website content"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "1",
+      "sessionTitle": "Generate website maintenance report as per internal policy",
+      "learningOutcomes": [
+        "By the end of the lesson, trainees should be able to:  - Demonstrate the process of generating a website maintenance report based on internal policy guidelines  - Apply the appropriate data collection and analysis techniques to gather relevant information for the website maintenance report  - Configure the website maintenance report template to include all the required information as per the internal policy  - Implement the process of generating and submitting the website maintenance report within the specified timelines"
+      ],
+      "trainerActivities": [
+        "Trainer to:  1. Provide an overview of the internal policy for website maintenance reporting and guide trainees through the report generation process  2. Explain the data collection and analysis methods required for the website maintenance report  3. Demonstrate the use of the website maintenance report template and guide trainees on how to customize it  4. Provide guidance on the timelines and submission process for the website maintenance report"
+      ],
+      "traineeActivities": [
+        "Trainees to:  1. Follow the steps to generate a website maintenance report as per the internal policy  2. Collect and analyze the necessary data from website maintenance logs and other relevant sources  3. Customize the website maintenance report template to include all the necessary information  4. Generate the website maintenance report and submit it within the specified timelines"
+      ],
+      "resourcesAndRefs": [
+        "1. Internal policy document, website maintenance logs, reporting templates  2. Website maintenance logs, data analysis software, reporting templates  3. Website maintenance report template, internal policy document  4. Reporting timelines, submission guidelines, communication channels"
+      ],
+      "assessments": [
+        "1. Review the generated website maintenance report for compliance with the internal policy  2. Assess the quality and completeness of the data collected and analyzed for the website maintenance report  3. Review the configured website maintenance report template for compliance with the internal policy  4. Verify the timely submission of the website maintenance report"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "2",
+      "sessionTitle": "END OF TERM ASSESMENT",
+      "learningOutcomes": [],
+      "trainerActivities": [],
+      "traineeActivities": [],
+      "resourcesAndRefs": [],
+      "assessments": [],
+      "reflectionsAndDate": ""
+    }
+  ]
+}

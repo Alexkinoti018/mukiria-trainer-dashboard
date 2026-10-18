@@ -12,6 +12,9 @@ import planEe5DigitalLiteracy from "./plan_0611_441_02B_ee5.json";
 import planItech5WorkEthics from "./plan_IT_OS_ICTA_BC_02_5_MA_itech5.json";
 import planItech5InstallSoftware from "./plan_IT_OS_ICTA_CR_01_5_MA_itech5.json";
 import planMisManageIS from "./plan_IT_OS_ICT_CR_8_6_mis.json";
+import planItech5Programming from "./plan_0611_351_01A_itech5.json";
+import planItech6WebsiteDesign from "./plan_IT_CU_ICT_CR_5_6_itech6.json";
+import planIct4RepairGreenwood from "./plan_ICT_CU_ICTA_CC_02_4_A_ict4_itech6.json";
 
 export * from "./types";
 
@@ -29,6 +32,9 @@ export const OFFICIAL_LEARNING_PLANS: LearningPlanRecord[] = [
   planItech5WorkEthics as LearningPlanRecord,
   planItech5InstallSoftware as LearningPlanRecord,
   planMisManageIS as LearningPlanRecord,
+  planItech5Programming as LearningPlanRecord,
+  planItech6WebsiteDesign as LearningPlanRecord,
+  planIct4RepairGreenwood as LearningPlanRecord,
 ];
 
 /**
@@ -87,7 +93,6 @@ export function convertRecordToLearningPlanDocument(
   }));
 
   const weeks = record.schedule.map((s, idx) => {
-    // Parse numeric session start from string e.g. "1&2" -> 1, "3,4,5&6" -> 3
     const firstDigit = parseInt(s.sessionNumber.match(/\d+/)?.[0] || String(idx + 1), 10);
     return {
       week: s.week,
