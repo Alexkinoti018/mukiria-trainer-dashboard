@@ -28,18 +28,24 @@ import {
   FileText,
   ExternalLink,
   ChevronRight,
-  Filter
+  Filter,
+  Eye,
+  X,
+  Printer,
+  Sparkles
 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 interface ModularProgressionViewerProps {
   onSelectUnit?: (unitTitle: string, unitCode?: string) => void;
 }
 
 export default function ModularProgressionViewer({ onSelectUnit }: ModularProgressionViewerProps) {
+  const [, navigate] = useLocation();
   const [selectedLevel, setSelectedLevel] = useState<TVETLevel | 'ALL'>('ALL');
   const [activeModule, setActiveModule] = useState<TVETModuleConfig>(TVET_MODULES[0]);
   const [selectedUnit, setSelectedUnit] = useState<TVETProgressionUnit | null>(TVET_MODULES[0].units[0]);
+  const [previewPlan, setPreviewPlan] = useState<LearningPlanRecord | null>(null);
 
   // Find digitized plans associated with the active module
   const plansForActiveModule = OFFICIAL_LEARNING_PLANS.filter((p) => {
@@ -541,18 +547,261 @@ export default function ModularProgressionViewer({ onSelectUnit }: ModularProgre
                     <span>{plan.schedule.length} Sessions</span>
                   </div>
 
-                  <Link href={`/learning-plan?code=${encodeURIComponent(plan.metadata.unitCode)}`}>
-                    <button className="w-full mt-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground text-xs font-semibold transition-all">
-                      <span>View Form MTTI/F/CUR/02</span>
-                      <ArrowRight className="w-3 h-3" />
+                  <div className="grid grid-cols-2 gap-2 mt-2 pt-1 border-t border-border/40">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewPlan(plan)}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[#000953] text-white hover:bg-[#000953]/90 text-xs font-semibold transition-all shadow-xs"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-amber-400" />
+                      <span>View Form</span>
                     </button>
-                  </Link>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate(
+                          `/trainer/documents/learning-plan?code=${encodeURIComponent(
+                            plan.metadata.unitCode
+                          )}&cohort=${encodeURIComponent(plan.metadata.cohortCode)}`
+                        )
+                      }
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground border border-border text-xs font-semibold transition-all"
+                    >
+                      <span>Open Studio</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* Official Form MTTI/F/CUR/02 Verbatim Preview Modal */}
+      {previewPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-black/70 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white text-slate-900 rounded-2xl max-w-5xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden border border-slate-300 animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="bg-[#000953] text-white p-4 px-6 flex items-center justify-between shrink-0">
+              <div className="space-y-0.5">
+                <div className="text-[11px] font-mono text-amber-300 font-semibold tracking-wider uppercase">
+                  {previewPlan.metadata.formNumber} • {previewPlan.metadata.institution}
+                </div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-amber-400" />
+                  {previewPlan.metadata.unitTitle} ({previewPlan.metadata.unitCode})
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      `/trainer/documents/learning-plan?code=${encodeURIComponent(
+                        previewPlan.metadata.unitCode
+                      )}&cohort=${encodeURIComponent(previewPlan.metadata.cohortCode)}`
+                    )
+                  }
+                  className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>Open in Studio</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewPlan(null)}
+                  className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition"
+                  aria-label="Close Preview"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50 text-xs">
+              {/* Institutional Document Header Box */}
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-4">
+                <div className="text-center space-y-1 pb-3 border-b border-slate-200">
+                  <div className="text-xs font-bold text-slate-500 tracking-wider uppercase">
+                    {previewPlan.metadata.institution}
+                  </div>
+                  <h4 className="text-base font-bold text-slate-900 uppercase">
+                    Learning Plan — Form {previewPlan.metadata.formNumber}
+                  </h4>
+                  <div className="text-xs font-semibold text-slate-700">
+                    Unit of Competency: {previewPlan.metadata.unitTitle} ({previewPlan.metadata.unitCode})
+                  </div>
+                </div>
+
+                {/* Metadata Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                  <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                    <span className="text-slate-500 block text-[10px] uppercase font-bold">Trainer</span>
+                    <strong className="text-slate-900 text-xs">{previewPlan.metadata.trainerName}</strong>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                    <span className="text-slate-500 block text-[10px] uppercase font-bold">Level</span>
+                    <strong className="text-slate-900 text-xs">Level {previewPlan.metadata.level}</strong>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                    <span className="text-slate-500 block text-[10px] uppercase font-bold">Cohort Code</span>
+                    <strong className="text-slate-900 text-xs">{previewPlan.metadata.cohortCode}</strong>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                    <span className="text-slate-500 block text-[10px] uppercase font-bold">Trainees Count</span>
+                    <strong className="text-slate-900 text-xs">{previewPlan.metadata.numberOfTrainees} Trainees</strong>
+                  </div>
+                </div>
+
+                {/* Skills Summary */}
+                {previewPlan.metadata.skillsSummary.length > 0 && (
+                  <div className="p-3 rounded-lg bg-blue-50/70 border border-blue-200 text-slate-800 space-y-1">
+                    <span className="text-[11px] font-bold text-blue-900 uppercase">Skills Summary / Job Tasks:</span>
+                    <p className="text-xs text-slate-700 leading-relaxed">
+                      {previewPlan.metadata.skillsSummary.join(", ")}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Elements & Performance Criteria */}
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-3">
+                <h5 className="font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                  <Award className="w-4 h-4 text-amber-600" />
+                  Elements of Competency & Performance Criteria ({previewPlan.metadata.elementsAndPerformanceCriteria.length} Elements)
+                </h5>
+                <div className="space-y-3">
+                  {previewPlan.metadata.elementsAndPerformanceCriteria.map((elem, idx) => (
+                    <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-1.5">
+                      <div className="font-bold text-slate-900 text-xs">
+                        {idx + 1}. {elem.elementTitle}
+                      </div>
+                      <ul className="list-disc list-inside space-y-1 text-slate-700 text-[11px]">
+                        {elem.criteria.map((crit, cIdx) => (
+                          <li key={cIdx}>{crit}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 12-Week Scheduled Sessions Table */}
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <h5 className="font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-primary" />
+                    Scheduled Sessions ({previewPlan.schedule.length} Sessions across 12 Weeks)
+                  </h5>
+                  <span className="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono">
+                    Verbatim Digitization
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse border border-slate-300 text-left text-[11px]">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-800">
+                        <th className="p-2 border border-slate-300 w-16 text-center">Wk / Sess</th>
+                        <th className="p-2 border border-slate-300 min-w-[140px]">Session Title</th>
+                        <th className="p-2 border border-slate-300 min-w-[180px]">Learning Outcomes</th>
+                        <th className="p-2 border border-slate-300 min-w-[180px]">Activities</th>
+                        <th className="p-2 border border-slate-300 min-w-[140px]">Resources & Assessment</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {previewPlan.schedule.map((sess, sIdx) => (
+                        <tr key={sIdx} className="hover:bg-slate-50 transition-colors">
+                          <td className="p-2 border border-slate-300 text-center font-bold text-slate-700">
+                            W{sess.week} <br />
+                            <span className="text-[10px] text-slate-500 font-mono">S{sess.sessionNumber}</span>
+                          </td>
+                          <td className="p-2 border border-slate-300 font-semibold text-slate-900">
+                            {sess.sessionTitle}
+                          </td>
+                          <td className="p-2 border border-slate-300 text-slate-700">
+                            {sess.learningOutcomes.join("; ") || "—"}
+                          </td>
+                          <td className="p-2 border border-slate-300 text-slate-700 space-y-1">
+                            {sess.trainerActivities.length > 0 && (
+                              <div>
+                                <strong className="text-slate-900">Trainer:</strong> {sess.trainerActivities.join("; ")}
+                              </div>
+                            )}
+                            {sess.traineeActivities.length > 0 && (
+                              <div>
+                                <strong className="text-slate-900">Trainee:</strong> {sess.traineeActivities.join("; ")}
+                              </div>
+                            )}
+                          </td>
+                          <td className="p-2 border border-slate-300 text-slate-700 space-y-1">
+                            {sess.resourcesAndRefs.length > 0 && (
+                              <div>
+                                <strong className="text-slate-900">Res:</strong> {sess.resourcesAndRefs.join("; ")}
+                              </div>
+                            )}
+                            {sess.assessments.length > 0 && (
+                              <div>
+                                <strong className="text-slate-900">Eval:</strong> {sess.assessments.join("; ")}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Signatures Block */}
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
+                  <span className="text-slate-500 text-[10px] uppercase font-bold block">Prepared By</span>
+                  <div className="font-bold text-slate-900">{previewPlan.metadata.preparedBy.name}</div>
+                  <div className="text-slate-600 text-[11px]">Date: {previewPlan.metadata.preparedBy.date || previewPlan.metadata.dateOfPreparation}</div>
+                </div>
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
+                  <span className="text-slate-500 text-[10px] uppercase font-bold block">Approved By</span>
+                  <div className="font-bold text-slate-900">{previewPlan.metadata.approvedBy.name}</div>
+                  <div className="text-slate-600 text-[11px]">{previewPlan.metadata.approvedBy.title || "DP Academic"}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-slate-100 border-t border-slate-200 px-6 py-3 flex items-center justify-between shrink-0">
+              <span className="text-xs text-slate-500">
+                Official Form MTTI/F/CUR/02 • Mukiria Technical Training Institute
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPreviewPlan(null)}
+                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold rounded-lg transition"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      `/trainer/documents/learning-plan?code=${encodeURIComponent(
+                        previewPlan.metadata.unitCode
+                      )}&cohort=${encodeURIComponent(previewPlan.metadata.cohortCode)}`
+                    )
+                  }
+                  className="px-4 py-2 bg-[#000953] hover:bg-[#000953]/90 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>Open in Full Studio</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

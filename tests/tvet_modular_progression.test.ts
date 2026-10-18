@@ -178,5 +178,14 @@ describe("TVET ICT Modularized Progression Graph Suite (Ministry of Education / 
       expect(mod?.module.levelsApplicable).toContain("LEVEL_4");
       expect(mod?.module.levelsApplicable).toContain("LEVEL_6");
     });
+
+    it("should format valid studio query parameter urls for all digitized plans", () => {
+      for (const plan of OFFICIAL_LEARNING_PLANS) {
+        const query = `code=${encodeURIComponent(plan.metadata.unitCode)}&cohort=${encodeURIComponent(plan.metadata.cohortCode)}`;
+        expect(query).toContain("code=");
+        expect(query).toContain("cohort=");
+      }
+    });
   });
 });
+

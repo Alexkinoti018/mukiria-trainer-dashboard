@@ -21,7 +21,7 @@ import {
   Copy,
   Layers
 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -250,7 +250,7 @@ export default function LearningPlan() {
         }
 
         let updatedWeeks = p.weeks;
-        if (p.weeks && p.weeks.length > 0 && p.weeks[0].week === 1) {
+        if (!p.id.startsWith("official-lp-") && p.weeks && p.weeks.length > 0 && p.weeks[0].week === 1) {
           const w0 = p.weeks[0];
           if (!w0.title.toUpperCase().includes("ADMISSION") && !w0.title.toUpperCase().includes("ORIENTATION")) {
             planUpdated = true;
@@ -281,7 +281,52 @@ export default function LearningPlan() {
     
     setPlans(allPlans);
 
-    // Check if navigated from CurriculumParsingHub with selected unit
+    // 1. Check URL parameters (e.g. ?code=... or ?id=... or ?cohort=...)
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetCode = urlParams.get("code") || urlParams.get("unitCode");
+    const targetId = urlParams.get("id");
+    const targetCohort = urlParams.get("cohort");
+
+    if (targetId) {
+      const match = allPlans.find(p => p.id === targetId);
+      if (match) {
+        setActivePlanId(match.id);
+        setSelectedLevel("all");
+        setSearchTerm("");
+        return;
+      }
+    }
+
+    if (targetCode) {
+      const cleanTarget = targetCode.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+      const match = allPlans.find(p => {
+        const cleanCode = p.unitCode.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+        const cleanTitle = p.unitTitle.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+        return cleanCode === cleanTarget || cleanCode.includes(cleanTarget) || cleanTarget.includes(cleanCode) || cleanTitle.includes(cleanTarget);
+      });
+      if (match) {
+        setActivePlanId(match.id);
+        setSelectedLevel("all");
+        setSearchTerm("");
+        return;
+      }
+    }
+
+    if (targetCohort) {
+      const cleanCohort = targetCohort.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+      const match = allPlans.find(p => {
+        const cleanP = p.classCode.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+        return cleanP.includes(cleanCohort) || cleanCohort.includes(cleanP);
+      });
+      if (match) {
+        setActivePlanId(match.id);
+        setSelectedLevel("all");
+        setSearchTerm("");
+        return;
+      }
+    }
+
+    // 2. Check if navigated from CurriculumParsingHub with selected unit in localStorage
     const savedSelected = localStorage.getItem("selected_curriculum_unit");
     if (savedSelected) {
       try {
@@ -299,6 +344,49 @@ export default function LearningPlan() {
       setActivePlanId(allPlans[0].id);
     }
   }, []);
+
+  // React to URL query parameters when location changes
+  useEffect(() => {
+    if (plans.length === 0) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetCode = urlParams.get("code") || urlParams.get("unitCode");
+    const targetId = urlParams.get("id");
+    const targetCohort = urlParams.get("cohort");
+
+    if (targetId) {
+      const match = plans.find(p => p.id === targetId);
+      if (match && match.id !== activePlanId) {
+        setActivePlanId(match.id);
+        setSelectedLevel("all");
+        return;
+      }
+    }
+    if (targetCode) {
+      const cleanTarget = targetCode.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+      const match = plans.find(p => {
+        const cleanCode = p.unitCode.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+        const cleanTitle = p.unitTitle.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+        return cleanCode === cleanTarget || cleanCode.includes(cleanTarget) || cleanTarget.includes(cleanCode) || cleanTitle.includes(cleanTarget);
+      });
+      if (match && match.id !== activePlanId) {
+        setActivePlanId(match.id);
+        setSelectedLevel("all");
+        return;
+      }
+    }
+    if (targetCohort) {
+      const cleanCohort = targetCohort.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+      const match = plans.find(p => {
+        const cleanP = p.classCode.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+        return cleanP.includes(cleanCohort) || cleanCohort.includes(cleanP);
+      });
+      if (match && match.id !== activePlanId) {
+        setActivePlanId(match.id);
+        setSelectedLevel("all");
+        return;
+      }
+    }
+  }, [location, plans]);
 
   const savePlansToStorage = (updatedPlans: LearningPlanDocument[]) => {
     setPlans(updatedPlans);

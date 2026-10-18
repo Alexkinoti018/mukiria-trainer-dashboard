@@ -132,6 +132,15 @@ function Router() {
       <Route path="/trainer/documents/learning-plan">
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><LearningPlan /></ProtectedRoute>
       </Route>
+      <Route path="/learning-plan">
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><LearningPlan /></ProtectedRoute>
+      </Route>
+      <Route path="/trainer/learning-plan">
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><LearningPlan /></ProtectedRoute>
+      </Route>
+      <Route path="/curriculum-hub">
+        <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><CurriculumParsingHub /></ProtectedRoute>
+      </Route>
       <Route path="/trainer/documents/records-of-work">
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><RecordsOfWork /></ProtectedRoute>
       </Route>
