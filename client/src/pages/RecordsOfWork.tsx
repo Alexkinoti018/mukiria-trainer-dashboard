@@ -32,6 +32,7 @@ import {
 } from "@/lib/mockSessionPlans";
 import curriculumDatabaseRaw from "@/lib/curriculum_database.json";
 import parsedTemplates from "@/lib/parsed_templates.json";
+import { exportRecordOfWorkPdfClientSide } from "@/lib/exportRecordOfWorkPdf";
 
 import { getAcademicContext } from "@/lib/academicCalendar";
 
@@ -176,25 +177,43 @@ export default function RecordsOfWork() {
         records: recordsToExport
       };
 
-      const resp = await fetch("http://localhost:8000/api/merge-row-pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      let exported = false;
+      try {
+        const resp = await fetch("/api/merge-row-pdf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
-      const data = await resp.json();
-      if (data.success && data.file_data) {
-        const bytes = Uint8Array.from(atob(data.file_data), c => c.charCodeAt(0));
-        const blob = new Blob([bytes], { type: "application/pdf" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = data.filename || `MTTI_RoW_Book_${Date.now()}.pdf`;
-        a.click();
-        URL.revokeObjectURL(url);
-        toast.success(`Official RoW Book downloaded (${recordsToExport.length} sessions compiled)!`);
-      } else {
-        throw new Error(data.error || "Compilation failed.");
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.success && data.file_data) {
+            const bytes = Uint8Array.from(atob(data.file_data), (c) => c.charCodeAt(0));
+            const blob = new Blob([bytes], { type: "application/pdf" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = data.filename || `MTTI_RoW_Book_${Date.now()}.pdf`;
+            a.click();
+            URL.revokeObjectURL(url);
+            exported = true;
+            toast.success(`Official RoW Book downloaded (${recordsToExport.length} sessions compiled)!`);
+          }
+        }
+      } catch {
+        // Fall back cleanly to client-side generator
+      }
+
+      if (!exported) {
+        const res = exportRecordOfWorkPdfClientSide({
+          trainerName: payload.trainer_name,
+          department: payload.department,
+          term: payload.term,
+          records: recordsToExport,
+        });
+        toast.success(`Official RoW Book PDF downloaded (${recordsToExport.length} sessions compiled)!`, {
+          description: res.filename,
+        });
       }
     } catch (err: any) {
       console.error(err);

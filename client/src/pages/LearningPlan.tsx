@@ -33,6 +33,7 @@ import {
   getOfficialLearningPlan,
   resolveTVETModuleForUnit
 } from "@/data/learningPlans";
+import { exportLearningPlanWordClientSide } from "@/lib/exportLearningPlanWord";
 
 // --- Types ---
 export interface ElementCriteria {
@@ -759,56 +760,84 @@ export default function LearningPlan() {
     });
   };
 
-  // Export to Word via Backend
+  // Export to Word via Backend or High-Fidelity Client-Side Fallback
   const handleExportWord = async () => {
     if (!activePlan) return;
     setIsExportingWord(true);
     try {
-      const response = await fetch("http://localhost:8000/api/export-learning-plan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          payload: {
-            unit_name: activePlan.unitTitle,
-            unit_code: activePlan.unitCode,
-            trainer_name: activePlan.trainerName,
-            level: activePlan.level,
-            class_code: activePlan.classCode,
-            trainees_count: activePlan.traineesCount,
-            weeks: activePlan.weeks.map(w => ({
-              week: w.week,
-              session_no: w.sessionNo,
-              title: w.title,
-              outcome: w.outcome,
-              trainer_activities: w.trainerActivities,
-              trainee_activities: w.traineeActivities
-            }))
-          }
-        })
-      });
+      let exported = false;
 
-      if (!response.ok) throw new Error("Failed to export Word document");
-      const data = await response.json();
-
-      if (data.file_data) {
-        const byteCharacters = atob(data.file_data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], {
-          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      // 1. Try server endpoint if available
+      try {
+        const response = await fetch("/api/export-learning-plan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            payload: {
+              unit_name: activePlan.unitTitle,
+              unit_code: activePlan.unitCode,
+              trainer_name: activePlan.trainerName,
+              level: activePlan.level,
+              class_code: activePlan.classCode,
+              trainees_count: activePlan.traineesCount,
+              weeks: activePlan.weeks.map(w => ({
+                week: w.week,
+                session_no: w.sessionNo,
+                title: w.title,
+                outcome: w.outcome,
+                trainer_activities: w.trainerActivities,
+                trainee_activities: w.traineeActivities
+              }))
+            }
+          })
         });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = data.filename || `MTTI_LearningPlan_${activePlan.unitCode.replace(/[^a-zA-Z0-9]/g, "_")}.docx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        toast.success("Learning Plan exported to Word (.docx)!");
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.file_data) {
+            const byteCharacters = atob(data.file_data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], {
+              type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = data.filename || `MTTI_LearningPlan_${activePlan.unitCode.replace(/[^a-zA-Z0-9]/g, "_")}.docx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            exported = true;
+            toast.success("Learning Plan exported to Word (.docx)!");
+          }
+        }
+      } catch {
+        // Fall back seamlessly to client-side generator
+      }
+
+      // 2. Client-side TVET CDACC Word Generator
+      if (!exported) {
+        const result = exportLearningPlanWordClientSide({
+          institution: "MUKIRIA TECHNICAL TRAINING INSTITUTE",
+          formNumber: "MTTI/F/CUR/02",
+          unitTitle: activePlan.unitTitle,
+          unitCode: activePlan.unitCode,
+          trainerName: activePlan.trainerName,
+          level: activePlan.level,
+          classCode: activePlan.classCode,
+          traineesCount: activePlan.traineesCount,
+          dateOfPreparation: activePlan.dateOfPreparation,
+          dateOfRevision: activePlan.dateOfRevision,
+          weeks: activePlan.weeks
+        });
+        toast.success("Learning Plan exported to Word (.doc)!", {
+          description: result.filename
+        });
       }
     } catch (err: any) {
       toast.error("Failed to export Word document", { description: err.message });

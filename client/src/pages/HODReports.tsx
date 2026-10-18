@@ -27,6 +27,8 @@ import { useExam } from "@/contexts/ExamContext";
 import type { Submission } from "@/lib/supabase";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { exportCandidateSlipWord, exportBatchBroadsheetWord } from "@/lib/exportHODReportsWord";
+import { exportGradedExamPdf, buildUnifiedGradedExamData } from "@/lib/exportGradedExamPdf";
 
 function getCDACCGrade(score: number | null): { grade: string; remark: string; badgeClass: string } {
   if (score === null) return { grade: "—", remark: "Pending Grading", badgeClass: "bg-muted text-muted-foreground" };
@@ -128,64 +130,70 @@ export default function HODReports() {
     }
   };
 
-  // 2. Export Candidate Slip via Backend (DOCX or PDF)
+  // 2. Export Candidate Slip via High-Res PDF or Word
   const handleExportSlip = async (sub: Submission, formatType: "docx" | "pdf") => {
     setDownloadingId(`${sub.id}-${formatType}`);
     try {
       const exam = exams.find((e) => e.unit_code === sub.unit_code);
-      const secA = getSecAScore(sub);
-      const secB = getSecBScore(sub);
-      const payload = {
-        student_name: sub.student_name,
-        reg_number: sub.reg_number,
-        course_name: "Diploma in Information Communication Technology",
-        unit_name: exam?.payload?.title || "Digital Literacy Skills",
-        unit_code: sub.unit_code,
-        section_a_score: secA,
-        section_b_score: secB,
-        total_score: sub.total_score ?? 0,
-        remarks: sub.trainer_comments || "Demonstrated comprehensive understanding of core technical competencies.",
-        date: sub.created_at ? format(new Date(sub.created_at), "dd/MM/yyyy") : format(new Date(), "dd/MM/yyyy"),
-        answers: {
-          section_a: sub.section_a,
-          section_b: sub.section_b,
-        },
-      };
 
-      const endpoint = formatType === "docx" ? "/api/export-exam-results-docx" : "/api/export-exam-results-pdf";
-      const res = await fetch(`http://localhost:8000${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        throw new Error(`Server returned HTTP ${res.status}`);
+      if (formatType === "pdf") {
+        const unifiedData = buildUnifiedGradedExamData(sub, exam);
+        exportGradedExamPdf(unifiedData);
+        toast.success(`Candidate PDF slip generated (${sub.student_name})`);
+        return;
       }
 
-      const data = await res.json();
-      const base64Data = data.file_data || data.data;
-      if (!base64Data) {
-        throw new Error("No document data returned from backend");
+      // Word format (.doc)
+      let exported = false;
+      try {
+        const res = await fetch("/api/export-exam-results-docx", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            student_name: sub.student_name,
+            reg_number: sub.reg_number,
+            course_name: "Diploma in Information Communication Technology",
+            unit_name: exam?.payload?.title || "Digital Literacy Skills",
+            unit_code: sub.unit_code,
+            section_a_score: getSecAScore(sub),
+            section_b_score: getSecBScore(sub),
+            total_score: sub.total_score ?? 0,
+            remarks: sub.trainer_comments || "Demonstrated comprehensive understanding of core technical competencies.",
+            date: sub.created_at ? format(new Date(sub.created_at), "dd/MM/yyyy") : format(new Date(), "dd/MM/yyyy"),
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const base64Data = data.file_data || data.data;
+          if (base64Data) {
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], {
+              type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            });
+            const link = document.createElement("a");
+            link.href = window.URL.createObjectURL(blob);
+            link.download = data.filename || `MTTI_Results_${sub.reg_number.replace(/\//g, "_")}.docx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            exported = true;
+            toast.success(`Candidate slip exported (${formatType.toUpperCase()})`);
+          }
+        }
+      } catch {
+        // Fall back cleanly to client-side Word generator
       }
 
-      const byteCharacters = atob(base64Data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      if (!exported) {
+        const res = exportCandidateSlipWord(sub, exam);
+        toast.success(`Candidate Word slip exported`, { description: res.filename });
       }
-      const byteArray = new Uint8Array(byteNumbers);
-      const mime = formatType === "docx" ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "application/pdf";
-      const blob = new Blob([byteArray], { type: mime });
-
-      const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(blob);
-      link.download = data.filename || `MTTI_Results_${sub.reg_number.replace(/\//g, "_")}.${formatType}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast.success(`Candidate slip exported (${formatType.toUpperCase()})`);
     } catch (err: any) {
       console.error(err);
       toast.error(`Export failed: ${err.message}`);
@@ -202,52 +210,71 @@ export default function HODReports() {
         toast.warning("No candidate records found for the current selection");
         return;
       }
-      const sample = filteredSubs[0];
-      const exam = exams.find((e) => e.unit_code === sample.unit_code);
-      const totalSecA = filteredSubs.reduce((acc, s) => acc + getSecAScore(s), 0);
-      const totalSecB = filteredSubs.reduce((acc, s) => acc + getSecBScore(s), 0);
-      const totalScoreSum = filteredSubs.reduce((acc, s) => acc + (s.total_score || 0), 0);
 
-      const payload = {
-        student_name: `DEPARTMENT SUMMARY (${filteredSubs.length} CANDIDATES)`,
-        reg_number: `HOD-DEPT-${selectedUnit}`,
-        course_name: "Computing & Informatics Faculty",
-        unit_name: exam?.payload?.title || "Departmental Assessment Broadsheet",
-        unit_code: selectedUnit === "all" ? "ALL-UNITS" : selectedUnit,
-        section_a_score: Math.round(totalSecA / filteredSubs.length),
-        section_b_score: Math.round(totalSecB / filteredSubs.length),
-        total_score: Math.round(totalScoreSum / filteredSubs.length),
-        remarks: `Overall Department Pass Rate: ${passRate}%. Assessed in accordance with TVET CDACC curriculum guidelines. Total Candidates: ${filteredSubs.length}, Graded: ${gradedCount}.`,
-        date: format(new Date(), "dd/MM/yyyy"),
-        answers: {},
-      };
+      let exported = false;
+      try {
+        const sample = filteredSubs[0];
+        const exam = exams.find((e) => e.unit_code === sample.unit_code);
+        const totalSecA = filteredSubs.reduce((acc, s) => acc + getSecAScore(s), 0);
+        const totalSecB = filteredSubs.reduce((acc, s) => acc + getSecBScore(s), 0);
+        const totalScoreSum = filteredSubs.reduce((acc, s) => acc + (s.total_score || 0), 0);
 
-      const res = await fetch("http://localhost:8000/api/export-exam-results-docx", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+        const res = await fetch("/api/export-exam-results-docx", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            student_name: `DEPARTMENT SUMMARY (${filteredSubs.length} CANDIDATES)`,
+            reg_number: `HOD-DEPT-${selectedUnit}`,
+            course_name: "Computing & Informatics Faculty",
+            unit_name: exam?.payload?.title || "Departmental Assessment Broadsheet",
+            unit_code: selectedUnit === "all" ? "ALL-UNITS" : selectedUnit,
+            section_a_score: Math.round(totalSecA / filteredSubs.length),
+            section_b_score: Math.round(totalSecB / filteredSubs.length),
+            total_score: Math.round(totalScoreSum / filteredSubs.length),
+            remarks: `Overall Department Pass Rate: ${passRate}%. Assessed in accordance with TVET CDACC curriculum guidelines. Total Candidates: ${filteredSubs.length}, Graded: ${gradedCount}.`,
+            date: format(new Date(), "dd/MM/yyyy"),
+          }),
+        });
 
-      if (!res.ok) throw new Error("Backend server error");
-      const data = await res.json();
-      const base64Data = data.file_data || data.data;
-
-      const byteCharacters = atob(base64Data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
+        if (res.ok) {
+          const data = await res.json();
+          const base64Data = data.file_data || data.data;
+          if (base64Data) {
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], {
+              type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            });
+            const link = document.createElement("a");
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `MTTI_HOD_Institutional_Dossier_${selectedUnit}.docx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            exported = true;
+            toast.success("Institutional Assessment Broadsheet (DOCX) generated successfully");
+          }
+        }
+      } catch {
+        // Fall back cleanly to client-side broadsheet generator
       }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
 
-      const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(blob);
-      link.download = `MTTI_HOD_Institutional_Dossier_${selectedUnit}.docx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast.success("Institutional Assessment Broadsheet (DOCX) generated successfully");
+      if (!exported) {
+        const res = exportBatchBroadsheetWord({
+          submissions: filteredSubs,
+          exams,
+          selectedUnit,
+          passRate,
+          gradedCount,
+        });
+        toast.success("Institutional Assessment Broadsheet (DOC) generated successfully", {
+          description: res.filename,
+        });
+      }
     } catch (err: any) {
       console.error(err);
       toast.error(`Batch export failed: ${err.message}`);

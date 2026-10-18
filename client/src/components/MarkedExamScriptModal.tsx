@@ -23,6 +23,7 @@ import {
   formatMarkingSchemeItem,
   type UnifiedGradedQuestion,
 } from "@/lib/exportGradedExamPdf";
+import { exportCandidateSlipWord } from "@/lib/exportHODReportsWord";
 
 interface MarkedExamScriptModalProps {
   isOpen: boolean;
@@ -70,8 +71,8 @@ export default function MarkedExamScriptModal({
     try {
       const endpoint =
         formatType === "docx"
-          ? "http://localhost:8000/api/export-exam-results-docx"
-          : "http://localhost:8000/api/export-exam-results-pdf";
+          ? "/api/export-exam-results-docx"
+          : "/api/export-exam-results-pdf";
 
       const secA = unified.section_a.map((q) => ({
         q_num: q.q_num,
@@ -174,6 +175,10 @@ export default function MarkedExamScriptModal({
         if (formatType === "pdf") {
           exportGradedExamPDFClientSide(unified);
           toast.success("Official graded exam exported to PDF!");
+          return;
+        } else if (formatType === "docx") {
+          exportCandidateSlipWord(submission, exam);
+          toast.success("Official Candidate Assessment Slip exported to Word!");
           return;
         }
         throw backendErr;

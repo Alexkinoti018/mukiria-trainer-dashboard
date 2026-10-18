@@ -20,6 +20,7 @@ import { getCurriculumUnits, getUnitDetails, CurriculumUnit, resolveProgramUnitP
 import { Plus, Trash2, Save, Printer, Sparkles, BookOpen, Clock, FileText, CheckCircle, UploadCloud, Edit3, ArrowRight, Check, ChevronDown, ChevronUp, GripVertical, QrCode } from "lucide-react";
 import AttendanceQuickMarkModal from "@/components/AttendanceQuickMarkModal";
 import WorkshopDoorQRModal from "@/components/WorkshopDoorQRModal";
+import { exportSessionPlanWordClientSide } from "@/lib/exportSessionPlanWord";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -709,61 +710,72 @@ export default function AcademicWorkspaceShell() {
     }
   };
 
-  // Export precision-matched MTTI/F/CUR/05 Word document via Python backend
+  // Export precision-matched MTTI/F/CUR/05 Word document (hybrid server + client-side fallback)
   const handleExportDocx = async () => {
+    const activeUnitData = units.find(u => u.unit_code === activeUnit);
+    const payload = {
+      date: new Date().toLocaleDateString("en-GB"),
+      time_duration: deliveryTime,
+      week_number: activeWeek,
+      session_no: activeSessionNo,
+      trainer_name: "Alexander Kinoti Mbiti",
+      department: "Computing & Informatics",
+      unit_name: activeUnitData?.unit_name || activeUnit,
+      unit_code: activeUnit,
+      level: activeUnit.includes("/6/") || activeUnit.includes("11/6") ? 6 : 5,
+      class_code: activeClass,
+      trainees_count: 20,
+      session_title: sessionTitle,
+      learning_outcomes: selectedOutcomes,
+      resources: resources.split(",").map(r => r.trim()).filter(Boolean),
+      safety_requirements: safety,
+      introduction: introduction,
+      delivery_steps: activities.map(a => ({
+        time_minutes: String(a.time_minutes),
+        trainer_activity: a.trainer_activity,
+        learner_activity: a.learner_activity,
+        assessment: a.assessment
+      })),
+      session_review: sessionReview,
+      assignment: assignment,
+      total_time: `${activities.reduce((s, a) => s + Number(a.time_minutes), 0)} min`,
+      reflection: reflection,
+      signature_date: new Date().toLocaleDateString("en-GB")
+    };
+
+    let exported = false;
     try {
-      const activeUnitData = units.find(u => u.unit_code === activeUnit);
-      const payload = {
-        date: new Date().toLocaleDateString("en-GB"),
-        time_duration: deliveryTime,
-        week_number: activeWeek,
-        session_no: activeSessionNo,
-        trainer_name: "Alexander Kinoti Mbiti",
-        department: "Computing & Informatics",
-        unit_name: activeUnitData?.unit_name || activeUnit,
-        unit_code: activeUnit,
-        level: activeUnit.includes("/6/") || activeUnit.includes("11/6") ? 6 : 5,
-        class_code: activeClass,
-        trainees_count: 20,
-        session_title: sessionTitle,
-        learning_outcomes: selectedOutcomes,
-        resources: resources.split(",").map(r => r.trim()).filter(Boolean),
-        safety_requirements: safety,
-        introduction: introduction,
-        delivery_steps: activities.map(a => ({
-          time_minutes: String(a.time_minutes),
-          trainer_activity: a.trainer_activity,
-          learner_activity: a.learner_activity,
-          assessment: a.assessment
-        })),
-        session_review: sessionReview,
-        assignment: assignment,
-        total_time: `${activities.reduce((s, a) => s + Number(a.time_minutes), 0)} min`,
-        reflection: reflection,
-        signature_date: new Date().toLocaleDateString("en-GB")
-      };
-      const resp = await fetch("http://localhost:8000/api/export-session-plan", {
+      const resp = await fetch("/api/export-session-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ payload })
       });
-      const data = await resp.json();
-      if (data.success) {
-        const bytes = Uint8Array.from(atob(data.file_data), c => c.charCodeAt(0));
-        const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = data.filename;
-        a.click();
-        URL.revokeObjectURL(url);
-        toast.success("Form successfully exported", { position: "bottom-right", duration: 3000 });
-      } else {
-        throw new Error(data.error || "Export failed");
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.success && data.file_data) {
+          const bytes = Uint8Array.from(atob(data.file_data), c => c.charCodeAt(0));
+          const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = data.filename || `MTTI_CUR05_SessionPlan_W${activeWeek}.docx`;
+          a.click();
+          URL.revokeObjectURL(url);
+          toast.success("Form MTTI/F/CUR/05 exported to Word!");
+          exported = true;
+        }
       }
-    } catch (err: any) {
-      console.error(err);
-      toast.error(`Word export failed: ${err.message}`);
+    } catch {
+      // Backend unavailable; proceed to client-side fallback
+    }
+
+    if (!exported) {
+      const result = exportSessionPlanWordClientSide(payload);
+      if (result.success) {
+        toast.success("Official Form MTTI/F/CUR/05 exported to Word (Client Engine)!");
+      } else {
+        toast.error("Word export failed. Please check browser permissions.");
+      }
     }
   };
 
@@ -802,11 +814,14 @@ export default function AcademicWorkspaceShell() {
       reader.onload = async () => {
         try {
           const base64Str = (reader.result as string).split(",")[1];
-          const parseResp = await fetch("http://localhost:8000/api/parse-doc", {
+          const parseResp = await fetch("/api/parse-doc", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ file_data: base64Str })
           });
+          if (!parseResp.ok) {
+            throw new Error(`Parser service currently unavailable (${parseResp.status}). Please enter details manually.`);
+          }
           const result = await parseResp.json();
           if (result.success) {
             setParsedData(result);
@@ -815,7 +830,7 @@ export default function AcademicWorkspaceShell() {
             throw new Error(result.error || "Parsing failed.");
           }
         } catch (err: any) {
-          toast.error(`Ingestion parsing failed: ${err.message}`);
+          toast.error(`Ingestion parsing: ${err.message}`);
         } finally {
           setIngestLoading(false);
         }

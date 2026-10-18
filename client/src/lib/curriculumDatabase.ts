@@ -47,7 +47,7 @@ export interface DepartmentSummary {
 // Fetch all departments
 export async function getCurriculumDepartments(): Promise<DepartmentSummary[]> {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/curriculum/departments");
+    const res = await fetch("/api/curriculum/departments");
     if (res.ok) {
       const data = await res.json();
       if (data.departments && data.departments.length > 0) {
@@ -55,7 +55,7 @@ export async function getCurriculumDepartments(): Promise<DepartmentSummary[]> {
       }
     }
   } catch (err) {
-    console.warn("Backend curriculum API unavailable, using local static data:", err);
+    console.warn("Curriculum API unavailable, using local static data:", err);
   }
 
   // Fallback to local JSON
@@ -79,7 +79,7 @@ export async function getCurriculumUnits(filters?: {
     if (filters?.search) params.append("search", filters.search);
 
     const query = params.toString() ? `?${params.toString()}` : "";
-    const res = await fetch(`http://127.0.0.1:8000/api/curriculum/units${query}`);
+    const res = await fetch(`/api/curriculum/units${query}`);
     if (res.ok) {
       const data = await res.json();
       if (data.units && data.units.length > 0) {
@@ -87,7 +87,7 @@ export async function getCurriculumUnits(filters?: {
       }
     }
   } catch (err) {
-    console.warn("Backend curriculum API unavailable, using local static fallback:", err);
+    console.warn("Curriculum API unavailable, using local static fallback:", err);
   }
 
   // Fallback to local static JSON
@@ -114,13 +114,13 @@ export async function getCurriculumUnits(filters?: {
 // Fetch single unit details
 export async function getUnitDetails(code: string): Promise<CurriculumUnit | null> {
   try {
-    const res = await fetch(`http://127.0.0.1:8000/api/curriculum/unit/${encodeURIComponent(code)}`);
+    const res = await fetch(`/api/curriculum/unit/${encodeURIComponent(code)}`);
     if (res.ok) {
       const data = await res.json();
       if (data.unit) return data.unit as CurriculumUnit;
     }
   } catch (err) {
-    console.warn("Backend unit details API unavailable:", err);
+    console.warn("Unit details API unavailable:", err);
   }
 
   // Fallback to static units
@@ -138,12 +138,12 @@ export async function getUnitDetails(code: string): Promise<CurriculumUnit | nul
 // Trigger rescan of D:\Curriculum and OS
 export async function rescanCurriculumFolder(): Promise<{ success: boolean; count?: number; message?: string }> {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/curriculum/rescan", {
+    const res = await fetch("/api/curriculum/rescan", {
       method: "POST"
     });
     return await res.json();
   } catch (err: any) {
-    return { success: false, message: err?.message || "Failed to reach backend scanner" };
+    return { success: false, message: err?.message || "Failed to reach curriculum scanner" };
   }
 }
 

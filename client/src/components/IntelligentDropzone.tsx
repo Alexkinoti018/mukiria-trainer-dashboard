@@ -43,7 +43,7 @@ export default function IntelligentDropzone({
           reader.onload = async () => {
             const base64Data = (reader.result as string).split(',')[1];
             try {
-              const response = await fetch('http://localhost:8000/api/parse-doc', {
+              const response = await fetch('/api/parse-doc', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -58,7 +58,7 @@ export default function IntelligentDropzone({
               });
 
               if (!response.ok) {
-                let msg = "Failed to parse document " + selectedFile.name;
+                let msg = `Document parser service unavailable (${response.status}).`;
                 try {
                   const errJson = await response.json();
                   if (errJson.error) msg = errJson.error;
@@ -69,7 +69,7 @@ export default function IntelligentDropzone({
               }
               const data = await response.json();
               resolve(data);
-            } catch (err) {
+            } catch (err: any) {
               reject(err);
             }
           };

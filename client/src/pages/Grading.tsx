@@ -51,6 +51,7 @@ import {
 } from "@/contexts/TraineeContext";
 import type { Exam, Submission, StudentAnswer, ExamQuestion } from "@/lib/supabase";
 import { buildUnifiedGradedExamData, exportGradedExamPDFClientSide } from "@/lib/exportGradedExamPdf";
+import { exportCandidateSlipWord } from "@/lib/exportHODReportsWord";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -334,8 +335,8 @@ export default function Grading() {
     const exam = getExamForSub(sub);
     const endpoint =
       formatType === "docx"
-        ? "http://localhost:8000/api/export-exam-results-docx"
-        : "http://localhost:8000/api/export-exam-results-pdf";
+        ? "/api/export-exam-results-docx"
+        : "/api/export-exam-results-pdf";
 
     setExporting(true);
     try {
@@ -443,6 +444,12 @@ export default function Grading() {
           exportGradedExamPDFClientSide(unified);
           toast.success("Exported as PDF", {
             description: `Downloaded official graded exam script for ${unified.student_name}`,
+          });
+          return;
+        } else if (formatType === "docx") {
+          exportCandidateSlipWord(sub, exam);
+          toast.success("Exported as Word Document", {
+            description: `Downloaded candidate assessment slip for ${unified.student_name}`,
           });
           return;
         }

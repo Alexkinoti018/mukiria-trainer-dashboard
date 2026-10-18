@@ -431,6 +431,8 @@ export function buildUnifiedGradedExamData(
   };
 }
 
+export const exportGradedExamPdf = exportGradedExamPDFClientSide;
+
 export function exportGradedExamPDFClientSide(
   data: UnifiedGradedExamData,
   customDoc?: jsPDF

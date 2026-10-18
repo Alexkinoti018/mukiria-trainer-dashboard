@@ -183,7 +183,7 @@ export default function CurriculumParsingHub() {
         const base64Str = (reader.result as string).split(",")[1];
         setProgressText("Extracting CDACC elements via NLP engine...");
 
-        const resp = await fetch("http://127.0.0.1:8000/api/parse-doc", {
+        const resp = await fetch("/api/parse-doc", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -193,6 +193,10 @@ export default function CurriculumParsingHub() {
             role: "trainer"
           })
         });
+
+        if (!resp.ok) {
+          throw new Error(`Curriculum parser service unavailable (${resp.status})`);
+        }
 
         const resData = await resp.json();
         if (!resData.success) {

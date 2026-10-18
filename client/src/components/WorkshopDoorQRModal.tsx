@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import jsPDF from "jspdf";
 import { 
   QrCode, 
   Download, 
@@ -74,19 +75,31 @@ export default function WorkshopDoorQRModal({
         target_url: studentUrl
       };
 
-      const resp = await fetch("http://localhost:8000/api/generate-qr", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      let generated = false;
+      try {
+        const resp = await fetch("/api/generate-qr", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
 
-      const data = await resp.json();
-      if (data.success) {
-        setQrDataUrl(data.qr_data_url);
-        setPosterPdfBase64(data.poster_pdf);
-        setPosterFilename(data.filename || `MTTI_Door_Poster_${sessionData.id}.pdf`);
-      } else {
-        throw new Error(data.error || "Failed to generate QR poster.");
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.success) {
+            setQrDataUrl(data.qr_data_url);
+            setPosterPdfBase64(data.poster_pdf);
+            setPosterFilename(data.filename || `MTTI_Door_Poster_${sessionData.id}.pdf`);
+            generated = true;
+          }
+        }
+      } catch {
+        // Fall back cleanly to client-side QR service
+      }
+
+      if (!generated) {
+        const fallbackQr = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(studentUrl)}`;
+        setQrDataUrl(fallbackQr);
+        setPosterFilename(`MTTI_Door_Poster_${sessionData.id}.pdf`);
       }
     } catch (err: any) {
       console.error(err);
@@ -97,22 +110,76 @@ export default function WorkshopDoorQRModal({
   };
 
   const handleDownloadPoster = () => {
-    if (!posterPdfBase64) {
-      toast.error("Poster not generated yet.");
-      return;
-    }
-
     try {
-      const bytes = Uint8Array.from(atob(posterPdfBase64), c => c.charCodeAt(0));
-      const blob = new Blob([bytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = posterFilename || `MTTI_Workshop_Door_Notice.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+      if (posterPdfBase64) {
+        const bytes = Uint8Array.from(atob(posterPdfBase64), c => c.charCodeAt(0));
+        const blob = new Blob([bytes], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = posterFilename || `MTTI_Workshop_Door_Notice.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success("Workshop Door Poster PDF downloaded!");
+        return;
+      }
+
+      // Generate client-side poster with jsPDF
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const margin = 16;
+      const width = 210 - margin * 2;
+      let y = 18;
+
+      doc.setFillColor(0, 9, 83);
+      doc.rect(margin, y, width, 1.5, "F");
+      y += 8;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.setTextColor(0, 9, 83);
+      doc.text("MUKIRIA TECHNICAL TRAINING INSTITUTE", 105, y, { align: "center" });
+      y += 6;
+
+      doc.setFontSize(11);
+      doc.setTextColor(196, 136, 32);
+      doc.text("ACTIVE WORKSHOP / LABORATORY SESSION", 105, y, { align: "center" });
+      y += 8;
+
+      doc.setFontSize(13);
+      doc.setTextColor(15, 23, 42);
+      doc.text(sessionData.session_title || "Practical Workshop Session", 105, y, { align: "center" });
+      y += 8;
+
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(0, 9, 83);
+      doc.setLineWidth(0.3);
+      doc.rect(margin, y, width, 24, "FD");
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 9, 83);
+      doc.text(`Unit: ${sessionData.unit_code} — ${sessionData.unit_name}`, margin + 4, y + 6);
+      doc.text(`Cohort / Class: ${sessionData.class_code}`, margin + 4, y + 12);
+      doc.text(`Venue: ${sessionData.venue || "Computer Lab 1"}`, margin + 4, y + 18);
+      doc.text(`Trainer: ${sessionData.trainer_name || "Alexander Kinoti"}`, 105, y + 18);
+      y += 34;
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 9, 83);
+      doc.text("SCAN QR CODE TO ACCESS LIVE SESSION BRIEF & TASKS", 105, y, { align: "center" });
+      y += 8;
+
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text(studentUrl, 105, y, { align: "center" });
+      y += 10;
+
+      doc.save(posterFilename || `MTTI_Door_Poster_${sessionData.id}.pdf`);
       toast.success("Workshop Door Poster PDF downloaded!");
     } catch (err: any) {
+      console.error(err);
       toast.error("Failed to download poster.");
     }
   };
