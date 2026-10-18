@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Plus, Save, Printer, Download, Lock, Unlock, Users, PenTool, RefreshCw } from "lucide-react";
+import { Plus, Save, Printer, Download, Lock, Unlock, Users, PenTool, RefreshCw, Search, X, CheckCircle2, AlertCircle, Award, Scale } from "lucide-react";
 import { supabase, isSupabaseConfigured, normalizeAssessmentTaskSlot } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useTrainees, findMatchingTrainee, syncScoreToContinuousMarksheet } from "@/contexts/TraineeContext";
@@ -54,9 +54,50 @@ export function AssessmentMarksSheet() {
   const cpCount = 3;
 
   const [rows, setRows] = useState<AssessmentRow[]>([]);
+  const [candidateSearch, setCandidateSearch] = useState("");
   const [isObservationModalOpen, setIsObservationModalOpen] = useState(false);
   const [selectedCandidateForPractical, setSelectedCandidateForPractical] = useState<AssessmentRow | null>(null);
   const [selectedPracticalSlot, setSelectedPracticalSlot] = useState<"CP1" | "CP2" | "CP3">("CP1");
+
+  // Dynamic assessment health & status metrics (calculated from current entered marks)
+  const assessmentStats = useMemo(() => {
+    const total = rows.length;
+    let fullyGraded = 0;
+    let pendingTheory = 0;
+    let pendingPractical = 0;
+    let competentCount = 0;
+
+    for (const r of rows) {
+      const hasCT = r.ctScores.some((s) => s !== "" && !isNaN(Number(s)));
+      const hasCP = r.cpScores.some((s) => s !== "" && !isNaN(Number(s)));
+      if (hasCT && hasCP) fullyGraded++;
+      if (!hasCT) pendingTheory++;
+      if (!hasCP) pendingPractical++;
+      if (r.isCompetent) competentCount++;
+    }
+
+    return {
+      total,
+      fullyGraded,
+      pendingTheory,
+      pendingPractical,
+      competentCount,
+      notYetCompetent: total - competentCount,
+      pctGraded: total > 0 ? Math.round((fullyGraded / total) * 100) : 0,
+      pctCompetent: total > 0 ? Math.round((competentCount / total) * 100) : 0,
+    };
+  }, [rows]);
+
+  // Filtered rows for live candidate search while preserving all master rows & entered marks
+  const displayedRows = useMemo(() => {
+    if (!candidateSearch.trim()) return rows;
+    const q = candidateSearch.trim().toLowerCase();
+    return rows.filter((r) =>
+      r.name.toLowerCase().includes(q) ||
+      r.admNo.toLowerCase().includes(q) ||
+      r.regCode.toLowerCase().includes(q)
+    );
+  }, [rows, candidateSearch]);
 
   const { trainees, uploads } = useTrainees();
   const { exams, submissions } = useExam();
@@ -473,6 +514,7 @@ export function AssessmentMarksSheet() {
   // Dedicated Clean Landscape Print Handler
   const handlePrint = () => {
     toast.dismiss();
+    setCandidateSearch("");
     setTimeout(() => {
       window.print();
     }, 150);
@@ -481,6 +523,7 @@ export function AssessmentMarksSheet() {
   // High-Resolution Landscape PDF Exporter
   const handleDownloadPDF = async () => {
     try {
+      setCandidateSearch("");
       setIsExportingPDF(true);
       toast.dismiss();
 
@@ -603,106 +646,177 @@ export function AssessmentMarksSheet() {
       `}</style>
 
       {/* Top Controls Toolbar (Print:hidden) */}
-      <div className="bg-card border border-border p-4 rounded-xl shadow-sm flex flex-wrap items-center justify-between gap-4 print:hidden">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-primary" />
-            <span className="text-xs font-bold text-muted-foreground uppercase">Class Cohort:</span>
+      <div className="bg-card border border-border p-4 rounded-xl shadow-sm space-y-3.5 print:hidden">
+        {/* Row 1: Cohort Selection, CDACC Weighting Formula Badge, and Quick Candidate Search */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <Users className="w-4 h-4 text-primary" />
+              <span className="text-xs font-bold text-muted-foreground uppercase">Class Cohort:</span>
+            </div>
+            <select
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+              className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs font-bold text-foreground focus:ring-1 focus:ring-primary outline-none cursor-pointer"
+            >
+              <option value="all">All Registered Trainees ({trainees.length})</option>
+              {availableClasses.map((cls) => (
+                <option key={cls} value={cls}>
+                  {cls} ({trainees.filter((t) => t.classCode === cls).length} trainees)
+                </option>
+              ))}
+            </select>
+
+            {/* CDACC Double-Hurdle Weighting Badge */}
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-semibold">
+              <Scale className="w-3.5 h-3.5" />
+              <span>
+                Level {level} Formula: <strong>{level === 6 ? "50% CT / 50% CP" : level === 5 ? "40% CT / 60% CP" : level === 4 ? "30% CT / 70% CP" : "20% CT / 80% CP"}</strong>
+              </span>
+            </div>
+
+            <span className="text-xs text-muted-foreground font-medium">
+              {rows.length} candidates loaded
+            </span>
           </div>
-          <select
-            value={selectedClass}
-            onChange={(e) => setSelectedClass(e.target.value)}
-            className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs font-bold text-foreground focus:ring-1 focus:ring-primary outline-none cursor-pointer"
-          >
-            <option value="all">All Registered Trainees ({trainees.length})</option>
-            {availableClasses.map((cls) => (
-              <option key={cls} value={cls}>
-                {cls} ({trainees.filter(t => t.classCode === cls).length} trainees)
-              </option>
-            ))}
-          </select>
-          <span className="text-xs text-muted-foreground font-medium">
-            {rows.length} candidates loaded
-          </span>
+
+          {/* Quick Candidate Search Filter */}
+          <div className="relative min-w-[240px]">
+            <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Filter candidate by Name or Adm..."
+              value={candidateSearch}
+              onChange={(e) => setCandidateSearch(e.target.value)}
+              className="w-full pl-8 pr-7 py-1.5 text-xs bg-background border border-border rounded-lg outline-none focus:ring-1 focus:ring-primary font-medium text-foreground placeholder:text-muted-foreground"
+            />
+            {candidateSearch && (
+              <button
+                type="button"
+                onClick={() => setCandidateSearch("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+                title="Clear filter"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => {
-              setSyncVersion((v) => v + 1);
-              toast.success("Synchronized graded Continuous Theory (CT1–CT3) & Practical (CP1–CP3) assessments.");
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#000953] hover:bg-[#000e7a] text-white rounded-lg text-xs font-bold transition shadow-sm"
-            title="Sync all graded CT and CP assessments into the Marksheet"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Sync Graded Assessments
-          </button>
+        {/* Row 2: Assessment Progress & Status Metrics Strip */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 border-t border-border/60">
+          <div className="px-3 py-1.5 rounded-lg bg-muted/40 border border-border/70 flex items-center justify-between">
+            <span className="text-[11px] text-muted-foreground font-medium">Total Candidates</span>
+            <strong className="text-xs font-bold text-foreground">{assessmentStats.total}</strong>
+          </div>
+          <div className="px-3 py-1.5 rounded-lg bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 flex items-center justify-between">
+            <span className="text-[11px] text-blue-800 dark:text-blue-300 font-medium">Fully Assessed</span>
+            <strong className="text-xs font-bold text-blue-900 dark:text-blue-200">
+              {assessmentStats.fullyGraded} / {assessmentStats.total} ({assessmentStats.pctGraded}%)
+            </strong>
+          </div>
+          <div className="px-3 py-1.5 rounded-lg bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 flex items-center justify-between">
+            <span className="text-[11px] text-amber-800 dark:text-amber-300 font-medium">Pending Tasks</span>
+            <strong className="text-xs font-bold text-amber-900 dark:text-amber-200">
+              {assessmentStats.pendingTheory} CT • {assessmentStats.pendingPractical} CP
+            </strong>
+          </div>
+          <div className="px-3 py-1.5 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 flex items-center justify-between">
+            <span className="text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">Competency Rate</span>
+            <strong className="text-xs font-bold text-emerald-900 dark:text-emerald-200">
+              {assessmentStats.competentCount} C ({assessmentStats.pctCompetent}%)
+            </strong>
+          </div>
+        </div>
 
-          <button
-            onClick={addRow}
-            disabled={isLocked}
-            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-sm disabled:opacity-50"
-            title="Add candidate row"
-          >
-            <Plus className="w-4 h-4" />
-            Add Candidate
-          </button>
+        {/* Row 3: Cohesive Action Toolbar Groupings */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-border/60">
+          {/* Group A: Persistence & Assessment Sync */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button 
+              onClick={submitData}
+              disabled={isLocked}
+              className="flex items-center gap-1.5 px-4 py-2 bg-[#000953] hover:bg-[#000e7a] text-white rounded-lg text-xs font-bold transition shadow-sm disabled:opacity-50 border border-amber-500/30"
+              title="Save all entered marks to database and storage"
+            >
+              <Save className="w-4 h-4 text-amber-400" />
+              Save Marks
+            </button>
 
-          <button
-            onClick={() => {
-              setSelectedCandidateForPractical(null);
-              setIsObservationModalOpen(true);
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-600 border border-red-500/30 rounded-lg text-xs font-bold transition shadow-sm"
-            title="Open Practical Observation Checklist"
-          >
-            <PenTool className="w-4 h-4 text-red-600" />
-            Practical Observation Tool
-          </button>
+            <button
+              onClick={() => {
+                setSyncVersion((v) => v + 1);
+                toast.success("Synchronized graded Continuous Theory (CT1–CT3) & Practical (CP1–CP3) assessments.");
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border rounded-lg text-xs font-bold transition shadow-xs"
+              title="Sync all graded CT and CP assessments into the Marksheet"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-primary" />
+              Sync Graded Assessments
+            </button>
+          </div>
 
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-2 bg-black text-white hover:bg-black/80 rounded-lg text-xs font-bold transition shadow-sm"
-            title="Print Official Sheet in Landscape"
-          >
-            <Printer className="w-4 h-4" />
-            Print Marksheet (Landscape)
-          </button>
+          {/* Group B: Practical & Candidate Tools */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => {
+                setSelectedCandidateForPractical(null);
+                setIsObservationModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-700 dark:text-red-400 border border-red-500/30 rounded-lg text-xs font-bold transition shadow-xs"
+              title="Open Practical Observation Checklist"
+            >
+              <PenTool className="w-4 h-4 text-red-600 dark:text-red-400" />
+              Practical Observation Tool
+            </button>
 
-          <button
-            onClick={handleDownloadPDF}
-            disabled={isExportingPDF}
-            className="flex items-center gap-1.5 px-3 py-2 bg-blue-700 text-white hover:bg-blue-800 rounded-lg text-xs font-bold transition shadow-sm disabled:opacity-50"
-            title="Download Landscape PDF"
-          >
-            <Download className="w-4 h-4" />
-            {isExportingPDF ? "Generating PDF..." : "Download PDF (Landscape)"}
-          </button>
+            <button
+              onClick={addRow}
+              disabled={isLocked}
+              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 rounded-lg text-xs font-bold transition shadow-xs disabled:opacity-50"
+              title="Add candidate row"
+            >
+              <Plus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              Add Candidate
+            </button>
+          </div>
 
-          <button
-            onClick={() => {
-              setIsLocked(!isLocked);
-              toast.info(isLocked ? "Assessment sheet unlocked for editing." : "Assessment sheet signed-off and locked.");
-            }}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition ${
-              isLocked 
-                ? "bg-amber-500/10 text-amber-600 border-amber-500/30" 
-                : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-border"
-            }`}
-          >
-            {isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-            {isLocked ? "Locked (Signed)" : "Sign-off & Lock"}
-          </button>
+          {/* Group C: Export & Governance */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 text-white hover:bg-slate-800 rounded-lg text-xs font-bold transition shadow-xs"
+              title="Print Official Sheet in Landscape"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              Print Marksheet (Landscape)
+            </button>
 
-          <button 
-            onClick={submitData}
-            disabled={isLocked}
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground hover:opacity-90 rounded-lg text-xs font-bold transition shadow-sm disabled:opacity-50"
-          >
-            <Save className="w-4 h-4" />
-            Save Marks
-          </button>
+            <button
+              onClick={handleDownloadPDF}
+              disabled={isExportingPDF}
+              className="flex items-center gap-1.5 px-3 py-2 bg-blue-700 text-white hover:bg-blue-800 rounded-lg text-xs font-bold transition shadow-xs disabled:opacity-50"
+              title="Download Landscape PDF"
+            >
+              <Download className="w-3.5 h-3.5" />
+              {isExportingPDF ? "Generating PDF..." : "Download PDF (Landscape)"}
+            </button>
+
+            <button
+              onClick={() => {
+                setIsLocked(!isLocked);
+                toast.info(isLocked ? "Assessment sheet unlocked for editing." : "Assessment sheet signed-off and locked.");
+              }}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition ${
+                isLocked 
+                  ? "bg-amber-500/10 text-amber-600 border-amber-500/30" 
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-border"
+              }`}
+            >
+              {isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+              {isLocked ? "Locked (Signed)" : "Sign-off & Lock"}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -862,9 +976,17 @@ export function AssessmentMarksSheet() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, rowIdx) => {
-                const hasTheoryScores = row.ctScores.some(s => s !== "" && !isNaN(Number(s)));
-                const hasScores = hasTheoryScores || row.cpScores.some(s => s !== "" && !isNaN(Number(s)));
+              {displayedRows.length === 0 ? (
+                <tr>
+                  <td colSpan={13} className="p-6 text-center text-slate-500 font-medium italic">
+                    No candidate found matching &quot;{candidateSearch}&quot;. Clear search to view all {rows.length} candidates.
+                  </td>
+                </tr>
+              ) : (
+                displayedRows.map((row) => {
+                  const rowIdx = rows.findIndex((r) => r.id === row.id);
+                  const hasTheoryScores = row.ctScores.some((s) => s !== "" && !isNaN(Number(s)));
+                  const hasScores = hasTheoryScores || row.cpScores.some((s) => s !== "" && !isNaN(Number(s)));
 
                 return (
                   <tr key={row.id} className="hover:bg-slate-50 transition-colors">
@@ -978,8 +1100,9 @@ export function AssessmentMarksSheet() {
                     </td>
                   </tr>
                 );
-              })}
-            </tbody>
+              })
+            )}
+          </tbody>
           </table>
         </div>
 
