@@ -18,8 +18,10 @@ import {
   Sparkles,
   BookOpen,
   Sliders,
-  Copy
+  Copy,
+  Layers
 } from "lucide-react";
+import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,7 +30,8 @@ import parsedTemplatesRaw from "@/lib/parsed_templates.json";
 import {
   OFFICIAL_LEARNING_PLANS,
   convertRecordToLearningPlanDocument,
-  getOfficialLearningPlan
+  getOfficialLearningPlan,
+  resolveTVETModuleForUnit
 } from "@/data/learningPlans";
 
 // --- Types ---
@@ -953,6 +956,37 @@ export default function LearningPlan() {
             thead { display: table-row-group; }
           }
         `}} />
+
+        {/* TVET Modular Progression Classification Banner */}
+        {activePlan && (() => {
+          const tvetModule = resolveTVETModuleForUnit(activePlan.unitCode) || resolveTVETModuleForUnit(activePlan.unitTitle);
+          if (!tvetModule) return null;
+          return (
+            <div className="mb-4 p-3.5 rounded-xl bg-gradient-to-r from-[#000953] to-[#0a1980] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm print:hidden">
+              <div className="flex items-center gap-3">
+                <span className="px-2.5 py-1 rounded-md bg-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider">
+                  {tvetModule.module.title}
+                </span>
+                <div>
+                  <div className="text-xs font-bold text-white flex items-center gap-1.5 flex-wrap">
+                    <span>{tvetModule.module.subtitle}</span>
+                    <span className="text-slate-300">•</span>
+                    <span className="text-amber-300 font-semibold">{tvetModule.matchedUnit.title}</span>
+                  </div>
+                  <div className="text-[11px] text-slate-300">
+                    TVET ICT Modular Progression: {tvetModule.matchedUnit.nominalHours} nominal contact hours
+                  </div>
+                </div>
+              </div>
+              <Link href="/curriculum-hub">
+                <button className="self-start sm:self-auto px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition border border-white/20 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-amber-400" />
+                  <span>View TVET Progression Graph</span>
+                </button>
+              </Link>
+            </div>
+          );
+        })()}
 
         {/* Official MTTI/F/CUR/01 Printable Document */}
         {activePlan && (

@@ -26,6 +26,7 @@ import {
   GraduationCap
 } from "lucide-react";
 import TrainerLayout from "../components/TrainerLayout";
+import ModularProgressionViewer from "@/components/ModularProgressionViewer";
 import { 
   CurriculumUnit, 
   getCurriculumUnits, 
@@ -33,7 +34,7 @@ import {
   rescanCurriculumFolder 
 } from "@/lib/curriculumDatabase";
 
-type TabMode = "repository" | "upload";
+type TabMode = "repository" | "upload" | "progression";
 type ParseState = "idle" | "parsing" | "success" | "review" | "error";
 
 interface ExtractedData {
@@ -270,6 +271,18 @@ export default function CurriculumParsingHub() {
             >
               <UploadCloud className="w-4 h-4" />
               Upload & Parse Custom Document
+            </button>
+
+            <button
+              onClick={() => setActiveTab("progression")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                activeTab === "progression"
+                  ? "bg-[#000953] text-white shadow-sm"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              <Layers className="w-4 h-4 text-[#c48820]" />
+              TVET Modular Progression Graph
             </button>
           </div>
 
@@ -844,6 +857,22 @@ export default function CurriculumParsingHub() {
                   </div>
                 )}
               </AnimatePresence>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: TVET Modular Progression Graph */}
+        {activeTab === "progression" && (
+          <div className="flex-1 overflow-auto p-6 md:p-8 bg-slate-50">
+            <div className="max-w-7xl mx-auto">
+              <ModularProgressionViewer
+                onSelectUnit={(title, code) => {
+                  if (code) {
+                    setSearchQuery(code);
+                    setActiveTab("repository");
+                  }
+                }}
+              />
             </div>
           </div>
         )}

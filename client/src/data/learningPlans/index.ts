@@ -137,3 +137,16 @@ export function convertRecordToLearningPlanDocument(
     weeks,
   };
 }
+
+import { resolveTVETModuleForUnit } from "@/lib/tvetProgression";
+export * from "@/lib/tvetProgression";
+
+/**
+ * Maps an official learning plan record to its TVET Module (Module 1 to Module 7).
+ */
+export function getLearningPlanTVETModule(record: LearningPlanRecord) {
+  const byCode = resolveTVETModuleForUnit(record.metadata.unitCode);
+  if (byCode) return byCode;
+  return resolveTVETModuleForUnit(record.metadata.unitTitle);
+}
+
