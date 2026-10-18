@@ -9,8 +9,8 @@ describe("FBS5/6/J/26 Cohort Exam Submissions & Marks Safeguard", () => {
     return code.includes("FBS") || code.includes("FBP");
   });
 
-  it("verifies that all FBS cohort trainees exist in the institutional roster (29 trainees)", () => {
-    expect(fbsRoster.length).toBe(29);
+  it("verifies that all active Term 3 FBS cohort trainees exist in the institutional roster (23 trainees)", () => {
+    expect(fbsRoster.length).toBe(23);
   });
 
   it("verifies that every single FBS trainee has a recorded submission for 061155101A", () => {

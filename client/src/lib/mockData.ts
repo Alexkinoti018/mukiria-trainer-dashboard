@@ -897,6 +897,7 @@ export const MOCK_SUBMISSIONS: Submission[] = [
   },
   {
     id: "sub-007",
+    task_code: "CT1",
     unit_code: "061155101A",
     student_name: "Vick Mutembei",
     reg_number: "14009",

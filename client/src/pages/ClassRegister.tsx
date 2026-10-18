@@ -167,6 +167,7 @@ export default function ClassRegister() {
     name: "",
     admNo: "",
     gender: "M" as "M" | "F",
+    email: "",
     phone: "",
     remarks: "",
   });
@@ -309,6 +310,7 @@ export default function ClassRegister() {
       name: "",
       admNo: `${prefix}/${Math.floor(14000 + Math.random() * 900)}/S2026`,
       gender: "M",
+      email: "",
       phone: "",
       remarks: "",
     });
@@ -332,6 +334,7 @@ export default function ClassRegister() {
       classCode: selectedClassCode,
       department: activeClassConfig.department,
       gender: studentForm.gender,
+      email: studentForm.email.trim() || undefined,
       phone: studentForm.phone.trim(),
       remarks: studentForm.remarks.trim(),
     });
@@ -348,6 +351,7 @@ export default function ClassRegister() {
         classCode: selectedClassCode,
         department: activeClassConfig.department,
         gender: studentForm.gender,
+        email: studentForm.email.trim() || undefined,
         phone: studentForm.phone.trim(),
         remarks: studentForm.remarks.trim(),
       }),
@@ -378,6 +382,7 @@ export default function ClassRegister() {
       name: trainee.name,
       admNo: trainee.admNo,
       gender: trainee.gender || "M",
+      email: trainee.email || "",
       phone: trainee.phone || "",
       remarks: trainee.remarks || "",
     });
@@ -399,6 +404,7 @@ export default function ClassRegister() {
       admNo: studentForm.admNo.trim(),
       regCode: studentForm.admNo.trim(),
       gender: studentForm.gender,
+      email: studentForm.email.trim() || undefined,
       phone: studentForm.phone.trim(),
       remarks: studentForm.remarks.trim(),
     });
@@ -1615,6 +1621,16 @@ export default function ClassRegister() {
                     </div>
                   </div>
                   <div>
+                    <label className="font-bold text-muted-foreground block mb-1">Email Address</label>
+                    <input
+                      type="email"
+                      value={studentForm.email}
+                      onChange={(e) => setStudentForm({ ...studentForm, email: e.target.value })}
+                      placeholder="student@mtti.ac.ke"
+                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground font-medium outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
                     <label className="font-bold text-muted-foreground block mb-1">Notes / Remarks</label>
                     <input
                       type="text"
@@ -1709,6 +1725,16 @@ export default function ClassRegister() {
                         className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground font-medium outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
+                  </div>
+                  <div>
+                    <label className="font-bold text-muted-foreground block mb-1">Email Address</label>
+                    <input
+                      type="email"
+                      value={studentForm.email}
+                      onChange={(e) => setStudentForm({ ...studentForm, email: e.target.value })}
+                      placeholder="student@mtti.ac.ke"
+                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground font-medium outline-none focus:ring-1 focus:ring-primary"
+                    />
                   </div>
                   <div>
                     <label className="font-bold text-muted-foreground block mb-1">Notes / Remarks</label>

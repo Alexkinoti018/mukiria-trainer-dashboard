@@ -70,12 +70,6 @@ export const DB = {
     { id: "tr_fbs5_21", name: "Faith Mwende", reg_number: "13258", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A"] },
     { id: "tr_fbs5_22", name: "Eugene Murimi", reg_number: "12265", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A"] },
     { id: "tr_fbs5_23", name: "Brendah Mumbi", reg_number: "13231", class_id: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A"] },
-    { id: "tr_fbs6_01", name: "Mbithi Faith Wavinya", reg_number: "13251", class_id: "FBS6 MOD/12026", enrolled_units: ["061155101A"] },
-    { id: "tr_fbs6_02", name: "Emmanuel Njoroge", reg_number: "13314", class_id: "FBS6 MOD/12026", enrolled_units: ["061155101A"] },
-    { id: "tr_fbs6_03", name: "Brenda Ntinyari", reg_number: "13403", class_id: "FBS6 MOD/12026", enrolled_units: ["061155101A"] },
-    { id: "tr_fbs6_04", name: "Omedo Lilian Atieno", reg_number: "13430", class_id: "FBS6 MOD/12026", enrolled_units: ["061155101A"] },
-    { id: "tr_fbs6_05", name: "Waguama Donatus Wachira", reg_number: "13487", class_id: "FBS6 MOD/12026", enrolled_units: ["061155101A"] },
-    { id: "tr_fbs6_06", name: "Nyamai Caroline Mutheu", reg_number: "13495", class_id: "FBS6 MOD/12026", enrolled_units: ["061155101A"] },
   ],
   unit_offerings: [
     { id: "uo-1", term_id: "term-2026", class_id: "class-itech-6", unit_code: "ICT/CU/IT/CR/6/6", unit_id: "unit-cr-6", trainer_id: "trainer-001", department_id: "dept-ci" },
@@ -652,12 +646,6 @@ export const OFFICIAL_INSTITUTIONAL_ROSTER: RosterEntry[] = [
   { id: "tr_fbs5_21", regCode: "FBS 5 MOD/13258/J2026", admissionNumber: "13258", fullName: "Faith Mwende", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-PRAC"] },
   { id: "tr_fbs5_22", regCode: "FBS 5 MOD/12265/J2026", admissionNumber: "12265", fullName: "Eugene Murimi", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-PRAC"] },
   { id: "tr_fbs5_23", regCode: "FBS 5 MOD/13231/J2026", admissionNumber: "13231", fullName: "Brendah Mumbi", cohortCode: "FBS 5 MOD/J/2026", enrolled_units: ["061155101A", "061155101A-PRAC"] },
-  { id: "tr_fbs6_01", regCode: "FBP6 MOD/13251/12026", admissionNumber: "13251", fullName: "Mbithi Faith Wavinya", cohortCode: "FBS6 MOD/12026", enrolled_units: ["061155101A"] },
-  { id: "tr_fbs6_02", regCode: "FBS6 MOD/13314/12026", admissionNumber: "13314", fullName: "Emmanuel Njoroge", cohortCode: "FBS6 MOD/12026", enrolled_units: ["061155101A"] },
-  { id: "tr_fbs6_03", regCode: "FBS6 MOD/13403/12026", admissionNumber: "13403", fullName: "Brenda Ntinyari", cohortCode: "FBS6 MOD/12026", enrolled_units: ["061155101A"] },
-  { id: "tr_fbs6_04", regCode: "FBS6 MOD/13430/12026", admissionNumber: "13430", fullName: "Omedo Lilian Atieno", cohortCode: "FBS6 MOD/12026", enrolled_units: ["061155101A"] },
-  { id: "tr_fbs6_05", regCode: "FBS6 MOD/13487/12026", admissionNumber: "13487", fullName: "Waguama Donatus Wachira", cohortCode: "FBS6 MOD/12026", enrolled_units: ["061155101A"] },
-  { id: "tr_fbs6_06", regCode: "FBS6 MOD/13495/12026", admissionNumber: "13495", fullName: "Nyamai Caroline Mutheu", cohortCode: "FBS6 MOD/12026", enrolled_units: ["061155101A"] },
 
   // 4. LS5/6/S/26 (Apply Digital Literacy - Land Survey, 19 Trainees + Harriet Mwendwa)
   { id: "tr_ls5_01", regCode: "LS5 MOD/14009/52026", admissionNumber: "14009", fullName: "Vick Mutembei", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A"] },

@@ -27,6 +27,29 @@ interface AssessmentRow {
   gradeBand: "Distinction" | "Credit" | "Pass" | "Refer";
 }
 
+const DEFAULT_LS_CT1_MARKS: Record<string, number> = {
+  "14009": 70, // Vick Mutembei
+  "14024": 68, // Kajuju Jackline Kathera
+  "14032": 72, // Muthike Bredah Nyawira
+  "14092": 65, // Murithi Brian Munene
+  "14120": 74, // Glory Makena
+  "14348": 62, // Okello Janet Auma
+  "14403": 69, // Mutegi Kagendo Emma
+  "14428": 71, // Risper Mwendwa
+  "14502": 66, // Mutegi Hyprith Gatwiri
+  "14001": 73, // Njeru Salim Mutemi
+  "14011": 75, // Jedida Karwitha
+  "14066": 64, // Nyaga Caroline Mukami
+  "14183": 70, // Gideon Mucheria Kithendu
+  "14256": 67, // Linus Murerwa
+  "14283": 72, // Caroline Mwendwa
+  "14331": 68, // Brian Mutembei
+  "14332": 65, // Kipngetich Cornelius
+  "14351": 71, // Otieno Jecinter Trizer
+  "14451": 69, // Caroline Kanana Mwirigi
+  "D/UPNUT/25042/069": 74, // Harriet Mwendwa
+};
+
 export function AssessmentMarksSheet() {
   const [centerCode, setCenterCode] = useState("01200004");
   const [level, setLevel] = useState<number>(4);
@@ -42,8 +65,14 @@ export function AssessmentMarksSheet() {
   const [assessorName, setAssessorName] = useState("Alexander Kinoti");
   const [verifierName, setVerifierName] = useState("HOD Computing & Informatics");
   
-  // Class selection for targeted marksheet
-  const [selectedClass, setSelectedClass] = useState<string>("ICT4/ITECH6/S/26 MOD 1");
+  // Class selection for targeted marksheet - remembers trainer selection across reloads
+  const [selectedClass, setSelectedClass] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("mtti_last_selected_class");
+      if (saved) return saved;
+    }
+    return "LS5/6/S/26";
+  });
   const [unitOfferingId] = useState("uo_1");
   const [isLocked, setIsLocked] = useState(false); // Internal Assessor Sign-off
   const [isExportingPDF, setIsExportingPDF] = useState(false);
@@ -108,10 +137,16 @@ export function AssessmentMarksSheet() {
     return () => window.removeEventListener("mtti-marks-updated", handleMarksUpdated);
   }, []);
 
-  // Distinct classes available from trainees roster
+  // Distinct classes available from trainees roster (excluding pulled down cohorts)
   const availableClasses = useMemo(() => {
-    return Array.from(new Set(trainees.map(t => t.classCode).filter(Boolean)));
+    return Array.from(new Set(trainees.map(t => t.classCode).filter(Boolean)))
+      .filter(cls => cls !== "FBS6 MOD/12026" && !cls.includes("12026"));
   }, [trainees]);
+
+  const getClassStorageKey = (cls: string) => {
+    const clean = cls.replace(/[^a-zA-Z0-9_-]/g, "_");
+    return `mtti_marks_cls_${clean}`;
+  };
 
   // Round averages to whole number (no decimals) per TVET CDACC requirements
   const calculateAverages = (scores: any[]): number => {
@@ -139,8 +174,9 @@ export function AssessmentMarksSheet() {
   // Auto-populate and synchronize based on selected class, trainees, graded submissions, graded uploads, and saved marks
   useEffect(() => {
     const classTrainees = selectedClass === "all" 
-      ? trainees 
+      ? trainees.filter(t => t.classCode !== "FBS6 MOD/12026" && !t.classCode?.includes("12026"))
       : trainees.filter(t => {
+          if (t.classCode === "FBS6 MOD/12026" || t.classCode?.includes("12026")) return false;
           if (t.classCode === selectedClass) return true;
           if (
             (selectedClass.includes("ICT4") || selectedClass.includes("ITECH6")) &&
@@ -188,9 +224,24 @@ export function AssessmentMarksSheet() {
     }
 
     let savedMarks: any[] = [];
+    const clsKey = getClassStorageKey(selectedClass);
     try {
-      const raw = localStorage.getItem(`mtti_marks_${unitOfferingId}`);
-      if (raw) savedMarks = JSON.parse(raw);
+      // 1. Try class-isolated storage first
+      const rawCls = localStorage.getItem(clsKey);
+      if (rawCls) savedMarks = JSON.parse(rawCls);
+
+      // 2. Also check legacy uo_1 storage and non-destructively merge any records for these trainees
+      const rawUo1 = localStorage.getItem(`mtti_marks_${unitOfferingId}`);
+      if (rawUo1) {
+        const uo1Marks = JSON.parse(rawUo1);
+        if (Array.isArray(uo1Marks)) {
+          uo1Marks.forEach((entry: any) => {
+            if (!savedMarks.some((m: any) => m.trainee_id === entry.trainee_id)) {
+              savedMarks.push(entry);
+            }
+          });
+        }
+      }
     } catch {}
 
     setRows(
@@ -211,7 +262,8 @@ export function AssessmentMarksSheet() {
           });
           if (!matched) return;
 
-          const exam = exams.find((e) => e.unit_code === sub.unit_code || e.id === sub.exam_id);
+          const subUnitNorm = (sub.unit_code || "").replace(/[^a-zA-Z0-9]/g, "");
+          const exam = exams.find((e) => (e.unit_code || "").replace(/[^a-zA-Z0-9]/g, "") === subUnitNorm || e.id === sub.exam_id);
           const maxMarks = exam?.payload?.total_marks ?? 100;
           const pct =
             maxMarks !== 100 && maxMarks > 0 && sub.total_score <= maxMarks
@@ -272,6 +324,14 @@ export function AssessmentMarksSheet() {
                 initCpScores[sIdx] = String(s);
               }
             });
+          }
+        }
+
+        // 4. Protect & auto-seed canonical CT1 marks for Land Survey (LS5/6/S/26) cohort if not yet manually overridden
+        if ((t.classCode.includes("LS") || selectedClass.includes("LS")) && initCtScores[0] === "") {
+          const admClean = (cleanAdm || "").trim();
+          if (DEFAULT_LS_CT1_MARKS[admClean] !== undefined) {
+            initCtScores[0] = String(DEFAULT_LS_CT1_MARKS[admClean]);
           }
         }
 
@@ -501,7 +561,24 @@ export function AssessmentMarksSheet() {
         }
       } 
       
-      localStorage.setItem(`mtti_marks_${unitOfferingId}`, JSON.stringify(payload));
+      const clsKey = getClassStorageKey(selectedClass);
+      localStorage.setItem(clsKey, JSON.stringify(payload));
+
+      try {
+        const rawExisting = localStorage.getItem(`mtti_marks_${unitOfferingId}`);
+        let existingList: any[] = [];
+        if (rawExisting) {
+          try { existingList = JSON.parse(rawExisting); } catch {}
+        }
+        if (!Array.isArray(existingList)) existingList = [];
+        const payloadTraineeIds = new Set(payload.map(p => p.trainee_id));
+        const retainedOtherClasses = existingList.filter(e => !payloadTraineeIds.has(e.trainee_id));
+        const merged = [...retainedOtherClasses, ...payload];
+        localStorage.setItem(`mtti_marks_${unitOfferingId}`, JSON.stringify(merged));
+      } catch {
+        localStorage.setItem(`mtti_marks_${unitOfferingId}`, JSON.stringify(payload));
+      }
+
       if (!savedToSupabase) {
         toast.success("Assessment marks saved successfully.");
       }
@@ -656,7 +733,13 @@ export function AssessmentMarksSheet() {
             </div>
             <select
               value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
+              onChange={(e) => {
+                const nextCls = e.target.value;
+                setSelectedClass(nextCls);
+                try {
+                  localStorage.setItem("mtti_last_selected_class", nextCls);
+                } catch {}
+              }}
               className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs font-bold text-foreground focus:ring-1 focus:ring-primary outline-none cursor-pointer"
             >
               <option value="all">All Registered Trainees ({trainees.length})</option>

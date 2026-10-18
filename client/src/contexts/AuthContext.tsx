@@ -20,6 +20,7 @@ import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
 export interface AuthUser {
   id: string;
   email?: string;
+  phone?: string;
   name: string;
   role: "trainer" | "admin" | "hod" | "trainee";
   reg_number?: string;
@@ -109,10 +110,12 @@ export function findRosterTraineeByIdentifier(rawIdentifier: string) {
     const adm = (t.admNo || "").trim().toUpperCase();
     const reg = (t.regCode || "").trim().toUpperCase();
     const name = (t.name || "").trim().toUpperCase();
+    const email = (t.email || "").trim().toUpperCase();
     const admNoSpace = adm.replace(/\s+/g, "");
     const regNoSpace = reg.replace(/\s+/g, "");
     const tDigits = (adm + " " + reg).match(/\b\d{4,6}\b/)?.[0] || "";
 
+    if (email && email === clean) return true;
     if (adm === clean || reg === clean || name === clean) return true;
     if (admNoSpace === noSpace || regNoSpace === noSpace) return true;
     if (coreDigits && tDigits && coreDigits === tDigits) return true;
@@ -135,7 +138,9 @@ export function findRosterTraineeByIdentifier(rawIdentifier: string) {
             const adm = (t.admNo || t.regCode || t.reg_number || "").trim().toUpperCase();
             const reg = (t.regCode || t.admNo || "").trim().toUpperCase();
             const name = (t.name || "").trim().toUpperCase();
+            const email = (t.email || "").trim().toUpperCase();
             const tDigits = (adm + " " + reg).match(/\b\d{4,6}\b/)?.[0] || "";
+            if (email && email === clean) return true;
             if (adm === clean || reg === clean || name === clean) return true;
             if (coreDigits && tDigits && coreDigits === tDigits) return true;
             return false;
@@ -144,6 +149,8 @@ export function findRosterTraineeByIdentifier(rawIdentifier: string) {
             return {
               id: found.id || `tr_${found.admNo || found.reg_number}`,
               name: found.name,
+              email: found.email,
+              phone: found.phone,
               admNo: found.admNo || found.reg_number,
               regCode: found.regCode || found.admNo || found.reg_number,
               classCode: found.classCode || found.cohortCode || "FBS 5 MOD/J/2026",
@@ -304,9 +311,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const stored = localStorage.getItem("mtti_demo_session");
           if (stored) {
             const parsed = JSON.parse(stored) as AuthUser;
-            if (parsed.role === "trainee") {
-              delete parsed.email;
-            }
             setUser(parsed);
           }
         }
@@ -327,7 +331,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const restoredRole = session.user.user_metadata?.role ?? "trainer";
           setUser({
             id: session.user.id,
-            email: restoredRole === "trainee" ? undefined : (session.user.email ?? ""),
+            email: session.user.email ?? "",
             name: session.user.user_metadata?.name ?? "User",
             role: restoredRole,
           });
@@ -351,15 +355,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const cleanPin = (pin || "").trim();
         const cleanId = (identifier || "").trim();
 
-        // Zero-Email Trainee Guardrail
-        if (requestedRole === "trainee" && cleanId.includes("@")) {
-          return {
-            success: false,
-            error:
-              "Trainees do not use email addresses. Please enter your Admission / Registration Number (e.g., FBS 5 MOD/13254/12026).",
-          };
-        }
-
         // 1. Trainee Roster-Backed Authentication
         if (requestedRole === "trainee" || (!requestedRole && cleanPin === DEMO_TRAINEE_PIN)) {
           const rosterMatch = cleanId ? findRosterTraineeByIdentifier(cleanId) : null;
@@ -368,7 +363,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return {
               success: false,
               error:
-                "Admission / Registration Number not found in the active Term 3 2026 institutional roster.",
+                "Admission / Registration Number or Email not found in the active Term 3 2026 institutional roster.",
             };
           }
 
@@ -411,6 +406,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ? {
                 id: rosterMatch.id,
                 name: rosterMatch.name,
+                email: (rosterMatch as any).email,
+                phone: (rosterMatch as any).phone,
                 reg_number: rosterMatch.regCode || rosterMatch.admNo,
                 cohort_code: rosterMatch.classCode,
                 role: "trainee",

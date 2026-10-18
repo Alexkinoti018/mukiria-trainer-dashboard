@@ -17,6 +17,7 @@ export interface Trainee {
   department?: string;
   gender?: "M" | "F";
   phone?: string;
+  email?: string;
   remarks?: string;
 }
 
@@ -119,12 +120,6 @@ export const OFFICIAL_MTTI_TRAINEES: Trainee[] = [
   { id: "tr_fbs5_21", regCode: "FBS 5 MOD/13258/J2026", admNo: "13258", name: "Faith Mwende", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
   { id: "tr_fbs5_22", regCode: "FBS 5 MOD/12265/J2026", admNo: "12265", name: "Eugene Murimi", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "M" },
   { id: "tr_fbs5_23", regCode: "FBS 5 MOD/13231/J2026", admNo: "13231", name: "Brendah Mumbi", classCode: "FBS 5 MOD/J/2026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs6_01", regCode: "FBP6 MOD/13251/12026", admNo: "13251", name: "Mbithi Faith Wavinya", classCode: "FBS6 MOD/12026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs6_02", regCode: "FBS6 MOD/13314/12026", admNo: "13314", name: "Emmanuel Njoroge", classCode: "FBS6 MOD/12026", department: "FBS Hospitality", gender: "M" },
-  { id: "tr_fbs6_03", regCode: "FBS6 MOD/13403/12026", admNo: "13403", name: "Brenda Ntinyari", classCode: "FBS6 MOD/12026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs6_04", regCode: "FBS6 MOD/13430/12026", admNo: "13430", name: "Omedo Lilian Atieno", classCode: "FBS6 MOD/12026", department: "FBS Hospitality", gender: "F" },
-  { id: "tr_fbs6_05", regCode: "FBS6 MOD/13487/12026", admNo: "13487", name: "Waguama Donatus Wachira", classCode: "FBS6 MOD/12026", department: "FBS Hospitality", gender: "M" },
-  { id: "tr_fbs6_06", regCode: "FBS6 MOD/13495/12026", admNo: "13495", name: "Nyamai Caroline Mutheu", classCode: "FBS6 MOD/12026", department: "FBS Hospitality", gender: "F" },
 
   // 4. LS5/6/S/26 (Apply Digital Literacy - Land Survey, 19 Trainees + Harriet Mwendwa)
   { id: "tr_ls5_01", regCode: "LS5 MOD/14009/52026", admNo: "14009", name: "Vick Mutembei", classCode: "LS5/6/S/26", department: "Building & Civil Engineering", gender: "M" },
@@ -562,20 +557,22 @@ const TraineeContext = createContext<TraineeContextType | undefined>(undefined);
 export function TraineeProvider({ children }: { children: ReactNode }) {
   // Initialize from localStorage or fallback to official roster (with automatic cleanup of phantom candidates)
   const [trainees, setTrainees] = useState<Trainee[]>(() => {
-    const versionKey = "mtti_roster_version_v8";
+    const versionKey = "mtti_roster_version_v9";
     const currentVersion = localStorage.getItem(versionKey);
     const saved = localStorage.getItem("mtti_trainees");
 
-    if (currentVersion === "v8" && saved) {
+    if (currentVersion === "v9" && saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 10) {
-          // Strictly filter out phantom candidates
+          // Strictly filter out phantom candidates and pulled down cohort FBS6 MOD/12026
           const filtered = parsed.filter((t: Trainee) => {
             if (t.id === "tr_it6_12" || t.id === "tr_it6_13") return false;
             if (t.name === "LUCKYSUSAN KIANJIRU MUGO") return false;
             if (t.admNo === "10525" && t.classCode === "ICT4/ITECH6/S/26 MOD 1") return false;
             if (t.name === "Harriet Mwendwa" && t.classCode === "ICT4/ITECH6/S/26 MOD 1") return false;
+            // Pull down cohort FBS6 MOD/12026
+            if (t.classCode === "FBS6 MOD/12026" || t.classCode?.includes("12026") || t.id?.startsWith("tr_fbs6")) return false;
             return true;
           });
 
@@ -616,7 +613,7 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
     }
 
     // Default to clean official roster and mark version
-    localStorage.setItem(versionKey, "v8");
+    localStorage.setItem(versionKey, "v9");
     localStorage.setItem("mtti_trainees", JSON.stringify(OFFICIAL_MTTI_TRAINEES));
     return OFFICIAL_MTTI_TRAINEES;
   });

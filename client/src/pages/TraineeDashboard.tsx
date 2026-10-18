@@ -161,7 +161,7 @@ export default function TraineeDashboard() {
 
           <div className="flex items-center gap-2 text-xs font-semibold bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
             <ShieldCheck className="w-4 h-4 text-[#c48820]" />
-            <span>Zero-Email Roster Verified</span>
+            <span>Institutional Roster Verified</span>
           </div>
         </div>
 

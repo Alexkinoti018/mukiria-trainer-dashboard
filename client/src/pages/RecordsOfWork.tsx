@@ -55,7 +55,7 @@ export const getUnitNameByCode = (code: string): string => {
   // 3. Known TVET CDACC mappings
   const knownMap: Record<string, string> = {
     "HBS/OS/COS/BC/01/5/MA": "Apply Digital Literacy",
-    "ICT/OS/CS/CR/11/6/A": "Perform Graphic Design",
+    "061155101A": "Apply Digital Literacy",
     "IT/CU/ICTA/CR/01/5/MA": "Install Computer Software",
     "IT/CU/ICT/CR/3/6": "Management Information Systems",
     "BUS/OS/IS/CR/11/5/A": "Information Systems Principles",

@@ -148,128 +148,40 @@ const COURSE_TEMPLATES: CourseTemplate[] = [
     unit_code: "BUS/OS/IS/CR/11/5/A",
     unit_name: "APPLY ICT SKILLS",
     department: "BUSINESS ADMINISTRATION",
-    class_code: "BUS/L5/25",
+    class_code: "ADMIN5/6/J/26 MOD 3",
     level: "5, 6",
-    trainees_count: 30,
+    trainees_count: 11,
     weeks: [
       { week: 1, title: "Hardware ID", outcomes: ["Identify internal and external hardware components."] },
       { week: 2, title: "Software/OS", outcomes: ["Classify software and navigate OS interfaces."] },
       { week: 3, title: "Operating Procedures", outcomes: ["Perform safe startup, shutdown, and peripheral connection."] },
       { week: 4, title: "File Management", outcomes: ["Create and manage file directories efficiently."] },
-      { week: 5, title: "Formative Assessment", outcomes: ["Demonstrate mastery of introductory ICT concepts."], steps: DEFAULT_STEPS_ASSESSMENT },
+      { week: 5, title: "Formative Assessment (CT1)", outcomes: ["Demonstrate mastery of introductory ICT concepts."], steps: DEFAULT_STEPS_ASSESSMENT },
       { week: 6, title: "Word Processing", outcomes: ["Execute administrative tasks using word processing."] },
       { week: 7, title: "Spreadsheets", outcomes: ["Perform data entry, editing, and manipulation."] },
       { week: 8, title: "Databases", outcomes: ["Enter and retrieve database records."] },
       { week: 9, title: "Presentations", outcomes: ["Create professional organizational presentations."] },
-      { week: 10, title: "Internet/Networks", outcomes: ["Navigate networks and office online services."] },
-      { week: 11, title: "Advanced Tasks", outcomes: ["Execute advanced organizational administrative tasks."] },
-      { week: 12, title: "Summative Assessment", outcomes: ["Complete final evaluation of all ICT competencies."], steps: DEFAULT_STEPS_ASSESSMENT },
+      { week: 10, title: "Summative Assessment & Portfolio", outcomes: ["Complete final evaluation of all ICT competencies."], steps: DEFAULT_STEPS_ASSESSMENT },
     ],
   },
   {
-    unit_code: "ICT/OS/DL/CR/11/5/A",
+    unit_code: "061155101A",
     unit_name: "APPLY DIGITAL LITERACY",
-    department: "COMPUTING AND INFORMATICS",
-    class_code: "ICT/L5/26",
+    department: "HOSPITALITY MANAGEMENT",
+    class_code: "FBS 5 MOD/J/2026",
     level: "5",
-    trainees_count: 20,
+    trainees_count: 23,
     weeks: [
-      { week: 1, title: "Reporting", outcomes: ["Understand admission and course requirements."] },
-      { week: 2, title: "Foundations", outcomes: ["Understand hardware basics and digital literacy."] },
-      { week: 3, title: "Word Processing", outcomes: ["Create and format digital documents."] },
-      { week: 4, title: "Spreadsheets", outcomes: ["Enter data and apply basic formulas."] },
-      { week: 5, title: "Formative Assessment", outcomes: ["Demonstrate basic digital literacy skills."], steps: DEFAULT_STEPS_ASSESSMENT },
-      { week: 6, title: "Presentations", outcomes: ["Create and format slide presentations."] },
-      { week: 7, title: "Internet Browsing", outcomes: ["Apply search techniques and manage information."] },
-      { week: 8, title: "Communication", outcomes: ["Utilize email and online collaboration tools."] },
-      { week: 9, title: "Cybersecurity", outcomes: ["Identify threats and apply basic controls."] },
-      { week: 10, title: "Online Jobs", outcomes: ["Identify digital platforms and build profiles."] },
-      { week: 11, title: "Job Entry", outcomes: ["Perform CV writing and interview techniques."] },
-      { week: 12, title: "Summative Assessment", outcomes: ["Complete final evaluation of digital literacy."], steps: DEFAULT_STEPS_ASSESSMENT },
-    ],
-  },
-  {
-    unit_code: "ICT/OS/ES/CR/11/6/A",
-    unit_name: "DEMONSTRATE ENVIRONMENTAL LITERACY",
-    department: "COMPUTING AND INFORMATICS",
-    class_code: "ITECH6//24",
-    level: "6",
-    trainees_count: 11,
-    weeks: [
-      { week: 1, title: "Reporting & Admission", outcomes: ["Understand course requirements for environmental literacy."] },
-      { week: 2, title: "Hazard Control", outcomes: ["Identify hazards per EMCA 1999 guidelines."] },
-      { week: 3, title: "Waste Management", outcomes: ["Implement hazardous waste storage methods."] },
-      { week: 4, title: "Pollution Control", outcomes: ["Classify pollution types and solid waste."] },
-      { week: 5, title: "Formative Assessment", outcomes: ["Demonstrate knowledge of environmental hazards."], steps: DEFAULT_STEPS_ASSESSMENT },
-      { week: 6, title: "Noise Pollution", outcomes: ["Apply noise minimization methods."] },
-      { week: 7, title: "Sustainable Resources", outcomes: ["Measure and manage resource usage."] },
-      { week: 8, title: "3Rs Principles", outcomes: ["Apply Reduce, Reuse, Recycle principles."] },
-      { week: 9, title: "Efficiency Systems", outcomes: ["Evaluate resource efficiency systems."] },
-      { week: 10, title: "Purchasing Strategies", outcomes: ["Analyze environmentally friendly purchasing strategies."] },
-      { week: 11, title: "Protocols", outcomes: ["Understand international environmental protocols."] },
-      { week: 12, title: "Summative Assessment", outcomes: ["Complete final environmental literacy evaluation."], steps: DEFAULT_STEPS_ASSESSMENT },
-    ],
-  },
-  {
-    unit_code: "ICT/OS/CS/CR/11/6/A",
-    unit_name: "PERFORM GRAPHIC DESIGN",
-    department: "COMPUTING AND INFORMATICS",
-    class_code: "ITECH6/M/J/24",
-    level: "6",
-    trainees_count: 15,
-    weeks: [
-      {
-        week: 1,
-        title: "Opening & Admission",
-        outcomes: ["Understand unit orientation, course requirements, and professional conduct expectations."],
-        steps: [
-          { time_minutes: 60, trainer_activity: "Present course outline and grading criteria.", learner_activity: "Review syllabus and ask questions.", assessment: "Q&A" },
-          { time_minutes: 60, trainer_activity: "Discuss professional conduct and lab rules.", learner_activity: "Sign lab agreement forms.", assessment: "Document submission" },
-        ],
-      },
-      { week: 2, title: "Design Fundamentals", outcomes: ["Define design and apply basic tools."] },
-      { week: 3, title: "Elements of Design", outcomes: ["Define and apply line, shape, color, and texture."] },
-      { week: 4, title: "Principles of Design", outcomes: ["Apply balance, contrast, and unity to compositions."] },
-      { week: 5, title: "Typography Basics", outcomes: ["Identify font guidelines and classification."] },
-      { week: 6, title: "Formative Assessment", outcomes: ["Demonstrate mastery of Learning Outcomes 1-3."], steps: [
-          { time_minutes: 15, trainer_activity: "Distribute papers and explain tasks.", learner_activity: "Review instructions.", assessment: "N/A" },
-          { time_minutes: 45, trainer_activity: "Invigilate written section.", learner_activity: "Complete written questions.", assessment: "Written CAT" },
-          { time_minutes: 60, trainer_activity: "Invigilate practical design task.", learner_activity: "Execute practical design brief.", assessment: "Practical CAT" },
-        ]
-      },
-      { week: 7, title: "Typography Mastery", outcomes: ["Apply measurements and design standards in InDesign/Canva."] },
-      { week: 8, title: "Image Editing Basics", outcomes: ["Perform cropping and basic image manipulation."] },
-      { week: 9, title: "Advanced Image Editing", outcomes: ["Create layered designs using photo assets."] },
-      { week: 10, title: "Layout Design", outcomes: ["Utilize grid systems for advertisement design."] },
-      { week: 11, title: "Printing Techniques", outcomes: ["Identify print materials and set up files for printers."] },
-      { week: 12, title: "Summative Assessment", outcomes: ["Complete final unit evaluation."], steps: [
-          { time_minutes: 15, trainer_activity: "Distribute final exam brief.", learner_activity: "Review brief.", assessment: "N/A" },
-          { time_minutes: 90, trainer_activity: "Invigilate final project execution.", learner_activity: "Design final project based on brief.", assessment: "Summative Exam" },
-          { time_minutes: 15, trainer_activity: "Collect final files and portfolios.", learner_activity: "Submit digital and printed work.", assessment: "Submission Check" },
-        ]
-      },
-    ],
-  },
-  {
-    unit_code: "0612 451 07A",
-    unit_name: "NETWORK DESIGN AND MANAGEMENT",
-    department: "COMPUTING AND INFORMATICS",
-    class_code: "ITECH5/S/25",
-    level: "5",
-    trainees_count: 18,
-    weeks: [
-      { week: 1, title: "Reporting & Admission", outcomes: ["Understand unit orientation and course requirements."] },
-      { week: 2, title: "User Needs Analysis", outcomes: ["Collect and analyze user network requirements."] },
-      { week: 3, title: "Logical Design", outcomes: ["Develop logical network topology."] },
-      { week: 4, title: "Safety & Components", outcomes: ["Implement safety protocols and identify components."] },
-      { week: 5, title: "Formative Assessment", outcomes: ["Demonstrate understanding of network fundamentals."], steps: DEFAULT_STEPS_ASSESSMENT },
-      { week: 6, title: "Configuration", outcomes: ["Configure network devices based on design."] },
-      { week: 7, title: "Documentation", outcomes: ["Document network architecture accurately."] },
-      { week: 8, title: "Testing Tools", outcomes: ["Identify and use network testing equipment."] },
-      { week: 9, title: "Network Monitoring", outcomes: ["Monitor network performance and traffic."] },
-      { week: 10, title: "Optimization", outcomes: ["Optimize network routing and performance."] },
-      { week: 11, title: "Maintenance Report", outcomes: ["Develop comprehensive maintenance reports."] },
-      { week: 12, title: "Summative Assessment", outcomes: ["Complete end-of-term evaluations."], steps: DEFAULT_STEPS_ASSESSMENT },
+      { week: 1, title: "Reporting & Orientation", outcomes: ["Understand admission and course requirements."] },
+      { week: 2, title: "Foundations of Digital Literacy", outcomes: ["Understand hardware basics and digital literacy."] },
+      { week: 3, title: "Word Processing Documents", outcomes: ["Create and format digital documents."] },
+      { week: 4, title: "Spreadsheets & Arithmetic Formulas", outcomes: ["Enter data and apply basic formulas."] },
+      { week: 5, title: "Continuous Assessment Test 1 (CT1)", outcomes: ["Demonstrate digital literacy written and practical skills."], steps: DEFAULT_STEPS_ASSESSMENT },
+      { week: 6, title: "Presentation Slides", outcomes: ["Create and format slide presentations."] },
+      { week: 7, title: "Internet Browsing & Cloud Collaboration", outcomes: ["Apply search techniques and manage information."] },
+      { week: 8, title: "Communication & Online Collaboration", outcomes: ["Utilize email and online collaboration tools."] },
+      { week: 9, title: "Cybersecurity & Data Privacy", outcomes: ["Identify threats and apply basic controls."] },
+      { week: 10, title: "Summative Assessment & Portfolio Review", outcomes: ["Complete final evaluation of digital literacy."], steps: DEFAULT_STEPS_ASSESSMENT },
     ],
   },
 ];
@@ -379,7 +291,7 @@ export const generateMockRecordsOfWork = (): RecordOfWork[] => {
       class_code: "ADMIN5/6/J/26 MOD 3",
       week_number: i + 1,
       date_delivered: dates[i],
-      trainees_present: 29 - (i % 3), // realistic attendance (out of 30)
+      trainees_present: 11 - (i % 2), // realistic attendance for Admin cohort
       hours_covered: 2, // 120 min
       work_actually_covered: `Successfully conducted presentation and practical lab session on ${topics[i]}. Trainees completed all tasks.`,
       reflection: `Learners achieved the outcome: ${outcomes[i]} Good engagement and mastery.`,
@@ -392,12 +304,38 @@ export const generateMockRecordsOfWork = (): RecordOfWork[] => {
   return records;
 };
 
+const isTerm3CompliantUnit = (unitCode?: string, unitName?: string, classCode?: string): boolean => {
+  const u = (unitName || "").toUpperCase();
+  const c = (unitCode || "").toUpperCase();
+  const cls = (classCode || "").toUpperCase();
+
+  // Pull down Graphic Design unit
+  if (u.includes("GRAPHIC DESIGN") || c === "ICT/OS/CS/CR/11/6/A") return false;
+
+  // Pull down FBS6 MOD/12026
+  if (cls === "FBS6 MOD/12026" || cls.includes("12026")) return false;
+
+  // Remove non-Term 3 cohorts (2023, 2024, 2025)
+  if (cls.includes("/24") || cls.includes("/25") || cls.includes("/23")) return false;
+
+  return true;
+};
+
 // Singleton storage loader for local development
 export const getStoredSessionPlans = (): SessionPlan[] => {
   if (typeof window === "undefined") return generateMockSessionPlans();
   const saved = localStorage.getItem("mtti_session_plans");
   if (saved) {
-    try { return JSON.parse(saved); } catch {}
+    try {
+      const parsed: SessionPlan[] = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const filtered = parsed.filter(p => isTerm3CompliantUnit(p.unit_code, p.unit_name, p.class_code));
+        if (filtered.length !== parsed.length) {
+          localStorage.setItem("mtti_session_plans", JSON.stringify(filtered));
+        }
+        return filtered.length > 0 ? filtered : generateMockSessionPlans();
+      }
+    } catch {}
   }
   const generated = generateMockSessionPlans();
   localStorage.setItem("mtti_session_plans", JSON.stringify(generated));
@@ -406,7 +344,8 @@ export const getStoredSessionPlans = (): SessionPlan[] => {
 
 export const saveStoredSessionPlans = (plans: SessionPlan[]) => {
   if (typeof window !== "undefined") {
-    localStorage.setItem("mtti_session_plans", JSON.stringify(plans));
+    const filtered = plans.filter(p => isTerm3CompliantUnit(p.unit_code, p.unit_name, p.class_code));
+    localStorage.setItem("mtti_session_plans", JSON.stringify(filtered));
   }
 };
 
@@ -414,7 +353,16 @@ export const getStoredLearningPlans = (): LearningPlanWeek[] => {
   if (typeof window === "undefined") return generateMockLearningPlans();
   const saved = localStorage.getItem("mtti_learning_plans");
   if (saved) {
-    try { return JSON.parse(saved); } catch {}
+    try {
+      const parsed: LearningPlanWeek[] = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const filtered = parsed.filter(p => isTerm3CompliantUnit(p.unit_code, p.unit_name, p.class_code));
+        if (filtered.length !== parsed.length) {
+          localStorage.setItem("mtti_learning_plans", JSON.stringify(filtered));
+        }
+        return filtered.length > 0 ? filtered : generateMockLearningPlans();
+      }
+    } catch {}
   }
   const generated = generateMockLearningPlans();
   localStorage.setItem("mtti_learning_plans", JSON.stringify(generated));
@@ -423,7 +371,8 @@ export const getStoredLearningPlans = (): LearningPlanWeek[] => {
 
 export const saveStoredLearningPlans = (plans: LearningPlanWeek[]) => {
   if (typeof window !== "undefined") {
-    localStorage.setItem("mtti_learning_plans", JSON.stringify(plans));
+    const filtered = plans.filter(p => isTerm3CompliantUnit(p.unit_code, p.unit_name, p.class_code));
+    localStorage.setItem("mtti_learning_plans", JSON.stringify(filtered));
   }
 };
 
@@ -431,7 +380,16 @@ export const getStoredRecordsOfWork = (): RecordOfWork[] => {
   if (typeof window === "undefined") return generateMockRecordsOfWork();
   const saved = localStorage.getItem("mtti_records_of_work");
   if (saved) {
-    try { return JSON.parse(saved); } catch {}
+    try {
+      const parsed: RecordOfWork[] = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const filtered = parsed.filter(r => isTerm3CompliantUnit(r.unit_code, r.work_actually_covered, r.class_code));
+        if (filtered.length !== parsed.length) {
+          localStorage.setItem("mtti_records_of_work", JSON.stringify(filtered));
+        }
+        return filtered.length > 0 ? filtered : generateMockRecordsOfWork();
+      }
+    } catch {}
   }
   const generated = generateMockRecordsOfWork();
   localStorage.setItem("mtti_records_of_work", JSON.stringify(generated));
@@ -440,6 +398,8 @@ export const getStoredRecordsOfWork = (): RecordOfWork[] => {
 
 export const saveStoredRecordsOfWork = (records: RecordOfWork[]) => {
   if (typeof window !== "undefined") {
-    localStorage.setItem("mtti_records_of_work", JSON.stringify(records));
+    const filtered = records.filter(r => isTerm3CompliantUnit(r.unit_code, r.work_actually_covered, r.class_code));
+    localStorage.setItem("mtti_records_of_work", JSON.stringify(filtered));
   }
 };
+

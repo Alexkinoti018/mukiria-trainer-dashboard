@@ -2340,8 +2340,8 @@ class APIHandler(BaseHTTPRequestHandler):
                 
             elif path == "/api/generate-exam":
                 payload = json.loads(post_data.decode("utf-8"))
-                unit_code = payload.get("unit_code", "ICT/OS/CS/CR/11/6/A")
-                course_name = payload.get("course_name", "Software Engineering Fundamentals")
+                unit_code = payload.get("unit_code", "IT/CU/ICTA/CR/01/4/MA")
+                course_name = payload.get("course_name", "Perform Computer Essentials")
                 level = payload.get("level")
                 
                 if level is None:

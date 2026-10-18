@@ -76,6 +76,8 @@ interface PingResult {
 interface ParsedTraineeRow {
   admNo: string;
   name: string;
+  email?: string;
+  phone?: string;
   cohortCode: string;
   isValid: boolean;
   validationError?: string;
@@ -108,6 +110,10 @@ export default function AdminDashboard() {
   const [rawCsvText, setRawCsvText] = useState("");
   const [defaultCohort, setDefaultCohort] = useState("ITECH 6 MODULAR/S/2026");
   const [isUploadingRoster, setIsUploadingRoster] = useState(false);
+
+  // ── Trainee Directory Search & Filtering State ───────────────────────────
+  const [traineeSearch, setTraineeSearch] = useState("");
+  const [traineeCohortFilter, setTraineeCohortFilter] = useState("all");
   const [parsedRows, setParsedRows] = useState<ParsedTraineeRow[]>([]);
   const [uploadStats, setUploadStats] = useState<{ total: number; valid: number } | null>(null);
 
@@ -286,29 +292,27 @@ export default function AdminDashboard() {
 
       if (parts.length < 2) return;
 
-      // Extract Admission Number, Full Name, and optional Cohort Code
-      // STRICT INVARIANT: If any part looks like an email, strip and discard it!
-      const nonEmailParts = parts.filter((p) => !p.includes("@") && !p.toLowerCase().includes(".com"));
+      const email = parts.find((p) => p.includes("@"));
+      const phone = parts.find((p) => /^(\+?254|0)[17]\d{8}$/.test(p.replace(/[\s-]/g, "")) || (/^\d{10}$/.test(p) && !parts[0].includes(p)));
+      const cleanParts = parts.filter((p) => p !== email && p !== phone);
 
       let admNo = "";
       let name = "";
       let cohort = defaultCohort;
 
-      if (nonEmailParts.length >= 2) {
-        // Typically either [admNo, name] or [name, admNo]
-        // Determine which is admission number (usually contains digits)
-        if (/\d/.test(nonEmailParts[0]) && !/\d/.test(nonEmailParts[1])) {
-          admNo = nonEmailParts[0];
-          name = nonEmailParts[1];
-          if (nonEmailParts[2]) cohort = nonEmailParts[2];
-        } else if (/\d/.test(nonEmailParts[1])) {
-          name = nonEmailParts[0];
-          admNo = nonEmailParts[1];
-          if (nonEmailParts[2]) cohort = nonEmailParts[2];
+      if (cleanParts.length >= 2) {
+        if (/\d/.test(cleanParts[0]) && !/\d/.test(cleanParts[1])) {
+          admNo = cleanParts[0];
+          name = cleanParts[1];
+          if (cleanParts[2]) cohort = cleanParts[2];
+        } else if (/\d/.test(cleanParts[1])) {
+          name = cleanParts[0];
+          admNo = cleanParts[1];
+          if (cleanParts[2]) cohort = cleanParts[2];
         } else {
-          admNo = nonEmailParts[0];
-          name = nonEmailParts[1];
-          if (nonEmailParts[2]) cohort = nonEmailParts[2];
+          admNo = cleanParts[0];
+          name = cleanParts[1];
+          if (cleanParts[2]) cohort = cleanParts[2];
         }
       }
 
@@ -318,6 +322,8 @@ export default function AdminDashboard() {
       parsed.push({
         admNo,
         name,
+        email,
+        phone,
         cohortCode: cohort || defaultCohort,
         isValid,
         validationError: !isValid ? "Missing admission number or full name" : undefined,
@@ -353,7 +359,6 @@ export default function AdminDashboard() {
     setIsUploadingRoster(true);
     try {
       // 1. Submit batch payload to backend
-      // STRICT INVARIANT: ZERO email fields sent
       const payload = {
         cohortCode: defaultCohort,
         trainees: validRows.map((r) => ({
@@ -361,6 +366,8 @@ export default function AdminDashboard() {
           admNo: r.admNo,
           fullName: r.name,
           name: r.name,
+          email: r.email,
+          phone: r.phone,
           cohortCode: r.cohortCode || defaultCohort,
           classCode: r.cohortCode || defaultCohort,
         })),
@@ -385,6 +392,8 @@ export default function AdminDashboard() {
           admNo: r.admNo,
           regCode: r.admNo,
           name: r.name,
+          email: r.email,
+          phone: r.phone,
           classCode: r.cohortCode || defaultCohort,
           department: "Computing & Informatics",
           gender: "M",
@@ -393,7 +402,7 @@ export default function AdminDashboard() {
       });
 
       toast.success("Roster Batch Ingestion Complete", {
-        description: `Persisted ${result.count || validRows.length} trainees into database and active registry with zero email records.`,
+        description: `Persisted ${result.count || validRows.length} trainees into database and active registry.`,
       });
 
       setIsRosterModalOpen(false);
@@ -417,6 +426,24 @@ export default function AdminDashboard() {
     });
     return counts;
   }, [trainees]);
+
+  // Filtered Trainees for Admin Roster Directory
+  const filteredTrainees = useMemo(() => {
+    return trainees.filter((t) => {
+      const matchesCohort =
+        traineeCohortFilter === "all" ||
+        (t.classCode && t.classCode.toLowerCase().includes(traineeCohortFilter.toLowerCase()));
+      if (!matchesCohort) return false;
+      if (!traineeSearch.trim()) return true;
+      const q = traineeSearch.toLowerCase();
+      return (
+        t.name?.toLowerCase().includes(q) ||
+        t.admNo?.toLowerCase().includes(q) ||
+        (t.email && t.email.toLowerCase().includes(q)) ||
+        (t.phone && t.phone.toLowerCase().includes(q))
+      );
+    });
+  }, [trainees, traineeSearch, traineeCohortFilter]);
 
   return (
     <div className="min-h-screen bg-[#070b19] text-slate-100 flex flex-col selection:bg-[#c48820]/30 selection:text-white">
@@ -897,7 +924,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-[#c48820]" />
               <h3 className="text-base font-bold text-white tracking-wide">
-                Institutional Roster Metrics (Zero-Email Database)
+                Institutional Trainee Directory & Roster Management
               </h3>
             </div>
             <span className="text-xs text-slate-400">
@@ -913,9 +940,107 @@ export default function AdminDashboard() {
               >
                 <p className="text-xs text-slate-400 truncate font-medium">{cohort}</p>
                 <p className="text-2xl font-black text-white">{count}</p>
-                <p className="text-[10px] text-emerald-400 font-semibold">100% Zero-Email Verified</p>
+                <p className="text-[10px] text-emerald-400 font-semibold">Active Institutional Roster</p>
               </div>
             ))}
+          </div>
+
+          {/* Dedicated Trainee Directory Table with Admin-Only Email and Phone Columns */}
+          <div className="rounded-2xl bg-slate-900/80 border border-white/10 p-5 space-y-4 shadow-xl backdrop-blur-sm">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span>Enrolled Trainees Directory</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#c48820]/20 text-amber-300 border border-[#c48820]/30">
+                    Administrator Protected View
+                  </span>
+                </h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Trainee email addresses and contact phone numbers are securely displayed exclusively on this Administrator portal.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                <input
+                  type="text"
+                  placeholder="Search name, adm no, email, phone..."
+                  value={traineeSearch}
+                  onChange={(e) => setTraineeSearch(e.target.value)}
+                  className="px-3 py-1.5 rounded-lg bg-slate-950 border border-white/10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#c48820] w-full sm:w-64"
+                />
+                <select
+                  value={traineeCohortFilter}
+                  onChange={(e) => setTraineeCohortFilter(e.target.value)}
+                  className="px-3 py-1.5 rounded-lg bg-slate-950 border border-white/10 text-xs text-white focus:outline-none focus:border-[#c48820]"
+                >
+                  <option value="all">All Cohorts ({trainees.length})</option>
+                  {Object.keys(cohortStats).map((cls) => (
+                    <option key={cls} value={cls}>
+                      {cls} ({cohortStats[cls]})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto rounded-xl border border-white/10 bg-slate-950/80">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#000953]/80 border-b border-white/10 text-slate-300">
+                  <tr>
+                    <th className="p-3 w-12 text-center">#</th>
+                    <th className="p-3">Admission Number</th>
+                    <th className="p-3">Full Trainee Name</th>
+                    <th className="p-3">Class / Cohort</th>
+                    <th className="p-3 text-amber-300 font-bold">Email Address (Admin Only)</th>
+                    <th className="p-3 text-amber-300 font-bold">Phone Number (Admin Only)</th>
+                    <th className="p-3 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 font-mono text-[11px]">
+                  {filteredTrainees.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="p-6 text-center text-slate-500 font-sans">
+                        No trainees match the search filter.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredTrainees.map((t, idx) => (
+                      <tr key={t.id || idx} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="p-3 text-center text-slate-500">{idx + 1}</td>
+                        <td className="p-3 font-bold text-white">{t.admNo || t.regCode}</td>
+                        <td className="p-3 font-sans font-semibold text-slate-200">{t.name}</td>
+                        <td className="p-3 text-slate-400 font-sans text-xs">{t.classCode}</td>
+                        <td className="p-3 text-slate-300 font-sans">
+                          {t.email ? (
+                            <span className="text-amber-200/90">{t.email}</span>
+                          ) : (
+                            <span className="text-slate-600 italic">Not entered</span>
+                          )}
+                        </td>
+                        <td className="p-3 text-slate-300">
+                          {t.phone ? (
+                            <span className="text-amber-200/90">{t.phone}</span>
+                          ) : (
+                            <span className="text-slate-600 italic">Not entered</span>
+                          )}
+                        </td>
+                        <td className="p-3 text-center">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                            Enrolled
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
+              <span>Showing {filteredTrainees.length} of {trainees.length} trainees</span>
+              <span className="text-[11px] text-slate-500">
+                Contact information is strictly withheld from student-facing views and attendance registers.
+              </span>
+            </div>
           </div>
         </section>
       </main>
@@ -928,7 +1053,7 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-2xl bg-slate-900 border border-white/15 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="w-full max-w-3xl bg-slate-900 border border-white/15 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
               {/* Modal Header */}
               <div className="p-5 border-b border-white/10 flex items-center justify-between bg-[#000953]/50">
@@ -939,7 +1064,7 @@ export default function AdminDashboard() {
                   <div>
                     <h3 className="text-base font-bold text-white">Batch Trainee Roster Ingestion</h3>
                     <p className="text-xs text-[#c48820] font-semibold">
-                      Invariant: STRICT ZERO-EMAIL POLICY — Trainees have NO email addresses.
+                      Institutional Roster Ingestion — Term 3, 2026 Academic Cohorts
                     </p>
                   </div>
                 </div>
@@ -968,7 +1093,6 @@ export default function AdminDashboard() {
                     <option value="ITECH 6 MODULAR/S/2026">ITECH 6 MODULAR/S/2026 (Level 6 Modular)</option>
                     <option value="ICT4 MOD/S/2026">ICT4 MOD/S/2026 (Level 4 Computer Essentials)</option>
                     <option value="FBS 5 MOD/J/2026">FBS 5 MOD/J/2026 (Hospitality)</option>
-                    <option value="FBS6 MOD/12026">FBS6 MOD/12026 (Hospitality Level 6)</option>
                     <option value="LS5/6/S/26">LS5/6/S/26 (Land Survey)</option>
                     <option value="ADMIN5/6/J/26 MOD 3">ADMIN5/6/J/26 MOD 3 (Business Administration)</option>
                   </select>
@@ -978,10 +1102,10 @@ export default function AdminDashboard() {
                 <div className="border-2 border-dashed border-white/15 rounded-xl p-5 text-center hover:border-[#c48820]/60 transition-colors bg-white/[0.02]">
                   <Upload className="w-8 h-8 mx-auto text-slate-400 mb-2" />
                   <p className="text-xs font-medium text-slate-200">
-                    Upload CSV or TSV File (<span className="text-amber-300">Admission Number, Full Name</span>)
+                    Upload CSV or TSV File (<span className="text-amber-300">Admission Number, Full Name, optional Email, Phone</span>)
                   </p>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    Columns like "Email" or "Student Email" will be automatically stripped.
+                    Emails and contact phone numbers are securely routed to the Administrator page and withheld from public views.
                   </p>
                   <label className="inline-block mt-3 px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-white cursor-pointer transition-colors">
                     <span>Browse File</span>
@@ -993,13 +1117,13 @@ export default function AdminDashboard() {
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
                     <label className="font-semibold text-slate-300">Or Paste CSV / Tab-Separated Data</label>
-                    <span className="text-[11px] text-slate-400 font-mono">Format: 14076, Wanjau Alvin Gatere</span>
+                    <span className="text-[11px] text-slate-400 font-mono">Format: 14076, Alvin Gatere, alvin@mtti.ac.ke, 0712345678</span>
                   </div>
                   <textarea
                     rows={4}
                     value={rawCsvText}
                     onChange={(e) => handleParseCsv(e.target.value)}
-                    placeholder="14076, Wanjau Alvin Gatere&#10;14107, Ann Mukiri Matheta&#10;14248, Mbaabu Sarah Nkatha"
+                    placeholder="14076, Wanjau Alvin Gatere, alvin@mtti.ac.ke, 0712345678&#10;14107, Ann Mukiri Matheta, ann@mtti.ac.ke, 0723456789&#10;14248, Mbaabu Sarah Nkatha"
                     className="w-full p-3 rounded-lg bg-slate-950 border border-white/10 font-mono text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-[#c48820]"
                   />
                 </div>
@@ -1020,6 +1144,8 @@ export default function AdminDashboard() {
                           <tr>
                             <th className="p-2.5">Adm No</th>
                             <th className="p-2.5">Full Name</th>
+                            <th className="p-2.5">Email</th>
+                            <th className="p-2.5">Phone</th>
                             <th className="p-2.5">Cohort</th>
                             <th className="p-2.5 text-right">Status</th>
                           </tr>
@@ -1029,6 +1155,8 @@ export default function AdminDashboard() {
                             <tr key={idx} className={row.isValid ? "text-slate-200" : "text-rose-400"}>
                               <td className="p-2.5 font-bold">{row.admNo}</td>
                               <td className="p-2.5 font-sans">{row.name}</td>
+                              <td className="p-2.5 font-sans text-amber-300">{row.email || "—"}</td>
+                              <td className="p-2.5 text-slate-300">{row.phone || "—"}</td>
                               <td className="p-2.5 text-slate-400">{row.cohortCode}</td>
                               <td className="p-2.5 text-right">
                                 {row.isValid ? (

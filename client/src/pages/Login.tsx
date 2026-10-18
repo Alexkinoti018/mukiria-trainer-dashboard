@@ -44,8 +44,8 @@ const ROLES: RoleConfig[] = [
     label: "Trainee",
     icon: GraduationCap,
     description: "Online examinations, continuous evidence portfolios & results broadsheets.",
-    identifierLabel: "Admission / Registration Number",
-    identifierPlaceholder: "e.g., FBS 5 MOD/13254/12026",
+    identifierLabel: "Admission No. or Institutional Email",
+    identifierPlaceholder: "e.g., FBS 5 MOD/13254/12026 or email",
     targetPath: "/trainee/dashboard",
   },
   {
@@ -110,9 +110,6 @@ export default function Login() {
     setActiveRole(roleId);
     setError("");
     setShowForgotNotice(false);
-    if (roleId === "trainee" && identifier.includes("@")) {
-      setIdentifier("");
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -122,16 +119,9 @@ export default function Login() {
       setError(
         `Please enter your ${
           activeRole === "trainee"
-            ? "Admission / Registration Number"
+            ? "Admission No. or Institutional Email"
             : "Staff ID / Employee Code"
         }.`
-      );
-      return;
-    }
-
-    if (activeRole === "trainee" && identifier.includes("@")) {
-      setError(
-        "Trainees do not use email addresses. Please enter your Admission / Registration Number (e.g., FBS 5 MOD/13254/12026)."
       );
       return;
     }
@@ -353,7 +343,7 @@ export default function Login() {
         {/* Minimal Institutional Footer & Metadata */}
         <div className="pt-4 border-t border-slate-200/70 text-center space-y-1.5">
           <p className="text-xs text-slate-500 font-medium">
-            Institutional Period: <strong>Term 3, 2026 (31/09/2026 – 13/11/2026)</strong>
+            Institutional Period: <strong>Term 3, 2026 (31/08/2026 – 13/11/2026)</strong>
           </p>
           <p className="text-[11px] text-slate-400">
             &copy; {new Date().getFullYear()} Mukiria Technical Training Institute. All rights reserved.

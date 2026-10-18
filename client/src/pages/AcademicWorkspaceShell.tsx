@@ -535,7 +535,7 @@ export default function AcademicWorkspaceShell() {
     setIsGenerating(true);
     // Simulate a 2-second delay to mock an API call
     setTimeout(() => {
-      setSessionTitle(sessionTitle || "Advanced Graphic Design Techniques");
+      setSessionTitle(sessionTitle || "Computer Hardware & System Maintenance");
       setIsGenerating(false);
     }, 2000);
   };
@@ -1038,7 +1038,7 @@ export default function AcademicWorkspaceShell() {
                       className="w-full px-4 py-3 bg-secondary/30 border-0 border-b-2 border-transparent hover:border-primary/20 focus:border-primary focus:bg-background rounded-t-xl transition-all text-xs outline-none"
                       value={sessionTitle}
                       onChange={e => setSessionTitle(e.target.value)}
-                      placeholder="Introduction to Graphic Design"
+                      placeholder="Introduction to Computer Essentials"
                     />
                   </div>
                   <div className="flex flex-col">
