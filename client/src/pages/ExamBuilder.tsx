@@ -41,6 +41,7 @@ import { getCurriculumUnits, CurriculumUnit } from "@/lib/curriculumDatabase";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
 import { EXAM_THEME_TOKENS } from "@/lib/examThemeTokens";
+import { exportExamDocumentClientSide } from "@/lib/exportExamWord";
 
 const getLevelFromUnitCode = (code: string): number => {
   const match = code.match(/\/(\d)\//);
@@ -342,40 +343,62 @@ export default function ExamBuilder() {
   const exportExamAsDocx = async () => {
     setExportingDocx(true);
     try {
-      const resp = await fetch("http://localhost:8000/api/export-docx", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          unit_code: unitCode || "061155101A",
-          course_name: courseName || "ICT Technician Level 5",
-          unit_name: unitName,
-          class_code: classCode,
-          series,
+      let exported = false;
+
+      // 1. Try server endpoint if available
+      try {
+        const resp = await fetch("/api/export-docx", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            unit_code: unitCode || "061155101A",
+            course_name: courseName || "ICT Technician Level 5",
+            unit_name: unitName,
+            class_code: classCode,
+            series,
+            payload,
+          }),
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.success && data.file_data) {
+            const binaryString = window.atob(data.file_data);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            const blob = new Blob([bytes], {
+              type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            });
+            const link = document.createElement("a");
+            link.href = window.URL.createObjectURL(blob);
+            link.download = data.filename || `MTTI_Exam_${(unitCode || "EXAM").replace(/[^a-zA-Z0-9_-]/g, "_")}.docx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(link.href);
+            exported = true;
+            toast.success("Word Document Exported", { description: data.filename });
+          }
+        }
+      } catch {
+        // Fall back to client-side generator seamlessly
+      }
+
+      // 2. Client-side TVET CDACC Word Document generator
+      if (!exported) {
+        const result = exportExamDocumentClientSide({
+          unitCode: unitCode || "061155101A",
+          courseName: courseName || "ICT Technician Level 5",
+          unitName: unitName || payload.title || "Continuous Assessment Examination",
+          classCode: classCode || "ALL COHORTS",
+          series: series || "MAY-AUG 2026",
           payload,
-        }),
-      });
-      const data = await resp.json();
-      if (!data.success) {
-        throw new Error(data.error || "Failed to generate Word document");
+        });
+        toast.success("Word Document Exported", { description: result.filename });
       }
-
-      const binaryString = window.atob(data.file_data);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-
-      const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
-      const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(blob);
-      link.download = data.filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast.success("Word Document Exported", { description: data.filename });
     } catch (err: any) {
-      toast.error("Export Failed", { description: err.message });
+      toast.error("Export Failed", { description: err.message || "Failed to generate Word document" });
     } finally {
       setExportingDocx(false);
     }
