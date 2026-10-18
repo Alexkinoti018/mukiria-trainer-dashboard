@@ -235,26 +235,24 @@ export default function ExamBuilder() {
 
     const secAQuestions: ExamQuestion[] = outcomes.slice(0, 5).map((outcome, idx) => ({
       id: `q-a-${idx + 1}`,
-      question_number: idx + 1,
+      q_num: idx + 1,
       type: "short_answer",
-      question_text: `State and explain two key industrial requirements or principles related to ${outcome.toLowerCase().replace(/^(demonstrate|apply|perform|describe|explain)\s+/i, "")}.`,
+      text: `State and explain two key industrial requirements or principles related to ${outcome.toLowerCase().replace(/^(demonstrate|apply|perform|describe|explain)\s+/i, "")}.`,
       marks: 4,
-      rubric: "2 marks for clear identification; 2 marks for practical industrial application context.",
-      ai_guidelines: "Check that the candidate references safety, standard tools, and proper technical terminology.",
-      model_answer: `Identification of core requirements aligned with ${outcome}. Appropriate technical explanation in accordance with CDACC standards.`
+      critical_aspect: "2 marks for clear identification; 2 marks for practical industrial application context.",
+      correct_answer: `Identification of core requirements aligned with ${outcome}. Appropriate technical explanation in accordance with CDACC standards.`
     }));
 
     const secBQuestions: ExamQuestion[] = outcomes.slice(0, 3).map((outcome, idx) => ({
       id: `q-b-${idx + 1}`,
-      question_number: idx + 6,
+      q_num: idx + 6,
       type: "structured",
-      question_text: isPractical
+      text: isPractical
         ? `You are assigned to carry out an industrial task on "${outcome}". Detail the step-by-step procedure, required safety PPE, tools, and quality verification checklist.`
         : `Analyze the technical framework for "${outcome}". Explain the common failure modes or errors encountered in practice and outline systematic troubleshooting methodologies to resolve them.`,
       marks: 10,
-      rubric: "Step-by-step methodology (4 marks), tools and safety precautions (3 marks), verification and troubleshooting (3 marks).",
-      ai_guidelines: "Evaluate clarity of procedure, adherence to workshop safety standards, and practical feasibility.",
-      model_answer: `Comprehensive procedural plan for ${outcome}, including risk assessment, tool preparation, execution steps, and testing verification.`
+      critical_aspect: "Step-by-step methodology (4 marks), tools and safety precautions (3 marks), verification and troubleshooting (3 marks).",
+      correct_answer: `Comprehensive procedural plan for ${outcome}, including risk assessment, tool preparation, execution steps, and testing verification.`
     }));
 
     return {
@@ -266,34 +264,34 @@ export default function ExamBuilder() {
       assessment_category: isPractical ? "Practical" : "Exam",
       type: isPractical ? "practical" : "written",
       section_a: {
+        title: "Section A: Compulsory Short Answer Questions",
         instructions: "Answer ALL questions in this section (Compulsory - 20 Marks).",
         total_marks: 20,
         questions: secAQuestions.length > 0 ? secAQuestions : [
           {
             id: "q-a-1",
-            question_number: 1,
+            q_num: 1,
             type: "short_answer",
-            question_text: `Explain three fundamental workshop safety and operational rules applicable to ${u.unit_title}.`,
+            text: `Explain three fundamental workshop safety and operational rules applicable to ${u.unit_title}.`,
             marks: 6,
-            rubric: "2 marks for each correct rule with operational justification.",
-            ai_guidelines: "Evaluate based on standard TVET safety guidelines.",
-            model_answer: "PPE compliance, proper equipment isolation, and maintaining clear workspace."
+            critical_aspect: "2 marks for each correct rule with operational justification.",
+            correct_answer: "PPE compliance, proper equipment isolation, and maintaining clear workspace."
           }
         ]
       },
       section_b: {
+        title: "Section B: Structured Problem-Solving Questions",
         instructions: "Answer the following structured scenario-based questions (30 Marks).",
         total_marks: 30,
         questions: secBQuestions.length > 0 ? secBQuestions : [
           {
             id: "q-b-1",
-            question_number: 2,
+            q_num: 2,
             type: "structured",
-            question_text: `Describe the end-to-end execution workflow for standard tasks in ${u.unit_title}, specifying tools, equipment, and verification standards.`,
+            text: `Describe the end-to-end execution workflow for standard tasks in ${u.unit_title}, specifying tools, equipment, and verification standards.`,
             marks: 15,
-            rubric: "Preparation (5 marks), Execution (6 marks), Testing/Handover (4 marks).",
-            ai_guidelines: "Assess for practical realism and occupational rigor.",
-            model_answer: "Structured workflow covering planning, safety, implementation, and quality verification."
+            critical_aspect: "Preparation (5 marks), Execution (6 marks), Testing/Handover (4 marks).",
+            correct_answer: "Structured workflow covering planning, safety, implementation, and quality verification."
           }
         ]
       }

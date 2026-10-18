@@ -5,7 +5,7 @@
  */
 
 import jsPDF from "jspdf";
-import type { RecordOfWork } from "@/lib/pedagogyStorage";
+import type { RecordOfWork } from "@/lib/mockSessionPlans";
 
 export function exportRecordOfWorkPdfClientSide(params: {
   trainerName: string;

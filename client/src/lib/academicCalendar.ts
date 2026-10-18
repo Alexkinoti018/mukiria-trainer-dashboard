@@ -25,8 +25,8 @@ export interface AcademicContext {
   term: string;             // "Term 3, 2026"
   termCode: string;         // "TERM-3-2026"
   academicYear: number;     // 2026
-  currentWeek: number;      // 2
-  termDuration: string;     // "28 Sept 2026 – 27 Nov 2026"
+  currentWeek: number;      // 6
+  termDuration: string;     // "31 Aug 2026 – 13 Nov 2026"
   activeSlot: PeriodSlot | null;
   statusText: string;       // "Tea Break (10:00 - 10:30)" or "Period 1 (8:00 - 10:00)"
   isBreak: boolean;
@@ -48,14 +48,14 @@ export interface TimetableSession {
 export const TERM_CONFIG = {
   term: "Term 3, 2026",
   academicYear: 2026,
-  termStartDate: new Date(2026, 8, 7),  // 07 September 2026 (Month is 0-indexed: 8 is September)
+  termStartDate: new Date(2026, 7, 31),  // 31 August 2026 (Month is 0-indexed: 7 is August)
   termEndDate: new Date(2026, 10, 13),  // 13 November 2026 (Month 10 is November)
   totalWeeks: 10,
   referenceDate: "2026-10-07",          // Fixed reference anchor for system synchronization
   referenceDay: "Monday",
   referenceFormattedDate: "Monday, 07 October 2026",
   referenceShortDate: "07/10/2026",
-  termDuration: "07 Sep 2026 – 13 Nov 2026",
+  termDuration: "31 Aug 2026 – 13 Nov 2026",
 };
 
 export const MTTI_PERIODS: PeriodSlot[] = [

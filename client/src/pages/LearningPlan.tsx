@@ -65,6 +65,8 @@ export interface LearningPlanDocument {
   classCode: string;
   datePrepared: string;
   dateRevised?: string;
+  dateOfPreparation?: string;
+  dateOfRevision?: string;
   trainerSignDate?: string;
   trainerSignature?: string;
   approvedBy?: string;
@@ -831,8 +833,8 @@ export default function LearningPlan() {
           level: activePlan.level,
           classCode: activePlan.classCode,
           traineesCount: activePlan.traineesCount,
-          dateOfPreparation: activePlan.dateOfPreparation,
-          dateOfRevision: activePlan.dateOfRevision,
+          dateOfPreparation: activePlan.dateOfPreparation || activePlan.datePrepared || "",
+          dateOfRevision: activePlan.dateOfRevision || activePlan.dateRevised || "",
           weeks: activePlan.weeks
         });
         toast.success("Learning Plan exported to Word (.doc)!", {
