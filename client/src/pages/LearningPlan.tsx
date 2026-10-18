@@ -17,13 +17,19 @@ import {
   Save, 
   Sparkles,
   BookOpen,
-  Sliders
+  Sliders,
+  Copy
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import curriculumDatabaseRaw from "@/lib/curriculum_database.json";
 import parsedTemplatesRaw from "@/lib/parsed_templates.json";
+import {
+  OFFICIAL_LEARNING_PLANS,
+  convertRecordToLearningPlanDocument,
+  getOfficialLearningPlan
+} from "@/data/learningPlans";
 
 // --- Types ---
 export interface ElementCriteria {
@@ -89,7 +95,11 @@ export const extractUnitLevel = (code: string, fallbackLevel?: number): number =
 
 // Convert curriculum_database.json into official LearningPlanDocument objects
 const generateInitialPlans = (): LearningPlanDocument[] => {
-  return (curriculumDatabaseRaw as any[]).map((u: any, idx: number) => {
+  const officialDocs: LearningPlanDocument[] = OFFICIAL_LEARNING_PLANS.map((rec) =>
+    convertRecordToLearningPlanDocument(rec)
+  );
+
+  const curriculumDocs: LearningPlanDocument[] = (curriculumDatabaseRaw as any[]).map((u: any, idx: number) => {
     const weeks: WeekSession[] = (u.weeks_breakdown || []).map((w: any, wIdx: number) => {
       const isWeek1 = (w.week || wIdx + 1) === 1;
       return {
@@ -154,6 +164,8 @@ const generateInitialPlans = (): LearningPlanDocument[] => {
       weeks: weeks
     };
   });
+
+  return [...officialDocs, ...curriculumDocs];
 };
 
 export default function LearningPlan() {
@@ -176,10 +188,14 @@ export default function LearningPlan() {
   useEffect(() => {
     let allPlans: LearningPlanDocument[] = [];
     const saved = localStorage.getItem("mtti_custom_learning_plans");
+    const officialDocs = OFFICIAL_LEARNING_PLANS.map((rec) =>
+      convertRecordToLearningPlanDocument(rec)
+    );
+
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length >= 20) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
           allPlans = parsed;
         }
       } catch (e) {
@@ -191,6 +207,16 @@ export default function LearningPlan() {
       allPlans = generateInitialPlans();
       localStorage.setItem("mtti_custom_learning_plans", JSON.stringify(allPlans));
     } else {
+      // Ensure official digitized plans are always integrated and prioritized
+      const officialIds = new Set(officialDocs.map(o => o.id));
+      const officialCodes = new Set(officialDocs.map(o => `${o.unitCode}_${o.classCode}`));
+
+      allPlans = [
+        ...officialDocs,
+        ...allPlans.filter(p => !officialIds.has(p.id) && !officialCodes.has(`${p.unitCode}_${p.classCode}`))
+      ];
+      localStorage.setItem("mtti_custom_learning_plans", JSON.stringify(allPlans));
+    }
       // Ensure Week 1 is Admission/Orientation and update clean titles & levels across all existing plans
       let updated = false;
       allPlans = allPlans.map(p => {
@@ -249,7 +275,6 @@ export default function LearningPlan() {
       if (updated) {
         localStorage.setItem("mtti_custom_learning_plans", JSON.stringify(allPlans));
       }
-    }
     
     setPlans(allPlans);
 
@@ -737,6 +762,27 @@ export default function LearningPlan() {
               </button>
 
               <button
+                onClick={() => {
+                  if (!activePlan) return;
+                  const cloned: LearningPlanDocument = {
+                    ...activePlan,
+                    id: `lp-clone-${Date.now()}`,
+                    unitTitle: `${activePlan.unitTitle} (Copy)`,
+                    trainerName: user?.name || "Alexander Kinoti",
+                  };
+                  const updated = [cloned, ...plans];
+                  savePlansToStorage(updated);
+                  setActivePlanId(cloned.id);
+                  toast.success(`Cloned ${activePlan.unitTitle} as an editable template!`);
+                }}
+                className="flex items-center gap-2 px-3 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg text-xs font-bold transition border border-border shrink-0"
+                title="Clone this plan as an editable template"
+              >
+                <Copy className="w-4 h-4 text-primary" />
+                Clone Template
+              </button>
+
+              <button
                 onClick={() => setIsTableSettingsOpen(true)}
                 className="flex items-center gap-2 px-3 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg text-xs font-bold transition border border-border text-foreground shrink-0"
                 title="Adjust table borders, density, and colors"
@@ -795,7 +841,7 @@ export default function LearningPlan() {
               >
                 {(filteredPlans.length > 0 ? filteredPlans : plans).map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.unitTitle} ({p.unitCode}) — Level {p.level}
+                    {p.unitTitle} ({p.unitCode}) — {p.classCode} [L{p.level}]
                   </option>
                 ))}
               </select>

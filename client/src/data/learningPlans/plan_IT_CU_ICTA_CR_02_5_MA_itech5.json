@@ -1,0 +1,944 @@
+{
+  "metadata": {
+    "formNumber": "MTTI/F/CUR/02",
+    "institution": "MUKIRIA TECHNICAL TRAINING INSTITUTE",
+    "unitTitle": "COMPUTER OPERATIONS",
+    "unitCode": "IT/CU/ICTA/CR/02/5/MA",
+    "trainerName": "Lucy Kabura Njoroge",
+    "level": "5",
+    "dateOfPreparation": "01/05/2026",
+    "dateOfRevision": "",
+    "numberOfTrainees": 30,
+    "cohortCode": "ITECH5/M/2026",
+    "skillsSummary": [
+      "Processing computerized word documents",
+      "manipulating computerized spreadsheets",
+      "maintaining computerized databases",
+      "preparing PowerPoint presentation slides",
+      "manipulating graphic application and performing online collaboration."
+    ],
+    "elementsAndPerformanceCriteria": [
+      {
+        "elementTitle": "Process computerized word document",
+        "criteria": [
+          "Ergonomics risk factors observed as per work place procedures",
+          "Word document is created as per work requirements",
+          "Tables are created and manipulated as per work requirements",
+          "Mail merging is performed as per work requirements",
+          "Word processing Objects are inserted as per user requirements",
+          "List of figures and table of content are generated as per user requirements",
+          "Computerized Word documents are printed as per workplace procedure."
+        ]
+      },
+      {
+        "elementTitle": "Manipulate computerized spreadsheet",
+        "criteria": [
+          "Spreadsheet workbook is created as per work requirements",
+          "Cell referencing is performed as per task requirements",
+          "Formula and functions are applied as per work requirements",
+          "Charts are generated as per work requirements"
+        ]
+      },
+      {
+        "elementTitle": "Maintain computerized database",
+        "criteria": [
+          "Computerized database user requirements are collected as per work requirements.",
+          "Computerized database schemas are designed as per task requirements.",
+          "Creation of Computerized database objects as per task requirements.",
+          "Data manipulation is performed as per task requirements."
+        ]
+      },
+      {
+        "elementTitle": "Prepare Power point presentation",
+        "criteria": [
+          "PowerPoint Presentation requirements are collected as per work requirements",
+          "PowerPoint slides are created as per work requirement",
+          "Presentation views are exhibited as per work requirements.",
+          "Animations and transitions are performed as per work requirements",
+          "PowerPoint slides are manipulated as per work requirements",
+          "PowerPoint slides are printed as per work requirements"
+        ]
+      },
+      {
+        "elementTitle": "Manipulate graphic application",
+        "criteria": [
+          "Identifying graphic design requirements",
+          "Graphic design created as per task requirements",
+          "Graphic design published as per the task requirements"
+        ]
+      },
+      {
+        "elementTitle": "Perform document production",
+        "criteria": [
+          "Document is printed as per user specifications",
+          "Document is printed as per user specifications",
+          "Documents are duplicated as per user specifications"
+        ]
+      },
+      {
+        "elementTitle": "Perform Online Collaboration",
+        "criteria": [
+          "Identification of Online collaboration tools as per the task requirements",
+          "Prepare online collaboration as per the task requirements",
+          "Apply online collaborative tools as per the task requirements.",
+          "Demonstrating Mobile collaborations as per task requirements"
+        ]
+      }
+    ],
+    "preparedBy": {
+      "name": "Lucy Kabura Njoroge",
+      "date": "01/05/2026"
+    },
+    "approvedBy": {
+      "name": "LYDIA KITHEKA",
+      "date": "",
+      "title": "DP Academic"
+    }
+  },
+  "schedule": [
+    {
+      "week": 1,
+      "sessionNumber": "1",
+      "sessionTitle": "ADMISSION AND REPORTING",
+      "learningOutcomes": [
+        "ADMISSION AND REPORTING"
+      ],
+      "trainerActivities": [
+        "Admission verification and student reporting."
+      ],
+      "traineeActivities": [
+        "Registration and orientation."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc."
+      ],
+      "assessments": [
+        "Attendance verification"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Ergonomics in ICT Work Environment",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Identify and explain key ergonomics risk factors in ICT workspaces.",
+        "Demonstrate correct sitting posture and workstation setup.",
+        "Apply ergonomic practices while using computer systems."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Explain ergonomic principles.",
+        "Demonstrate correct posture.",
+        "Supervise seating arrangements."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Watch posture video.",
+        "Adjust workstation based on trainer feedback.",
+        "Reflect on personal practices."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "3,4,5&6",
+      "sessionTitle": "Create Word Document",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Create document.",
+        "Format text.",
+        "Save the document with proper naming."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate creation/saving",
+        "Explain naming.",
+        "Provide format guide."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Create and format the document.",
+        "Save the document in a folder."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "1,2&3",
+      "sessionTitle": "Format Paragraphs and Pages",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Format paragraphs.",
+        "Set margins/orientation.",
+        "Insert breaks and headers."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate formatting.",
+        "Guide practice.",
+        "Review work."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Apply spacing.",
+        "Set layout.",
+        "Add header/footer."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Video clips",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "4,5&6",
+      "sessionTitle": "Create and Format Tables",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Insert tables.",
+        "Format table elements.",
+        "Modify rows/columns."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate table features.",
+        "Provide examples.",
+        "Assign tasks."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Create table,",
+        "Apply formatting,",
+        "Merge/split cells."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Compuer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "1,2&3",
+      "sessionTitle": "Edit and Manipulate Documents",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "a. Open/edit documents, use find/replace, track changes.",
+        "b. Explain mail merge, create recipient list, and merge data.",
+        "c. Insert images/shapes/charts, position objects, format."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Provide documents, explain tools, and supervise editing.",
+        "Demonstrate process, provide example lists, and supervise.",
+        "Explain objects, show formatting tools, assign tasks"
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Edit sample report, add comments, and track changes.",
+        "Create document, import recipients, merge and preview.",
+        "Insert and format different objects in document."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "4,5&6",
+      "sessionTitle": "Generate Table of Contents",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "a. Insert captions, create list of figures, and update lists.",
+        "b. Use heading styles, generate table, and update fields.",
+        "c. Adjust print settings, preview documents, print."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate caption tool, guide practice, and explain updates.",
+        "Explain heading structure, demonstrate TOC tool, and give tasks.",
+        "Guide print process, explain settings, and check outputs."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Caption images, generate and update list.",
+        "Apply styles, generate and update TOC.",
+        "Print sample documents with specific layout settings."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "1,2&3",
+      "sessionTitle": "Create Workbook and Worksheets",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "a) Open Excel, create workbook, and add/switch sheets.",
+        "b) Use relative/absolute referencing, apply in formulas.",
+        "c) Apply basic formula such as addition, subtraction, multiplication and division."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate workbook setup, assign workbook task.",
+        "Explain cell types, show examples, assign tasks.",
+        "Demonstrate formulas, explain errors, and assign exercise."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Create workbook with multiple sheets.",
+        "Perform tasks using all reference types.",
+        "Calculate basic totals and differences."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "4,5&6",
+      "sessionTitle": "Format Cells and Sheets",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "a)  Use SUM, AVERAGE, MAX, and MIN.",
+        "b) Format numbers, text, borders, alignment.",
+        "c) Combine spreadsheet skills, save/print workbook."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Explain function syntax, assign data tasks.",
+        "Show formatting options, provide templates.",
+        "Assign full exercise, supervise, assess."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Apply functions to analyze data.",
+        "Format worksheet data.",
+        "Complete and submit formatted workbook."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "1,2&3",
+      "sessionTitle": "Charts and Analysis",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "a)  Select data; insert chart types, format charts.",
+        "b) Apply conditional logic and lookups.",
+        "c) Restrict entries protect sheets, set passwords."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate chart tools, assign data set.",
+        "Explain logic functions, provide data, and guide tasks.",
+        "Explain validation, demonstrate protection."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Create and label charts.",
+        "Use IF, COUNTIF, and VLOOKUP.",
+        "Apply data rules and protect sheets."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "4,5&6",
+      "sessionTitle": "Print and Page Layout Settings",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "a)  Sort ranges, apply filters, and extract info.",
+        "b) Set print area, headers, orientation.",
+        "c) Create analytical workbook, include charts."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Provide dataset, guide analysis.",
+        "Demonstrate print options, assign workbook.",
+        "Provide project brief, supervise."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Sort/filter as per task instructions.",
+        "Configure layout and print.",
+        "Submit final workbook for review."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "1,2&3",
+      "sessionTitle": "Introduction to Computerized Databases and User Requirements",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "a)  Define key database terms (table, record, and field).",
+        "b) Explain how databases are organized.",
+        "c) Identify what users need in a database."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Explain database basics with examples.",
+        " Show a sample database structure.",
+        " Guide trainees in a user requirement activity."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Discuss database examples (e.g., school database).",
+        " Label parts of a sample database.",
+        " Interview a classmate to gather user needs."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "4,5&6",
+      "sessionTitle": "Designing a Database Schema",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "a)  Create a basic ERD (Entity Relationship Diagram).",
+        "b) Turn the ERD into a table structure.",
+        "c)  Identify keys (primary and foreign)."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Help trainees build a simple database design.",
+        "Review and correct ERDs.",
+        "Draw ERDs from a case study."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Convert ERDs to tables.",
+        " Label keys in a sample database.",
+        " Show how to draw ERDs."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "1,2&3",
+      "sessionTitle": "Creating Tables, Forms, Queries, and Reports",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "a)   Create tables with fields and records.",
+        "b)  Make forms and queries.",
+        "c)  Create basic reports."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate how to create database objects.",
+        "Support trainees during hands-on practice.",
+        "Check each trainee's database objects."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Build tables in a database software (e.g., MS Access).",
+        " Design forms and run queries.",
+        " Create a report from database data."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "4,5&6",
+      "sessionTitle": "Data Manipulation and Printing",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "a)   Add, edit, and delete records.",
+        "b) Search and filter data.",
+        "c) Print tables, forms, and reports."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " How to edit and print data.",
+        " Give tasks to practice data manipulation.",
+        " Assess trainees using a checklist."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Enter and update data in tables.",
+        " Use queries to find information.",
+        " Print out tables and reports."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "1,2&3",
+      "sessionTitle": "Creating a PowerPoint Presentation",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Identify types of presentation layouts.",
+        "Design and create PowerPoint slides.",
+        "Save a PowerPoint presentation."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Explain layout types and design tips.",
+        " Demonstrate slide creation step-by-step.",
+        " Assist trainees during practical tasks."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Choose and apply slide layouts.",
+        " Create a simple 4-slide presentation.",
+        " Save their work."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Video clips",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "4,5&6",
+      "sessionTitle": "Enhancing and Printing Presentations",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Apply animations and transitions.",
+        "Insert text, tables, and charts.",
+        "Prepare and print a presentation."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Show how to apply animations and insert objects.",
+        " Help format and edit slides.",
+        " Demonstrate print setup and printing."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Add animations/transitions to slides.",
+        " Insert a table or chart into a slide.",
+        " Print the final presentation.",
+        "."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Video clips",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "1,2&3",
+      "sessionTitle": "Introduction to Graphic Design Tools and Requirements",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        " Define key terms in graphic design and identify types of graphic software.",
+        " List various types of publication designs (e.g., flyers, posters, cards).",
+        " Identify elements of a graphic application window."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Explain basic graphic design terms and software types.",
+        "Show samples of different publication designs.",
+        "Demonstrate the graphic application interface."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Match graphic terms with examples.",
+        " Explore types of designs (banners, brochures, certificates, etc.).",
+        " Label parts of a graphic application window."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "4,5&6",
+      "sessionTitle": "Publication Design and Printing",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        " Create and format basic publication using graphic software.",
+        " Add and edit content such as text, shapes, and pictures.",
+        " Set up and print a graphic publication."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Demonstrate how to add and format content.",
+        " Guide students in using tools like headers, watermarks, and page setup.",
+        " Supervise print setup and printing process."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Create a sample publication (e.g., flyer or certificate).",
+        " Insert text, shapes, and images.",
+        " Perform print setup and print the final design."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "1,2&3",
+      "sessionTitle": "Printing, Scanning, and Duplicating Documents",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Explain the basics of document production and identify types of printers and scanners.",
+        "Demonstrate how to print and scan a document.",
+        "Understand the process of document duplication."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Introduce key terms and concepts in document printing and scanning.",
+        " Demonstrate how to operate printers and scanners.",
+        " Guide learners in hands-on practice of printing, scanning, and duplicating documents."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Observe and identify different types of printers and scanners.",
+        " Practice printing and scanning a sample document.",
+        " Duplicate a scanned document using available tools."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "4,5&6",
+      "sessionTitle": "Introduction to Online Collaboration Tools",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Define online collaboration and explain its importance.",
+        "Identify various online collaboration tools (e.g., Zoom, Google Drive, Teams).",
+        "List key factors to consider when choosing a collaboration tool."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Explain key concepts and uses of online collaboration.",
+        " Show examples of platforms like Google Meet, Skype, and Slack.",
+        " Lead a class discussion and tool comparison."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Discuss the meaning and benefits of online collaboration.",
+        " Explore and list common collaboration tools.",
+        " Compare tools based on features, accessibility, and use."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "1,2&3",
+      "sessionTitle": "Setting Up and Using Online Collaboration Tools",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Set up and register for online collaboration platforms.",
+        "Use tools like email, cloud storage, and calendars in collaboration.",
+        "Understand mobile collaboration and synchronization."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Guide trainees through downloading and installing tools.",
+        " Demonstrate email functions and calendar sharing.",
+        " Explain mobile collaboration and supervise practice."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Create user accounts and set up software (e.g., Google Drive, Teams).",
+        " Send and organize emails; use shared calendars.",
+        " Explore mobile collaboration features (e.g., app permissions, sync tools)."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    }
+  ]
+}

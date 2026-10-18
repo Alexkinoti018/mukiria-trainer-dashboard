@@ -1,0 +1,867 @@
+{
+  "metadata": {
+    "formNumber": "MTTI/F/CUR/02",
+    "institution": "MUKIRIA TECHNICAL TRAINING INSTITUTE",
+    "unitTitle": "APPLY DIGITAL LITERACY",
+    "unitCode": "",
+    "trainerName": "Lucy Kabura Njoroge",
+    "level": "6",
+    "dateOfPreparation": "01/05/2026",
+    "dateOfRevision": "",
+    "numberOfTrainees": 30,
+    "cohortCode": "EE6/S/25",
+    "skillsSummary": [
+      "Involves operating computer devices, solving tasks using the Office suite, managing data and information, performing online communication and collaboration, applying cybersecurity skills, performing jobs online and applying job entry techniques."
+    ],
+    "elementsAndPerformanceCriteria": [
+      {
+        "elementTitle": "Operate computer devices",
+        "criteria": [
+          "Computer device usage is determined as per workplace requirements.",
+          "Computer hardware is identified according to job requirements.",
+          "Computer software is identified according to workplace requirements.",
+          "Computer devices are turned on or off as per the correct workplace procedure.",
+          "Mouse techniques are applied in solving tasks as per workplace requirements.",
+          "Keyboard techniques are applied in solving tasks as per workplace requirements.",
+          "Computer files and folders are created and managed as per workplace requirements.",
+          "Internet connection options are identified and applied in connecting computer devices to the Internet.",
+          "External devices are identified and connected to the computer devices as per the job requirement."
+        ]
+      },
+      {
+        "elementTitle": "Solve tasks using Office suite",
+        "criteria": [
+          "Word processing concepts are applied in solving workplace tasks as per job requirements.",
+          "Worksheet data is entered and prepared in accordance with work procedures.",
+          "Worksheet data is built and edited in accordance with workplace procedures.",
+          "Data manipulation on a worksheet is undertaken in accordance with work requirements.",
+          "Worksheets are saved and printed in accordance with job requirements.",
+          "Electronic presentation concepts are applied in solving workplace tasks as per job requirements."
+        ]
+      },
+      {
+        "elementTitle": "Manage data and information",
+        "criteria": [
+          "Office internet services are identified and applied in accordance with office procedures.",
+          "Internet access applications are determined in accordance with office operation procedures.",
+          "Internet search is performed as per job requirements.",
+          "Online digital content is downloaded in accordance with workplace requirements.",
+          "Digital content is identified and backed up in accordance with workplace procedures."
+        ]
+      },
+      {
+        "elementTitle": "Perform online communication and collaboration",
+        "criteria": [
+          "Netiquette principles are observed as per work requirements.",
+          "Electronic mail communication is executed in accordance with workplace policy.",
+          "Digital content copyright and licenses are identified and applied according to workplace policies and regulatory requirements.",
+          "Online collaboration tools are applied in accordance with workplace policies and regulatory requirements."
+        ]
+      },
+      {
+        "elementTitle": "Apply cybersecurity skills",
+        "criteria": [
+          "Data protection and privacy is classified in accordance with workplace policies and regulatory requirements.",
+          "Internet security threats are identified as per workplace policies and regulatory requirements.",
+          "Computer threats and crimes are detected in accordance to Information Management security guidelines",
+          "Cybersecurity control measures are applied in accordance with workplace policies and regulatory requirements."
+        ]
+      },
+      {
+        "elementTitle": "Perform online jobs",
+        "criteria": [
+          "Online job platforms are identified as per the job requirements.",
+          "Online accounts and profiles are created in accordance with the work requirements.",
+          "Online jobs are identified according to the bidder’s skillset.",
+          "Online digital identity is managed according to industry best practices.",
+          "Online job bidding is done as per the specific job",
+          "Online tasks are executed according to the job requirements.",
+          "Personal online payment account is managed in accordance with financial regulations."
+        ]
+      },
+      {
+        "elementTitle": "Apply job entry techniques",
+        "criteria": [
+          "Job opportunities are sought based on competencies.",
+          "A winning resume/CV is developed as per job advertisement.",
+          "An application/cover letter is developed based on the job advertisement.",
+          "​Certificates and testimonials are organized as per resume.",
+          "Interview skills are demonstrated as per job advertisement."
+        ]
+      }
+    ],
+    "preparedBy": {
+      "name": "Lucy Kabura Njoroge",
+      "date": "01/05/2026"
+    },
+    "approvedBy": {
+      "name": "LYDIA KITHEKA",
+      "date": "",
+      "title": "DP Academic"
+    }
+  },
+  "schedule": [
+    {
+      "week": 1,
+      "sessionNumber": "1",
+      "sessionTitle": "REPORTING AND ADMISSION",
+      "learningOutcomes": ["REPORTING AND ADMISSION"],
+      "trainerActivities": ["Reporting and admission verification."],
+      "traineeActivities": ["Reporting and registration."],
+      "resourcesAndRefs": ["1. OS/Curr", "2. Learning guides"],
+      "assessments": ["Attendance verification"],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "1",
+      "sessionTitle": "Introduction to Digital Literacy",
+      "learningOutcomes": [
+        "Define digital literacy and state 3 workplace benefits within 15 min.",
+        "Differentiate 5 ICT tools and their uses in group activity.",
+        "Explain how digital literacy supports employability in 5 min presentation."
+      ],
+      "trainerActivities": [
+        "Deliver 15-min lecture on digital literacy.",
+        "Provide 3 scenarios and guide benefits discussion.",
+        "Supervise ICT tools worksheet activity."
+      ],
+      "traineeActivities": [
+        "Answer 3 oral questions on digital literacy.",
+        "Work in pairs to list 3 benefits.",
+        "Match 10 ICT tools to uses."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "2",
+      "sessionTitle": "Hardware Components",
+      "learningOutcomes": [
+        "Identify 5 internal and 5 external components in 15 min.",
+        "Explain functions of CPU, RAM, and storage.",
+        "Classify 12 devices as input/output/storage in 10 min."
+      ],
+      "trainerActivities": [
+        "Display system unit and explain components.",
+        "Use diagrams to explain CPU, RAM, storage.",
+        "Provide flashcards for classification."
+      ],
+      "traineeActivities": [
+        "Label 10 parts on worksheet.",
+        "Present CPU, RAM, storage functions.",
+        "Classify 12 devices."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "1",
+      "sessionTitle": "Input & Output Devices",
+      "learningOutcomes": [
+        "Identify 5 input and 5 output devices in 15 min.",
+        "Explain one real-world use of each.",
+        "Connect and use an external device in 10 min."
+      ],
+      "trainerActivities": [
+        "Demonstrate input and output devices.",
+        "Provide real-world examples.",
+        "Supervise connecting printer/USB."
+      ],
+      "traineeActivities": [
+        "List 5 input and 5 output devices.",
+        "State 1 use for each.",
+        "Connect printer and USB."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "2",
+      "sessionTitle": "Basic Computer Operation",
+      "learningOutcomes": [
+        "Demonstrate startup and shutdown twice in 10 min.",
+        "Apply 5 keyboard shortcuts.",
+        "Customize wallpaper/screensaver in 15 min."
+      ],
+      "trainerActivities": [
+        "Demonstrate startup and shutdown.",
+        "Model 5 shortcuts in live demo.",
+        "Show desktop customization."
+      ],
+      "traineeActivities": [
+        "Practice startup/shutdown.",
+        "Use 5 shortcuts.",
+        "Change wallpaper/screensaver."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "1",
+      "sessionTitle": "Introduction to Word Processing",
+      "learningOutcomes": [
+        "Create and save a new document in 10 min.",
+        "Open, close, rename 2 docs in 15 min.",
+        "Switch between 2 docs in 5 min."
+      ],
+      "trainerActivities": [
+        "Demonstrate creating and saving docs.",
+        "Show open/close/rename.",
+        "Supervise switching between docs."
+      ],
+      "traineeActivities": [
+        "Create and save a document.",
+        "Rename and close 2 files.",
+        "Switch and edit 2 docs."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "2",
+      "sessionTitle": "Text Editing & Formatting",
+      "learningOutcomes": [
+        "Apply bold, italic, font size in 10 min.",
+        "Align and space 3 paragraphs.",
+        "Insert 3 special characters."
+      ],
+      "trainerActivities": [
+        "Demonstrate formatting tools.",
+        "Guide aligning/spacing text.",
+        "Model inserting symbols."
+      ],
+      "traineeActivities": [
+        "Format doc with bold, italics, font size.",
+        "Align and space paragraphs.",
+        "Insert 3 symbols."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "1",
+      "sessionTitle": "Working with Tables & Objects",
+      "learningOutcomes": [
+        "Create a 3x3 table in 10 min.",
+        "Merge and split cells.",
+        "Insert and format a picture."
+      ],
+      "trainerActivities": [
+        "Demonstrate table creation.",
+        "Show merging/splitting cells.",
+        "Guide inserting images."
+      ],
+      "traineeActivities": [
+        "Create 3x3 tables.",
+        "Merge and split cells.",
+        "Insert and resize a picture."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "2",
+      "sessionTitle": "Page Setup & Printing",
+      "learningOutcomes": [
+        "Set margins/orientation in 10 min.",
+        "Insert headers/footers in 15 min.",
+        "Preview and print doc."
+      ],
+      "trainerActivities": [
+        "Demonstrate page setup.",
+        "Guide header/footer creation.",
+        "Show print preview/printing."
+      ],
+      "traineeActivities": [
+        "Adjust margins/orientation.",
+        "Add headers/footers.",
+        "Print a sample doc."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation 1"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "1",
+      "sessionTitle": "Introduction to Spreadsheets",
+      "learningOutcomes": [
+        "Enter/edit 10 rows of data in 15 min.",
+        "Format 5 cells in 10 min.",
+        "Use AutoFill in 5 min."
+      ],
+      "trainerActivities": [
+        "Demonstrate entering/editing data.",
+        "Show formatting rows/columns.",
+        "Guide AutoFill."
+      ],
+      "traineeActivities": [
+        "Enter 10 rows of data.",
+        "Format 5 cells.",
+        "Replicate data with AutoFill."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "2",
+      "sessionTitle": "Formulas & Functions",
+      "learningOutcomes": [
+        "Apply formulas (+, -, *, /) on 5 sets.",
+        "Use SUM/AVERAGE correctly.",
+        "Demonstrate relative/absolute referencing."
+      ],
+      "trainerActivities": [
+        "Model formula entry.",
+        "Demonstrate SUM/AVERAGE.",
+        "Explain referencing."
+      ],
+      "traineeActivities": [
+        "Solve calculations.",
+        "Use SUM/AVERAGE.",
+        "Practice referencing."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "1",
+      "sessionTitle": "Data Management in Excel",
+      "learningOutcomes": [
+        "Sort 10 marks ascending/descending.",
+        "Filter data with 2 conditions.",
+        "Apply conditional formatting (<50%)."
+      ],
+      "trainerActivities": [
+        "Demonstrate sorting.",
+        "Show filtering.",
+        "Model conditional formatting."
+      ],
+      "traineeActivities": [
+        "Sort student marks.",
+        "Filter data.",
+        "Highlight marks <50%."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "2",
+      "sessionTitle": "Charts & Printing in Excel",
+      "learningOutcomes": [
+        "Create bar and pie charts.",
+        "Modify titles/labels.",
+        "Set print area/scaling."
+      ],
+      "trainerActivities": [
+        "Demonstrate chart creation.",
+        "Guide editing charts.",
+        "Show print setup."
+      ],
+      "traineeActivities": [
+        "Create bar/pie charts.",
+        "Edit chart titles/labels.",
+        "Print worksheet."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "1",
+      "sessionTitle": "Creating Presentations",
+      "learningOutcomes": [
+        "Create 5-slide presentation in 15 min.",
+        "Apply themes/layouts.",
+        "Insert and format text in 3 slides."
+      ],
+      "trainerActivities": [
+        "Demonstrate presentation creation.",
+        "Show themes/layouts.",
+        "Guide text formatting."
+      ],
+      "traineeActivities": [
+        "Create 5-slide presentation",
+        "Apply theme/layout.",
+        "Format text in 3 slides."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "2",
+      "sessionTitle": "Multimedia & Transitions",
+      "learningOutcomes": [
+        "Insert image, chart, audio in slides.",
+        "Apply 2 slide transitions.",
+        "Use 2 animations."
+      ],
+      "trainerActivities": [
+        "Demonstrate inserting multimedia.",
+        "Show transitions.",
+        "Guide animations."
+      ],
+      "traineeActivities": [
+        "Insert media.",
+        "Apply 2 transitions.",
+        "Animate objects."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "1",
+      "sessionTitle": "Data, Information & Browsing",
+      "learningOutcomes": [
+        "Differentiate data vs info with 3 examples.",
+        "Perform Boolean search with AND/OR.",
+        "Bookmark 3 websites."
+      ],
+      "trainerActivities": [
+        "Explain data vs info.",
+        "Demonstrate Boolean search.",
+        "Show bookmarking."
+      ],
+      "traineeActivities": [
+        "Give 3 examples.",
+        "Perform Boolean search.",
+        "Bookmark 3 sites."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "2",
+      "sessionTitle": "Online Communication & Collaboration",
+      "learningOutcomes": [
+        "Send email with attachment.",
+        "Join Zoom/Meet session.",
+        "Collaborate on Google Doc."
+      ],
+      "trainerActivities": [
+        "Demonstrate email with attachment.",
+        "Guide Zoom session.",
+        "Show collaborative editing."
+      ],
+      "traineeActivities": [
+        "Send email with attachment.",
+        "Join Zoom/Meet.",
+        "Edit shared doc."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "1",
+      "sessionTitle": "Cybersecurity Threats",
+      "learningOutcomes": [
+        "Identify 4 threats.",
+        "Explain phishing with example.",
+        "Describe confidentiality principle."
+      ],
+      "trainerActivities": [
+        "Explain 4 threats.",
+        "Show phishing sample.",
+        "Discuss confidentiality."
+      ],
+      "traineeActivities": [
+        "List 4 threats.",
+        "Analyze phishing example.",
+        "Explain confidentiality."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "2",
+      "sessionTitle": "Cybersecurity Controls & ICT Laws",
+      "learningOutcomes": [
+        "Create strong password (8+ chars).",
+        "Run antivirus scan in 15 min.",
+        "State 3 provisions of Data Protection Act."
+      ],
+      "trainerActivities": [
+        "Demonstrate password creation.",
+        "Show antivirus scan.",
+        "Explain ICT laws."
+      ],
+      "traineeActivities": [
+        "Create strong password.",
+        "Run antivirus scan.",
+        "Summarize ICT law points."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "1",
+      "sessionTitle": "Online Jobs & Platforms",
+      "learningOutcomes": [
+        "List 3 online job platforms.",
+        "Create sample profile.",
+        "Explain 2 safe payment methods."
+      ],
+      "trainerActivities": [
+        "Show job platforms.",
+        "Guide profile creation.",
+        "Explain payment methods."
+      ],
+      "traineeActivities": [
+        "Identify 3 platforms.",
+        "Create profile.",
+        "Discuss safe payments."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "2",
+      "sessionTitle": "CVs, Applications & Interviews",
+      "learningOutcomes": [
+        "Write CV with 3 sections.",
+        "Draft application letter.",
+        "Role-play interview in 20 min."
+      ],
+      "trainerActivities": [
+        "Explain CV/letter structure.",
+        "Model interview Q&A.",
+        "Review assignments."
+      ],
+      "traineeActivities": [
+        "Write CV with personal, education, skills.",
+        "Draft job application letter.",
+        "Participate in mock interview."
+      ],
+      "resourcesAndRefs": [
+        "Refs:",
+        "1. OS/Curr",
+        "2. Learning guides",
+        "Training Aids:",
+        "Computers",
+        "Handouts"
+      ],
+      "assessments": [
+        "Knowledge",
+        "oral questioning",
+        "Skills",
+        "observation",
+        "Attitudes",
+        "observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "1",
+      "sessionTitle": "FORMATIVE ASSESSMENT",
+      "learningOutcomes": ["FORMATIVE ASSESSMENT"],
+      "trainerActivities": ["Administer formative assessment."],
+      "traineeActivities": ["Attempt formative assessment."],
+      "resourcesAndRefs": ["1. OS/Curr", "2. Learning guides"],
+      "assessments": ["Formative Assessment"],
+      "reflectionsAndDate": ""
+    }
+  ]
+}

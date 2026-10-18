@@ -1,0 +1,1169 @@
+{
+  "metadata": {
+    "formNumber": "MTTI/F/CUR/02",
+    "institution": "MUKIRIA TECHNICAL TRAINING INSTITUTE",
+    "unitTitle": "APPLY ICT SKILLS",
+    "unitCode": "0415 451 12A",
+    "trainerName": "Lucy Kabura Njoroge",
+    "level": "5,6",
+    "dateOfPreparation": "01/05/2026",
+    "dateOfRevision": "",
+    "numberOfTrainees": 53,
+    "cohortCode": "ADMIN5/6/S/24/J/S/25 MOD III",
+    "skillsSummary": [
+      "Operate computer devices",
+      "Solve tasks using Office suite",
+      "Manage Data and Information",
+      "Perform online communication and collaboration",
+      "Apply cyber security skills",
+      "Perform Online jobs",
+      "Apply job entry techniques",
+      "Exploring Modern Information and Communication Technology",
+      "Applying Computer Software Skills",
+      "Applying Online Skills",
+      "Applying Word Processing Skills",
+      "Applying Presentation Skills",
+      "Applying Spreadsheet Manipulation Skills",
+      "Applying Accounting Software Skills",
+      "Applying Database Management Software Skills",
+      "Applying Desktop Publishing Skills and Applying Basic Computer Networking Skills."
+    ],
+    "elementsAndPerformanceCriteria": [
+      {
+        "elementTitle": "Operate computer devices",
+        "criteria": [
+          "Computer device usage is determined as per workplace requirements.",
+          "Computer hardware is identified according to job requirements.",
+          "Computer software is identified according to workplace requirements.",
+          "Computer devices are turned on or off as per the correct workplace procedure.",
+          "Mouse techniques are applied in solving tasks as per workplace requirements.",
+          "Keyboard techniques are applied in solving tasks as per workplace requirements.",
+          "Computer files and folders are created and managed as per workplace requirements.",
+          "Internet connection options are identified and applied in connecting computer devices to the Internet.",
+          "External devices are identified and connected to the computer devices as per the job requirement."
+        ]
+      },
+      {
+        "elementTitle": "Solve tasks using Office suite",
+        "criteria": [
+          "Word processing concepts are applied in solving workplace tasks as per job requirements.",
+          "Worksheet data is entered and prepared in accordance with work procedures.",
+          "Worksheet data is built and edited in accordance with workplace procedures.",
+          "Data manipulation on a worksheet is undertaken in accordance with work requirements.",
+          "Worksheets are saved and printed in accordance with job requirements.",
+          "Electronic presentation concepts are applied in solving workplace tasks as per job requirements."
+        ]
+      },
+      {
+        "elementTitle": "Manage data and information",
+        "criteria": [
+          "Office internet services are identified and applied in accordance with office procedures.",
+          "Internet access applications are determined in accordance with office operation procedures.",
+          "Internet search is performed as per job requirements.",
+          "Online digital content is downloaded in accordance with workplace requirements.",
+          "Digital content is identified and backed up in accordance with workplace procedures."
+        ]
+      },
+      {
+        "elementTitle": "Perform online communication and collaboration",
+        "criteria": [
+          "Netiquette principles are observed as per work requirements.",
+          "Electronic mail communication is executed in accordance with workplace policy.",
+          "Digital content copyright and licenses are identified and applied according to workplace policies and regulatory requirements.",
+          "Online collaboration tools are applied in accordance with workplace policies and regulatory requirements."
+        ]
+      },
+      {
+        "elementTitle": "Apply cyber security skills",
+        "criteria": [
+          "Data protection and privacy is classified in accordance with workplace policies and regulatory requirements.",
+          "Internet security threats are identified as per workplace policies and regulatory requirements.",
+          "Computer threats and crimes are detected in accordance to Information Management security guidelines",
+          "Cyber security control measures are applied in accordance with workplace policies and regulatory requirements."
+        ]
+      },
+      {
+        "elementTitle": "Perform online jobs",
+        "criteria": [
+          "Online job platforms are identified as per the job requirements.",
+          "Online accounts and profiles are created in accordance with the work requirements.",
+          "Online jobs are identified according to the bidder’s skill set.",
+          "Online digital identity is managed according to industry best practices.",
+          "Online job bidding is done as per the specific job requirements.",
+          "Online tasks are executed according to the job requirements.",
+          "Personal online payment account is managed in accordance with financial regulations."
+        ]
+      },
+      {
+        "elementTitle": "Apply job entry techniques",
+        "criteria": [
+          "Job opportunities are sought based on competencies.",
+          "A winning resume/CV is developed as per job advertisement.",
+          "An application/cover letter is developed based on the job advertisement.",
+          "certificates and testimonials are organized as per resume.",
+          "Interview skills are demonstrated as per job advertisement."
+        ]
+      },
+      {
+        "elementTitle": "Explore modern information and communication technology",
+        "criteria": [
+          "The impact of ICT in the modern working environment is described based on office administration standards.",
+          "Computer main components are identified as per the computer system.",
+          "Functions of computer main components are described in line with computer system.",
+          "Computer System is shut down properly as per the user instruction manual",
+          "Various technologies used in the modern working environment are identified based on office administration standards.",
+          "Typing techniques are demonstrated based on office activities."
+        ]
+      },
+      {
+        "elementTitle": "Apply computer software skills",
+        "criteria": [
+          "Computer software is described based on computer software systems.",
+          "Features and functions of Operating Systems are listed based on the intercommunication of computer components.",
+          "System software and application software are distinguished based on computer software systems",
+          "Microsoft Office for Windows is installed based on computer software manual and requirements.",
+          "Computer applications are demonstrated in line with the operating system"
+        ]
+      },
+      {
+        "elementTitle": "Apply online skills",
+        "criteria": [
+          "Social media accounts are created based on social media ICT policy guidelines",
+          "Social media accounts are managed based on social media ICT policy guidelines",
+          "Emails are Sent and received according to the ICT policy",
+          "Emails are printed according to the ICT policy",
+          "Virtual meetings are scheduled and administrated according to the ICT policy",
+          "Software is updated online as per the ICT policy and manufacturers specifications",
+          "Cloud computing skills are demonstrated according to internet protocol guidelines",
+          "Content is searched on the internet according to the ICT policy"
+        ]
+      },
+      {
+        "elementTitle": "Apply word processing skills",
+        "criteria": [
+          "Word processor window elements are identified in line with the Word processor program",
+          "New document is opened in Word processor as per the Word processor program",
+          "Word processor is launched based on the Word processor program",
+          "Keyboard techniques are applied based on keyboarding",
+          "Word processor's main features are applied  in keyboarding based on the Word processor program",
+          "Documents are printed based on workplace policies"
+        ]
+      },
+      {
+        "elementTitle": "Apply presentation skills",
+        "criteria": [
+          "Presentation slide requirements are collected as per  work place procedure",
+          "Design theme and slide layout are selected as per the work place requirements",
+          "Work related presentations are prepared according to workplace standard procedures",
+          "Work related presentations are manipulated according to workplace standard procedures and ICT Policy",
+          "Presentation slides are printed based on different print layouts"
+        ]
+      },
+      {
+        "elementTitle": "Apply spreadsheet manipulation skills",
+        "criteria": [
+          "Spreadsheet window elements are identified in line with the Spreadsheet program",
+          "The new workbook is opened based on Spreadsheet program launched",
+          "Spreadsheet features are identified based on Spreadsheet program",
+          "Keyboard techniques are applied based on keyboarding",
+          "Formulae and functions are applied based on Spreadsheet principles",
+          "Tables and charts are demonstrated based on spreadsheet  principles",
+          "Worksheets are printed in line with workplace policies"
+        ]
+      },
+      {
+        "elementTitle": "Apply Accounting Software skills",
+        "criteria": [
+          "Accounting software concepts are defined as per accounting principles",
+          "Accounting software is installed in line with the operating system",
+          "Accounting software  features are identified based on accounting software",
+          "Accounting software functions are demonstrated based on"
+        ]
+      },
+      {
+        "elementTitle": "Apply Database Management Software skills",
+        "criteria": [
+          "Database management systems concepts are defined based on Relational database model",
+          "Relational database is installed in line with the computer operating system",
+          "Relational database basic environment components are identified in line with the Relational database",
+          "Relational database functions are described based on database management software",
+          "The new database is opened as per MS-Access",
+          "Relational database objects are identified based on database management software.",
+          "Relational database objects of tables, queries, relationships, and reports are applied as per database management software.",
+          "Forms and reports are printed as per database management software"
+        ]
+      },
+      {
+        "elementTitle": "Apply desktop publishing skills",
+        "criteria": [
+          "Differences between word processors and desktop publishing software are identified as per computer system",
+          "The impact of using DTP in a modern office is described in line with workplace requirements",
+          "Types of publications are produced as per workplace requirements",
+          "The principles of standard page layout and text properties are applied as per the desktop publishing program",
+          "Page size, orientation, and margins are set in line with the desktop publishing program",
+          "Text frames are created as per the desktop publishing program",
+          "Text and images are manipulated to balance the page based on the desktop publishing program"
+        ]
+      },
+      {
+        "elementTitle": "Apply basic computer networking skills",
+        "criteria": [
+          "The advantages of computer networking are identified in line with office practices.",
+          "Different types of computer networks are described based on an office structure.",
+          "Communication media and transmission media are \tidentified as per data communication principles",
+          "10.4 Simple local area network is configured as per data \tcommunication principles"
+        ]
+      }
+    ],
+    "preparedBy": {
+      "name": "Lucy Kabura Njoroge",
+      "date": "01/05/2026"
+    },
+    "approvedBy": {
+      "name": "LYDIA KITHEKA",
+      "date": "",
+      "title": "DP Academic"
+    }
+  },
+  "schedule": [
+    {
+      "week": 1,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Introduction to ICT and Digital Literacy",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Define digital literacy and ICT correctly by the end of the lesson.",
+        "Identify at least 5 uses of computers in daily life and offices.",
+        "Explain the importance of ICT skills with 80% accuracy during discussion."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Introduce ICT concepts using examples.",
+        "Explain importance of digital literacy.",
+        "Demonstrate uses of computers in offices."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Participate in discussion on ICT use.",
+        "Identify areas where computers are used.",
+        "Take notes on digital literacy concepts."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 1,
+      "sessionNumber": "3&4",
+      "sessionTitle": "Computer Components and Functions",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Identify at least 10 computer hardware components correctly.",
+        "Classify computer devices into input, output, and storage devices accurately.",
+        "Describe functions of major computer components with minimal assistance."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate computer hardware parts.",
+        "Explain functions of input and output devices.",
+        "Guide learners in identifying devices."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Identify computer parts physically.",
+        "Classify input and output devices.",
+        "Label hardware diagrams."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Operating Systems and File Management",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Create and organize folders and files correctly in the computer system.",
+        "Demonstrate proper file saving and retrieval procedures.",
+        "Explain at least 4 functions of an operating system accurately."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate creating folders and files.",
+        "Explain operating system functions.",
+        "Guide learners on file organization."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Create and rename folders.",
+        "Save and retrieve files.",
+        "Organize files in directories."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Video clips",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "3&4",
+      "sessionTitle": "Keyboarding and Mouse Skills",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Demonstrate correct keyboard and mouse handling techniques during practical work.",
+        "Type simple text with improved speed and accuracy within the session.",
+        "Identify keyboard sections and their functions correctly."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate keyboard sections.",
+        "Explain typing posture and mouse handling.",
+        "Conduct typing practice."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Practice typing exercises.",
+        "Use mouse for navigation tasks.",
+        "Demonstrate proper sitting posture."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Introduction to Word Processing",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Open, create, save, and close a word processing document successfully.",
+        "Identify key parts of the word processor window correctly.",
+        "Produce a simple typed document using correct procedures."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate opening MS Word.",
+        "Guide learners in creating documents.",
+        "Explain save and close procedures."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Open a word processor.",
+        "Create and save a document.",
+        "Close and reopen saved work."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "3&4",
+      "sessionTitle": "Document Editing and Formatting",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Edit text using copy, cut, and paste commands correctly.",
+        "Apply text and paragraph formatting tools accurately.",
+        "Use spelling and grammar checking tools successfully.",
+        "."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate copy, cut, and paste commands.",
+        "Explain text formatting tools.",
+        "Guide learners in formatting exercises."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Edit typed text.",
+        "Apply font and paragraph formatting.",
+        "Use spell check tools."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Tables and Graphics in Word Processing",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Create and format tables in a word document correctly.",
+        "Insert and manipulate pictures and shapes successfully.",
+        "Format graphical objects to improve document appearance."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate table creation.",
+        "Show insertion of pictures and shapes.",
+        "Guide learners in formatting objects."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Create tables in a document.",
+        "Insert images and shapes.",
+        "Format tables and pictures."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "3&4",
+      "sessionTitle": "Printing and Page Setup",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Set document margins and orientation correctly.",
+        "Prepare documents for printing using print preview tools.",
+        "Print a formatted document successfully by the end of the lesson."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Explain margins and orientation settings.",
+        "Demonstrate print preview.",
+        "Guide learners in printing documents."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Adjust page layout settings.",
+        "Preview documents before printing.",
+        "Print formatted documents."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Introduction to Spreadsheets",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Identify major spreadsheet window components correctly.",
+        "Enter and edit data accurately in worksheet cells.",
+        "Create and save a workbook successfully."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate Excel interface.",
+        "Explain spreadsheet terminology.",
+        "Guide learners in data entry."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Open spreadsheet software.",
+        "Enter and edit data in cells.",
+        "Identify rows and columns."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "3&4",
+      "sessionTitle": "Spreadsheet Formulae and Functions",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Use basic arithmetic formulas correctly in spreadsheets.",
+        "Apply spreadsheet functions such as SUM and AVERAGE accurately.",
+        "Calculate and present data correctly using formulas."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate basic formula creation.",
+        "Explain functions such as SUM and AVERAGE.",
+        "Guide learners in calculations."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        "Enter formulas in worksheets.",
+        "Use spreadsheet functions.",
+        "Calculate totals and averages."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Charts and Data Presentation",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Create charts from spreadsheet data correctly.",
+        "Label chart elements appropriately.",
+        "Interpret information presented in charts accurately."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Demonstrate chart creation.",
+        "Explain chart types.",
+        "Guide learners in formatting charts."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Generate charts from data.",
+        "Label chart elements.",
+        "Interpret visual data presentations."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "3&4",
+      "sessionTitle": "Spreadsheet Printing and Formatting",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Format spreadsheet data using borders, alignment, and styles correctly.",
+        "Prepare worksheets for printing successfully.",
+        "Print formatted worksheets with correct page settings."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate worksheet formatting.",
+        "Explain print settings.",
+        "Guide learners in worksheet preparation."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " 1. Format cells and tables.",
+        "Apply borders and alignment.",
+        "Print worksheets."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Introduction to Presentation Software",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Open and create presentation slides successfully.",
+        "Insert and organize slide content appropriately.",
+        "Save and retrieve presentation files correctly."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate PowerPoint interface.",
+        "Explain slide creation process.",
+        "Guide learners in creating slides."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Open presentation software.",
+        "Create presentation slides.",
+        "Save presentation files."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "3&4",
+      "sessionTitle": "Slide Design and Formatting",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Apply themes and layouts to presentation slides correctly.",
+        "Format text and slide objects appropriately.",
+        "Customize slide appearance to improve presentation quality."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Demonstrate slide themes and layouts.",
+        "Explain text formatting techniques.",
+        "Guide learners in slide customization."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Apply themes to slides.",
+        "Format slide text and objects.",
+        "Customize slide layouts."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Multimedia and Slide Effects",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Insert multimedia objects into presentation slides successfully.",
+        "Apply slide transitions and animations correctly.",
+        "Run and navigate a slide show effectively."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Demonstrate insertion of pictures and charts.",
+        "Explain slide transitions and animations.",
+        "Guide learners in multimedia integration."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Insert multimedia objects.",
+        "Apply transitions and animations.",
+        "Run slide shows."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Video clips",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "3&4",
+      "sessionTitle": "Online Communication Tools",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Create and send emails correctly using an email platform.",
+        "Organize and manage email messages effectively.",
+        "Demonstrate proper online communication etiquette during activities."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Demonstrate email creation and sending.",
+        "Explain online communication etiquette.",
+        "Guide learners in email organization."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Create and send emails.",
+        "Organize inbox messages.",
+        "Practice online communication etiquette.",
+        "."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Video clips",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Online Collaboration Tools",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        " Share files using online collaboration platforms successfully.",
+        "Collaborate on online documents with other learners effectively.",
+        "Participate in virtual meetings using online tools appropriately."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate Google Docs and Drive.",
+        "Explain online meeting tools.",
+        "Guide learners in collaborative tasks."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Share files online.",
+        "Collaborate on online documents.",
+        "Participate in virtual meetings."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "3&4",
+      "sessionTitle": "Internet Research and Data Management",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Conduct internet searches using appropriate search terms correctly.",
+        "Evaluate online information sources critically.",
+        "Perform online data backup procedures successfully"
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        "Demonstrate search techniques.",
+        "Explain safe browsing practices.",
+        "Guide learners in evaluating information sources."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Conduct online searches.",
+        "Bookmark useful websites.",
+        "Evaluate credibility of information."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Cyber Security and Data Protection",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Identify common cyber security threats correctly.",
+        "Apply safe password and data protection practices effectively.",
+        "Explain the importance of cyber security laws in Kenya accurately."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Explain cyber threats and attacks.",
+        "Demonstrate password security practices.",
+        "Discuss data protection laws."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Identify common cyber threats.",
+        "Create secure passwords.",
+        "Practice safe internet usage."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "3&4",
+      "sessionTitle": "Social Media and Online Skills",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Create and manage social media accounts successfully.",
+        "Adjust privacy and security settings appropriately.",
+        "Demonstrate responsible online communication practices."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Demonstrate social media account setup.",
+        "Explain privacy settings.",
+        "Guide learners in responsible online behavior."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        ""
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Database Management Skills",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Create simple database tables successfully.",
+        "Enter and edit records accurately in a database.",
+        "Generate simple queries and reports correctly."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Demonstrate database creation.",
+        "Explain tables and queries.",
+        "Guide learners in entering records."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Create database tables.",
+        "Enter and edit records.",
+        "Run simple queries."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "3&4",
+      "sessionTitle": "Desktop Publishing Skills",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Design simple publications using desktop publishing software correctly.",
+        "Insert and arrange text and images appropriately.",
+        "Apply page layout principles effectively in publication design."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Demonstrate Publisher interface.",
+        "Explain page layout principles.",
+        "Guide learners in publication design."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Create brochures or flyers.",
+        "Insert text and images.",
+        "Format publication layouts."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Computer Networking Basics",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Identify different types of computer networks correctly.",
+        "Demonstrate simple network connection procedures successfully.",
+        "Explain advantages of computer networking accurately."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Explain networking concepts.",
+        "Demonstrate LAN and WLAN setup.",
+        "Guide learners in network identification."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Identify network types.",
+        "Connect devices to a network.",
+        "Observe network configuration procedures."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "3&4",
+      "sessionTitle": "Job Entry and Online Work Skills",
+      "learningOutcomes": [
+        "By the end of the session, the learners should be able to:",
+        "Prepare a professional CV and cover letter correctly.",
+        "Identify suitable online job opportunities successfully.",
+        "Demonstrate effective interview and communication skills during mock interviews."
+      ],
+      "trainerActivities": [
+        "Trainer:",
+        " Demonstrate CV and cover letter writing.",
+        "Explain online job platforms.",
+        "Conduct interview preparation activities."
+      ],
+      "traineeActivities": [
+        "Trainee(s):",
+        " Prepare a CV and cover letter.",
+        "Search for online job opportunities.",
+        "Participate in mock interviews."
+      ],
+      "resourcesAndRefs": [
+        "1. OS/Curr",
+        "2. Learning guides etc.",
+        "Training Aids:",
+        "Computer"
+      ],
+      "assessments": [
+        "Knowledge",
+        "1. oral questioning",
+        "Skills",
+        "1. observation",
+        "2. project",
+        "Attitudes",
+        "1. observation"
+      ],
+      "reflectionsAndDate": ""
+    }
+  ]
+}
