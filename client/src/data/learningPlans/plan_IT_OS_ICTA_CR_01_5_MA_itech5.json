@@ -1,0 +1,1068 @@
+{
+  "metadata": {
+    "formNumber": "MTTI/F/CUR/02",
+    "institution": "Mukiria TTI",
+    "unitTitle": "INSTALL COMPUTER SOFTWARE",
+    "unitCode": "IT/OS/ICTA/CR/01/5/MA",
+    "trainerName": "Jackline Waithira",
+    "level": "5",
+    "dateOfPreparation": "28/04/2026",
+    "dateOfRevision": "",
+    "numberOfTrainees": 25,
+    "cohortCode": "ITECH5/S/25",
+    "skillsSummary": [
+      "1. Install Computer software2. Test computer software functionality.",
+      "3. Perform software maintenance."
+    ],
+    "elementsAndPerformanceCriteria": [
+      {
+        "elementTitle": "1. Install Computer software",
+        "criteria": [
+          "1.1 Computer software identified as per user need.",
+          "1.2 Computer software selected as per workplace procedure.",
+          "1.3 Local user accounts are created as per the workplace procedures",
+          "1.4 Data Backup performed as per work procedure.",
+          "1.5 Computer Software is installed as per software installation manual.",
+          "1.6 Computer Software is configured as per software installation manual."
+        ]
+      },
+      {
+        "elementTitle": "2. Test computer software functionality.",
+        "criteria": [
+          "2.1 Software testing is performed as per user manual.",
+          "2.2 Corrective measures are performed as per user requirements.",
+          "2.3 Computer software functionality is confirmed as per workplace procedures"
+        ]
+      },
+      {
+        "elementTitle": "3. Perform software maintenance.",
+        "criteria": [
+          "3.1 Software maintenance schedule is adopted as per workplace procedure.",
+          "3.2 Software functionality is monitored as per workplace procedure.",
+          "3.3 Software upgrade is conducted as per installation guide.",
+          "3.4 Software update is conducted as per the workplace procedures.",
+          "3.5 Safety procedures are observed as per workplace procedures."
+        ]
+      }
+    ],
+    "preparedBy": {
+      "name": "JACKLINE WAITHIRA CHOMBA",
+      "date": "07/05/2025"
+    },
+    "approvedBy": {
+      "name": "LYDIA KITHEKA",
+      "date": "",
+      "title": "DP Academics"
+    }
+  },
+  "schedule": [
+    {
+      "week": 1,
+      "sessionNumber": "1",
+      "sessionTitle": "Introduction to Computer Software & User Needs",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Define computer software and its classifications.  b. Identify various types of computer software.  c. Collect computer software user needs effectively."
+      ],
+      "trainerActivities": [
+        "- Lead an Interactive Lecture defining and classifying computer software, incorporating Q&A.  - Facilitate a Group Discussion on different types of computer software and their applications.  - Guide a Case Study analysis on collecting user needs for a specific software project."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, taking notes, asking questions, and participating in Q&A sessions.  - Participate actively in the Group Discussion, sharing insights on software types and applications.  - Analyze the provided Case Study in groups, identifying key user needs and presenting findings.  Assignment: Research and list three examples for each software classification (system, application, utility) and describe their primary functions."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Textbooks, Projector, Whiteboard, Case study handouts on user requirements."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Written short answer questions  Attitudes:  1. Attentiveness  2. Participation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 1,
+      "sessionNumber": "2",
+      "sessionTitle": "Computer Software Selection",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify key factors influencing computer software selection.  b. Describe various methods of computer software acquisition.  c. Select appropriate software based on user requirements and workplace procedures."
+      ],
+      "trainerActivities": [
+        "- Conduct an Interactive Lecture on factors to consider during software selection, using real-world examples.  - Organize a Think-Pair-Share activity on different software acquisition methods.  - Lead a practical demonstration on comparing different software options for a given scenario."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, taking notes and discussing selection factors.  - Participate in the Think-Pair-Share, brainstorming acquisition methods and sharing with the class.  - Observe the practical demonstration, then, in pairs, attempt to compare and select software for a simulated user need.  Assignment: Prepare a report outlining the selection process for an office productivity suite for a small business."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Textbooks, Manufacturer's product sheets, Computers with internet access, Projector."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Group presentation assessment  2. Oral questioning  Attitudes:  1. Critical thinking  2. Collaboration"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 1,
+      "sessionNumber": "3",
+      "sessionTitle": "Local User Account Management I",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the concept of local user accounts.  b. Differentiate between various types of local user accounts.  c. Identify the privileges associated with each user account type."
+      ],
+      "trainerActivities": [
+        "- Deliver an Interactive Lecture introducing local user accounts and their importance.  - Facilitate a Q&A session to clarify understanding of different account types (Standard, Administrator, Guest).  - Lead a Group Discussion on the security implications of different account privileges."
+      ],
+      "traineeActivities": [
+        "- Attend the Interactive Lecture, taking detailed notes on user account concepts.  - Actively participate in the Q&A session, asking and answering questions about user account types.  - Engage in the Group Discussion, exploring security implications and presenting group conclusions.  Assignment: Draw a diagram illustrating the hierarchy and typical permissions of different local user account types."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Operating System documentation, Projector, Whiteboard."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Written quiz  2. Oral questioning  Attitudes:  1. Responsibility  2. Security awareness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 1,
+      "sessionNumber": "4",
+      "sessionTitle": "Local User Account Management II & Data Backup Fundamentals",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Create and configure local user accounts according to workplace procedures.  b. Explain the importance of data backup for computer software.  c. Identify different types of computer software backup."
+      ],
+      "trainerActivities": [
+        "- Demonstrate step-by-step how to create and configure local user accounts on a target operating system.  - Coordinate a KWL (Know-Want to Know-Learned) chart activity on the importance of data backup.  - Lead an Interactive Lecture describing different types of software backup, followed by a Q&A."
+      ],
+      "traineeActivities": [
+        "- Observe the trainer's demonstration, then practice creating and configuring user accounts on individual workstations.  - Contribute to the KWL chart, sharing existing knowledge and questions about data backup.  - Participate in the Interactive Lecture and Q&A, taking notes on backup types.  Assignment: Create a new standard user account and an administrator account on a virtual machine, documenting the steps."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with various OS for practicals, Operating system manuals, Projector, Whiteboard."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of account creation  2. Oral questioning on backup types  Attitudes:  1. Attention to detail  2. Procedural adherence"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "1",
+      "sessionTitle": "Data Backup Procedures & Software Installation Media",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Perform backup creation for computer software.  b. Identify various computer software installation media.  c. Explain the considerations for selecting appropriate installation media."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the process of creating different types of software backups (e.g., full, differential, incremental) using system tools.  - Supervise trainees as they perform backup creation on their workstations.  - Facilitate a Group Discussion on different types of installation media (CD/DVD, USB, network, cloud) and their advantages/disadvantages."
+      ],
+      "traineeActivities": [
+        "- Observe the trainer's backup creation demonstration, taking notes on best practices.  - Practice creating various types of backups on their assigned workstations, following instructions.  - Participate in the Group Discussion, sharing experiences with different installation media and contributing to the analysis.  Assignment: Create a full backup of a selected software application's configuration files and document the process."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with backup software/features, Blank storage media (USB drives), Installation media examples (CDs, USBs)."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of backup creation  2. Oral questioning on installation media types  Attitudes:  1. Diligence  2. Resourcefulness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "2",
+      "sessionTitle": "Software Installation Methods & Registration",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Describe common computer software installation methods.  b. Explain different types of software registration.  c. Identify the appropriate installation method and registration type for various software."
+      ],
+      "trainerActivities": [
+        "- Lead an Interactive Lecture explaining various software installation methods (e.g., unattended, custom, clean) and their use cases.  - Conduct a Q&A session to ensure understanding of installation methods.  - Facilitate a Think-Pair-Share on different software registration types (e.g., license keys, online activation, subscription)."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, taking notes and asking questions about installation methods.  - Participate actively in the Q&A session, seeking clarification.  - Discuss software registration types with a partner, then share insights with the larger group during the Think-Pair-Share.  Assignment: Prepare a summary comparing two different software installation methods, highlighting their pros and cons."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Software installation manuals, Projector, Whiteboard."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Written quiz on installation methods  2. Oral questioning on registration types  Attitudes:  1. Accuracy  2. Attention to detail"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "3",
+      "sessionTitle": "General Computer Software Installation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Prepare a system for computer software installation.  b. Install various types of computer software following installation manuals.  c. Troubleshoot common issues during software installation."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the complete process of installing a standard application software, emphasizing pre-installation checks and manual adherence.  - Supervise trainees as they practice installing different software applications on virtual machines or isolated systems.  - Facilitate a 'Troubleshooting Challenge' where trainees identify and resolve simulated installation problems."
+      ],
+      "traineeActivities": [
+        "- Observe the trainer's demonstration, noting best practices for system preparation and installation.  - Independently install various software applications, referring to installation guides and seeking assistance when needed.  - Participate in the 'Troubleshooting Challenge', working in groups to diagnose and fix simulated installation issues.  Assignment: Document the installation process for a specific software, including screenshots and any challenges encountered."
+      ],
+      "resourcesAndRefs": [
+        "Installation manuals, Computers with virtualisation software, Various software installers (freeware, open source), Course notes."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of software installation  2. Observation of troubleshooting skills  Attitudes:  1. Problem-solving  2. Patience"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "4",
+      "sessionTitle": "Anti-malware Software Installation I",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify appropriate anti-malware software for different environments.  b. Determine suitable anti-malware acquisition methods.  c. Explain the importance of anti-malware protection."
+      ],
+      "trainerActivities": [
+        "- Lead an Interactive Lecture on the importance of anti-malware and common types of anti-malware solutions.  - Facilitate a Group Discussion on how to identify the best anti-malware based on system requirements and user needs.  - Present various anti-malware acquisition methods and discuss their implications (licensing, security)."
+      ],
+      "traineeActivities": [
+        "- Attend the Interactive Lecture, taking notes on anti-malware concepts.  - Participate in the Group Discussion, comparing different anti-malware options and justifying choices.  - Engage in Q&A regarding anti-malware acquisition methods, clarifying licensing and security aspects.  Assignment: Research and compare two leading anti-malware solutions, outlining their features, pricing, and suitability for home vs. business use."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Internet access for research, Anti-malware product documentation, Projector."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Group discussion assessment  Attitudes:  1. Vigilance  2. Ethical awareness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "1",
+      "sessionTitle": "Anti-malware Software Installation II & Software Configuration",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Install anti-malware software effectively.  b. Configure anti-malware settings for optimal protection.  c. Explain the importance of general software configuration."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the end-to-end installation and initial configuration of a selected anti-malware software.  - Supervise trainees as they practice installing and configuring anti-malware on their workstations.  - Lead an Interactive Lecture on the general importance of software configuration after installation, encouraging Q&A."
+      ],
+      "traineeActivities": [
+        "- Observe the trainer's demonstration of anti-malware installation and configuration, noting key settings.  - Practice installing and configuring anti-malware software, following guided steps.  - Engage in the Interactive Lecture and Q&A, contributing to discussions on software configuration importance.  Assignment: Install a free anti-malware solution on a virtual machine and configure its real-time protection and update settings."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with internet, Anti-malware installers, Installation manuals, Projector."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of anti-malware installation  2. Oral questioning on configuration importance  Attitudes:  1. Proactiveness  2. Meticulousness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "2",
+      "sessionTitle": "Computer Software Configuration Tools",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify various tools used for computer software configuration.  b. Utilize configuration tools to customize software settings.  c. Troubleshoot basic software configuration issues."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the use of various operating system and application-specific configuration tools (e.g., control panel, registry editor, software settings menus).  - Provide trainees with practical exercises to use these tools to modify software settings according to given scenarios.  - Facilitate a 'Spot the Error' activity where trainees identify incorrect configurations and suggest corrections."
+      ],
+      "traineeActivities": [
+        "- Observe the trainer's demonstrations of configuration tools, understanding their functions.  - Complete practical exercises, applying learned skills to configure software settings as per instructions.  - Participate in the 'Spot the Error' activity, diagnosing configuration issues and proposing solutions.  Assignment: Using system configuration tools, change specific settings for a given software application and verify the changes."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with various OS and applications, Configuration tool documentation, Task sheets."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of configuration tasks  2. Observation of problem-solving during 'Spot the Error'  Attitudes:  1. Precision  2. Adaptability"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "3",
+      "sessionTitle": "LO1 Revision: Software Identification & Selection",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Consolidate understanding of software identification and user needs.  b. Review factors and methods for software selection.  c. Apply knowledge of software selection to practical scenarios."
+      ],
+      "trainerActivities": [
+        "- Lead an Interactive Q&A session covering all topics from software identification to selection.  - Facilitate a 'Gallery Walk' activity where groups present solutions to different software selection case studies.  - Provide feedback and clarify any misconceptions during the review."
+      ],
+      "traineeActivities": [
+        "- Actively participate in the Interactive Q&A, recalling and articulating key concepts.  - Collaborate in groups to prepare and present their case study solutions during the 'Gallery Walk'.  - Incorporate feedback from the trainer and peers to refine their understanding.  Assignment: Create a flowchart illustrating the process of identifying user needs and selecting software for a new small office setup."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Textbooks, Previous assignments, Whiteboard, Markers, Case study materials."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Group presentation assessment  Attitudes:  1. Self-reflection  2. Comprehensive understanding"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "4",
+      "sessionTitle": "LO1 Revision: User Accounts & Data Backup",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Review principles of local user account management.  b. Consolidate knowledge on data backup importance and types.  c. Perform practical tasks related to user account creation and data backup."
+      ],
+      "trainerActivities": [
+        "- Conduct a 'Quiz Show' style review covering local user accounts and data backup concepts.  - Lead a practical session where trainees rotate through stations performing user account creation/modification and different backup procedures.  - Provide individual coaching and feedback during the practical exercises."
+      ],
+      "traineeActivities": [
+        "- Participate enthusiastically in the 'Quiz Show', testing their knowledge on user accounts and backup.  - Execute practical tasks at each station, demonstrating proficiency in managing user accounts and creating backups.  - Seek clarification and apply feedback from the trainer to improve their practical skills.  Assignment: Write a short guide for a new user on how to create a personal backup plan for their computer."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with various OS, External storage devices, Practical task sheets, Quiz materials."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical skills observation  2. Quiz results  Attitudes:  1. Accuracy  2. Adherence to procedures"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "1",
+      "sessionTitle": "LO1 Revision: Software Installation & Configuration I",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Review software installation methods and registration types.  b. Consolidate knowledge of general software installation processes.  c. Practice installing and registering various software applications."
+      ],
+      "trainerActivities": [
+        "- Lead a 'Jigsaw' activity where groups become experts on different installation methods and teach each other.  - Demonstrate advanced installation options and troubleshooting techniques for complex software.  - Supervise hands-on practice sessions for installing and registering different types of software."
+      ],
+      "traineeActivities": [
+        "- Participate in the 'Jigsaw' activity, learning and teaching about various installation methods.  - Observe the trainer's demonstration, noting advanced techniques and troubleshooting steps.  - Actively engage in hands-on practice, installing and registering software and resolving minor issues independently.  Assignment: Install a specific complex software application (e.g., a graphics editor) on a virtual machine and document any unique installation steps or challenges."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Installation manuals, Computers with virtual machines, Various software installers."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of software installation  2. Oral questioning on installation methods  Attitudes:  1. Independence  2. Perseverance"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "2",
+      "sessionTitle": "LO1 Revision: Software Installation & Configuration II",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Review anti-malware installation and configuration.  b. Consolidate understanding of general software configuration importance and tools.  c. Apply configuration skills to optimize software performance and security."
+      ],
+      "trainerActivities": [
+        "- Facilitate a 'Think-Pair-Share' on best practices for anti-malware configuration.  - Lead a practical session focused on using various configuration tools to optimize system and application settings.  - Provide a scenario-based exercise where trainees must configure specific software to meet security or performance requirements."
+      ],
+      "traineeActivities": [
+        "- Participate in the 'Think-Pair-Share', discussing and sharing insights on anti-malware configuration.  - Execute practical tasks using configuration tools, demonstrating ability to customize settings.  - Work through the scenario-based exercise, applying configuration skills to achieve specified outcomes.  Assignment: Configure a virtual machine's firewall and security settings to allow specific applications while blocking others, documenting the steps."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with virtual machines, Anti-malware software, OS configuration tools documentation."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of configuration tasks  2. Observation of scenario-based problem-solving  Attitudes:  1. Security consciousness  2. Optimisation mindset"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "3",
+      "sessionTitle": "LO1 Comprehensive Review & Troubleshooting",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Integrate all concepts from software installation.  b. Diagnose and resolve complex software installation and configuration issues.  c. Prepare for the upcoming Continuous Assessment Test."
+      ],
+      "trainerActivities": [
+        "- Lead a comprehensive 'Q&A Jeopardy' game covering all aspects of LO1.  - Present several complex troubleshooting scenarios for software installation and configuration, guiding trainees through problem-solving steps.  - Review common pitfalls and provide tips for effective test preparation."
+      ],
+      "traineeActivities": [
+        "- Engage actively in the 'Q&A Jeopardy' game, demonstrating comprehensive knowledge of LO1.  - Work through complex troubleshooting scenarios in groups, applying diagnostic skills to propose solutions.  - Ask clarifying questions and take notes on test preparation tips.  Assignment: Compile a list of five common software installation errors and their corresponding solutions."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Textbooks, Troubleshooting guides, Computers, Whiteboard, Jeopardy game materials."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Jeopardy game score  2. Group problem-solving assessment  Attitudes:  1. Preparedness  2. Collaborative problem-solving"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "4",
+      "sessionTitle": "LO1 Practical Application & Final Preparation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply all learned LO1 skills in a simulated environment.  b. Confidently perform software installation and configuration tasks.  c. Consolidate understanding for the upcoming assessment."
+      ],
+      "trainerActivities": [
+        "- Set up a simulated 'IT Helpdesk' environment with various software installation and configuration challenges.  - Act as a mentor, observing and providing real-time feedback to trainees as they tackle challenges.  - Conduct a final open Q&A to address any lingering questions before the CAT."
+      ],
+      "traineeActivities": [
+        "- Independently work through the simulated 'IT Helpdesk' challenges, demonstrating mastery of LO1 skills.  - Accept and apply feedback to refine their approaches to software management tasks.  - Ask any remaining questions during the final Q&A session to ensure full understanding.  Assignment: None (Focus on CAT preparation)"
+      ],
+      "resourcesAndRefs": [
+        "Computers with virtual machines, Scenario task cards, Installation media, Configuration documentation."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of simulated tasks  2. Trainer observation  Attitudes:  1. Self-reliance  2. Readiness for assessment"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "1",
+      "sessionTitle": "Written CAT 1",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate understanding of computer software identification, selection, and management.  b. Apply knowledge of data backup and user account configuration.  c. Exhibit proficiency in software installation and initial configuration."
+      ],
+      "trainerActivities": [
+        "- Administer the Continuous Assessment Test 1.  - Invigilate the examination, ensuring adherence to test regulations.  - Collect examination papers upon completion."
+      ],
+      "traineeActivities": [
+        "- Attempt the Written CAT 1, answering all questions to the best of their ability.  - Adhere to all examination rules and regulations.  - Submit their completed examination papers as instructed.  Assignment: None"
+      ],
+      "resourcesAndRefs": [
+        "CAT 1 examination papers, Answer sheets, Examination regulations."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Written CAT 1 score  Attitudes:  1. Honesty  2. Integrity"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "2",
+      "sessionTitle": "Introduction to Software Testing",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the importance of software testing.  b. Describe various computer software testing techniques.  c. Differentiate between different software testing approaches."
+      ],
+      "trainerActivities": [
+        "- Lead an Interactive Lecture defining software testing and its critical role in software quality, incorporating a 'Why is this important?' Q&A.  - Facilitate a Group Discussion on various software testing techniques (e.g., unit, integration, system, acceptance).  - Organize a Mind Mapping activity for trainees to visually represent different testing approaches."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, taking notes and participating in the Q&A on the importance of testing.  - Participate actively in the Group Discussion, sharing understanding of testing techniques and examples.  - Collaborate in groups to create a Mind Map illustrating software testing approaches.  Assignment: Research and write a short report on the benefits of early software testing in the development lifecycle."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Textbooks on software quality assurance, Projector, Whiteboard, Markers."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Group discussion assessment  Attitudes:  1. Quality consciousness  2. Attention to detail"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "3",
+      "sessionTitle": "Software Testing Tools I: Test Complete & Selenium",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify the purpose and features of Test Complete.  b. Understand the basic functionalities of Selenium for web testing.  c. Compare and contrast the applications of Test Complete and Selenium."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the basic interface and functionalities of Test Complete for automated desktop application testing.  - Conduct an Interactive Lecture introducing Selenium and its role in web application testing, with a Q&A.  - Facilitate a 'Compare and Contrast' group activity focusing on Test Complete and Selenium's use cases."
+      ],
+      "traineeActivities": [
+        "- Observe the trainer's demonstration of Test Complete, noting key features.  - Participate in the Interactive Lecture and Q&A on Selenium, taking notes.  - Engage in the 'Compare and Contrast' activity, discussing the strengths and weaknesses of both tools for different testing scenarios.  Assignment: Watch an introductory tutorial on Test Complete or Selenium and summarize its main features."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with Test Complete/Selenium (or simulation), Internet access for tutorials, Projector."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Group discussion assessment  Attitudes:  1. Curiosity for tools  2. Analytical thinking"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "4",
+      "sessionTitle": "Software Testing Tools II: Appium & Postman",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Recognize Appium as a tool for mobile application testing.  b. Understand Postman's utility for API testing.  c. Identify the appropriate testing tool for different software types (desktop, web, mobile, API)."
+      ],
+      "trainerActivities": [
+        "- Deliver an Interactive Lecture on Appium for mobile automation testing, including examples of its application.  - Demonstrate the core features of Postman for sending API requests and inspecting responses.  - Lead a 'Research & Present' activity where groups research a specific testing tool and present its capabilities."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture on Appium, taking notes and asking questions.  - Observe the trainer's demonstration of Postman, understanding its use in API testing.  - Collaborate in groups to research a given testing tool and present their findings to the class.  Assignment: Use Postman (or a similar tool) to send a simple GET request to a public API and document the response."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with Appium/Postman (or simulation), Public API documentation, Projector."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Group presentation assessment  Attitudes:  1. Practicality  2. Investigation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "41&42",
+      "sessionTitle": "Performing Computer Software Testing",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Develop basic test cases for software functionality.  b. Execute software testing procedures systematically.  c. Document testing results and identified defects accurately."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the process of creating simple test cases and executing them against a given software application.  - Provide trainees with a small software application and guide them in performing basic functional testing.  - Facilitate a Group Discussion on best practices for documenting testing results and defect reporting."
+      ],
+      "traineeActivities": [
+        "- Observe the trainer's demonstration, learning how to design and execute test cases.  - Practice performing functional testing on the provided application, following test case instructions.  - Participate in the Group Discussion, sharing experiences and learning effective defect documentation methods.  Assignment: Design and execute 5 test cases for a simple calculator application, documenting the expected vs. actual results."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Test case templates, Simple software application for testing, Computers, Projector."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of test execution  2. Review of documented test results  Attitudes:  1. Methodical approach  2. Objectivity"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "43&44",
+      "sessionTitle": "Corrective Measures I: Types and Identification",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Define corrective measures in the context of software.  b. Identify different types of corrective measures for software defects.  c. Understand the process of diagnosing software issues."
+      ],
+      "trainerActivities": [
+        "- Lead an Interactive Lecture explaining what corrective measures are and why they are necessary.  - Facilitate a 'Case Study' analysis of various software defect scenarios and their potential corrective actions.  - Organize a Q&A session to ensure trainees can identify the correct type of corrective measure for common issues."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, taking notes on the definitions and importance of corrective measures.  - Work in groups to analyze Case Studies, proposing appropriate corrective measures for each scenario.  - Participate in the Q&A, demonstrating understanding of different corrective measure types.  Assignment: List three common software errors and propose a suitable corrective measure for each."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Software defect reports (examples), Troubleshooting guides, Projector, Whiteboard."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Group case study analysis  Attitudes:  1. Analytical thinking  2. Problem-solving"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "45&46",
+      "sessionTitle": "Corrective Measures II: Tools and Implementation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify various software corrective tools.  b. Utilize corrective tools to implement solutions for software defects.  c. Perform corrective measures according to user requirements."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the use of common operating system and application-specific corrective tools (e.g., system restore, patch management, debugging tools).  - Provide practical scenarios where trainees must use identified tools to apply corrective measures to simulated software problems.  - Facilitate a 'Troubleshooting Lab' where trainees independently diagnose and correct software issues."
+      ],
+      "traineeActivities": [
+        "- Observe the trainer's demonstration of corrective tools, understanding their application.  - Practice using various corrective tools to implement solutions for provided software defect scenarios.  - Participate in the 'Troubleshooting Lab', diagnosing and applying corrective measures to resolve simulated issues.  Assignment: Use a system restore point to revert changes on a virtual machine and document the process."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with various OS, System restore functionality, Patch management tools (simulated), Troubleshooting task cards."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of corrective measures  2. Observation of troubleshooting skills  Attitudes:  1. Resourcefulness  2. Meticulousness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "47&48",
+      "sessionTitle": "Confirming Computer Software Functionality",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Perform functionality confirmation after software changes.  b. Verify software functionality as per workplace procedures.  c. Document the outcome of functionality confirmation."
+      ],
+      "trainerActivities": [
+        "- Demonstrate a systematic approach to confirming software functionality after installation, updates, or corrective measures.  - Provide trainees with practical exercises to verify the functionality of newly installed or modified software.  - Lead a 'Peer Review' session where trainees review each other's functionality confirmation documentation."
+      ],
+      "traineeActivities": [
+        "- Observe the trainer's demonstration, learning systematic verification steps.  - Practice confirming software functionality by executing test cases and comparing with expected behavior.  - Participate in the 'Peer Review', providing constructive feedback on documentation accuracy and completeness.  Assignment: After installing a new application, perform a functionality check and document the confirmed functionality according to a provided template."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with newly installed software, Functionality checklist templates, Projector."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of functionality confirmation  2. Review of documentation  Attitudes:  1. Verification mindset  2. Attention to detail"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "49&50",
+      "sessionTitle": "LO2 Practical Application: Testing Techniques",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply various software testing techniques in a practical setting.  b. Create and execute diverse test cases for software.  c. Interpret test results to identify defects."
+      ],
+      "trainerActivities": [
+        "- Present a scenario-based challenge requiring trainees to apply different testing techniques (e.g., boundary value, equivalence partitioning).  - Guide trainees through hands-on practice of developing and executing test cases for a provided application.  - Facilitate a 'Debrief Session' where trainees discuss their findings and challenges."
+      ],
+      "traineeActivities": [
+        "- Analyze the scenario and design appropriate test cases using various techniques.  - Execute the designed test cases on the given software, meticulously recording observations.  - Participate in the Debrief Session, sharing insights on defect identification and challenges encountered.  Assignment: Develop a comprehensive test plan for a web-based form, including different testing techniques."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Simple web/desktop application for testing, Test case design templates, Computers."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of test case execution  2. Review of test plan document  Attitudes:  1. Analytical  2. Precision"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "51&52",
+      "sessionTitle": "LO2 Practical Application: Testing Tools",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Utilize a chosen automated testing tool (e.g., Selenium, Postman) for practical testing.  b. Configure the testing tool for specific test scenarios.  c. Analyze reports generated by automated testing tools."
+      ],
+      "trainerActivities": [
+        "- Demonstrate an advanced use case for one of the discussed testing tools (e.g., recording a test script in Selenium or creating complex API requests in Postman).  - Provide guided exercises for trainees to practice using a chosen tool to automate testing tasks.  - Lead a 'Show and Tell' where trainees demonstrate their automated tests and interpret results."
+      ],
+      "traineeActivities": [
+        "- Observe the advanced demonstration, noting techniques for efficient tool usage.  - Complete guided exercises, configuring and executing automated tests using the chosen tool.  - Present their automated test setups and explain the generated reports during the 'Show and Tell'.  Assignment: Automate a simple login test for a public website using Selenium (or similar web testing tool) and document the steps."
+      ],
+      "resourcesAndRefs": [
+        "Computers with internet access, Selected automated testing tools (e.g., Selenium IDE/WebDriver, Postman), Test scripts/templates."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of tool usage  2. Presentation of test results  Attitudes:  1. Innovation  2. Efficiency"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "53&54",
+      "sessionTitle": "LO2 Practical Application: Defect Reporting & Corrective Actions",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Document software defects effectively using standard formats.  b. Apply corrective measures based on identified defects.  c. Verify the resolution of software defects after corrective actions."
+      ],
+      "trainerActivities": [
+        "- Demonstrate how to write clear, concise, and reproducible defect reports following industry standards.  - Present trainees with a set of simulated software defects and guide them through the process of reporting and then applying corrective measures.  - Facilitate a 'Role-Play' activity where trainees act as testers reporting defects and developers applying fixes."
+      ],
+      "traineeActivities": [
+        "- Observe the trainer's demonstration, learning to create effective defect reports.  - Independently write defect reports for given simulated issues and then apply appropriate corrective measures.  - Participate in the 'Role-Play', practicing communication between testers and developers in a defect resolution cycle.  Assignment: For a provided software application with known bugs, create a defect report for one bug and outline the steps for its corrective measure."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Defect tracking system (simulated/template), Simple buggy software, Corrective tool examples."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Review of defect reports  2. Observation of corrective actions  Attitudes:  1. Thoroughness  2. Communication"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "55&56",
+      "sessionTitle": "LO2 Revision: Software Testing and Functionality Confirmation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Consolidate understanding of all software testing concepts.  b. Review methods for performing and confirming software functionality.  c. Prepare for the upcoming Continuous Assessment Test."
+      ],
+      "trainerActivities": [
+        "- Lead a 'Review Game' (e.g., Pictionary with testing terms) covering key concepts from LO2.  - Present various scenarios requiring trainees to confirm software functionality after different types of changes.  - Conduct an open forum for Q&A, addressing any remaining ambiguities and offering study tips."
+      ],
+      "traineeActivities": [
+        "- Participate actively in the 'Review Game', reinforcing their knowledge of testing terminology and concepts.  - Analyze scenarios and describe the steps they would take to confirm software functionality.  - Utilize the open forum to ask questions and clarify understanding in preparation for the CAT.  Assignment: None (Focus on CAT preparation)"
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Review game materials, Scenario cards, Whiteboard."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Review game performance  2. Oral responses to scenarios  Attitudes:  1. Engagement  2. Readiness for assessment"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "57&58",
+      "sessionTitle": "LO2 Comprehensive Practical Review I",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply comprehensive software testing skills to a simulated project.  b. Work effectively in a team to test software functionality.  c. Prioritize and manage testing tasks efficiently."
+      ],
+      "trainerActivities": [
+        "- Introduce a simulated mini-software project that requires full testing (from test case design to defect reporting).  - Organize trainees into small teams and assign specific testing responsibilities for the project.  - Provide guidance and monitor progress, offering constructive feedback."
+      ],
+      "traineeActivities": [
+        "- Analyze the mini-project requirements and collaborate with teammates to develop a testing strategy.  - Execute assigned testing tasks, apply various techniques, and document findings.  - Manage their time and prioritize tasks within the team to ensure comprehensive testing.  Assignment: Document the testing process and findings for their assigned mini-project."
+      ],
+      "resourcesAndRefs": [
+        "Simulated software project, Test case templates, Defect report templates, Computers, Team collaboration tools (optional)."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Team project assessment  2. Observation of teamwork and task management  Attitudes:  1. Teamwork  2. Initiative"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "59&60",
+      "sessionTitle": "LO2 Comprehensive Practical Review II",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Implement corrective measures for identified defects in the simulated project.  b. Verify the resolution of defects through re-testing.  c. Confirm overall software functionality after all changes."
+      ],
+      "trainerActivities": [
+        "- Provide 'bug reports' for the simulated project and guide teams in applying corrective measures.  - Observe and provide feedback as trainees implement fixes and re-test the software.  - Lead a final review of each team's completed project, emphasizing functionality confirmation."
+      ],
+      "traineeActivities": [
+        "- Receive bug reports and, as a team, work to implement the necessary corrective measures for the simulated project.  - Perform re-testing to verify that reported bugs are resolved and no new issues have been introduced.  - Present their re-tested software and confirm its functionality to the trainer.  Assignment: Prepare a final report detailing all bugs found, corrective actions taken, and functionality confirmation results for the mini-project."
+      ],
+      "resourcesAndRefs": [
+        "Simulated software project (with 'bugs'), Corrective tool documentation, Testing tools."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of defect resolution  2. Final project review  Attitudes:  1. Accountability  2. Thoroughness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "61&62",
+      "sessionTitle": "LO2 Advanced Troubleshooting and Debugging",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Utilize advanced troubleshooting techniques for software issues.  b. Apply basic debugging concepts to identify root causes of problems.  c. Formulate effective solutions for complex software malfunctions."
+      ],
+      "trainerActivities": [
+        "- Demonstrate advanced troubleshooting methodologies (e.g., isolating variables, reviewing logs, using diagnostic tools).  - Present complex, multi-layered software problems and lead trainees through a guided problem-solving process.  - Facilitate a 'Debugging Challenge' where trainees use basic debugging features (if applicable) to pinpoint issues."
+      ],
+      "traineeActivities": [
+        "- Observe the demonstrations, internalizing advanced troubleshooting and debugging concepts.  - Collaborate in groups to diagnose and formulate solutions for complex software problems.  - Participate in the 'Debugging Challenge', applying basic debugging skills to find and understand issues.  Assignment: Research and document a specific debugging tool (e.g., browser developer tools, IDE debugger) and describe its main functions."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Advanced troubleshooting guides, Computers with simulated complex errors, Diagnostic tools (e.g., event viewer, task manager)."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Group problem-solving assessment  2. Oral questioning on debugging concepts  Attitudes:  1. Analytical  2. Resilience"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "63&64",
+      "sessionTitle": "LO2 Assessment Preparation and Review",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Systematically review all topics covered in software testing and corrective measures.  b. Identify areas requiring further study or clarification.  c. Strategize for optimal performance in the upcoming Continuous Assessment Test."
+      ],
+      "trainerActivities": [
+        "- Conduct a comprehensive review session covering all aspects of LO2, emphasizing critical concepts.  - Facilitate a 'Question and Answer' marathon, addressing all trainee queries.  - Provide a mock test or practice questions to help trainees gauge their understanding and time management."
+      ],
+      "traineeActivities": [
+        "- Actively participate in the review session, engaging with the material and asking clarifying questions.  - Attempt the mock test or practice questions, identifying strengths and weaknesses.  - Develop personal study strategies based on the review and practice session results.  Assignment: None (Focus on CAT preparation)"
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Textbooks, Practice questions, Whiteboard."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Mock test performance  2. Active participation in Q&A  Attitudes:  1. Proactiveness  2. Self-assessment"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "65&66",
+      "sessionTitle": "Written CAT 2",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate comprehensive understanding of software testing principles and techniques.  b. Apply knowledge of various software testing tools.  c. Exhibit proficiency in identifying and proposing corrective measures for software defects."
+      ],
+      "trainerActivities": [
+        "- Administer the Continuous Assessment Test 2.  - Invigilate the examination, ensuring adherence to test regulations.  - Collect examination papers upon completion."
+      ],
+      "traineeActivities": [
+        "- Attempt the Written CAT 2, answering all questions to the best of their ability.  - Adhere to all examination rules and regulations.  - Submit their completed examination papers as instructed.  Assignment: None"
+      ],
+      "resourcesAndRefs": [
+        "CAT 2 examination papers, Answer sheets, Examination regulations."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Written CAT 2 score  Attitudes:  1. Honesty  2. Integrity"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "67&68",
+      "sessionTitle": "Introduction to Software Maintenance",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Define computer software maintenance and its importance.  b. Explain the need for a software maintenance schedule.  c. Identify key considerations in preparing a software maintenance schedule."
+      ],
+      "trainerActivities": [
+        "- Lead an Interactive Lecture introducing software maintenance concepts and their vital role in software lifecycle, incorporating Q&A.  - Facilitate a Group Discussion on the consequences of neglecting software maintenance.  - Guide trainees through a Mind Mapping activity to outline key components of an effective maintenance schedule."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, taking notes and actively participating in Q&A on maintenance importance.  - Participate in the Group Discussion, sharing insights on the impact of poor maintenance.  - Collaborate in groups to create a Mind Map detailing elements of a maintenance schedule.  Assignment: Research and list three real-world examples where lack of software maintenance led to significant issues or failures."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Textbooks on software engineering, Projector, Whiteboard, Case studies on maintenance failures."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Group discussion assessment  Attitudes:  1. Foresight  2. Responsibility"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "69&70",
+      "sessionTitle": "Types of Software Maintenance",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Differentiate between adaptive, perfective, preventive, and corrective maintenance.  b. Provide examples for each type of software maintenance.  c. Understand when to apply each type of maintenance."
+      ],
+      "trainerActivities": [
+        "- Conduct an Interactive Lecture detailing the four main types of software maintenance, providing clear definitions and distinctions.  - Organize a 'Scenario Matching' activity where trainees match maintenance scenarios to the correct maintenance type.  - Facilitate a Q&A session to clarify application of each maintenance type."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, taking detailed notes on the different maintenance types.  - Participate in the 'Scenario Matching' activity, correctly identifying maintenance types for given situations.  - Actively participate in the Q&A, asking for clarification and demonstrating understanding.  Assignment: For a chosen software application, identify potential needs for each of the four types of maintenance."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Examples of software changes (e.g., bug fixes, feature enhancements, environment changes), Scenario cards."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Written quiz on maintenance types  2. Scenario matching accuracy  Attitudes:  1. Categorisation skills  2. Contextual understanding"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "71&72",
+      "sessionTitle": "Software Updates I: Service Packs & Version Upgrades",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the purpose and importance of service packs.  b. Differentiate between service packs and full version upgrades.  c. Identify best practices for applying service packs and performing version upgrades."
+      ],
+      "trainerActivities": [
+        "- Lead an Interactive Lecture on service packs, explaining their role in bug fixes and minor enhancements.  - Facilitate a Group Discussion comparing service packs with major version upgrades, focusing on impact and planning.  - Demonstrate the process of applying a service pack and outline steps for a safe version upgrade."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, taking notes on service packs and their significance.  - Participate in the Group Discussion, analyzing the pros and cons of service packs vs. version upgrades.  - Observe the demonstration, understanding the practical steps for applying updates and upgrades.  Assignment: Research a recent service pack or version upgrade for a popular operating system and list its key changes and benefits."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, OS documentation, Software release notes (examples), Projector, Whiteboard."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Group discussion assessment  Attitudes:  1. Prudence  2. Planning"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "73&74",
+      "sessionTitle": "Software Updates II: Security, Drivers & Utilities",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Understand the critical role of security upgrades.  b. Identify the importance of device driver and utility program updates.  c. Explain methods for managing various software updates."
+      ],
+      "trainerActivities": [
+        "- Deliver an Interactive Lecture on the necessity of security upgrades and the risks of outdated software.  - Demonstrate how to update device drivers and utility programs on a workstation.  - Facilitate a 'Think-Pair-Share' on strategies for efficiently managing diverse software updates (e.g., using update managers, scheduling)."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, taking notes on security vulnerabilities and the role of updates.  - Observe the demonstration, then practice updating device drivers and utility programs on their systems.  - Participate in the 'Think-Pair-Share', discussing and proposing update management strategies.  Assignment: Check for and apply any pending security updates for their operating system, documenting the process and verifying installation."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with various OS, Device Manager, Update utilities, Projector, Whiteboard."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of driver updates  2. Oral questioning on update management  Attitudes:  1. Security awareness  2. System health consciousness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "75&76",
+      "sessionTitle": "Software Functionality Monitoring I: Tools",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify various software functionality monitoring tools.  b. Explain the purpose of different monitoring tools.  c. Select appropriate tools for specific monitoring needs."
+      ],
+      "trainerActivities": [
+        "- Lead an Interactive Lecture introducing various software functionality monitoring tools (e.g., performance monitors, logging tools, task managers).  - Demonstrate the basic use of a system's built-in performance monitor to track application behavior.  - Facilitate a Group Discussion on scenarios where different monitoring tools would be most effective."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, taking notes on monitoring tool types and their functions.  - Observe the demonstration, then practice using the system's performance monitor to observe a running application.  - Participate in the Group Discussion, analyzing scenarios and proposing suitable monitoring tools.  Assignment: Use the Task Manager (or equivalent) to monitor the resource usage of three different applications and identify any anomalies."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with various OS, Performance monitoring tools, Task Manager, Projector."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of monitoring tool usage  2. Oral questioning on tool selection  Attitudes:  1. Observational skills  2. Diagnostic thinking"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "77&78",
+      "sessionTitle": "Software Functionality Monitoring II: OS Event Logs (Error & Warning)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Describe the purpose of operating system event logs.  b. Differentiate between Error and Warning event logs.  c. Analyze Error and Warning logs to diagnose system and software issues."
+      ],
+      "trainerActivities": [
+        "- Demonstrate how to access and navigate the operating system's Event Viewer.  - Lead a guided practical session where trainees identify and interpret Error and Warning event log entries related to software.  - Present several simulated 'problem scenarios' and challenge trainees to find the root cause in the logs."
+      ],
+      "traineeActivities": [
+        "- Observe the demonstration, then practice accessing and navigating the Event Viewer on their workstations.  - Independently identify and interpret Error and Warning log entries, noting potential software issues.  - Work through simulated problem scenarios, using log analysis to pinpoint the root cause of software malfunctions.  Assignment: Find and interpret five 'Error' and five 'Warning' entries in their system's event logs, documenting their potential impact."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with various OS, Event Viewer documentation, Simulated problem scenarios."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of log analysis  2. Oral questioning on log interpretation  Attitudes:  1. Investigative  2. Attention to detail"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "79&80",
+      "sessionTitle": "Software Functionality Monitoring III: OS Event Logs (Info & Audit)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the significance of Information event logs.  b. Understand the purpose of Success and Failure Audit event logs.  c. Utilize various event log types for comprehensive system and software monitoring."
+      ],
+      "trainerActivities": [
+        "- Lead an Interactive Lecture on Information event logs and their role in tracking normal system operations.  - Demonstrate how to review Success and Failure Audit logs to monitor security-related events and user actions.  - Facilitate a 'Case Study' where trainees analyze a combination of log types to understand a sequence of events leading to a software issue."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, taking notes on Information logs and their value.  - Observe the demonstration, then practice reviewing Audit logs for security-related events.  - Participate in the 'Case Study', synthesizing information from different log types to reconstruct events related to a software problem.  Assignment: Configure audit policies on a virtual machine to log successful and failed logon attempts and then review these logs."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with various OS, Event Viewer documentation, Case study handouts."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of audit log review  2. Group case study analysis  Attitudes:  1. Security consciousness  2. Holistic analysis"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "81&82",
+      "sessionTitle": "Conducting Software Upgrade",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the importance and types of software upgrades.  b. Prepare a system for a major software upgrade.  c. Conduct a software upgrade following installation guidelines."
+      ],
+      "trainerActivities": [
+        "- Lead an Interactive Lecture on the importance of software upgrades, discussing different types (e.g., in-place, clean install).  - Demonstrate the pre-upgrade checklist and backup procedures essential before a major upgrade.  - Guide trainees through a simulated or actual software upgrade process on a virtual machine."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, taking notes on upgrade importance and types.  - Observe the demonstration, then practice pre-upgrade preparations and backup on their systems.  - Participate in the guided upgrade process, executing steps according to installation guidelines.  Assignment: Plan an upgrade path for a common operating system (e.g., Windows 10 to 11), outlining prerequisites and steps."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Software upgrade guides, Computers with virtualization, Backup software, Projector."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning on upgrade types  2. Practical assessment of upgrade preparation  Attitudes:  1. Diligence  2. Forward-thinking"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "83&84",
+      "sessionTitle": "Conducting Software Update",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the importance and types of software updates.  b. Identify reliable sources for software updates.  c. Conduct software updates as per workplace procedures."
+      ],
+      "trainerActivities": [
+        "- Lead an Interactive Lecture distinguishing between software upgrades and updates, focusing on the latter's importance for security and stability.  - Demonstrate how to check for, download, and install various software updates (e.g., OS patches, application updates).  - Facilitate a 'Hands-on Lab' where trainees apply available updates to different software applications."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, understanding the distinctions and importance of software updates.  - Observe the demonstration, then practice checking for and applying software updates on their workstations.  - Participate in the 'Hands-on Lab', successfully updating multiple software applications.  Assignment: Using official channels, check for and apply all pending updates for a browser application and a text editor, documenting the versions before and after."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with internet access, Software update documentation, Projector."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of update application  2. Oral questioning on update sources  Attitudes:  1. Proactiveness  2. System hygiene"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "85&86",
+      "sessionTitle": "Observing Safety Procedures I: PPE & General Measures",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify common safety measures and procedures in an IT environment.  b. Recognize different types of Personal Protective Equipment (PPE) relevant to software maintenance.  c. Explain the importance of using appropriate PPE."
+      ],
+      "trainerActivities": [
+        "- Lead an Interactive Lecture on general safety measures in an IT workspace and their relevance to software maintenance.  - Demonstrate various PPE relevant to computer hardware handling (e.g., anti-static wrist straps, anti-glare screens, gloves) and their proper use.  - Facilitate a Group Discussion on potential hazards during software installation/maintenance that PPE can mitigate."
+      ],
+      "traineeActivities": [
+        "- Engage in the Interactive Lecture, taking notes on IT safety measures.  - Observe the demonstration, then practice the proper donning and doffing of relevant PPE.  - Participate in the Group Discussion, identifying hazards and discussing how PPE offers protection.  Assignment: List five safety measures to observe when working with computer hardware and two types of PPE and their use."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Safety guidelines, Examples of PPE (gloves, anti-static mats/straps, anti-glare screens), Projector."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning on safety measures  2. Observation of PPE usage  Attitudes:  1. Safety consciousness  2. Compliance"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "87&88",
+      "sessionTitle": "Observing Safety Procedures II: Tool Use & Ergonomics",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply proper use of tools and equipment during software maintenance.  b. Recognize ergonomic considerations in an IT workspace.  c. Follow safety procedures to prevent accidents and injuries."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the proper and safe use of tools and equipment commonly used during computer maintenance (e.g., screwdrivers, cleaning kits).  - Lead an Interactive Lecture on ergonomic principles for computer users and technicians.  - Facilitate a 'Workspace Assessment' activity where trainees evaluate a workstation for safety and ergonomic compliance."
+      ],
+      "traineeActivities": [
+        "- Observe the demonstration, then practice handling and using tools safely under supervision.  - Engage in the Interactive Lecture, taking notes on ergonomic best practices.  - Participate in the 'Workspace Assessment', identifying safety hazards and ergonomic deficiencies.  Assignment: Design an ergonomically sound computer workstation, labeling key components and their optimal placement."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Various computer tools and equipment, Ergonomics guidelines, Sample workstation, Projector."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of tool handling  2. Observation of workspace assessment  Attitudes:  1. Diligence  2. Health and safety awareness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "89&90",
+      "sessionTitle": "LO3 Revision: Software Maintenance Types & Updates",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Consolidate understanding of different types of software maintenance.  b. Review procedures for applying service packs, version upgrades, and various updates.  c. Apply knowledge to plan and execute maintenance tasks effectively."
+      ],
+      "trainerActivities": [
+        "- Lead a 'Case Study Analysis' where groups propose comprehensive maintenance plans for various software systems.  - Conduct a 'Quiz Bowl' covering types of maintenance, updates, and upgrades.  - Provide feedback on case study solutions and address areas of confusion."
+      ],
+      "traineeActivities": [
+        "- Collaborate in groups to analyze case studies and develop detailed software maintenance plans.  - Participate actively in the 'Quiz Bowl', demonstrating recall and understanding of maintenance concepts.  - Incorporate feedback to refine their understanding of maintenance planning and execution.  Assignment: Develop a 6-month software maintenance schedule for a multi-user accounting software application."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Case study handouts, Whiteboard, Quiz Bowl materials."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Group presentation of maintenance plan  2. Quiz Bowl performance  Attitudes:  1. Strategic thinking  2. Precision"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "91&92",
+      "sessionTitle": "LO3 Revision: Functionality Monitoring & Safety Procedures",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Review methods for monitoring software functionality using various tools and logs.  b. Consolidate understanding of all safety procedures in software maintenance.  c. Integrate monitoring and safety into a holistic maintenance approach."
+      ],
+      "trainerActivities": [
+        "- Facilitate a 'Problem Diagnosis Challenge' where trainees use event logs and monitoring tools to troubleshoot simulated issues.  - Lead an Interactive Discussion on the integration of safety procedures into every aspect of software maintenance.  - Conduct an open Q&A session to clarify any remaining questions on monitoring and safety."
+      ],
+      "traineeActivities": [
+        "- Participate in the 'Problem Diagnosis Challenge', applying their knowledge of monitoring tools and logs to identify root causes.  - Engage in the Interactive Discussion, contributing ideas on how to seamlessly integrate safety into maintenance workflows.  - Ask clarifying questions during the Q&A to ensure a complete understanding of monitoring and safety.  Assignment: Write a brief incident report for a simulated software malfunction, including the diagnosis steps taken using event logs."
+      ],
+      "resourcesAndRefs": [
+        "Course notes, Computers with simulated issues, Event Viewer, Performance Monitor, Safety manuals."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of problem diagnosis  2. Oral questioning on safety integration  Attitudes:  1. Vigilance  2. Proactive safety"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "93&94",
+      "sessionTitle": "LO3 Comprehensive Practical Application & Final Review",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Perform a comprehensive software maintenance cycle from monitoring to update/upgrade and safety.  b. Demonstrate integrated skills across all aspects of computer software maintenance.  c. Prepare thoroughly for the final Continuous Assessment Test."
+      ],
+      "trainerActivities": [
+        "- Set up a simulated 'Software Maintenance Project' requiring trainees to perform a full maintenance cycle on a given system.  - Act as a consultant, observing trainees' actions and providing real-time guidance and feedback.  - Conduct a final comprehensive Q&A, focusing on interconnected concepts and common exam topics."
+      ],
+      "traineeActivities": [
+        "- Independently or in small groups execute the 'Software Maintenance Project', applying all learned skills.  - Actively seek and integrate feedback to improve their practical maintenance skills.  - Participate in the final Q&A, consolidating their knowledge for the upcoming CAT.  Assignment: None (Focus on CAT preparation)"
+      ],
+      "resourcesAndRefs": [
+        "Computers with virtual machines, Maintenance project scenario, Monitoring tools, Update/upgrade media, Safety checklists."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of maintenance project  2. Oral questioning  Attitudes:  1. Autonomy  2. Readiness for assessment"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "95&96",
+      "sessionTitle": "Written CAT 3 (Final)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate a holistic understanding of installing computer software.  b. Apply comprehensive knowledge of testing computer software functionality.  c. Exhibit mastery in performing computer software maintenance."
+      ],
+      "trainerActivities": [
+        "- Administer the Continuous Assessment Test 3 (Final).  - Invigilate the examination, ensuring adherence to test regulations.  - Collect examination papers upon completion."
+      ],
+      "traineeActivities": [
+        "- Attempt the Written CAT 3, answering all questions to the best of their ability.  - Adhere to all examination rules and regulations.  - Submit their completed examination papers as instructed.  Assignment: None"
+      ],
+      "resourcesAndRefs": [
+        "CAT 3 examination papers, Answer sheets, Examination regulations."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Written CAT 3 score  Attitudes:  1. Honesty  2. Integrity"
+      ],
+      "reflectionsAndDate": ""
+    }
+  ]
+}

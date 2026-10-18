@@ -4,6 +4,11 @@ import planAgre6 from "../client/src/data/learningPlans/plan_AGR_CU_EXT_BC_01_5_
 import planFbp6 from "../client/src/data/learningPlans/plan_HOS_OS_FBO_BC_01_5_MA_fbp6.json";
 import planIct4Itech6Ops from "../client/src/data/learningPlans/plan_IT_CU_ICTA_CR_02_4_MA_ict4_itech6.json";
 import planItech6Install from "../client/src/data/learningPlans/plan_IT_CU_ICTA_CR_01_5_MA_itech6.json";
+import planItech5Repair from "../client/src/data/learningPlans/plan_IT_CU_ICTA_CR_04_4_MA_itech5.json";
+import planEe5DigitalLiteracy from "../client/src/data/learningPlans/plan_0611_441_02B_ee5.json";
+import planItech5WorkEthics from "../client/src/data/learningPlans/plan_IT_OS_ICTA_BC_02_5_MA_itech5.json";
+import planItech5InstallSoftware from "../client/src/data/learningPlans/plan_IT_OS_ICTA_CR_01_5_MA_itech5.json";
+import planMisManageIS from "../client/src/data/learningPlans/plan_IT_OS_ICT_CR_8_6_mis.json";
 import {
   OFFICIAL_LEARNING_PLANS,
   getOfficialLearningPlan,
@@ -318,33 +323,171 @@ describe("Learning Plan Fidelity & Verbatim Digitization Suite (Form MTTI/F/CUR/
     });
   });
 
+  describe("Official Plan: PERFORM COMPUTER REPAIR AND MAINTENANCE (IT/CU/ICTA/CR/04/4/MA / ITECH5/J/26)", () => {
+    const repairPlan = planItech5Repair as LearningPlanRecord;
+
+    it("should extract metadata verbatim for Computer Repair", () => {
+      expect(repairPlan.metadata.unitTitle).toBe("PERFORM COMPUTER REPAIR AND MAINTENANCE");
+      expect(repairPlan.metadata.unitCode).toBe("IT/CU/ICTA/CR/04/4/MA");
+      expect(repairPlan.metadata.trainerName).toBe("Jackline Waithira Comba");
+      expect(repairPlan.metadata.numberOfTrainees).toBe(20);
+      expect(repairPlan.metadata.cohortCode).toBe("ITECH5/J/26");
+      expect(repairPlan.metadata.level).toBe("5");
+    });
+
+    it("should extract exactly 4 elements and 14 criteria for Repair and Maintenance", () => {
+      expect(repairPlan.metadata.elementsAndPerformanceCriteria.length).toBe(4);
+      const totalCriteria = repairPlan.metadata.elementsAndPerformanceCriteria.reduce(
+        (sum, el) => sum + el.criteria.length,
+        0
+      );
+      expect(totalCriteria).toBe(14);
+    });
+
+    it("should contain exactly 72 scheduled sessions across 12 weeks", () => {
+      expect(repairPlan.schedule.length).toBe(72);
+      expect(repairPlan.schedule[0].sessionTitle).toBe(
+        "Introduction to Computer Repair & User Data Assessment"
+      );
+      expect(repairPlan.schedule[71].sessionTitle).toBe("Unit Conclusion");
+    });
+  });
+
+  describe("Official Plan: Apply Digital Literacy (0611 441 02B / EE5/S/25A)", () => {
+    const ee5Plan = planEe5DigitalLiteracy as LearningPlanRecord;
+
+    it("should extract metadata verbatim for EE5 Digital Literacy", () => {
+      expect(ee5Plan.metadata.unitTitle).toBe("Apply Digital Literacy");
+      expect(ee5Plan.metadata.unitCode).toBe("0611 441 02B");
+      expect(ee5Plan.metadata.trainerName).toBe("Jackline Comba");
+      expect(ee5Plan.metadata.numberOfTrainees).toBe(25);
+      expect(ee5Plan.metadata.cohortCode).toBe("EE5/S/25A");
+      expect(ee5Plan.metadata.level).toBe("5");
+    });
+
+    it("should extract exactly 6 elements and 35 criteria", () => {
+      expect(ee5Plan.metadata.elementsAndPerformanceCriteria.length).toBe(6);
+      const totalCriteria = ee5Plan.metadata.elementsAndPerformanceCriteria.reduce(
+        (sum, el) => sum + el.criteria.length,
+        0
+      );
+      expect(totalCriteria).toBe(35);
+    });
+
+    it("should contain exactly 12 weekly sessions", () => {
+      expect(ee5Plan.schedule.length).toBe(12);
+      expect(ee5Plan.schedule[0].sessionTitle).toBe(
+        "Introduction to Computer Devices and Digital Literacy"
+      );
+      expect(ee5Plan.schedule[11].sessionTitle).toBe("CAT 3 (Final Assessment)");
+    });
+  });
+
+  describe("Official Plan: APPLY WORK ETHICS AND PRACTICES (IT/OS/ICTA/BC/02/5/MA / ITECH5/S/25)", () => {
+    const ethicsPlan = planItech5WorkEthics as LearningPlanRecord;
+
+    it("should extract metadata verbatim for ITECH5 Work Ethics", () => {
+      expect(ethicsPlan.metadata.unitTitle).toBe("APPLY WORK ETHICS AND PRACTICES");
+      expect(ethicsPlan.metadata.unitCode).toBe("IT/OS/ICTA/BC/02/5/MA");
+      expect(ethicsPlan.metadata.trainerName).toBe("Jackline Comba");
+      expect(ethicsPlan.metadata.numberOfTrainees).toBe(25);
+      expect(ethicsPlan.metadata.cohortCode).toBe("ITECH5/S/25");
+      expect(ethicsPlan.metadata.level).toBe("5");
+    });
+
+    it("should extract exactly 6 elements and 40 criteria", () => {
+      expect(ethicsPlan.metadata.elementsAndPerformanceCriteria.length).toBe(6);
+      const totalCriteria = ethicsPlan.metadata.elementsAndPerformanceCriteria.reduce(
+        (sum, el) => sum + el.criteria.length,
+        0
+      );
+      expect(totalCriteria).toBe(40);
+    });
+
+    it("should contain exactly 12 weekly sessions", () => {
+      expect(ethicsPlan.schedule.length).toBe(12);
+      expect(ethicsPlan.schedule[0].sessionTitle).toBe("Applying Self-Management Skills - Part 1");
+      expect(ethicsPlan.schedule[11].sessionTitle).toBe("Written CAT 3 (Final)");
+    });
+  });
+
+  describe("Official Plan: INSTALL COMPUTER SOFTWARE (IT/OS/ICTA/CR/01/5/MA / ITECH5/S/25)", () => {
+    const installItech5 = planItech5InstallSoftware as LearningPlanRecord;
+
+    it("should extract metadata verbatim for ITECH5 Install Software", () => {
+      expect(installItech5.metadata.unitTitle).toBe("INSTALL COMPUTER SOFTWARE");
+      expect(installItech5.metadata.unitCode).toBe("IT/OS/ICTA/CR/01/5/MA");
+      expect(installItech5.metadata.trainerName).toBe("Jackline Waithira");
+      expect(installItech5.metadata.numberOfTrainees).toBe(25);
+      expect(installItech5.metadata.cohortCode).toBe("ITECH5/S/25");
+      expect(installItech5.metadata.level).toBe("5");
+    });
+
+    it("should extract exactly 3 elements and 14 criteria", () => {
+      expect(installItech5.metadata.elementsAndPerformanceCriteria.length).toBe(3);
+      const totalCriteria = installItech5.metadata.elementsAndPerformanceCriteria.reduce(
+        (sum, el) => sum + el.criteria.length,
+        0
+      );
+      expect(totalCriteria).toBe(14);
+    });
+
+    it("should contain exactly 48 scheduled sessions across 12 weeks", () => {
+      expect(installItech5.schedule.length).toBe(48);
+      expect(installItech5.schedule[0].sessionTitle).toBe(
+        "Introduction to Computer Software & User Needs"
+      );
+      expect(installItech5.schedule[47].sessionTitle).toBe("Written CAT 3 (Final)");
+    });
+  });
+
+  describe("Official Plan: MANAGE INFORMATION SYSTEM (IT/OS/ICT/CR/8/6)", () => {
+    const misPlan = planMisManageIS as LearningPlanRecord;
+
+    it("should extract metadata verbatim for MIS", () => {
+      expect(misPlan.metadata.unitTitle).toBe("MANAGE INFORMATION SYSTEM");
+      expect(misPlan.metadata.unitCode).toBe("IT/OS/ICT/CR/8/6");
+      expect(misPlan.metadata.trainerName).toBe("JACKLINE WAITHIRA");
+      expect(misPlan.metadata.level).toBe("6");
+    });
+
+    it("should extract exactly 5 elements and 24 criteria", () => {
+      expect(misPlan.metadata.elementsAndPerformanceCriteria.length).toBe(5);
+      const totalCriteria = misPlan.metadata.elementsAndPerformanceCriteria.reduce(
+        (sum, el) => sum + el.criteria.length,
+        0
+      );
+      expect(totalCriteria).toBe(24);
+    });
+
+    it("should contain exactly 24 scheduled sessions across 12 weeks", () => {
+      expect(misPlan.schedule.length).toBe(24);
+      expect(misPlan.schedule[0].sessionTitle).toBe("Introduction to Information System Concepts");
+      expect(misPlan.schedule[23].sessionTitle).toBe("Written CAT 3 (Final)");
+    });
+  });
+
   describe("Lookup & UI Model Conversion Integrity", () => {
-    it("should ensure all 8 official digitized plans are loaded into OFFICIAL_LEARNING_PLANS", () => {
-      expect(OFFICIAL_LEARNING_PLANS.length).toBe(8);
-      const unitCodes = OFFICIAL_LEARNING_PLANS.map((p) => p.metadata.unitCode);
-      expect(unitCodes).toContain("0415 451 12A");
-      expect(unitCodes).toContain("HOS/OS/FBO/BC/01/5/MA");
-      expect(unitCodes).toContain("IT/CU/ICTA/CR/02/4/MA");
-      expect(unitCodes).toContain("IT/CU/ICTA/CR/01/5/MA");
-      expect(unitCodes).toContain("AGR/CU/EXT/BC/01/5/MA");
+    it("should ensure all 13 official digitized plans are loaded into OFFICIAL_LEARNING_PLANS", () => {
+      expect(OFFICIAL_LEARNING_PLANS.length).toBe(13);
     });
 
-    it("should successfully retrieve plan by unit code 'HOS/OS/FBO/BC/01/5/MA'", () => {
-      const retrieved = getOfficialLearningPlan("HOS/OS/FBO/BC/01/5/MA");
+    it("should successfully retrieve plan by unit code 'IT/CU/ICTA/CR/04/4/MA'", () => {
+      const retrieved = getOfficialLearningPlan("IT/CU/ICTA/CR/04/4/MA");
       expect(retrieved).toBeDefined();
-      expect(retrieved?.metadata.cohortCode).toBe("FBP6/S/24/S/25");
+      expect(retrieved?.metadata.cohortCode).toBe("ITECH5/J/26");
     });
 
-    it("should successfully retrieve plan by cohort code 'ICT4/ITECH6/M/26'", () => {
-      const retrieved = getOfficialLearningPlan(undefined, "ICT4/ITECH6/M/26");
+    it("should successfully retrieve plan by cohort code 'EE5/S/25A'", () => {
+      const retrieved = getOfficialLearningPlan(undefined, "EE5/S/25A");
       expect(retrieved).toBeDefined();
-      expect(retrieved?.metadata.unitCode).toBe("IT/CU/ICTA/CR/02/4/MA");
+      expect(retrieved?.metadata.unitCode).toBe("0611 441 02B");
     });
 
-    it("should successfully retrieve plan by unit code 'IT/CU/ICTA/CR/01/5/MA'", () => {
-      const retrieved = getOfficialLearningPlan("IT/CU/ICTA/CR/01/5/MA");
+    it("should successfully retrieve plan by unit code 'IT/OS/ICT/CR/8/6'", () => {
+      const retrieved = getOfficialLearningPlan("IT/OS/ICT/CR/8/6");
       expect(retrieved).toBeDefined();
-      expect(retrieved?.metadata.cohortCode).toBe("ITECH6/S/25");
+      expect(retrieved?.metadata.unitTitle).toBe("MANAGE INFORMATION SYSTEM");
     });
   });
 });

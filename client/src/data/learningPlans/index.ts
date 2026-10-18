@@ -7,6 +7,11 @@ import planAgre6DigitalLiteracy from "./plan_AGR_CU_EXT_BC_01_5_MA_agre6.json";
 import planFbp6DigitalLiteracy from "./plan_HOS_OS_FBO_BC_01_5_MA_fbp6.json";
 import planIct4Itech6ComputerOps from "./plan_IT_CU_ICTA_CR_02_4_MA_ict4_itech6.json";
 import planItech6InstallSoftware from "./plan_IT_CU_ICTA_CR_01_5_MA_itech6.json";
+import planItech5Repair from "./plan_IT_CU_ICTA_CR_04_4_MA_itech5.json";
+import planEe5DigitalLiteracy from "./plan_0611_441_02B_ee5.json";
+import planItech5WorkEthics from "./plan_IT_OS_ICTA_BC_02_5_MA_itech5.json";
+import planItech5InstallSoftware from "./plan_IT_OS_ICTA_CR_01_5_MA_itech5.json";
+import planMisManageIS from "./plan_IT_OS_ICT_CR_8_6_mis.json";
 
 export * from "./types";
 
@@ -19,6 +24,11 @@ export const OFFICIAL_LEARNING_PLANS: LearningPlanRecord[] = [
   planFbp6DigitalLiteracy as LearningPlanRecord,
   planIct4Itech6ComputerOps as LearningPlanRecord,
   planItech6InstallSoftware as LearningPlanRecord,
+  planItech5Repair as LearningPlanRecord,
+  planEe5DigitalLiteracy as LearningPlanRecord,
+  planItech5WorkEthics as LearningPlanRecord,
+  planItech5InstallSoftware as LearningPlanRecord,
+  planMisManageIS as LearningPlanRecord,
 ];
 
 /**
@@ -93,7 +103,7 @@ export function convertRecordToLearningPlanDocument(
   });
 
   return {
-    id: customId || `official-lp-${record.metadata.unitCode.replace(/[^a-zA-Z0-9]/g, "-") || "cur"}-${record.metadata.cohortCode.replace(/[^a-zA-Z0-9]/g, "-")}`,
+    id: customId || `official-lp-${(record.metadata.unitCode || "unit").replace(/[^a-zA-Z0-9]/g, "-")}-${(record.metadata.cohortCode || "all").replace(/[^a-zA-Z0-9]/g, "-")}`,
     unitCode: record.metadata.unitCode || "0415 451 12A",
     unitTitle: record.metadata.unitTitle,
     trainerName: record.metadata.trainerName,

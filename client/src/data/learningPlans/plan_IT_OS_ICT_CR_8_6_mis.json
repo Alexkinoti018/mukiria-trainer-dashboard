@@ -1,0 +1,583 @@
+{
+  "metadata": {
+    "formNumber": "MTTI/F/CUR/02",
+    "institution": "MUKIRIA TTI",
+    "unitTitle": "MANAGE INFORMATION SYSTEM",
+    "unitCode": "IT/OS/ICT/CR/8/6",
+    "trainerName": "JACKLINE WAITHIRA",
+    "level": "6",
+    "dateOfPreparation": "01/05/2026",
+    "dateOfRevision": "",
+    "numberOfTrainees": 0,
+    "cohortCode": "",
+    "skillsSummary": [
+      "1. Identify information system concepts2. Classify information systems3. Manage information resources4. Plan Information system5. Identify impact of information system in organization"
+    ],
+    "elementsAndPerformanceCriteria": [
+      {
+        "elementTitle": "1. Identify information system concepts",
+        "criteria": [
+          "1.1 Definition of MIS and its terms is done",
+          "1.2 Components of an IS are identified based on the type of Information System.",
+          "1.3 Roles of an IS are identified",
+          "1.4 Qualities of an Information System are identified",
+          "1.5 Types of Information Systems are identified"
+        ]
+      },
+      {
+        "elementTitle": "2. Classify information systems",
+        "criteria": [
+          "2.1 Strategic levels of an Organization are identified",
+          "2.2 Classification of Information systems is done",
+          "2.3 Information System processing requirements is done",
+          "2.4 Functional areas of MIS are identified"
+        ]
+      },
+      {
+        "elementTitle": "3. Manage information resources",
+        "criteria": [
+          "3.1 Information resource management concepts are identified",
+          "3.2 IS resources are determined",
+          "3.3 Classification of IS Resources is done.",
+          "3.4 Importance of managing information resources is identified"
+        ]
+      },
+      {
+        "elementTitle": "4. Plan Information system",
+        "criteria": [
+          "4.1 Definition of IS planning is done",
+          "4.2 Importance of planning is identified",
+          "4.3 IS planning process is done",
+          "4.4 IS planning techniques are identified",
+          "4.5 Project planning is done",
+          "4.6 IS Acquisition methods are identified"
+        ]
+      },
+      {
+        "elementTitle": "5. Identify impact of information system in organization",
+        "criteria": [
+          "5.1 Trends of IS Aare identified",
+          "5.2 Organizational change in management is done",
+          "5.3 IS maintenance is done",
+          "5.4 Ethical issues in IS are identified",
+          "5.5 legal issues in IS are identified"
+        ]
+      }
+    ],
+    "preparedBy": {
+      "name": "JACKLINE WAITHIRA COMBA",
+      "date": "01/05/2026"
+    },
+    "approvedBy": {
+      "name": "LYDIA KITHEKA",
+      "date": "",
+      "title": "DP Academics"
+    }
+  },
+  "schedule": [
+    {
+      "week": 1,
+      "sessionNumber": "1",
+      "sessionTitle": "Introduction to Information System Concepts",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Define Management Information Systems (MIS) and related terms.  b. Identify the key components of various Information Systems (IS).  c. Explain the fundamental roles of an Information System within an organization."
+      ],
+      "trainerActivities": [
+        "- Facilitate an Interactive Lecture defining MIS, its terms, and core concepts.  - Lead a Brainstorming session to identify and discuss different IS components (hardware, software, data, etc.).  - Coordinate a Group Discussion on the various roles IS plays in different organizational contexts."
+      ],
+      "traineeActivities": [
+        "- Participate in the Interactive Lecture, asking clarifying questions about MIS definitions.  - Engage in the Brainstorming session, contributing ideas on IS components and their functions.  - Take part in the Group Discussion, presenting examples of IS roles in organizations.  Assignment: Research and describe an information system in a real-world company, identifying its components and roles."
+      ],
+      "resourcesAndRefs": [
+        "- Course handout on IS concepts  - Projector, whiteboard  - Case studies of various IS"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Written test (short definitions)  Attitudes:  1. Attention to detail  2. Inquisitiveness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 1,
+      "sessionNumber": "2",
+      "sessionTitle": "Qualities and Types of Information Systems",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify the essential qualities of an effective Information System.  b. Differentiate between various types of Information Systems (e.g., Open, Closed, Probabilistic, Cybernetic).  c. Describe the characteristics and applications of specific IS types relevant to business."
+      ],
+      "trainerActivities": [
+        "- Lead a KWL (Know, Want to Know, Learned) activity on the qualities of IS, followed by an Interactive Lecture.  - Organize a Jigsaw activity where groups research and present on different types of Information Systems (Open, Closed, etc.).  - Facilitate a Case Study analysis focusing on how different IS types address organizational needs."
+      ],
+      "traineeActivities": [
+        "- Engage in the KWL activity, sharing prior knowledge and questions, then participating in the lecture.  - Collaborate in the Jigsaw activity, researching assigned IS types and presenting findings to peers.  - Analyze the provided Case Study, identifying and discussing the characteristics and applications of IS types.  Assignment: Prepare a short report comparing and contrasting two different types of Information Systems based on their qualities and applications."
+      ],
+      "resourcesAndRefs": [
+        "- Articles on IS qualities  - Examples of different IS types  - Case study materials  - Computer with internet access"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Practical assessment (Jigsaw presentation)  Attitudes:  1. Critical thinking  2. Collaboration"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "1",
+      "sessionTitle": "Strategic Levels and Classification of Information Systems",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify the strategic levels of an organization.  b. Classify Information Systems based on organizational strategic levels.  c. Describe the characteristics of Transaction Processing Systems (TPS) and Management Information Systems (MIS)."
+      ],
+      "trainerActivities": [
+        "- Conduct an Interactive Lecture on the strategic levels of an organization (operational, knowledge, tactical, strategic).  - Facilitate a Think-Pair-Share activity on how IS align with different organizational levels.  - Lead a Group Discussion comparing and contrasting TPS and MIS with real-world examples."
+      ],
+      "traineeActivities": [
+        "- Participate in the Interactive Lecture, taking part in Q&A sessions on strategic levels.  - Engage in the Think-Pair-Share, discussing and sharing insights on IS alignment with organizational levels.  - Contribute to the Group Discussion, providing examples and distinctions between TPS and MIS.  Assignment: Outline the strategic levels of an organization and map typical IS types to each level."
+      ],
+      "resourcesAndRefs": [
+        "- Organizational structure diagrams  - Articles on IS classification  - Presentation slides"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Written quiz  Attitudes:  1. Analytical thinking  2. Organizational awareness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "2",
+      "sessionTitle": "Advanced IS Classification and Processing Requirements",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the characteristics of Knowledge Work Systems (KWS), Decision Support Systems (DSS), and Executive Support Systems (ESS).  b. Identify the processing requirements for different types of Information Systems.  c. Describe the functional areas of MIS within an organization."
+      ],
+      "trainerActivities": [
+        "- Use a Flipped Classroom approach, assigning pre-reading on KWS, DSS, ESS, then leading a Q&A Session.  - Conduct a Demonstrations with Participation on identifying processing requirements using a sample business scenario.  - Facilitate a Gallery Walk where trainees explore and explain the functional areas of MIS."
+      ],
+      "traineeActivities": [
+        "- Engage in the Flipped Classroom Q&A Session, discussing insights from pre-reading on KWS, DSS, ESS.  - Observe the Demonstrations, then participate in identifying processing requirements for a given scenario.  - Participate in the Gallery Walk, analyzing and explaining different functional areas of MIS.  Assignment: Develop a short presentation on a specific IS type (KWS, DSS, or ESS) including its processing requirements and functional implications."
+      ],
+      "resourcesAndRefs": [
+        "- Online resources and articles on KWS, DSS, ESS  - Sample business scenarios  - Posters/charts on functional areas of MIS"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment (presentation)  2. Oral questioning  Attitudes:  1. Problem-solving  2. Attention to detail"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "1",
+      "sessionTitle": "Information Resource Management Concepts",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify core Information Resource Management (IRM) concepts.  b. Determine various IS resources including hardware, software, and databases.  c. Classify different types of IS resources based on their characteristics."
+      ],
+      "trainerActivities": [
+        "- Facilitate an Interactive Lecture introducing Information Resource Management concepts and principles.  - Lead a Brainstorming session to identify and list various IS resources found in modern organizations.  - Coordinate a Group Discussion on how to classify IS resources (e.g., tangible/intangible, human/technical)."
+      ],
+      "traineeActivities": [
+        "- Participate in the Interactive Lecture, engaging in discussions on IRM concepts.  - Contribute to the Brainstorming session, listing and explaining different IS resources.  - Take part in the Group Discussion, proposing and justifying classifications for IS resources.  Assignment: Create a mind map illustrating the key concepts of Information Resource Management and various IS resources."
+      ],
+      "resourcesAndRefs": [
+        "- Handout on IRM concepts  - Examples of IS resources (pictures, specifications)  - Whiteboard and markers"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Concept mapping assessment  Attitudes:  1. Resourcefulness  2. Analytical thinking"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "2",
+      "sessionTitle": "Importance of Managing Information Resources",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify the importance of effectively managing information resources for organizational success.  b. Explain the role of networks and procedures as IS resources.  c. Discuss the significance of security facilities and physical buildings as IS resources."
+      ],
+      "trainerActivities": [
+        "- Facilitate a Think-Pair-Share on the importance of managing information resources in a competitive environment.  - Conduct an Interactive Lecture detailing networks and procedures as critical IS resources.  - Lead a Case Study analysis on a security breach incident to highlight the importance of security facilities and physical infrastructure."
+      ],
+      "traineeActivities": [
+        "- Engage in the Think-Pair-Share, discussing and presenting arguments for effective IRM.  - Participate in the Interactive Lecture, taking notes and asking questions about networks and procedures.  - Analyze the Case Study, identifying the impact of inadequate security and infrastructure on IS resources.  Assignment: Write a short essay on the importance of managing information resources, citing examples from current events."
+      ],
+      "resourcesAndRefs": [
+        "- Articles/news reports on data breaches or IT failures  - Diagrams of network infrastructure  - Case study on information resource management failures"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Written essay assessment  Attitudes:  1. Responsibility  2. Foresight"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "1",
+      "sessionTitle": "Introduction to IS Planning",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Define Information System (IS) planning.  b. Identify the key reasons for the importance of IS planning.  c. Outline the fundamental steps involved in the IS planning process."
+      ],
+      "trainerActivities": [
+        "- Facilitate an Interactive Lecture to define IS planning and its strategic significance.  - Lead a Group Discussion on various scenarios where IS planning is crucial for organizational success.  - Use a Concept Mapping activity to visually represent the stages of the IS planning process."
+      ],
+      "traineeActivities": [
+        "- Participate in the Interactive Lecture, taking part in Q&A regarding IS planning definitions.  - Engage in the Group Discussion, contributing insights on the importance of IS planning in different contexts.  - Create a Concept Map illustrating the steps of the IS planning process based on trainer's guidance.  Assignment: Research and summarize a real-world example of successful or failed IS planning."
+      ],
+      "resourcesAndRefs": [
+        "- Textbooks/articles on IS strategic planning  - Whiteboard or digital collaboration tool for concept mapping  - Case studies on IS planning outcomes"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Concept mapping assessment  Attitudes:  1. Proactiveness  2. Strategic thinking"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "2",
+      "sessionTitle": "Written CAT 1",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate understanding of information system concepts.  b. Classify different types of information systems.  c. Identify various information resources."
+      ],
+      "trainerActivities": [
+        "- Administer and invigilate the Continuous Assessment Test 1 (CAT 1).  - Provide clear instructions for the examination.  - Ensure a conducive testing environment."
+      ],
+      "traineeActivities": [
+        "- Attempt the Continuous Assessment Test 1 (CAT 1) to the best of their ability.  - Follow all examination rules and instructions.  - Manage time effectively during the test.  Assignment: None"
+      ],
+      "resourcesAndRefs": [
+        "- CAT 1 Question Paper  - Answer sheets  - Examination regulations"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Written test (CAT 1)  Attitudes:  1. Integrity  2. Self-reliance"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "1",
+      "sessionTitle": "IS Planning Techniques and Project Planning",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify various techniques used in IS planning.  b. Explain the fundamental principles of project planning in the context of IS development.  c. Analyze common causes of project failure and success in IS projects."
+      ],
+      "trainerActivities": [
+        "- Conduct an Interactive Lecture introducing different IS planning techniques (e.g., critical success factors, enterprise analysis).  - Facilitate a Group Discussion on project planning methodologies for IS projects.  - Lead a Case Study analysis on failed and successful IT projects to extract lessons learned."
+      ],
+      "traineeActivities": [
+        "- Participate in the Interactive Lecture, engaging with content on IS planning techniques.  - Contribute to the Group Discussion on project planning, sharing insights and methodologies.  - Analyze the provided Case Study, identifying causes of project failure and success in IS projects.  Assignment: Prepare a brief report on a chosen IS planning technique and its application."
+      ],
+      "resourcesAndRefs": [
+        "- Articles on IS planning techniques  - Project management templates  - Case studies of IT project failures and successes"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Practical assessment (case study analysis)  Attitudes:  1. Problem-solving  2. Attention to detail"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "2",
+      "sessionTitle": "IS Acquisition Methods",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify various methods for Information System acquisition.  b. Differentiate between 'in-house' development and 'off-the-shelf' solutions.  c. Explain the concepts of outsourcing and open-source acquisition methods."
+      ],
+      "trainerActivities": [
+        "- Facilitate an Interactive Lecture on the different IS acquisition methods available to organizations.  - Lead a Think-Pair-Share activity comparing the pros and cons of in-house vs. off-the-shelf software.  - Coordinate a Group Discussion on the strategic implications of outsourcing and adopting open-source solutions."
+      ],
+      "traineeActivities": [
+        "- Participate in the Interactive Lecture, taking part in Q&A regarding IS acquisition methods.  - Engage in the Think-Pair-Share, discussing and presenting arguments for different acquisition approaches.  - Contribute to the Group Discussion, sharing perspectives on outsourcing and open-source strategies.  Assignment: Recommend an IS acquisition method for a given business scenario, justifying your choice."
+      ],
+      "resourcesAndRefs": [
+        "- Handout on IS acquisition strategies  - Vendor brochures for off-the-shelf software  - Case studies on outsourcing projects"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Practical assessment (recommendation)  Attitudes:  1. Decision-making  2. Cost-consciousness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "1",
+      "sessionTitle": "Trends and Impacts of Information Systems",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify current and emerging trends in Information Systems.  b. Analyze the positive impacts of IS on organizations.  c. Evaluate the negative impacts of IS on organizations and society."
+      ],
+      "trainerActivities": [
+        "- Facilitate a Crowdsourcing activity to gather current IS trends from trainees, followed by an Interactive Lecture.  - Lead a Group Discussion on the various ways IS positively impacts organizational efficiency and innovation.  - Coordinate a Case Study analysis on the societal and organizational negative impacts of IS."
+      ],
+      "traineeActivities": [
+        "- Participate in the Crowdsourcing activity, contributing and discussing current IS trends.  - Engage in the Group Discussion, providing examples of positive IS impacts.  - Analyze the Case Study, identifying and discussing the adverse effects of IS on organizations and society.  Assignment: Research a new IS trend and predict its potential positive and negative impacts."
+      ],
+      "resourcesAndRefs": [
+        "- Technology news articles  - Reports on digital transformation  - Case studies on ethical dilemmas in IS"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Written analysis (case study)  Attitudes:  1. Forward-thinking  2. Ethical awareness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "2",
+      "sessionTitle": "Organizational Change Management and IS Maintenance",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the process of organizational change in management due to IS implementation.  b. Identify different types of IS maintenance activities.  c. Describe best practices for effective IS maintenance."
+      ],
+      "trainerActivities": [
+        "- Conduct an Interactive Lecture on managing organizational change brought about by IS.  - Facilitate a Think-Pair-Share on the importance and challenges of various IS maintenance types.  - Lead a Peer Teaching session where trainees present on different best practices for IS maintenance."
+      ],
+      "traineeActivities": [
+        "- Participate in the Interactive Lecture, asking questions and discussing organizational change management strategies.  - Engage in the Think-Pair-Share, discussing and sharing insights on IS maintenance types.  - Prepare and deliver a Peer Teaching presentation on a specific IS maintenance best practice.  Assignment: Develop a simple change management plan for the introduction of a new IS in a hypothetical small business."
+      ],
+      "resourcesAndRefs": [
+        "- Articles on change management in IT  - Examples of IS maintenance schedules  - Templates for change management plans"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Practical assessment (peer teaching, plan development)  Attitudes:  1. Adaptability  2. Diligence"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "1",
+      "sessionTitle": "Ethical Issues in Information Systems",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify common ethical issues related to Information Systems.  b. Explain the concepts of non-disclosure agreements (NDA) and data integrity.  c. Discuss the importance of privacy and codes of conduct in managing IS."
+      ],
+      "trainerActivities": [
+        "- Facilitate a Case Study discussion on various ethical dilemmas in IS (e.g., data privacy breaches).  - Conduct an Interactive Lecture on NDAs and ensuring data integrity in IS.  - Lead a Group Discussion on the role of privacy policies and professional codes of conduct."
+      ],
+      "traineeActivities": [
+        "- Participate in the Case Study discussion, analyzing ethical issues and proposing solutions.  - Engage in the Interactive Lecture, asking clarifying questions about NDAs and data integrity.  - Contribute to the Group Discussion, sharing perspectives on privacy and ethical behavior in IS.  Assignment: Research and present a current event highlighting an ethical issue in information systems."
+      ],
+      "resourcesAndRefs": [
+        "- Case studies on ethical IS issues  - Sample NDA documents  - Examples of professional codes of conduct (e.g., from BCS, IEEE)"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Practical assessment (case study discussion, presentation)  Attitudes:  1. Integrity  2. Professionalism"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "2",
+      "sessionTitle": "Legal Issues in Information Systems",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify common legal issues associated with Information Systems.  b. Explain the legal implications of warrants and breach of contracts in IS contexts.  c. Discuss different types of computer crimes and their legal consequences."
+      ],
+      "trainerActivities": [
+        "- Conduct an Interactive Lecture on various legal frameworks and issues impacting IS operations.  - Lead a Q&A Sessions on warrants and contract law as they apply to software licensing and data access.  - Facilitate a Group Discussion on preventing and prosecuting computer crimes (e.g., hacking, fraud)."
+      ],
+      "traineeActivities": [
+        "- Participate in the Interactive Lecture, taking part in discussions on legal IS issues.  - Engage in the Q&A Sessions, seeking clarification on legal terms like warrants and breach of contract.  - Contribute to the Group Discussion, analyzing computer crime scenarios and discussing legal consequences.  Assignment: Prepare a short summary of a relevant computer crime law in your country."
+      ],
+      "resourcesAndRefs": [
+        "- Legal documents related to IT law  - Articles on cybercrime and intellectual property  - Case studies of legal disputes in IS"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Written test (summary)  Attitudes:  1. Compliance  2. Accountability"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "1",
+      "sessionTitle": "Review of Information System Planning and Acquisition",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Review the critical steps in the IS planning process.  b. Re-evaluate different IS planning techniques and their suitability.  c. Compare and contrast various IS acquisition methods for different organizational needs."
+      ],
+      "trainerActivities": [
+        "- Facilitate a Round Robin activity to review key steps and techniques in IS planning.  - Lead a Group Discussion to analyze the strengths and weaknesses of different IS planning techniques.  - Organize a Case Study simulation where groups propose and justify IS acquisition methods for a given scenario."
+      ],
+      "traineeActivities": [
+        "- Participate in the Round Robin, contributing to the review of IS planning concepts.  - Engage in the Group Discussion, critically evaluating IS planning techniques.  - Collaborate in the Case Study simulation, developing and presenting a justified IS acquisition plan.  Assignment: Prepare a comparative analysis of two different IS planning techniques."
+      ],
+      "resourcesAndRefs": [
+        "- Previous notes and handouts on IS planning  - Business case scenarios for IS projects  - Review questions for IS planning and acquisition"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Practical assessment (simulation, comparative analysis)  Attitudes:  1. Reflective practice  2. Strategic thinking"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "2",
+      "sessionTitle": "Written CAT 2",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate understanding of information resource management.  b. Apply knowledge of IS planning processes and techniques.  c. Evaluate different IS acquisition methods."
+      ],
+      "trainerActivities": [
+        "- Administer and invigilate the Continuous Assessment Test 2 (CAT 2).  - Provide clear instructions for the examination.  - Ensure a conducive testing environment."
+      ],
+      "traineeActivities": [
+        "- Attempt the Continuous Assessment Test 2 (CAT 2) to the best of their ability.  - Follow all examination rules and instructions.  - Manage time effectively during the test.  Assignment: None"
+      ],
+      "resourcesAndRefs": [
+        "- CAT 2 Question Paper  - Answer sheets  - Examination regulations"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Written test (CAT 2)  Attitudes:  1. Integrity  2. Self-discipline"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "1",
+      "sessionTitle": "Integrated IS Concepts: Putting It All Together",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Integrate various IS concepts (components, types, roles) into a holistic view.  b. Relate IS classification to organizational strategic levels.  c. Apply IRM principles to manage complex information systems."
+      ],
+      "trainerActivities": [
+        "- Facilitate a Concept Mapping activity to connect all previously learned IS concepts.  - Lead a Case Studies workshop where trainees analyze and apply IS classification and strategic levels.  - Coordinate a Group Discussion on how IRM principles are vital in managing integrated IS environments."
+      ],
+      "traineeActivities": [
+        "- Create a comprehensive Concept Map, linking different IS concepts and their interdependencies.  - Participate in the Case Studies workshop, applying IS classification and strategic level knowledge to real scenarios.  - Engage in the Group Discussion, illustrating the application of IRM principles in integrated IS.  Assignment: Develop a scenario-based problem requiring the integration of multiple IS concepts and propose solutions."
+      ],
+      "resourcesAndRefs": [
+        "- Whiteboard/flip charts for concept mapping  - Complex IS case studies  - Review materials from previous sessions"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment (concept mapping, case study)  2. Oral questioning  Attitudes:  1. Holistic thinking  2. Synthesizing information"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "2",
+      "sessionTitle": "Advanced IS Planning and Project Management",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Design an basic IS planning framework for a given organizational context.  b. Propose strategies to mitigate risks in IS project planning.  c. Justify the selection of appropriate IS acquisition methods for complex projects."
+      ],
+      "trainerActivities": [
+        "- Lead a workshop on designing a basic IS planning framework using a simulated business case.  - Facilitate a Brainstorming session on potential risks in IS projects and mitigation strategies.  - Organize a Role Play where trainees act as stakeholders debating IS acquisition methods."
+      ],
+      "traineeActivities": [
+        "- Participate in the workshop, designing an IS planning framework for the simulated business case.  - Contribute to the Brainstorming session, identifying risks and proposing mitigation strategies for IS projects.  - Engage in the Role Play, advocating for and justifying different IS acquisition methods based on project needs.  Assignment: Refine the proposed IS planning framework to include a detailed risk mitigation plan."
+      ],
+      "resourcesAndRefs": [
+        "- Business simulation tools/scenarios  - Risk management frameworks for IT projects  - Role-play scripts/scenarios"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment (framework design, role play)  2. Oral questioning  Attitudes:  1. Critical decision-making  2. Negotiation skills"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "1",
+      "sessionTitle": "Comprehensive Impact of Information Systems",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Conduct a comprehensive impact analysis of IS on an organization's operations and strategy.  b. Develop strategies for managing organizational change resulting from IS implementation.  c. Formulate an IS maintenance plan addressing different types of maintenance."
+      ],
+      "trainerActivities": [
+        "- Lead a Case Study analysis requiring a comprehensive impact assessment of a new IS.  - Facilitate a Group Discussion on effective strategies for leading organizational change during IS adoption.  - Conduct a Demonstrations with Participation on creating a detailed IS maintenance schedule and plan."
+      ],
+      "traineeActivities": [
+        "- Participate in the Case Study analysis, performing a comprehensive impact assessment of a new IS.  - Contribute to the Group Discussion, proposing and evaluating change management strategies for IS implementation.  - Observe the Demonstrations, then practice formulating an IS maintenance plan for a given system.  Assignment: Present a detailed impact analysis of a chosen IS on a real or hypothetical organization, including a change management plan."
+      ],
+      "resourcesAndRefs": [
+        "- Templates for impact analysis  - Case studies on large-scale IS implementations  - Sample IS maintenance plans"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment (case study, plan formulation)  2. Oral questioning  Attitudes:  1. Strategic foresight  2. Meticulous planning"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "2",
+      "sessionTitle": "Advanced Ethical and Legal Frameworks in IS",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Analyze complex ethical issues in IS and propose solutions based on ethical frameworks.  b. Evaluate the legal compliance of IS operations and data handling practices.  c. Develop policies and procedures to address computer crimes and ensure data security."
+      ],
+      "trainerActivities": [
+        "- Facilitate a Case Studies workshop focusing on complex ethical dilemmas in emerging IS technologies.  - Lead a Group Discussion on international legal frameworks for data privacy and cybersecurity compliance.  - Coordinate a 'Hot Potato' activity to quickly identify and suggest solutions for various computer crime scenarios."
+      ],
+      "traineeActivities": [
+        "- Participate in the Case Studies workshop, analyzing complex ethical issues and proposing ethically sound solutions.  - Engage in the Group Discussion, evaluating IS operations against international legal compliance standards.  - Contribute to the 'Hot Potato' activity, quickly identifying and suggesting solutions for computer crime scenarios.  Assignment: Draft a privacy policy or code of conduct for a specific IT service or product."
+      ],
+      "resourcesAndRefs": [
+        "- Advanced case studies on AI ethics, big data privacy  - GDPR, CCPA, and other data protection regulations  - Examples of cybersecurity policies"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment (policy drafting, case study analysis)  2. Oral questioning  Attitudes:  1. Ethical judgment  2. Legal awareness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "1",
+      "sessionTitle": "Holistic Review of Information System Management",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Synthesize all unit competencies related to managing information systems.  b. Identify interdependencies between IS concepts, planning, resource management, and impact.  c. Prepare for the final CAT by reviewing key topics and applying learned knowledge."
+      ],
+      "trainerActivities": [
+        "- Conduct a comprehensive KWL (Know, Want to Know, Learned) review session covering all learning outcomes of the unit.  - Facilitate a Peer Teaching session where trainees present on challenging topics from the course.  - Lead a Q&A Sessions dedicated to clarifying doubts and reinforcing understanding of complex areas."
+      ],
+      "traineeActivities": [
+        "- Engage in the KWL review, contributing to the summary of learned material and identifying areas for further study.  - Deliver a Peer Teaching presentation on a chosen challenging topic, explaining concepts to peers.  - Actively participate in the Q&A Sessions, asking and answering questions to deepen understanding.  Assignment: Create a personal study guide for the upcoming final CAT, highlighting key concepts and challenging areas."
+      ],
+      "resourcesAndRefs": [
+        "- All previous session notes and handouts  - Unit of Competence document  - Sample review questions"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Practical assessment (peer teaching)  Attitudes:  1. Self-reflection  2. Thoroughness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "2",
+      "sessionTitle": "Practical Application and Scenario-Based Problem Solving",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply integrated knowledge of IS management to solve complex, multi-faceted scenarios.  b. Analyze and propose solutions to simulated real-world IS challenges.  c. Justify decisions and recommendations based on sound IS management principles."
+      ],
+      "trainerActivities": [
+        "- Organize a 'Quiz Games' activity using challenging scenario-based questions covering all unit topics.  - Facilitate a Case Studies competition where groups present solutions to complex IS problems.  - Provide constructive feedback and lead a debriefing session on the scenario outcomes and solutions."
+      ],
+      "traineeActivities": [
+        "- Participate actively in the 'Quiz Games', applying learned knowledge to answer scenario-based questions.  - Compete in the Case Studies competition, analyzing complex IS problems and presenting well-justified solutions.  - Engage in the debriefing session, reflecting on solutions and understanding feedback.  Assignment: Review and refine the solutions presented for the case studies, incorporating feedback."
+      ],
+      "resourcesAndRefs": [
+        "- Complex scenario cards/descriptions  - Scoring rubrics for case study competition  - Relevant industry reports for context"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment (quiz games, case study competition)  2. Oral questioning  Attitudes:  1. Problem-solving  2. Decision-making under pressure"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "1",
+      "sessionTitle": "Final Revision and Exam Preparation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Consolidate knowledge across all five learning outcomes of the unit.  b. Identify personal strengths and weaknesses in relation to the unit content.  c. Develop effective strategies for approaching the final Continuous Assessment Test (CAT 3)."
+      ],
+      "trainerActivities": [
+        "- Lead a 'Give One Take One' activity for trainees to share key takeaways and questions from the entire unit.  - Facilitate an Open Q&A Sessions to address any remaining conceptual difficulties or exam-related queries.  - Provide guidance on exam techniques, time management, and common pitfalls to avoid in CAT 3."
+      ],
+      "traineeActivities": [
+        "- Participate in the 'Give One Take One' activity, sharing key learnings and questions with peers.  - Engage actively in the Open Q&A Sessions, seeking clarification and discussing complex topics.  - Practice exam techniques and prepare mentally for CAT 3, applying advice from the trainer.  Assignment: Complete a practice exam paper under timed conditions."
+      ],
+      "resourcesAndRefs": [
+        "- Comprehensive study guide  - Past exam papers (if available for practice)  - Examination rubric and marking scheme explanation"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Practical assessment (practice exam)  Attitudes:  1. Confidence  2. Preparedness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "2",
+      "sessionTitle": "Written CAT 3 (Final)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate comprehensive understanding of all learning outcomes for 'Manage Information System'.  b. Apply critical thinking and problem-solving skills to IS management scenarios.  c. Present well-structured and accurate responses to assessment questions."
+      ],
+      "trainerActivities": [
+        "- Administer and invigilate the Continuous Assessment Test 3 (CAT 3) - Final Exam.  - Provide clear final instructions and remind trainees of examination rules.  - Ensure a fair, secure, and conducive testing environment for all trainees."
+      ],
+      "traineeActivities": [
+        "- Attempt the Continuous Assessment Test 3 (CAT 3) - Final Exam to the best of their ability.  - Adhere strictly to all examination rules and regulations.  - Demonstrate mastery of the unit's competencies through written responses.  Assignment: None"
+      ],
+      "resourcesAndRefs": [
+        "- CAT 3 Question Paper (Final Exam)  - Answer booklets/sheets  - Examination regulations and policies"
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Written test (CAT 3 - Final Exam)  Attitudes:  1. Integrity  2. Professionalism"
+      ],
+      "reflectionsAndDate": ""
+    }
+  ]
+}

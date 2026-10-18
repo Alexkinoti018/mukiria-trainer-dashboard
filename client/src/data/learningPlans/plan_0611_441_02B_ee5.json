@@ -1,0 +1,347 @@
+{
+  "metadata": {
+    "formNumber": "MTTI/F/CUR/02",
+    "institution": "Mukiria TTI",
+    "unitTitle": "Apply Digital Literacy",
+    "unitCode": "0611 441 02B",
+    "trainerName": "Jackline Comba",
+    "level": "5",
+    "dateOfPreparation": "01/05/2026",
+    "dateOfRevision": "",
+    "numberOfTrainees": 25,
+    "cohortCode": "EE5/S/25A",
+    "skillsSummary": [
+      "1. Operate computer devices2. Solve tasks using Office suite3. Manage data and information4. Perform online communication and collaboration5. Apply cybersecurity skills6. Perform online jobs"
+    ],
+    "elementsAndPerformanceCriteria": [
+      {
+        "elementTitle": "1. Operate computer devices",
+        "criteria": [
+          "1.1 Computer device usage is determined as per workplace requirements.",
+          "1.2 Computer hardware is identified according to job requirements.",
+          "1.3 Computer software is identified according to workplace requirements.",
+          "1.4 Computer devices are turned on or off as per the correct workplace procedure.",
+          "1.5 Mouse techniques are applied in solving tasks as per workplace requirements.",
+          "1.6 Keyboard techniques are applied in solving tasks as per workplace requirements.",
+          "1.7 Computer files and folders are created and managed as per workplace requirements.",
+          "1.8 Internet connection options are identified and applied in connecting computer devices to the Internet.",
+          "1.9 External devices are identified and connected to the computer devices as per the job requirement."
+        ]
+      },
+      {
+        "elementTitle": "2. Solve tasks using Office suite",
+        "criteria": [
+          "2.1 Word processing concepts are applied in solving workplace tasks as per job requirements.",
+          "2.2 Worksheet data is entered and prepared in accordance with work procedures.",
+          "2.3 Worksheet data is built and edited in accordance with workplace procedures.",
+          "2.4 Data manipulation on a worksheet is undertaken in accordance with work requirements.",
+          "2.5 Worksheets are saved and printed in accordance with job requirements.",
+          "2.6 Electronic presentation concepts are applied in solving workplace tasks as per job requirements."
+        ]
+      },
+      {
+        "elementTitle": "3. Manage data and information",
+        "criteria": [
+          "3.1 Office internet services are identified and applied in accordance with office procedures.",
+          "3.2 Internet access applications are determined in accordance with office operation procedures.",
+          "3.3 Internet search is performed as per job requirements.",
+          "3.4 Online digital content is downloaded in accordance with workplace requirements.",
+          "3.5 Digital content is identified and backed up in accordance with workplace procedures."
+        ]
+      },
+      {
+        "elementTitle": "4. Perform online communication and collaboration",
+        "criteria": [
+          "4.1 Netiquette principles are observed as per work requirements.",
+          "4.2 Electronic mail communication is executed in accordance with workplace policy.",
+          "4.3 Digital content copyright and licenses are identified and applied according to workplace policies and regulatory requirements.",
+          "4.4 Online collaboration tools are applied in accordance with workplace policies and regulatory requirements."
+        ]
+      },
+      {
+        "elementTitle": "5. Apply cybersecurity skills",
+        "criteria": [
+          "5.1 Data protection and privacy is classified in accordance with workplace policies and regulatory requirements.",
+          "5.2 Internet security threats are identified as per workplace policies and regulatory requirements.",
+          "5.3 Computer threats and crimes are detected in accordance to Information Management security guidelines.",
+          "5.4 Cybersecurity control measures are applied in accordance with workplace policies and regulatory requirements."
+        ]
+      },
+      {
+        "elementTitle": "6. Perform online jobs",
+        "criteria": [
+          "6.1 Online job platforms are identified as per the job requirements.",
+          "6.2 Online accounts and profiles are created in accordance with the work requirements.",
+          "6.3 Online jobs are identified according to the bidder's skillset.",
+          "6.4 Online digital identity is managed according to industry best practices.",
+          "6.5 Online job bidding is done as per the specific job requirements.",
+          "6.6 Online tasks are executed according to the job requirements.",
+          "6.7 Personal online payment account is managed in accordance with financial regulations."
+        ]
+      }
+    ],
+    "preparedBy": {
+      "name": "JACKLINE WAITHIRA COMBA",
+      "date": "01/05/2026"
+    },
+    "approvedBy": {
+      "name": "LYDIA KITHEKA",
+      "date": "",
+      "title": "DP Academics"
+    }
+  },
+  "schedule": [
+    {
+      "week": 1,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Introduction to Computer Devices and Digital Literacy",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Classify different types of computer devices.  b. Describe the functions of various computer components.  c. Explain the importance of digital literacy in modern society."
+      ],
+      "trainerActivities": [
+        "- Facilitate an Interactive Lecture on the meaning and importance of digital literacy, incorporating a Q&A session.  - Coordinate a Group Discussion on the functions and uses of different computer types, including classification.  - Lead a demonstration of identifying various computer hardware components within a system unit, followed by an Interactive Q&A."
+      ],
+      "traineeActivities": [
+        "- Participate in the Interactive Lecture, ask questions, and contribute to the Q&A session on digital literacy.  - Engage in the Group Discussion to classify computer types and share insights on their functions.  - Observe the demonstration of identifying hardware components, then answer questions during the Interactive Q&A.  Assignment: Research and document five real-world applications for each computer classification."
+      ],
+      "resourcesAndRefs": [
+        "Computers (Desktops, Laptops, Smartphones, Tablets); Projector; Whiteboard; Markers; Sample Motherboard, CPU, RAM, Hard Drive, Input/Output Devices; Internet connection for research."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning  2. Practical identification of computer components  Attitudes:  1. Attentiveness  2. Curiosity"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Computer Software and Basic Operations",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Differentiate between various categories of computer software.  b. Perform basic mouse and keyboard operations proficiently.  c. State the correct procedure for turning a computer on and off."
+      ],
+      "trainerActivities": [
+        "- Deliver an Interactive Lecture explaining the classification of computer software (OS, application, utility) using real-world examples.  - Conduct a practical demonstration of proper mouse techniques (clicking, dragging, dropping) and keyboard techniques.  - Facilitate a Think-Pair-Share activity on desktop customization options and the correct procedure for safely turning a computer on and off."
+      ],
+      "traineeActivities": [
+        "- Participate in the Interactive Lecture, taking notes and discussing examples of computer software.  - Observe the practical demonstration, then practice proper mouse and keyboard techniques.  - Engage in the Think-Pair-Share, discussing desktop customization and computer power procedures with a partner, then sharing with the class.  Assignment: Create a personalized desktop background and organize desktop icons logically."
+      ],
+      "resourcesAndRefs": [
+        "Computers with Windows/Linux/Macintosh OS; Projector; Whiteboard; Markers; Internet connection for relevant examples."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of mouse and keyboard skills  2. Written quiz on software classification  Attitudes:  1. Precision  2. Compliance with safety procedures"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "1&2",
+      "sessionTitle": "File Management, Connectivity, and Word Processing Introduction",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply proper file and folder management techniques.  b. Identify various internet connection options and external devices.  c. Describe the fundamental concepts of word processing."
+      ],
+      "trainerActivities": [
+        "- Guide a practical session on creating, renaming, moving, and deleting files and folders using the operating system.  - Conduct a Guided Discussion on different internet connection options (mobile, hotspots, cabled) and methods for connecting external devices.  - Present an Interactive Lecture introducing word processing concepts, including opening, closing, creating, and saving documents."
+      ],
+      "traineeActivities": [
+        "- Participate in the practical session, actively managing files and folders on their computers.  - Contribute to the Guided Discussion by sharing experiences and asking questions about internet connectivity and external device management.  - Engage with the Interactive Lecture, noting key features of word processors and practicing basic document operations.  Assignment: Create a new folder structure for a project, including sub-folders for different document types, and save a blank document within it."
+      ],
+      "resourcesAndRefs": [
+        "Computers with Windows/Linux/Macintosh OS and Microsoft Office; Internet connection (various types if possible for demonstration); External storage media (flash drives); Projector; Whiteboard; Markers."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of file management  2. Oral questioning on internet connection types  Attitudes:  1. Organization  2. Proactiveness"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Written CAT 1",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. N/A  b. N/A  c. N/A"
+      ],
+      "trainerActivities": [
+        "- Administer and invigilate Written CAT 1."
+      ],
+      "traineeActivities": [
+        "- Attempt Written CAT 1 independently, adhering to all examination rules.  Assignment: None."
+      ],
+      "resourcesAndRefs": [
+        "Examination papers; Answer sheets; Pens, pencils."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Written CAT 1  Attitudes:  1. Integrity  2. Adherence to instructions"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Word Processing Advanced Features and Spreadsheet Introduction",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply various document editing and formatting techniques in a word processor.  b. Insert and manipulate graphical objects within a word document.  c. Explain the basic components and application areas of electronic spreadsheets."
+      ],
+      "trainerActivities": [
+        "- Lead a practical demonstration on document editing (copy, cut, paste, spell check) and formatting (text, paragraph, tables) in a word processor.  - Guide trainees through inserting and resizing images and shapes in a word document.  - Facilitate a Group Discussion on the meaning, importance, components, and application areas of electronic spreadsheets."
+      ],
+      "traineeActivities": [
+        "- Practice document editing and formatting techniques, following the demonstration.  - Follow instructions to insert and manipulate various graphical objects in their documents.  - Participate actively in the Group Discussion, sharing ideas on spreadsheet applications and components.  Assignment: Create a two-page document that includes formatted text, a table, and at least one image."
+      ],
+      "resourcesAndRefs": [
+        "Computers with Microsoft Office (Word, Excel); Projector; Whiteboard; Markers; Sample documents and images."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of document formatting  2. Oral questioning on spreadsheet basics  Attitudes:  1. Creativity  2. Attention to detail"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Spreadsheet Operations and Presentation Introduction",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Perform basic data entry and block operations in a spreadsheet application.  b. Utilize common functions and formulas for data manipulation in spreadsheets.  c. Describe the meaning and importance of electronic presentations."
+      ],
+      "trainerActivities": [
+        "- Conduct a practical demonstration on entering data, performing block operations, and using arithmetic operators in Excel.  - Guide trainees through applying common spreadsheet functions (SUM, AVERAGE, IF) and creating simple formulas.  - Present an Interactive Lecture on the fundamentals of electronic presentations, including their purpose and examples of software."
+      ],
+      "traineeActivities": [
+        "- Practice data entry, block operations, and basic arithmetic calculations in Excel during the practical session.  - Follow the trainer's guidance to apply functions and formulas to various datasets.  - Engage with the Interactive Lecture, taking notes and discussing the importance of presentations.  Assignment: Create an Excel worksheet with sample data, apply at least three different formulas/functions, and sort the data."
+      ],
+      "resourcesAndRefs": [
+        "Computers with Microsoft Office (Excel, PowerPoint); Projector; Whiteboard; Markers; Sample datasets for spreadsheet exercises."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of spreadsheet functions  2. Written quiz on presentation software examples  Attitudes:  1. Logical thinking  2. Accuracy"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Presentation Development and Data/Information Fundamentals",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Design and develop effective electronic presentations.  b. Explain the concept of data and information and their importance.  c. Identify various types of internet services available."
+      ],
+      "trainerActivities": [
+        "- Lead a hands-on session guiding trainees to create presentation slides, manage text, and apply themes and transitions in PowerPoint.  - Facilitate a Think-Pair-Share activity on the meaning, importance, and uses of data and information.  - Conduct an Interactive Lecture identifying different types of internet services (e.g., communication, information retrieval, e-commerce) with practical examples."
+      ],
+      "traineeActivities": [
+        "- Actively participate in the hands-on session, developing their own electronic presentations with various elements.  - Engage in the Think-Pair-Share, discussing data and information concepts with a partner, then presenting key points to the class.  - Participate in the Interactive Lecture, taking notes and asking questions about various internet services.  Assignment: Create a 5-slide PowerPoint presentation on a topic of choice, including text, images, and transitions."
+      ],
+      "resourcesAndRefs": [
+        "Computers with Microsoft Office (PowerPoint); Projector; Whiteboard; Markers; Internet connection."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of presentation creation  2. Oral questioning on internet services  Attitudes:  1. Presentation skills  2. Critical thinking"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Written CAT 2",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. N/A  b. N/A  c. N/A"
+      ],
+      "trainerActivities": [
+        "- Administer and invigilate Written CAT 2."
+      ],
+      "traineeActivities": [
+        "- Attempt Written CAT 2 independently, adhering to all examination rules.  Assignment: None."
+      ],
+      "resourcesAndRefs": [
+        "Examination papers; Answer sheets; Pens, pencils."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Written CAT 2  Attitudes:  1. Focus  2. Discipline"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Web Browsing, Netiquette, and Email Communication",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Perform effective web browsing and internet search techniques.  b. Explain ethical online conduct (Netiquette) and its importance.  c. Execute basic electronic mail communication."
+      ],
+      "trainerActivities": [
+        "- Guide a practical session on using web browsers, performing internet searches, managing downloads, and backing up digital content.  - Facilitate a Case Study discussion on common netiquette principles and their application in various online scenarios.  - Conduct a hands-on demonstration of sending, receiving, and organizing emails using an email application."
+      ],
+      "traineeActivities": [
+        "- Actively participate in the practical session, practicing web browsing, searching, downloading, and data backup.  - Engage in the Case Study discussion, analyzing scenarios and contributing to the understanding of netiquette.  - Follow the demonstration, then practice sending, receiving, and organizing emails using a provided email account.  Assignment: Research a specific topic online, citing at least three different sources, and send an email with the research findings to the trainer."
+      ],
+      "resourcesAndRefs": [
+        "Computers with internet connection; Web browsers (Chrome, Firefox, Edge); Google Workspace Account (for email and online storage); Projector; Whiteboard; Markers."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of web search and email usage  2. Oral questioning on netiquette principles  Attitudes:  1. Ethical conduct  2. Responsibility"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Online Collaboration and Data Protection",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Utilize various online collaboration tools for teamwork.  b. Understand digital content copyright and licensing.  c. Explain the principles of data protection and privacy."
+      ],
+      "trainerActivities": [
+        "- Lead a practical session demonstrating the use of online collaboration tools (e.g., Google Drive, Docs, Meet) for shared document creation and online meetings.  - Facilitate a Guided Discussion on digital content copyright, intellectual property, and various licensing types.  - Present an Interactive Lecture on data protection and privacy, covering confidentiality, integrity, and availability of data."
+      ],
+      "traineeActivities": [
+        "- Participate in the practical session, collaborating on a shared document and engaging in a simulated online meeting.  - Contribute to the Guided Discussion by sharing examples and asking questions about copyright and licensing.  - Engage with the Interactive Lecture, taking notes and discussing the importance of data protection.  Assignment: Create a shared document using an online collaboration tool and invite peers to contribute, outlining basic data protection measures for the content."
+      ],
+      "resourcesAndRefs": [
+        "Computers with internet connection; Google Workspace Account (for collaboration tools); Projector; Whiteboard; Markers."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Practical assessment of online collaboration  2. Written quiz on data protection principles  Attitudes:  1. Teamwork  2. Respect for intellectual property"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Cybersecurity Threats and Online Job Opportunities",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify common internet security threats and computer crimes.  b. Apply cybersecurity control measures to protect digital assets.  c. Explain the fundamentals of online working and identify common online job platforms."
+      ],
+      "trainerActivities": [
+        "- Facilitate a Case Study discussion on various internet security threats (malware, phishing, DDoS) and real-world examples of computer crimes.  - Conduct a demonstration of applying basic cybersecurity control measures, such as password management and anti-virus software usage.  - Lead an Interactive Lecture introducing online working, types of online jobs, and prominent online job platforms."
+      ],
+      "traineeActivities": [
+        "- Engage in the Case Study discussion, analyzing cyber threats and proposing preventive measures.  - Observe the demonstration, then practice implementing basic cybersecurity control measures on their systems.  - Participate in the Interactive Lecture, taking notes and discussing the opportunities and challenges of online jobs.  Assignment: Research two different online job platforms, identify common job roles, and describe the basic security measures recommended for users."
+      ],
+      "resourcesAndRefs": [
+        "Computers with internet connection; Antivirus Software (for demo); Projector; Whiteboard; Markers; Links to cybersecurity resources and online job platforms."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Oral questioning on cyber threats  2. Practical assessment of cybersecurity measures  Attitudes:  1. Vigilance  2. Responsibility in online environments"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "1&2",
+      "sessionTitle": "CAT 3 (Final Assessment)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. N/A  b. N/A  c. N/A"
+      ],
+      "trainerActivities": [
+        "- Administer and invigilate CAT 3 (Final Assessment)."
+      ],
+      "traineeActivities": [
+        "- Attempt CAT 3 (Final Assessment) independently, demonstrating mastery of all unit competencies.  Assignment: None."
+      ],
+      "resourcesAndRefs": [
+        "Comprehensive examination papers covering all learning outcomes; Answer sheets; Pens, pencils."
+      ],
+      "assessments": [
+        "Knowledge Checks:  1. Final Written CAT 3  2. Practical assessment (if applicable as part of final)  Attitudes:  1. Self-reliance  2. Comprehensive application of learned skills"
+      ],
+      "reflectionsAndDate": ""
+    }
+  ]
+}

@@ -1,0 +1,1577 @@
+{
+  "metadata": {
+    "formNumber": "MTTI/F/CUR/02",
+    "institution": "Mukiria TTI",
+    "unitTitle": "PERFORM COMPUTER REPAIR AND MAINTENANCE",
+    "unitCode": "IT/CU/ICTA/CR/04/4/MA",
+    "trainerName": "Jackline Waithira Comba",
+    "level": "5",
+    "dateOfPreparation": "01/05/2026",
+    "dateOfRevision": "",
+    "numberOfTrainees": 20,
+    "cohortCode": "ITECH5/J/26",
+    "skillsSummary": [
+      "1. Perform computer troubleshooting2. Repair faulty components.",
+      "3. Test computer component functionality4. Perform computer maintenance"
+    ],
+    "elementsAndPerformanceCriteria": [
+      {
+        "elementTitle": "1. Perform computer troubleshooting",
+        "criteria": [
+          "1.1 User data is assessed as per workplace procedures.",
+          "1.2 Computer problems are identified as per the assessed user data.",
+          "1.3 Solution to the problem is determined as per workplace procedure."
+        ]
+      },
+      {
+        "elementTitle": "2. Repair faulty components.",
+        "criteria": [
+          "2.1 Computer components for replacement are selected as per the workplace procedure.",
+          "2.2 Tools for repairing or replacing are assembled as per the workplace procedure.",
+          "2.3 Safety procedures are observed as per workplace procedures.",
+          "2.4 Faulty computer components are repaired or replaced as per the manufacturer\u2019s manual.",
+          "2.5 Obsolete or faulty computer components are disposed as per workplace procedures."
+        ]
+      },
+      {
+        "elementTitle": "3. Test computer component functionality",
+        "criteria": [
+          "3.1 Computer is switched on for POST test as per workplace procedure.",
+          "3.2 Computer component test is performed as per workplace procedure.",
+          "3.3 Computer component\u2019s functionality report is generated as per workplace procedure."
+        ]
+      },
+      {
+        "elementTitle": "4. Perform computer maintenance",
+        "criteria": [
+          "4.1 Computer maintenance is scheduled as per the workplace procedure.",
+          "4.2 Computer maintenance is performed as per the workplace procedure.",
+          "4.3 Computer maintenance report is generated as per workplace procedure."
+        ]
+      }
+    ],
+    "preparedBy": {
+      "name": "JACKLINE WAITHIRA CHOMBA",
+      "date": "01/05/2025"
+    },
+    "approvedBy": {
+      "name": "LYDIA KITHEKA",
+      "date": "",
+      "title": "DP Academics"
+    }
+  },
+  "schedule": [
+    {
+      "week": 1,
+      "sessionNumber": "1",
+      "sessionTitle": "Introduction to Computer Repair & User Data Assessment",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Define computer repair and maintenance concepts.  b. Explain the importance of assessing user data in troubleshooting.  c. Document initial faulty computer user data according to workplace procedures."
+      ],
+      "trainerActivities": [
+        "- Deliver a lecture introducing computer repair and maintenance fundamentals.  - Facilitate a group discussion on various methods for assessing user data during fault diagnosis.  - Guide trainees through practical exercises on documenting user reported issues."
+      ],
+      "traineeActivities": [
+        "- Participate in the introductory lecture and engage in Q&A.  - Contribute to the group discussion, sharing insights on user data collection.  - Practice documenting simulated user data using provided templates.  Assignment: Research and list common computer repair and maintenance definitions."
+      ],
+      "resourcesAndRefs": [
+        "- Textbooks, unit description document  - Whiteboard and markers  - Computer systems (for scenario demonstration)"
+      ],
+      "assessments": [
+        "- Oral questioning  - Observation of group discussion participation  - Review of documented user data exercises"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 1,
+      "sessionNumber": "2",
+      "sessionTitle": "Computer Problem Identification & Troubleshooting Approaches",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Describe various computer troubleshooting approaches.  b. Identify basic computer hardware faults from symptoms.  c. Apply methods for gathering comprehensive information from users."
+      ],
+      "trainerActivities": [
+        "- Present different systematic troubleshooting methodologies (e.g., top-down, bottom-up).  - Showcase common hardware fault symptoms through practical demonstrations on faulty machines.  - Coordinate role-playing scenarios to practice effective information gathering from simulated users."
+      ],
+      "traineeActivities": [
+        "- Participate in the presentation, discussing the pros and cons of different approaches.  - Observe demonstrations of hardware faults and actively identify symptoms.  - Engage in role-playing, practicing communication and questioning techniques to gather user information.  Assignment: Develop a flowchart for a chosen troubleshooting approach."
+      ],
+      "resourcesAndRefs": [
+        "- Troubleshooting guides, online resources  - Faulty computer systems for demonstration  - Communication skills handouts"
+      ],
+      "assessments": [
+        "- Short quiz on troubleshooting approaches  - Observation of symptom identification  - Peer assessment during role-play"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 1,
+      "sessionNumber": "3",
+      "sessionTitle": "User Data Analysis & Problem Determination",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Analyze collected user data to infer potential problems.  b. Formulate hypotheses about the root cause of computer issues.  c. Determine a logical solution based on identified problems and data analysis."
+      ],
+      "trainerActivities": [
+        "- Lead a guided analysis session using documented user data case studies.  - Facilitate a brainstorming activity for developing problem hypotheses based on symptoms.  - Present decision-making frameworks for determining the most effective solution."
+      ],
+      "traineeActivities": [
+        "- Participate in the data analysis, identifying key information and patterns.  - Contribute to the brainstorming activity, proposing and discussing potential causes.  - Apply decision-making frameworks to select appropriate solutions for presented scenarios.  Assignment: Analyze a given case study and propose a solution."
+      ],
+      "resourcesAndRefs": [
+        "- Case study handouts  - Whiteboard for brainstorming  - Decision-making matrices"
+      ],
+      "assessments": [
+        "- Discussion participation  - Review of hypotheses formulation  - Evaluation of proposed solutions"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 1,
+      "sessionNumber": "4",
+      "sessionTitle": "Computer Hardware Faults & Remedies",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Classify common computer hardware faults and their manifestations.  b. Identify appropriate remedies for specific hardware failures.  c. Differentiate between software and hardware related problems."
+      ],
+      "trainerActivities": [
+        "- Deliver an interactive lecture on various hardware components and their typical failure modes.  - Demonstrate basic hardware fault remedies (e.g., reseating RAM, checking power connections).  - Lead a comparative analysis activity distinguishing hardware from software symptoms."
+      ],
+      "traineeActivities": [
+        "- Engage in the interactive lecture, asking questions and discussing fault types.  - Observe the demonstrations, then practice simple remedies on training machines.  - Participate in the analysis activity, categorizing and discussing different problem types.  Assignment: Create a table listing 5 common hardware faults and their remedies."
+      ],
+      "resourcesAndRefs": [
+        "- Hardware components (working and faulty)  - Diagnostic software  - Textbooks and online repair manuals"
+      ],
+      "assessments": [
+        "- Oral assessment on fault classification  - Practical observation of remedy application  - Group activity output"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 1,
+      "sessionNumber": "5",
+      "sessionTitle": "Testing Hypotheses & Problem Identification Documentation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Develop a plan for testing troubleshooting hypotheses.  b. Execute tests to confirm or refute a hypothesis.  c. Document the identified problem and the testing process accurately."
+      ],
+      "trainerActivities": [
+        "- Guide trainees in developing systematic testing plans for pre-defined troubleshooting scenarios.  - Supervise practical sessions where trainees execute diagnostic tests using tools and software.  - Instruct on best practices for documenting problem identification, tests performed, and outcomes."
+      ],
+      "traineeActivities": [
+        "- Collaborate in small groups to develop testing plans for given scenarios.  - Perform diagnostic tests on computer systems, observing and recording results.  - Practice documenting the entire problem identification and testing process comprehensively.  Assignment: Document a simulated troubleshooting process from hypothesis to identified problem."
+      ],
+      "resourcesAndRefs": [
+        "- Diagnostic tools (multimeter, POST card)  - Diagnostic software (HWMonitor, MemTest86)  - Documentation templates"
+      ],
+      "assessments": [
+        "- Review of testing plans  - Practical assessment of test execution  - Evaluation of documentation quality"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 1,
+      "sessionNumber": "6",
+      "sessionTitle": "Review of Troubleshooting Techniques & Computer Systems",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Summarize key troubleshooting techniques and procedures.  b. Identify main components of various computer systems.  c. Discuss the interaction between different computer components during operation."
+      ],
+      "trainerActivities": [
+        "- Lead a comprehensive review session covering all troubleshooting concepts from Element 1.  - Conduct a hands-on session where trainees identify and label internal computer components.  - Facilitate a discussion on component interdependencies and how failures in one affect others."
+      ],
+      "traineeActivities": [
+        "- Participate in the review, contributing to summaries and asking clarifying questions.  - Disassemble and reassemble computer systems, correctly identifying and labeling components.  - Engage in the discussion, explaining component interactions and potential fault propagation.  Assignment: Prepare a short presentation on a specific computer system's component interaction."
+      ],
+      "resourcesAndRefs": [
+        "- Disassemblable computer systems  - Component diagrams  - Review questionnaires"
+      ],
+      "assessments": [
+        "- Oral review questions  - Practical identification of components  - Discussion participation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "1",
+      "sessionTitle": "Manufacturer's Warranty & Time Management in Troubleshooting",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain manufacturer's warranty requirements related to repair activities.  b. Apply time management techniques to optimize troubleshooting processes.  c. Critically evaluate troubleshooting scenarios to prioritize tasks."
+      ],
+      "trainerActivities": [
+        "- Present a lecture on common warranty policies and their implications for repair.  - Lead a workshop on time management strategies specifically for computer repair tasks.  - Introduce complex troubleshooting case studies and guide trainees in critical thinking for prioritization."
+      ],
+      "traineeActivities": [
+        "- Participate in the lecture, discussing different warranty scenarios and asking questions.  - Practice applying time management techniques to simulated repair timelines.  - Analyze case studies, making critical decisions on task prioritization and resource allocation.  Assignment: Draft a time management plan for a given complex troubleshooting task."
+      ],
+      "resourcesAndRefs": [
+        "- Sample warranty documents  - Time management tools/templates  - Advanced troubleshooting case studies"
+      ],
+      "assessments": [
+        "- Oral questioning on warranty knowledge  - Review of time management plans  - Group discussion on case study analysis"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "2",
+      "sessionTitle": "Planning Troubleshooting & Problem Solving Skills",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Develop a systematic plan for complex troubleshooting tasks.  b. Apply problem-solving methodologies to resolve computer issues.  c. Utilize planning skills to anticipate potential challenges in repair."
+      ],
+      "trainerActivities": [
+        "- Guide trainees through creating detailed troubleshooting plans for multi-faceted problems.  - Facilitate interactive problem-solving exercises using various techniques (e.g., divide and conquer).  - Lead a discussion on proactive planning to mitigate risks in the repair process."
+      ],
+      "traineeActivities": [
+        "- Collaborate in groups to construct comprehensive troubleshooting plans for provided scenarios.  - Engage in problem-solving activities, applying learned methodologies to solve simulated faults.  - Contribute to the discussion, proposing strategies for effective risk anticipation and mitigation.  Assignment: Create a detailed troubleshooting plan for a simulated 'dead computer' scenario."
+      ],
+      "resourcesAndRefs": [
+        "- Complex fault scenarios  - Problem-solving worksheets  - Project planning tools"
+      ],
+      "assessments": [
+        "- Assessment of troubleshooting plans  - Observation of problem-solving techniques  - Oral contribution to discussion"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "3",
+      "sessionTitle": "Communication Skills for User Interaction",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate effective communication with users about computer problems.  b. Translate technical jargon into understandable language for non-technical users.  c. Manage user expectations and provide clear updates on repair progress."
+      ],
+      "trainerActivities": [
+        "- Conduct role-playing exercises simulating various customer interaction scenarios.  - Provide feedback and coaching on clear, concise, and empathetic communication.  - Discuss strategies for setting realistic expectations and delivering bad news constructively."
+      ],
+      "traineeActivities": [
+        "- Participate actively in role-playing, practicing communication with simulated users.  - Receive and integrate feedback to improve their communication style.  - Contribute to discussions on effective client management and managing difficult conversations.  Assignment: Prepare a script for explaining a complex computer issue to a non-technical client."
+      ],
+      "resourcesAndRefs": [
+        "- Role-play scripts  - Communication skills checklists  - Customer service guidelines"
+      ],
+      "assessments": [
+        "- Performance during role-playing  - Peer and trainer feedback  - Oral questioning on communication strategies"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "4",
+      "sessionTitle": "Applied Troubleshooting & Fault Diagnosis Exercises",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Perform systematic fault diagnosis on a range of computer issues.  b. Utilize diagnostic tools and software effectively to identify problems.  c. Apply learned troubleshooting skills to solve real-world simulated scenarios."
+      ],
+      "trainerActivities": [
+        "- Set up various computer systems with pre-introduced faults for practical diagnosis.  - Guide trainees in using a variety of diagnostic hardware and software tools.  - Oversee independent troubleshooting exercises, providing support and correction as needed."
+      ],
+      "traineeActivities": [
+        "- Conduct systematic fault diagnosis on assigned faulty computer systems.  - Practice using diagnostic tools and software to pinpoint the root causes of issues.  - Independently apply troubleshooting techniques to resolve simulated problems.  Assignment: Diagnose a given faulty computer system and submit a preliminary fault report."
+      ],
+      "resourcesAndRefs": [
+        "- Faulty computer systems (various issues)  - Comprehensive set of diagnostic tools and software  - Workshop manuals"
+      ],
+      "assessments": [
+        "- Practical demonstration of fault diagnosis  - Observation of tool usage  - Review of diagnostic reports"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "5",
+      "sessionTitle": "Advanced Troubleshooting Scenarios & Case Studies",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Analyze advanced and intermittent computer troubleshooting scenarios.  b. Develop creative and efficient solutions for complex or rare faults.  c. Learn from case studies to improve problem-solving adaptability."
+      ],
+      "trainerActivities": [
+        "- Present and dissect complex troubleshooting case studies with challenging or intermittent faults.  - Facilitate group discussions and brainstorming for non-standard solutions.  - Encourage trainees to research and share examples of unusual computer problems and their resolutions."
+      ],
+      "traineeActivities": [
+        "- Participate in the analysis of advanced case studies, identifying subtle clues and potential issues.  - Contribute to group brainstorming, proposing innovative diagnostic and repair strategies.  - Research and present findings on unusual computer problems, enhancing collective knowledge.  Assignment: Prepare a presentation on an advanced troubleshooting case study from your research."
+      ],
+      "resourcesAndRefs": [
+        "- Advanced troubleshooting textbooks  - Online technical forums and resources  - Whiteboard for solution mapping"
+      ],
+      "assessments": [
+        "- Participation in case study discussions  - Quality of proposed solutions  - Presentation of research findings"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "6",
+      "sessionTitle": "Element 1 Comprehensive Review",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Consolidate all theoretical knowledge acquired in Element 1.  b. Practice identifying and solving a variety of troubleshooting problems efficiently.  c. Reflect on common troubleshooting errors and best practices."
+      ],
+      "trainerActivities": [
+        "- Conduct a thorough review of all learning outcomes, knowledge, and skills for Element 1.  - Administer a short practical troubleshooting scenario to gauge understanding.  - Lead a reflective discussion on lessons learned and areas for continuous improvement."
+      ],
+      "traineeActivities": [
+        "- Actively participate in the review, clarifying any remaining doubts and consolidating understanding.  - Perform the short practical scenario, applying learned skills and reflecting on their approach.  - Contribute to the reflective discussion, sharing insights and identifying personal growth areas.  Assignment: Complete a self-assessment checklist for Element 1 competency."
+      ],
+      "resourcesAndRefs": [
+        "- Element 1 review materials  - Short practical scenario setups  - Self-assessment checklists"
+      ],
+      "assessments": [
+        "- Oral questioning  - Trainer observation during practical scenario  - Review of self-assessment"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "1",
+      "sessionTitle": "Introduction to Repairing Faulty Components & Component Selection",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Outline the process of repairing and replacing faulty computer components.  b. Identify various types of computer hardware components.  c. Describe factors to consider when selecting replacement computer components."
+      ],
+      "trainerActivities": [
+        "- Present an overview of Element 2: Repairing Faulty Components, detailing the repair workflow.  - Showcase different categories of computer hardware components (input, output, storage, processing, communication).  - Lead a discussion on critical factors for component selection, such as compatibility, cost, and availability."
+      ],
+      "traineeActivities": [
+        "- Participate in the overview, asking questions about the repair lifecycle.  - Inspect and identify various physical computer components, distinguishing their functions.  - Contribute to the discussion, analyzing real-world scenarios for component selection.  Assignment: Research and list three reputable vendors for computer hardware parts."
+      ],
+      "resourcesAndRefs": [
+        "- Computer hardware components (samples)  - Manufacturer's specifications  - Textbooks on computer architecture"
+      ],
+      "assessments": [
+        "- Oral questioning on component types  - Observation of component identification  - Group discussion participation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "2",
+      "sessionTitle": "Computer Parts Acquisition & Repair Tools Assembly",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the process of acquiring computer hardware components.  b. Identify essential tools for computer repair and replacement.  c. Assemble a basic computer repair toolkit for various tasks."
+      ],
+      "trainerActivities": [
+        "- Deliver a presentation on sourcing and acquiring computer hardware components, including ordering procedures.  - Demonstrate the correct identification and use of essential hand tools for computer repair.  - Supervise trainees as they assemble their personal or shared repair toolkits."
+      ],
+      "traineeActivities": [
+        "- Engage in the presentation, discussing procurement challenges and best practices.  - Observe the demonstrations, then practice handling and identifying repair tools.  - Independently or in pairs, assemble a functional computer repair toolkit.  Assignment: Compile a checklist of tools required for common computer repair tasks."
+      ],
+      "resourcesAndRefs": [
+        "- Computer parts catalogs, online supplier websites  - Assorted computer repair tools (screwdrivers, pliers, etc.)  - Toolkit organizer"
+      ],
+      "assessments": [
+        "- Oral questioning on acquisition methods  - Practical identification of tools  - Observation of toolkit assembly"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "3",
+      "sessionTitle": "Specialized Repair Tools & Safety Procedures",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify and correctly use specialized computer repair tools.  b. Implement essential safety procedures during computer repair.  c. Select appropriate Personal Protective Equipment (PPE) for different tasks."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the proper use of specialized tools such as chip extractors, hex wrenches, and Torx screwdrivers.  - Present and explain critical safety procedures, including electrical safety and anti-static precautions.  - Guide trainees in selecting and donning various PPE (overall, gloves, anti-static wrist strap, mat)."
+      ],
+      "traineeActivities": [
+        "- Observe demonstrations and then practice using specialized repair tools.  - Participate in discussions on safety procedures, identifying potential hazards.  - Practice selecting and correctly using PPE for simulated repair environments.  Assignment: List all anti-static equipment and explain their function."
+      ],
+      "resourcesAndRefs": [
+        "- Specialized computer repair tools  - Safety manuals, workplace safety posters  - Various PPE items"
+      ],
+      "assessments": [
+        "- Practical demonstration of tool use  - Oral questioning on safety procedures  - Observation of PPE selection and use"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "4",
+      "sessionTitle": "Fire Safety & Emergency Procedures",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Classify different types of fires relevant to a computer repair environment.  b. Identify appropriate fire extinguishers for each class of fire.  c. Outline emergency procedures and first aid protocols in a workshop setting."
+      ],
+      "trainerActivities": [
+        "- Deliver a lecture on fire classifications (A, B, C, D, K) and their causes in an ICT workshop.  - Demonstrate the correct use of various fire extinguishers and explain their mechanisms.  - Present and discuss emergency contact information, evacuation plans, and basic first aid for common injuries."
+      ],
+      "traineeActivities": [
+        "- Engage in the lecture, discussing fire hazards and prevention in an ICT context.  - Observe fire extinguisher demonstrations, then identify the correct type for different scenarios.  - Participate in a simulated emergency drill, practicing evacuation and first aid response.  Assignment: Develop a fire safety checklist for a computer repair workshop."
+      ],
+      "resourcesAndRefs": [
+        "- Fire safety posters, fire extinguisher samples  - First aid kit, emergency contact list  - Workplace emergency response plan"
+      ],
+      "assessments": [
+        "- Oral questioning on fire classifications  - Practical identification of extinguisher types  - Participation in emergency drill"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "5",
+      "sessionTitle": "Contingency Measures & Component Disassembly",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Develop contingency measures for unexpected repair challenges.  b. Interpret computer components instruction manuals effectively.  c. Perform the safe and systematic disassembly of computer components."
+      ],
+      "trainerActivities": [
+        "- Lead a scenario-based discussion on developing backup plans for repair obstacles (e.g., unavailable parts).  - Guide trainees through interpreting various manufacturer's manuals and technical diagrams.  - Demonstrate the correct and systematic disassembly of a desktop and laptop computer."
+      ],
+      "traineeActivities": [
+        "- Contribute to the discussion, proposing and evaluating contingency plans for given scenarios.  - Practice reading and understanding component manuals for specific repair tasks.  - Observe the disassembly demonstration, then perform guided disassembly of computer systems.  Assignment: Select a computer component and outline its disassembly steps based on its manual."
+      ],
+      "resourcesAndRefs": [
+        "- Various computer instruction manuals  - Computer systems for disassembly practice  - Contingency planning templates"
+      ],
+      "assessments": [
+        "- Group discussion contributions  - Practical interpretation of manuals  - Observation of disassembly technique"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 3,
+      "sessionNumber": "6",
+      "sessionTitle": "Component Reassembly & Basic Repair Techniques",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Systematically reassemble computer components after repair.  b. Apply basic repair techniques for common component issues.  c. Verify correct component installation through visual inspection."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the systematic reassembly of a computer system, emphasizing proper connections.  - Guide trainees through practical exercises on basic repair techniques (e.g., cleaning, cable management).  - Instruct on crucial visual inspection points to confirm proper component seating and connections."
+      ],
+      "traineeActivities": [
+        "- Observe the reassembly demonstration, then perform guided reassembly of computer systems.  - Practice basic repair techniques on various components, ensuring functionality.  - Conduct visual inspections of reassembled systems, identifying any installation errors.  Assignment: Reassemble a disassembled computer system and ensure all connections are secure."
+      ],
+      "resourcesAndRefs": [
+        "- Disassembled computer systems  - Repair toolkit  - Assembly checklists"
+      ],
+      "assessments": [
+        "- Practical assessment of reassembly  - Observation of repair techniques  - Quality check of visual inspections"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "1",
+      "sessionTitle": "Replacing Faulty RAM and Storage Devices",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Diagnose and confirm faulty RAM modules.  b. Replace RAM modules and various storage devices (HDDs, SSDs) safely and correctly.  c. Configure new storage devices for basic operation (e.g., partitioning, formatting)."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the diagnosis of faulty RAM using diagnostic software and physical inspection.  - Guide trainees through the step-by-step process of replacing RAM, HDDs, and SSDs.  - Instruct on basic partitioning and formatting procedures for new storage devices."
+      ],
+      "traineeActivities": [
+        "- Use diagnostic software to identify faulty RAM in simulated scenarios.  - Observe demonstrations, then practice replacing RAM and storage devices in various computer systems.  - Perform basic partitioning and formatting on newly installed storage devices.  Assignment: Install an operating system on a newly installed and configured storage drive."
+      ],
+      "resourcesAndRefs": [
+        "- Working and faulty RAM modules  - Various HDDs/SSDs, SATA/power cables  - Operating system installation media, diagnostic software"
+      ],
+      "assessments": [
+        "- Practical diagnosis of RAM  - Observation of component replacement  - Verification of storage device configuration"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "2",
+      "sessionTitle": "Power Supply Unit (PSU) Diagnosis and Replacement",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify symptoms of a faulty Power Supply Unit (PSU).  b. Perform safe testing of a PSU using a multimeter or PSU tester.  c. Safely replace a faulty PSU with a compatible new unit."
+      ],
+      "trainerActivities": [
+        "- Present common symptoms and troubleshooting steps for a failing PSU.  - Demonstrate how to safely test PSU voltages using a multimeter or a dedicated PSU tester.  - Guide trainees through the safe removal and installation of various types of PSUs."
+      ],
+      "traineeActivities": [
+        "- Participate in the discussion on PSU failure symptoms and diagnostic approaches.  - Observe demonstrations, then practice safe PSU testing on non-live and live (supervised) systems.  - Practice replacing PSUs in different computer cases, ensuring all connections are secure.  Assignment: Research and compare different PSU efficiency ratings (e.g., 80 Plus Bronze, Gold)."
+      ],
+      "resourcesAndRefs": [
+        "- Working and faulty PSUs  - Multimeters, PSU testers  - Various computer cases and power cables"
+      ],
+      "assessments": [
+        "- Oral questioning on PSU symptoms  - Practical demonstration of PSU testing  - Observation of PSU replacement procedure"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "3",
+      "sessionTitle": "Motherboard Diagnosis and Replacement Procedures",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Recognize signs of a failing motherboard.  b. Follow proper procedures for removing and installing a motherboard.  c. Connect all peripheral and power cables to a new motherboard correctly."
+      ],
+      "trainerActivities": [
+        "- Deliver a lecture on motherboard components and common failure points, including POST codes.  - Demonstrate the meticulous process of removing and installing a motherboard, emphasizing screw patterns and standoffs.  - Supervise trainees as they practice connecting all necessary cables (power, data, front panel) to a new motherboard."
+      ],
+      "traineeActivities": [
+        "- Engage in the lecture, discussing motherboard diagnostics and failure symptoms.  - Observe the motherboard replacement demonstration, then perform guided removal and installation.  - Practice connecting all internal cables to a motherboard, referring to manuals as needed.  Assignment: Create a step-by-step guide for replacing a motherboard."
+      ],
+      "resourcesAndRefs": [
+        "- Various motherboards (working and non-working)  - Computer cases, standoffs, screws  - Manufacturer's manuals, POST code charts"
+      ],
+      "assessments": [
+        "- Oral questioning on motherboard issues  - Practical observation of motherboard replacement  - Verification of cable management and connections"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "4",
+      "sessionTitle": "Input/Output & Communication Component Replacement",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Troubleshoot issues related to input, output, and communication devices.  b. Safely replace common input/output devices (keyboards, mice, monitors).  c. Install and configure network interface cards (NICs) and Wi-Fi adapters."
+      ],
+      "trainerActivities": [
+        "- Present troubleshooting techniques specific to I/O and communication devices.  - Guide trainees through practical exercises for replacing external I/O devices and internal expansion cards.  - Instruct on basic driver installation and network configuration for new communication components."
+      ],
+      "traineeActivities": [
+        "- Participate in troubleshooting discussions for peripheral issues.  - Practice replacing various input/output devices and internal expansion cards.  - Perform driver installation and basic network configuration for installed NICs/Wi-Fi adapters.  Assignment: Configure a wireless network connection after installing a new Wi-Fi adapter."
+      ],
+      "resourcesAndRefs": [
+        "- Various input/output devices (keyboards, mice, monitors)  - Network interface cards (NICs), Wi-Fi adapters  - Driver CDs/USB, network cables"
+      ],
+      "assessments": [
+        "- Practical diagnosis of I/O issues  - Observation of component replacement  - Verification of network connectivity"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "5",
+      "sessionTitle": "Processor (CPU) and Cooling System Installation/Replacement",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify different CPU socket types and compatible processors.  b. Safely install or replace a CPU and apply thermal paste correctly.  c. Install and test CPU cooling systems (heatsinks, fans)."
+      ],
+      "trainerActivities": [
+        "- Deliver a lecture on CPU architectures, socket types, and compatibility.  - Demonstrate the delicate process of CPU installation, emphasizing proper alignment and thermal paste application.  - Guide trainees through installing and testing various CPU cooling solutions."
+      ],
+      "traineeActivities": [
+        "- Engage in the lecture, discussing CPU specifications and compatibility.  - Observe the CPU installation, then perform guided CPU replacement and thermal paste application.  - Practice installing and verifying the functionality of CPU heatsinks and fans.  Assignment: Research the latest CPU technologies and their cooling requirements."
+      ],
+      "resourcesAndRefs": [
+        "- Various CPUs and motherboards (for socket types)  - Thermal paste, cleaning supplies  - Assorted CPU coolers (air and AIO liquid coolers)"
+      ],
+      "assessments": [
+        "- Oral questioning on CPU compatibility  - Practical demonstration of CPU installation  - Verification of cooling system functionality"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 4,
+      "sessionNumber": "6",
+      "sessionTitle": "Graphics Card (GPU) Installation & Configuration",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Differentiate between integrated and dedicated graphics solutions.  b. Safely install and secure a dedicated graphics card in a PCIe slot.  c. Install graphics drivers and perform basic display configuration."
+      ],
+      "trainerActivities": [
+        "- Present a comparison of integrated vs. dedicated graphics, discussing their applications.  - Demonstrate the physical installation of a graphics card, including power connections and securing mechanisms.  - Instruct on downloading and installing appropriate graphics drivers and setting up multi-monitor configurations."
+      ],
+      "traineeActivities": [
+        "- Participate in the discussion, identifying scenarios for using different graphics solutions.  - Observe the GPU installation, then practice installing graphics cards in available systems.  - Perform driver installation and configure display settings for optimal performance.  Assignment: Troubleshoot a 'no display' issue after a GPU installation."
+      ],
+      "resourcesAndRefs": [
+        "- Various graphics cards (working and non-working)  - Computer systems with PCIe slots  - Graphics driver installation media, display cables"
+      ],
+      "assessments": [
+        "- Oral questioning on graphics types  - Practical demonstration of GPU installation  - Verification of display output and driver status"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "1",
+      "sessionTitle": "Disposing Obsolete/Faulty Components & E-waste Management",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the environmental impact of improper e-waste disposal.  b. Identify different categories of e-waste and associated hazards.  c. Describe proper disposal methods for obsolete or faulty computer components."
+      ],
+      "trainerActivities": [
+        "- Deliver a lecture on the environmental and health hazards of e-waste, including pollution.  - Present various types of e-waste (e.g., batteries, circuit boards) and their toxic components.  - Discuss and demonstrate different proper disposal methods and local regulations for e-waste."
+      ],
+      "traineeActivities": [
+        "- Engage in the lecture, discussing the importance of responsible e-waste management.  - Participate in an activity to categorize various computer parts into e-waste types.  - Contribute to the discussion, researching local e-waste disposal centers and practices.  Assignment: Create a poster or infographic on the dangers of e-waste and proper disposal."
+      ],
+      "resourcesAndRefs": [
+        "- E-waste samples (non-toxic)  - Environmental protection guidelines  - Local e-waste recycling center information"
+      ],
+      "assessments": [
+        "- Oral questioning on e-waste impact  - Group activity on waste categorization  - Discussion participation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "2",
+      "sessionTitle": "Advanced Disposal Methods & Data Sanitization",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Distinguish between various advanced e-waste recycling and disposal technologies.  b. Perform data sanitization techniques to ensure data privacy before disposal.  c. Understand legal and ethical considerations in component disposal."
+      ],
+      "trainerActivities": [
+        "- Present advanced e-waste processing techniques (e.g., material recovery, hazardous waste treatment).  - Demonstrate software-based and physical data sanitization methods for storage devices.  - Facilitate a discussion on data protection laws and ethical responsibilities in disposing of IT assets."
+      ],
+      "traineeActivities": [
+        "- Participate in the presentation, discussing the complexities of advanced recycling.  - Observe demonstrations, then practice data sanitization on sample storage devices.  - Engage in the discussion, analyzing case studies related to data breaches from improper disposal.  Assignment: Research and compare three data sanitization standards (e.g., DoD 5220.22-M)."
+      ],
+      "resourcesAndRefs": [
+        "- Data sanitization software (e.g., DBAN)  - Physical shredders (demo/video), degaussers  - Data protection regulations (GDPR, HIPAA, etc.)"
+      ],
+      "assessments": [
+        "- Oral questioning on disposal methods  - Practical demonstration of data sanitization  - Participation in ethical discussion"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "3",
+      "sessionTitle": "Review of Element 1 & 2 for CAT 1 Preparation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Systematically review all theoretical concepts related to troubleshooting and repair.  b. Confidently answer questions pertaining to Element 1 and Element 2 performance criteria.  c. Strategize effectively for approaching both written and practical assessment components of CAT 1."
+      ],
+      "trainerActivities": [
+        "- Conduct a focused Q&A session, addressing any remaining uncertainties about Elements 1 and 2.  - Administer a comprehensive mock written test mirroring the CAT 1 format and difficulty.  - Provide a walkthrough of the practical CAT 1 environment and expectations, including rubric review."
+      ],
+      "traineeActivities": [
+        "- Actively participate in the Q&A, posing questions and consolidating their understanding.  - Attempt the mock written test under timed conditions, identifying areas for final review.  - Engage in the walkthrough, clarifying practical setup and understanding assessment criteria.  Assignment: Review personal strengths and weaknesses based on mock test results and prepare a study plan for CAT 1."
+      ],
+      "resourcesAndRefs": [
+        "- Comprehensive study guide for Elements 1 & 2  - Mock CAT 1 papers (written)  - Practical assessment rubric and checklist"
+      ],
+      "assessments": [
+        "- Performance in mock written test  - Active participation in Q&A  - Readiness assessment through direct questioning"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "4",
+      "sessionTitle": "Written CAT 1",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate theoretical understanding of computer troubleshooting and repair principles.  b. Apply knowledge of safety procedures, component selection, and fault diagnosis.  c. Articulate solutions to common computer issues and proper disposal methods."
+      ],
+      "trainerActivities": [
+        "- Administer the Written Continuous Assessment Test 1.  - Invigilate the examination to ensure fair and compliant testing conditions.  - Collect all examination papers upon completion."
+      ],
+      "traineeActivities": [
+        "- Attempt the Written CAT 1, adhering to all instructions and time limits.  - Demonstrate their theoretical knowledge and understanding of Elements 1 and 2.  - Submit their completed examination papers."
+      ],
+      "resourcesAndRefs": [
+        "- CAT 1 examination papers  - Pens and other authorized stationery"
+      ],
+      "assessments": [
+        "- Written CAT 1 score  - Adherence to exam procedures"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "5",
+      "sessionTitle": "Practical CAT 1",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Practically perform computer troubleshooting steps on a faulty system.  b. Accurately repair or replace faulty computer components as per manufacturer's manual.  c. Observe safety procedures and perform safe disposal of obsolete components."
+      ],
+      "trainerActivities": [
+        "- Administer the Practical Continuous Assessment Test 1.  - Observe and assess trainees' practical troubleshooting, repair, and disposal skills against a rubric.  - Provide necessary equipment and ensure a safe testing environment."
+      ],
+      "traineeActivities": [
+        "- Attempt the Practical CAT 1 by diagnosing, repairing/replacing, and disposing of components.  - Demonstrate proficiency in tool usage, safety adherence, and repair/replacement techniques.  - Complete and submit required documentation for the practical task."
+      ],
+      "resourcesAndRefs": [
+        "- Faulty computer systems/components for practical assessment  - Diagnostic toolkits, repair toolkits, PPE, disposal containers  - Practical assessment rubric and documentation templates"
+      ],
+      "assessments": [
+        "- Practical CAT 1 performance (pass/fail, score based on rubric)  - Accuracy of fault identification, component replacement, and disposal methods"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 5,
+      "sessionNumber": "6",
+      "sessionTitle": "Introduction to Computer Component Functionality Testing & POST",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the importance of testing computer components for functionality.  b. Describe the Power-On Self-Test (POST) process.  c. Identify common POST codes and their meanings."
+      ],
+      "trainerActivities": [
+        "- Deliver an introductory lecture on why and when component functionality testing is crucial.  - Present the POST sequence, explaining what happens during startup and common beeps/codes.  - Demonstrate how to interpret POST codes using a POST card or motherboard diagnostic LEDs."
+      ],
+      "traineeActivities": [
+        "- Participate in the lecture, discussing the benefits of thorough component testing.  - Engage in an interactive session, identifying and interpreting various POST codes.  - Observe demonstrations, then practice using a POST card to diagnose startup issues.  Assignment: Research and list 10 common POST beep codes and their corresponding faults."
+      ],
+      "resourcesAndRefs": [
+        "- Computer systems (working and non-booting)  - POST cards, motherboard manuals  - Textbooks on computer architecture"
+      ],
+      "assessments": [
+        "- Oral questioning on testing importance  - Observation of POST code identification  - Group discussion on startup diagnostics"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "1",
+      "sessionTitle": "Testing Techniques & Evaluating Test Results",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply various testing techniques for repaired or replaced components.  b. Evaluate test results to confirm component functionality.  c. Differentiate between successful test outcomes and residual issues."
+      ],
+      "trainerActivities": [
+        "- Guide trainees through different testing methodologies (e.g., stress testing, loopback tests).  - Provide data sets of simulated test results and instruct on their interpretation.  - Facilitate a discussion on analyzing test outcomes to ensure complete problem resolution."
+      ],
+      "traineeActivities": [
+        "- Practice applying diverse testing techniques to mock repaired components.  - Analyze provided test results, identifying patterns and confirming functionality.  - Participate in the discussion, articulating how to confirm complete repair vs. partial success.  Assignment: Perform a stress test on a CPU/GPU and record the temperature and performance metrics."
+      ],
+      "resourcesAndRefs": [
+        "- Diagnostic software (e.g., FurMark, Prime95, memtest86)  - Testing procedure checklists  - Sample test result reports"
+      ],
+      "assessments": [
+        "- Practical demonstration of testing techniques  - Review of test result interpretations  - Oral questioning on evaluation criteria"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "2",
+      "sessionTitle": "Generating Functionality Reports & Documentation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Structure a clear and comprehensive computer component functionality report.  b. Accurately record all test procedures and results in the report.  c. Present the functionality report to stakeholders in a professional manner."
+      ],
+      "trainerActivities": [
+        "- Instruct on the essential components and best practices for creating a functionality report.  - Guide trainees through exercises in accurately documenting testing steps and outcomes.  - Coordinate role-playing scenarios for presenting technical reports to non-technical clients."
+      ],
+      "traineeActivities": [
+        "- Develop and structure a functionality report based on a provided testing scenario.  - Practice recording all relevant data, observations, and conclusions in the report.  - Engage in role-playing, practicing clear and concise communication of test results to clients.  Assignment: Draft a complete functionality report for a system that underwent component replacement."
+      ],
+      "resourcesAndRefs": [
+        "- Functionality report templates  - Sample test results  - Communication skills guidelines"
+      ],
+      "assessments": [
+        "- Review of drafted reports  - Observation of documentation accuracy  - Performance during role-play presentation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "3",
+      "sessionTitle": "Advanced Diagnostic Software & Tools",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Utilize advanced diagnostic software for in-depth component testing.  b. Employ specialized hardware tools for intricate component analysis.  c. Interpret complex diagnostic outputs from advanced testing tools."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the use of advanced diagnostic software (e.g., specific hardware vendor tools, professional suites).  - Guide trainees through the application of specialized hardware tools (e.g., oscilloscope for signal integrity).  - Facilitate a session on interpreting detailed logs and error codes generated by sophisticated diagnostics."
+      ],
+      "traineeActivities": [
+        "- Observe demonstrations, then practice using advanced diagnostic software on complex scenarios.  - Engage with specialized hardware tools under supervision, understanding their application.  - Analyze and interpret complex diagnostic outputs, identifying root causes from detailed data.  Assignment: Research and compare two advanced diagnostic software suites, highlighting their features."
+      ],
+      "resourcesAndRefs": [
+        "- Advanced diagnostic software licenses/demos  - Specialized hardware diagnostic tools (oscilloscope, logic analyzer)  - Technical manuals for advanced tools"
+      ],
+      "assessments": [
+        "- Practical demonstration of tool usage  - Review of interpreted diagnostic outputs  - Oral questioning on tool functionality"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "4",
+      "sessionTitle": "Practical Component Testing Lab 1 (RAM & Storage)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Perform detailed diagnostic tests on RAM modules.  b. Conduct thorough health and performance checks on storage devices (HDD/SSD).  c. Accurately document test findings for RAM and storage components."
+      ],
+      "trainerActivities": [
+        "- Set up workstations with various RAM and storage devices (some faulty) for practical testing.  - Guide trainees through using memory diagnostic tools (e.g., MemTest86) and S.M.A.R.T. utilities.  - Supervise and provide feedback on trainees' testing methodologies and documentation."
+      ],
+      "traineeActivities": [
+        "- Independently or in pairs perform diagnostic tests on assigned RAM modules, identifying faults.  - Conduct health checks and performance tests on various storage devices using appropriate software.  - Accurately record all test findings and observations for both RAM and storage components.  Assignment: Identify a faulty RAM stick using diagnostics and propose a replacement solution."
+      ],
+      "resourcesAndRefs": [
+        "- Working and faulty RAM modules, HDDs, SSDs  - Diagnostic bootable USBs (MemTest86, HDDScan)  - Test report templates"
+      ],
+      "assessments": [
+        "- Practical assessment of diagnostic skills  - Accuracy of fault identification  - Quality of documented test findings"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "5",
+      "sessionTitle": "Practical Component Testing Lab 2 (CPU & Motherboard)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Diagnose CPU functionality using appropriate stress tests and benchmarks.  b. Perform basic diagnostics on motherboard components and integrated peripherals.  c. Interpret error codes and symptoms related to CPU and motherboard failures."
+      ],
+      "trainerActivities": [
+        "- Set up workstations with systems capable of CPU and motherboard testing.  - Guide trainees through using CPU stress testing tools (e.g., Prime95, Cinebench) and POST code readers.  - Provide scenarios for motherboard component failures and instruct on their diagnosis."
+      ],
+      "traineeActivities": [
+        "- Independently or in pairs execute CPU stress tests and interpret benchmark results.  - Perform diagnostics on motherboard integrated components (e.g., USB ports, sound, LAN).  - Analyze presented error codes and symptoms to diagnose simulated CPU or motherboard faults.  Assignment: Troubleshoot a 'no boot' scenario caused by a simulated CPU or motherboard issue."
+      ],
+      "resourcesAndRefs": [
+        "- Computer systems with various CPUs/motherboards  - CPU stress testing software, POST cards  - Motherboard manuals, diagnostic charts"
+      ],
+      "assessments": [
+        "- Practical assessment of CPU/motherboard diagnostics  - Accuracy of fault interpretation  - Observation of tool usage"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 6,
+      "sessionNumber": "6",
+      "sessionTitle": "Practical Component Testing Lab 3 (PSU & Graphics Card)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Perform comprehensive testing of Power Supply Units (PSUs) under load.  b. Diagnose and benchmark graphics card (GPU) performance and stability.  c. Document the functionality and health status of PSUs and GPUs."
+      ],
+      "trainerActivities": [
+        "- Set up workstations with systems suitable for PSU and GPU testing.  - Guide trainees through using PSU testers and GPU benchmarking/stress testing software (e.g., FurMark).  - Instruct on proper documentation of power output, voltage stability, and graphics performance."
+      ],
+      "traineeActivities": [
+        "- Independently or in pairs conduct load tests on PSUs, measuring voltage stability.  - Execute benchmarks and stress tests on graphics cards, monitoring temperatures and performance.  - Accurately document all test parameters, results, and observations for PSUs and GPUs.  Assignment: Compare the performance of two different graphics cards using benchmarking software."
+      ],
+      "resourcesAndRefs": [
+        "- Computer systems with various PSUs/GPUs  - PSU testers, multimeters, GPU stress testing software  - Test report templates"
+      ],
+      "assessments": [
+        "- Practical assessment of PSU/GPU testing  - Accuracy of performance/stability metrics  - Quality of documented reports"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "1",
+      "sessionTitle": "Advanced Troubleshooting with Test Results",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Integrate multiple test results to form a comprehensive diagnosis.  b. Identify intermittent faults using patterns in diagnostic data.  c. Devise advanced troubleshooting strategies based on detailed test analyses."
+      ],
+      "trainerActivities": [
+        "- Present complex scenarios requiring synthesis of results from multiple diagnostic tests.  - Lead a workshop on pattern recognition in test logs to uncover elusive or intermittent issues.  - Facilitate group discussions on developing sophisticated troubleshooting plans for challenging problems."
+      ],
+      "traineeActivities": [
+        "- Work collaboratively to analyze multi-faceted diagnostic data, identifying correlations.  - Practice identifying patterns indicative of intermittent faults from provided data sets.  - Contribute to group discussions, proposing and refining advanced troubleshooting strategies.  Assignment: Analyze a multi-component fault report and propose an integrated solution."
+      ],
+      "resourcesAndRefs": [
+        "- Multi-diagnostic log files  - Intermittent fault case studies  - Advanced problem-solving frameworks"
+      ],
+      "assessments": [
+        "- Group problem-solving exercise  - Oral questioning on data synthesis  - Quality of proposed strategies"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "2",
+      "sessionTitle": "Simulating Component Failures and Testing",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Artificially introduce component failures for diagnostic practice.  b. Practice systematic testing protocols on systems with induced faults.  c. Confirm the resolution of simulated failures through re-testing procedures."
+      ],
+      "trainerActivities": [
+        "- Demonstrate safe methods for simulating various hardware component failures (e.g., by removing RAM sticks, loosening cables).  - Guide trainees through applying their learned testing protocols to diagnose these induced faults.  - Instruct on the importance of re-testing after a 'repair' to confirm the fault is resolved."
+      ],
+      "traineeActivities": [
+        "- Observe demonstrations, then safely introduce simulated faults into training systems.  - Apply systematic testing protocols to accurately diagnose the artificially introduced failures.  - Perform re-testing after attempting to 'resolve' the simulated faults, confirming successful repair.  Assignment: Document the process of inducing, diagnosing, and resolving a simulated fault."
+      ],
+      "resourcesAndRefs": [
+        "- Computer systems for fault simulation  - Diagnostic tools  - Safety guidelines for handling components"
+      ],
+      "assessments": [
+        "- Practical assessment of fault simulation and diagnosis  - Observation of systematic testing  - Verification of successful resolution through re-testing"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "3",
+      "sessionTitle": "Reporting and Client Communication on Test Outcomes",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Translate technical test outcomes into clear, client-friendly language.  b. Communicate effectively with clients about component test results and recommendations.  c. Address client questions and concerns professionally regarding test findings."
+      ],
+      "trainerActivities": [
+        "- Provide complex technical test reports and instruct on how to simplify them for clients.  - Conduct role-playing exercises simulating client consultations on test results.  - Offer feedback on communication clarity, empathy, and objection handling during client interactions."
+      ],
+      "traineeActivities": [
+        "- Practice simplifying technical jargon from test reports into understandable explanations.  - Engage in role-playing, presenting test outcomes and recommendations to simulated clients.  - Practice responding to client queries and concerns professionally and constructively.  Assignment: Prepare a verbal communication script for explaining a component failure and replacement recommendation to a client."
+      ],
+      "resourcesAndRefs": [
+        "- Sample technical test reports  - Client communication templates  - Role-play scenarios"
+      ],
+      "assessments": [
+        "- Review of simplified explanations  - Performance during role-playing  - Oral questioning on client communication strategies"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "4",
+      "sessionTitle": "Comprehensive Practical Testing Scenario",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Execute a full range of component functionality tests on an entire system.  b. Integrate diagnostic findings from multiple components into a holistic system assessment.  c. Generate a comprehensive system functionality report after testing."
+      ],
+      "trainerActivities": [
+        "- Set up a complete computer system with a variety of potential component issues for comprehensive testing.  - Guide trainees through a full system diagnostic workflow, from POST to application testing.  - Supervise the generation of a final, holistic functionality report based on all gathered data."
+      ],
+      "traineeActivities": [
+        "- Perform a full suite of diagnostic tests on the assigned computer system, identifying all issues.  - Synthesize individual component test results into an overall assessment of system health.  - Draft a comprehensive functionality report detailing all tests performed, findings, and recommendations.  Assignment: Submit the comprehensive system functionality report for evaluation."
+      ],
+      "resourcesAndRefs": [
+        "- Computer systems with multiple component issues  - Full suite of diagnostic software and hardware tools  - Comprehensive system report template"
+      ],
+      "assessments": [
+        "- Practical assessment of full system testing  - Quality of integrated system assessment  - Evaluation of comprehensive functionality report"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 7,
+      "sessionNumber": "5",
+      "sessionTitle": "Review of Element 3 Concepts & Procedures",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Summarize all key concepts and procedures related to computer component testing.  b. Recall important testing techniques and their appropriate applications.  c. Clarify any remaining ambiguities in component functionality testing methodologies."
+      ],
+      "trainerActivities": [
+        "- Lead a structured review session covering all aspects of Element 3 (testing components).  - Facilitate an interactive Q&A session to address any trainee questions or areas of confusion.  - Administer a short, formative quiz to gauge overall understanding of the element."
+      ],
+      "traineeActivities": [
+        "- Actively participate in the review, contributing to summaries and outlining key procedures.  - Engage in the Q&A, asking clarifying questions and answering peer queries.  - Attempt the formative quiz, identifying areas where further study may be needed.  Assignment: Create a mind map summarizing all sub-topics under 'Test computer component functionality'."
+      ],
+      "resourcesAndRefs": [
+        "- Element 3 review materials  - Whiteboard for concept mapping  - Formative quiz questions"
+      ],
+      "assessments": [
+        "- Oral review questions  - Participation in Q&A  - Quiz performance"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "1",
+      "sessionTitle": "Case Studies in Component Testing & Reporting",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Analyze real-world case studies involving challenging component testing scenarios.  b. Evaluate different testing strategies based on specific case study requirements.  c. Develop comprehensive reports for complex component testing outcomes."
+      ],
+      "trainerActivities": [
+        "- Present complex, real-world case studies of component failures requiring extensive testing.  - Lead a group exercise in comparing and contrasting different testing approaches for each case.  - Guide trainees through structuring and writing detailed reports for the analyzed case studies."
+      ],
+      "traineeActivities": [
+        "- Collaborate to analyze provided case studies, identifying key testing challenges.  - Participate in the group exercise, evaluating testing strategies and justifying choices.  - Practice writing detailed test reports for the complex case studies, including recommendations.  Assignment: Select a challenging case study and prepare a presentation on its testing strategy and report."
+      ],
+      "resourcesAndRefs": [
+        "- Real-world component testing case studies  - Report writing templates  - Industry standards for technical reporting"
+      ],
+      "assessments": [
+        "- Group analysis of case studies  - Quality of proposed testing strategies  - Evaluation of written reports"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "2",
+      "sessionTitle": "Common Testing Pitfalls & Best Practices",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify common pitfalls and errors encountered during component testing.  b. Implement best practices to ensure accurate and reliable test results.  c. Develop a personal checklist for effective and efficient component testing."
+      ],
+      "trainerActivities": [
+        "- Share examples of common mistakes made during component testing and their consequences.  - Deliver a lecture on industry best practices for each stage of the testing process.  - Facilitate a workshop where trainees design their own customized testing checklists."
+      ],
+      "traineeActivities": [
+        "- Engage in discussion, analyzing common pitfalls and learning from past errors.  - Participate in the lecture, discussing and internalizing best practices for testing.  - Independently create and refine a personal checklist for comprehensive component testing.  Assignment: Test a known working system using your developed checklist and report on its effectiveness."
+      ],
+      "resourcesAndRefs": [
+        "- Examples of failed tests/diagnoses  - Industry best practice guidelines (e.g., CompTIA A+)  - Checklist templates"
+      ],
+      "assessments": [
+        "- Oral questioning on pitfalls  - Review of personal checklists  - Discussion participation on best practices"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "3",
+      "sessionTitle": "Introduction to Computer Maintenance & Scheduling",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Define computer maintenance and its importance.  b. Distinguish between different types of computer maintenance.  c. Prepare a basic computer maintenance schedule."
+      ],
+      "trainerActivities": [
+        "- Deliver an introductory lecture on the definition, objectives, and importance of computer maintenance.  - Present various types of maintenance (e.g., preventive, corrective, predictive) with examples.  - Guide trainees through developing a simple, recurring maintenance schedule for a computer system."
+      ],
+      "traineeActivities": [
+        "- Participate in the lecture, discussing the benefits of regular computer maintenance.  - Engage in a comparison activity, differentiating between the various maintenance types.  - Practice creating a weekly or monthly maintenance schedule using provided templates.  Assignment: Research and list common computer maintenance tasks and their recommended frequencies."
+      ],
+      "resourcesAndRefs": [
+        "- Textbooks on computer maintenance  - Maintenance scheduling templates  - Whiteboard for discussion"
+      ],
+      "assessments": [
+        "- Oral questioning on maintenance types  - Review of drafted maintenance schedules  - Discussion participation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "4",
+      "sessionTitle": "Computer Maintenance Utilities & Their Uses",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify common computer maintenance utilities.  b. Explain the purpose and function of various maintenance tools.  c. Utilize maintenance utilities to optimize system performance."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the use of built-in operating system utilities (e.g., Disk Cleanup, Defragment and Optimize Drives).  - Present third-party maintenance software (e.g., antivirus, antimalware, system cleaners).  - Guide trainees through practical exercises using these utilities to improve system health."
+      ],
+      "traineeActivities": [
+        "- Observe demonstrations, then practice using built-in OS maintenance utilities.  - Participate in a discussion on the benefits and risks of various third-party software.  - Apply selected maintenance utilities to optimize a test computer's performance.  Assignment: Compare the features of two different antivirus software packages."
+      ],
+      "resourcesAndRefs": [
+        "- Computer systems with various OS  - Built-in OS utilities, third-party maintenance software  - Internet access for software research"
+      ],
+      "assessments": [
+        "- Practical demonstration of utility usage  - Oral questioning on utility functions  - Observation of system optimization results"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "5",
+      "sessionTitle": "Performing Physical Computer Maintenance",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify components requiring physical cleaning and maintenance.  b. Perform safe and effective physical cleaning of internal and external computer components.  c. Conduct basic cable management to improve airflow and organization."
+      ],
+      "trainerActivities": [
+        "- Demonstrate safe physical cleaning techniques for various computer components (fans, heatsinks, case).  - Guide trainees through the use of cleaning tools (compressed air, brushes, cleaning solutions).  - Instruct on best practices for cable management within a computer case to optimize cooling and accessibility."
+      ],
+      "traineeActivities": [
+        "- Observe demonstrations, then practice physical cleaning of internal and external computer parts.  - Utilize cleaning tools correctly, adhering to safety precautions.  - Practice organizing cables within a computer case, aiming for neatness and improved airflow.  Assignment: Document the physical maintenance steps performed on a given computer system."
+      ],
+      "resourcesAndRefs": [
+        "- Computer systems for physical maintenance  - Cleaning kits (compressed air, brushes, microfiber cloths, isopropyl alcohol)  - Cable ties, zip ties"
+      ],
+      "assessments": [
+        "- Practical assessment of cleaning technique  - Observation of tool usage and safety  - Quality check of cable management"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 8,
+      "sessionNumber": "6",
+      "sessionTitle": "Performing Logical Computer Maintenance",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Conduct operating system updates and patches.  b. Manage device drivers for optimal system functionality.  c. Optimize startup programs and services to enhance boot times and performance."
+      ],
+      "trainerActivities": [
+        "- Demonstrate the process of checking for, downloading, and installing OS updates.  - Guide trainees through identifying, updating, and reinstalling device drivers using Device Manager.  - Instruct on managing startup items and services using system configuration tools (e.g., MSConfig, Task Manager)."
+      ],
+      "traineeActivities": [
+        "- Practice checking for and applying operating system updates on test machines.  - Observe demonstrations, then perform driver management tasks on various devices.  - Optimize startup programs and services, evaluating the impact on system boot time and performance.  Assignment: Analyze a system's startup programs and suggest improvements for faster boot."
+      ],
+      "resourcesAndRefs": [
+        "- Computer systems with internet access  - Operating system update settings  - Device Manager, Task Manager, MSConfig"
+      ],
+      "assessments": [
+        "- Practical demonstration of OS updates  - Observation of driver management  - Verification of startup optimization"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "1",
+      "sessionTitle": "Importance & Components of Computer Maintenance Report",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the importance of generating computer maintenance reports.  b. Identify essential components of a comprehensive maintenance report.  c. Structure a maintenance report with all necessary sections and details."
+      ],
+      "trainerActivities": [
+        "- Deliver a lecture on why maintenance reports are critical for record-keeping, client communication, and scheduling.  - Present and analyze examples of good and poor maintenance reports, highlighting key sections.  - Guide trainees through structuring their own maintenance report templates."
+      ],
+      "traineeActivities": [
+        "- Participate in the lecture, discussing the various uses and benefits of maintenance reports.  - Analyze sample reports, identifying their strengths and weaknesses.  - Practice structuring a new maintenance report template, including all critical components.  Assignment: Design a comprehensive computer maintenance report template."
+      ],
+      "resourcesAndRefs": [
+        "- Sample computer maintenance reports  - Report writing guidelines  - Template design software"
+      ],
+      "assessments": [
+        "- Oral questioning on report importance  - Review of sample report analysis  - Evaluation of designed report templates"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "2",
+      "sessionTitle": "Generating Computer Maintenance Report & Client Handover",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Accurately record maintenance activities and findings in a report.  b. Generate a final computer maintenance report as per workplace procedure.  c. Communicate maintenance outcomes effectively during client handover."
+      ],
+      "trainerActivities": [
+        "- Guide trainees through practical exercises of logging performed maintenance tasks into a report.  - Supervise the generation of complete maintenance reports for various maintenance scenarios.  - Coordinate role-playing scenarios for client handover, emphasizing clear communication and advice."
+      ],
+      "traineeActivities": [
+        "- Practice accurately logging all steps of a simulated maintenance task into a report.  - Generate full maintenance reports, ensuring all details are captured and presented professionally.  - Engage in role-playing, practicing how to explain maintenance performed and future recommendations to clients.  Assignment: Generate a full maintenance report for a system you physically and logically maintained."
+      ],
+      "resourcesAndRefs": [
+        "- Maintenance report forms/software  - Maintenance activity logs  - Client communication checklists"
+      ],
+      "assessments": [
+        "- Practical assessment of report generation  - Review of generated reports  - Performance during client handover role-play"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "3",
+      "sessionTitle": "Advanced Maintenance Strategies & Preventative Measures",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Develop advanced preventative maintenance strategies for various environments.  b. Implement monitoring tools to anticipate potential hardware and software failures.  c. Advise on best practices for data backup and recovery as a maintenance measure."
+      ],
+      "trainerActivities": [
+        "- Deliver a lecture on advanced preventative strategies for servers, workstations, and mobile devices.  - Demonstrate the setup and interpretation of system monitoring tools (e.g., S.M.A.R.T. monitoring, network monitors).  - Lead a discussion on various data backup solutions (cloud, local, hybrid) and disaster recovery planning."
+      ],
+      "traineeActivities": [
+        "- Participate in the lecture, discussing tailored maintenance plans for different systems.  - Observe demonstrations, then practice setting up and interpreting data from monitoring tools.  - Contribute to the discussion, comparing backup solutions and outlining recovery strategies.  Assignment: Research and propose a preventative maintenance plan for a small business's IT infrastructure."
+      ],
+      "resourcesAndRefs": [
+        "- Server maintenance guides, network monitoring software  - Data backup solutions (software/hardware demos)  - Disaster recovery plan templates"
+      ],
+      "assessments": [
+        "- Oral questioning on advanced strategies  - Practical demonstration of monitoring tool usage  - Group discussion contributions"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "4",
+      "sessionTitle": "Review of Element 3 & 4 for CAT 2 Preparation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Systematically review all theoretical concepts related to testing and maintenance.  b. Confidently answer questions pertaining to Element 3 and Element 4 performance criteria.  c. Strategize effectively for approaching both written and practical assessment components of CAT 2."
+      ],
+      "trainerActivities": [
+        "- Conduct a focused Q&A session, addressing any remaining uncertainties about Elements 3 and 4.  - Administer a comprehensive mock written test mirroring the CAT 2 format and difficulty.  - Provide a walkthrough of the practical CAT 2 environment and expectations, including rubric review."
+      ],
+      "traineeActivities": [
+        "- Actively participate in the Q&A, posing questions and consolidating their understanding.  - Attempt the mock written test under timed conditions, identifying areas for final review.  - Engage in the walkthrough, clarifying practical setup and understanding assessment criteria.  Assignment: Review personal strengths and weaknesses based on mock test results and prepare a study plan for CAT 2."
+      ],
+      "resourcesAndRefs": [
+        "- Comprehensive study guide for Elements 3 & 4  - Mock CAT 2 papers (written)  - Practical assessment rubric and checklist"
+      ],
+      "assessments": [
+        "- Performance in mock written test  - Active participation in Q&A  - Readiness assessment through direct questioning"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "5",
+      "sessionTitle": "Written CAT 2",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate theoretical understanding of computer component testing and maintenance principles.  b. Apply knowledge of testing techniques, maintenance scheduling, and utilities.  c. Articulate proper report generation for both component functionality and maintenance."
+      ],
+      "trainerActivities": [
+        "- Administer the Written Continuous Assessment Test 2.  - Invigilate the examination to ensure fair and compliant testing conditions.  - Collect all examination papers upon completion."
+      ],
+      "traineeActivities": [
+        "- Attempt the Written CAT 2, adhering to all instructions and time limits.  - Demonstrate their theoretical knowledge and understanding of Elements 3 and 4.  - Submit their completed examination papers."
+      ],
+      "resourcesAndRefs": [
+        "- CAT 2 examination papers  - Pens and other authorized stationery"
+      ],
+      "assessments": [
+        "- Written CAT 2 score  - Adherence to exam procedures"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 9,
+      "sessionNumber": "6",
+      "sessionTitle": "Practical CAT 2",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Practically perform computer component testing as per workplace procedure.  b. Generate a computer component's functionality report accurately.  c. Implement scheduled maintenance tasks and generate a maintenance report."
+      ],
+      "trainerActivities": [
+        "- Administer the Practical Continuous Assessment Test 2.  - Observe and assess trainees' practical component testing, maintenance skills, and reporting against a rubric.  - Provide necessary equipment and ensure a safe testing environment."
+      ],
+      "traineeActivities": [
+        "- Attempt the Practical CAT 2 by testing components, performing maintenance, and generating reports.  - Demonstrate proficiency in using diagnostic and maintenance tools and applying methodologies.  - Complete and submit required documentation for the practical task."
+      ],
+      "resourcesAndRefs": [
+        "- Computer systems/components for practical assessment  - Diagnostic toolkits, maintenance tools, software  - Practical assessment rubric and documentation templates"
+      ],
+      "assessments": [
+        "- Practical CAT 2 performance (pass/fail, score based on rubric)  - Accuracy of component testing, maintenance performance, and report generation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "1",
+      "sessionTitle": "Integrated Troubleshooting & Repair Workshop",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply an integrated approach to diagnose and repair complex computer faults.  b. Systematically utilize tools and knowledge from Elements 1 and 2.  c. Manage a complete troubleshooting-to-repair workflow efficiently."
+      ],
+      "trainerActivities": [
+        "- Set up complex, multi-component fault scenarios requiring knowledge from Elements 1 and 2.  - Supervise trainees as they work through the entire process from initial user data to repair completion.  - Provide personalized feedback on their integrated problem-solving skills and efficiency."
+      ],
+      "traineeActivities": [
+        "- Independently or in small teams, diagnose and repair complex computer systems with multiple faults.  - Utilize diagnostic tools, repair techniques, and safety procedures in a comprehensive workflow.  - Receive and integrate feedback to refine their end-to-end repair process.  Assignment: Document the integrated troubleshooting and repair process for a complex system."
+      ],
+      "resourcesAndRefs": [
+        "- Complex faulty computer systems  - Full set of diagnostic and repair tools  - Integrated workflow checklists"
+      ],
+      "assessments": [
+        "- Practical assessment of integrated repair  - Observation of workflow efficiency  - Review of documented process"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "2",
+      "sessionTitle": "Integrated Testing & Maintenance Workshop",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Execute comprehensive testing on a repaired or maintained system.  b. Perform full preventative and corrective maintenance procedures.  c. Generate complete reports encompassing testing and maintenance activities."
+      ],
+      "trainerActivities": [
+        "- Set up systems for post-repair testing and full maintenance procedures, incorporating Elements 3 and 4.  - Supervise trainees in performing thorough functionality tests and various maintenance tasks.  - Guide the generation of integrated reports that reflect all testing and maintenance performed."
+      ],
+      "traineeActivities": [
+        "- Independently or in small teams, perform comprehensive functionality tests on systems.  - Execute full physical and logical maintenance procedures on assigned systems.  - Prepare integrated reports detailing both the testing and maintenance activities and outcomes.  Assignment: Prepare for the Final CAT by reviewing all elements and practical skills."
+      ],
+      "resourcesAndRefs": [
+        "- Repaired/maintained computer systems  - Full set of diagnostic and maintenance tools  - Integrated reporting templates"
+      ],
+      "assessments": [
+        "- Practical assessment of integrated testing and maintenance  - Quality of integrated reports  - Observation of process adherence"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "3",
+      "sessionTitle": "Review of Element 1 & 2 for Final CAT Preparation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Consolidate knowledge on computer troubleshooting methodologies.  b. Review and recall procedures for repairing faulty components.  c. Identify interdependencies between troubleshooting and repair processes."
+      ],
+      "trainerActivities": [
+        "- Lead an interactive review session covering key concepts and practical applications from Element 1.  - Facilitate a hands-on review of component repair and replacement procedures from Element 2.  - Conduct a Q&A session emphasizing the workflow from diagnosis to repair."
+      ],
+      "traineeActivities": [
+        "- Actively participate in the review of troubleshooting, contributing insights and questions.  - Engage in hands-on activities to refresh component repair skills.  - Participate in the Q&A, articulating the integrated process of troubleshooting and repair.  Assignment: Prepare a summary of best practices for troubleshooting and repairing a common computer issue."
+      ],
+      "resourcesAndRefs": [
+        "- Review materials for Element 1 and 2  - Computer systems for practical refreshers  - Whiteboard for concept mapping"
+      ],
+      "assessments": [
+        "- Oral questioning  - Observation of practical refreshers  - Discussion participation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "4",
+      "sessionTitle": "Review of Element 3 & 4 for Final CAT Preparation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Consolidate knowledge on computer component functionality testing.  b. Review and recall procedures for performing computer maintenance.  c. Understand the role of testing and maintenance in overall computer health."
+      ],
+      "trainerActivities": [
+        "- Lead an interactive review session covering key concepts and practical applications from Element 3.  - Facilitate a hands-on review of computer maintenance procedures from Element 4.  - Conduct a Q&A session emphasizing the importance of ongoing testing and maintenance."
+      ],
+      "traineeActivities": [
+        "- Actively participate in the review of component testing, contributing insights and questions.  - Engage in hands-on activities to refresh computer maintenance skills.  - Participate in the Q&A, articulating the benefits of proactive testing and maintenance.  Assignment: Develop a flowchart illustrating the lifecycle of a computer, from purchase to maintenance and eventual disposal."
+      ],
+      "resourcesAndRefs": [
+        "- Review materials for Element 3 and 4  - Computer systems for practical refreshers  - Whiteboard for concept mapping"
+      ],
+      "assessments": [
+        "- Oral questioning  - Observation of practical refreshers  - Discussion participation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "5",
+      "sessionTitle": "Final Comprehensive Review (Elements 1-4 Theory)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Recall and explain all theoretical concepts from Element 1 to Element 4.  b. Synthesize knowledge across different elements to answer complex questions.  c. Identify key knowledge areas requiring final self-study for the comprehensive assessment."
+      ],
+      "trainerActivities": [
+        "- Lead a fast-paced, interactive review covering all theoretical aspects of the unit.  - Facilitate a Q&A marathon, encouraging trainees to challenge each other and deepen understanding.  - Administer a final comprehensive mock written exam to assess readiness for CAT 3."
+      ],
+      "traineeActivities": [
+        "- Actively participate in the comprehensive review, contributing answers and asking targeted questions.  - Engage in the Q&A, testing their recall and critical thinking across all elements.  - Attempt the final mock written exam, meticulously identifying areas for last-minute revision.  Assignment: Create flashcards for key terms and concepts across all unit elements."
+      ],
+      "resourcesAndRefs": [
+        "- Comprehensive study guides  - Whiteboard/flip charts for quick summaries  - Mock final written examination papers"
+      ],
+      "assessments": [
+        "- Performance in mock final written exam  - Oral questioning on complex topics  - Active participation in review activities"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 10,
+      "sessionNumber": "6",
+      "sessionTitle": "Final Comprehensive Review (Elements 1-4 Practical)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate proficiency in all practical skills across troubleshooting, repair, testing, and maintenance.  b. Efficiently execute complex practical scenarios integrating multiple skills.  c. Confidently prepare for the practical component of the Final CAT 3."
+      ],
+      "trainerActivities": [
+        "- Set up a series of practical stations covering all key skills from Elements 1-4.  - Circulate among trainees, observing their performance and providing immediate, constructive feedback.  - Administer a final comprehensive mock practical scenario to assess readiness for CAT 3."
+      ],
+      "traineeActivities": [
+        "- Rotate through practical stations, performing tasks related to troubleshooting, repair, testing, and maintenance.  - Actively seek and integrate feedback to refine their practical skills.  - Attempt the final mock practical scenario, demonstrating integrated skill application.  Assignment: Practice specific practical skills identified as weak areas during the review."
+      ],
+      "resourcesAndRefs": [
+        "- Fully equipped computer lab with diverse systems  - Comprehensive diagnostic, repair, and maintenance toolkits  - Mock final practical examination scenarios and rubrics"
+      ],
+      "assessments": [
+        "- Performance in mock final practical scenario  - Trainer observation of skill execution  - Self-assessment against practical rubrics"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "1",
+      "sessionTitle": "Integrated Troubleshooting & Repair Workshop (Advanced)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply advanced integrated troubleshooting techniques to unique computer problems.  b. Demonstrate efficient and meticulous repair workflows for complex systems.  c. Critically evaluate and optimize the overall repair process for efficiency and quality."
+      ],
+      "trainerActivities": [
+        "- Present advanced, real-world case studies of unique or difficult-to-diagnose computer faults.  - Facilitate an interactive workshop where trainees collaboratively design advanced repair strategies.  - Guide discussions on optimizing the repair workflow, focusing on efficiency, cost-effectiveness, and client satisfaction."
+      ],
+      "traineeActivities": [
+        "- Analyze advanced case studies, proposing innovative troubleshooting and repair approaches.  - Collaborate to refine repair strategies, considering resource constraints and time limitations.  - Participate in discussions, offering insights on process improvement and quality control in repair operations.  Assignment: Research and document a case where an unconventional repair solution was required."
+      ],
+      "resourcesAndRefs": [
+        "- Case studies of unique computer faults  - Advanced repair guides and forums  - Workflow optimization tools/templates"
+      ],
+      "assessments": [
+        "- Quality of proposed advanced repair strategies  - Group collaboration and problem-solving skills  - Oral contributions to workflow optimization discussions"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "2",
+      "sessionTitle": "Integrated Testing & Maintenance Workshop (Advanced)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Implement advanced testing protocols for high-performance or specialized systems.  b. Develop comprehensive preventative maintenance plans for diverse IT environments.  c. Prepare detailed and professional reports for complex testing and maintenance projects."
+      ],
+      "trainerActivities": [
+        "- Demonstrate advanced testing procedures for specialized computer systems (e.g., gaming rigs, workstations).  - Guide trainees in developing tailored preventative maintenance plans for different organizational needs.  - Supervise the creation of detailed, client-ready reports for comprehensive testing and maintenance projects."
+      ],
+      "traineeActivities": [
+        "- Practice advanced testing protocols on specialized systems, interpreting complex data.  - Collaborate to design preventative maintenance plans, considering scalability and specific requirements.  - Generate comprehensive reports for complex projects, ensuring accuracy, clarity, and professionalism.  Assignment: Design a preventative maintenance schedule and reporting template for a medium-sized enterprise."
+      ],
+      "resourcesAndRefs": [
+        "- Specialized computer systems for testing  - Enterprise IT maintenance best practices  - Advanced reporting software/templates"
+      ],
+      "assessments": [
+        "- Practical application of advanced testing protocols  - Quality of developed maintenance plans  - Evaluation of comprehensive reports"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "3",
+      "sessionTitle": "Comprehensive Review of All Elements - Theory",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Systematically review all theoretical concepts across Elements 1, 2, 3, and 4.  b. Synthesize knowledge from different elements to explain integrated processes.  c. Identify theoretical areas requiring final consolidation for the Final CAT 3."
+      ],
+      "trainerActivities": [
+        "- Lead a fast-paced, interactive review covering all theoretical aspects of the entire unit.  - Facilitate a question and answer session that prompts trainees to connect concepts across elements.  - Administer a final comprehensive mock written exam to help trainees identify knowledge gaps."
+      ],
+      "traineeActivities": [
+        "- Actively participate in the comprehensive review, contributing answers and asking clarifying questions.  - Engage in the Q&A, explaining interconnections between troubleshooting, repair, testing, and maintenance.  - Attempt the mock written exam under timed conditions, identifying specific topics for last-minute study.  Assignment: Review the mock exam results and create a targeted study plan for the Final CAT 3."
+      ],
+      "resourcesAndRefs": [
+        "- Comprehensive unit study guide  - Review slides covering all elements  - Mock final written examination papers"
+      ],
+      "assessments": [
+        "- Performance in mock final written exam  - Oral questioning on integrated theoretical concepts  - Participation in review discussions"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "4",
+      "sessionTitle": "Comprehensive Review of All Elements - Practical",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate proficiency in all practical skills across troubleshooting, repair, testing, and maintenance.  b. Execute complex practical scenarios integrating multiple skills efficiently.  c. Confidently prepare for the practical component of the Final CAT 3."
+      ],
+      "trainerActivities": [
+        "- Set up a series of practical stations covering all key skills from Elements 1-4.  - Circulate among trainees, observing their performance and providing immediate, constructive feedback.  - Administer a final comprehensive mock practical scenario to assess readiness for CAT 3."
+      ],
+      "traineeActivities": [
+        "- Rotate through practical stations, performing tasks related to troubleshooting, repair, testing, and maintenance.  - Actively seek and integrate feedback to refine their practical skills.  - Attempt the final mock practical scenario, demonstrating integrated skill application.  Assignment: Practice specific practical skills identified as weak areas during the review."
+      ],
+      "resourcesAndRefs": [
+        "- Fully equipped computer lab with diverse systems  - Comprehensive diagnostic, repair, and maintenance toolkits  - Mock final practical examination scenarios and rubrics"
+      ],
+      "assessments": [
+        "- Performance in mock final practical scenario  - Trainer observation of skill execution  - Self-assessment against practical rubrics"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "5",
+      "sessionTitle": "Final Preparation & Q&A for Final CAT 3",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Clarify any remaining doubts or complex topics before the final assessment.  b. Develop effective time management strategies for the comprehensive exam.  c. Mentally prepare and strategize for optimal performance in Final CAT 3."
+      ],
+      "trainerActivities": [
+        "- Conduct an open forum for trainees to ask last-minute questions on any aspect of the unit.  - Provide advice on exam techniques, time management, and stress reduction strategies.  - Offer words of encouragement and motivation for the upcoming comprehensive assessment."
+      ],
+      "traineeActivities": [
+        "- Actively participate in the Q&A, ensuring all ambiguities are resolved.  - Practice exam time management with provided sample questions and scenarios.  - Engage in self-reflection and confidence-building exercises for the final exam.  Assignment: Organize study materials and ensure all tools and equipment are ready for the Final CAT 3 practical."
+      ],
+      "resourcesAndRefs": [
+        "- Comprehensive review notes  - Exam tips and strategies handouts  - Motivational resources"
+      ],
+      "assessments": [
+        "- Active participation in Q&A  - Oral check on preparedness  - Final self-assessment for confidence"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 11,
+      "sessionNumber": "6",
+      "sessionTitle": "Final CAT 3 (Comprehensive Written Examination)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate comprehensive theoretical knowledge of computer repair and maintenance.  b. Apply critical thinking to complex scenarios spanning all unit elements.  c. Articulate detailed solutions and procedures across the entire competency unit."
+      ],
+      "trainerActivities": [
+        "- Administer the Final Continuous Assessment Test 3 (Comprehensive Written).  - Invigilate the examination strictly to ensure academic integrity.  - Collect all examination papers upon completion."
+      ],
+      "traineeActivities": [
+        "- Attempt the Final CAT 3 (Comprehensive Written), adhering to all instructions and time limits.  - Demonstrate their comprehensive theoretical understanding of the entire unit.  - Submit their completed examination papers."
+      ],
+      "resourcesAndRefs": [
+        "- Final CAT 3 (Comprehensive Written) examination papers  - Pens and other authorized stationery"
+      ],
+      "assessments": [
+        "- Final CAT 3 (Comprehensive Written) score  - Adherence to exam procedures"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "1",
+      "sessionTitle": "Final CAT 3 (Comprehensive Practical Examination - Part 1)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Initiate practical tasks covering troubleshooting and component repair.  b. Apply systematic procedures to resolve multi-faceted computer problems.  c. Begin generating accurate and professional reports for complex repair and maintenance tasks."
+      ],
+      "trainerActivities": [
+        "- Administer the Final Continuous Assessment Test 3 (Comprehensive Practical - Part 1).  - Observe and assess trainees' initial practical skills against a comprehensive rubric.  - Provide necessary equipment and ensure a safe and realistic testing environment."
+      ],
+      "traineeActivities": [
+        "- Begin the Final CAT 3 (Comprehensive Practical) by diagnosing and starting repair on a complex system.  - Demonstrate initial proficiency in troubleshooting and component repair aspects of the unit.  - Start documentation for the comprehensive practical task."
+      ],
+      "resourcesAndRefs": [
+        "- Complex computer system with multiple simulated faults for practical assessment  - Full diagnostic, repair, testing, and maintenance toolkits  - Comprehensive practical assessment rubric and reporting templates"
+      ],
+      "assessments": [
+        "- Observation of initial practical performance (troubleshooting and repair)  - Accuracy and efficiency of early practical work  - Quality of initial documentation"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "2",
+      "sessionTitle": "Final CAT 3 (Comprehensive Practical Examination - Part 2)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Complete practical tasks covering component testing and maintenance.  b. Integrate all practical skills into a final, high-quality output.  c. Finalize accurate and professional reports for complex repair and maintenance tasks."
+      ],
+      "trainerActivities": [
+        "- Continue administering the Final Comprehensive Practical Examination (Part 2).  - Observe and assess trainees' performance in testing and maintenance sections against the rubric.  - Ensure all assessment documentation and materials are properly collected and secured."
+      ],
+      "traineeActivities": [
+        "- Complete the testing and maintenance tasks for the Final Comprehensive Practical Examination.  - Consolidate all practical outputs and finalize required documentation for submission.  - Submit all practical outputs and comprehensive reports for final evaluation."
+      ],
+      "resourcesAndRefs": [
+        "- Practical assessment stations and resources from previous session  - Comprehensive practical assessment rubric and documentation templates"
+      ],
+      "assessments": [
+        "- Observation of practical performance (testing and maintenance)  - Overall evaluation of practical competence  - Review of submitted comprehensive reports and outputs"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "3",
+      "sessionTitle": "Post-Assessment Feedback & Reflection",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Receive constructive feedback on their performance in the Final CAT 3.  b. Reflect on their strengths and areas for improvement throughout the unit.  c. Develop strategies for continuous skill development post-training."
+      ],
+      "trainerActivities": [
+        "- Provide individualized constructive feedback to each trainee on their CAT 3 performance.  - Facilitate a group reflection session on the challenges and successes experienced.  - Guide trainees in setting personal goals for ongoing learning and professional growth."
+      ],
+      "traineeActivities": [
+        "- Engage actively in receiving feedback, asking clarifying questions.  - Participate in the group reflection, sharing insights and learning from peers.  - Develop a personal action plan for future skill enhancement and career development.  Assignment: Update personal professional development plan based on feedback and reflection."
+      ],
+      "resourcesAndRefs": [
+        "- Individual CAT 3 feedback reports  - Reflection journals/worksheets  - Goal setting templates"
+      ],
+      "assessments": [
+        "- Active participation in feedback and reflection  - Oral articulation of insights  - Review of personal action plans"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "4",
+      "sessionTitle": "Career Opportunities & Professional Development in IT",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify various career pathways available in computer repair and IT support.  b. Recognize the importance of industry certifications and ongoing education.  c. Understand networking strategies for career advancement in the IT sector."
+      ],
+      "trainerActivities": [
+        "- Present an overview of job roles, salary expectations, and career progression in the IT field.  - Discuss relevant industry certifications (e.g., CompTIA A+, Network+) and their benefits.  - Share tips and resources for professional networking, mentorship, and job searching."
+      ],
+      "traineeActivities": [
+        "- Research and discuss different IT career paths that align with their interests.  - Participate in discussions on certification importance and create a plan for future studies.  - Develop strategies for building a professional network and seeking employment opportunities.  Assignment: Research and select three relevant industry certifications and outline their study requirements."
+      ],
+      "resourcesAndRefs": [
+        "- Career guidance pamphlets, industry reports  - Certification body websites  - Professional networking platform information"
+      ],
+      "assessments": [
+        "- Oral questioning on career paths  - Discussion participation on certifications  - Review of individual career plans"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "5",
+      "sessionTitle": "Ethical Conduct & Professionalism in Computer Repair",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Uphold ethical standards and professional conduct in all repair and maintenance activities.  b. Maintain client confidentiality and data privacy diligently.  c. Resolve ethical dilemmas common in the computer repair industry."
+      ],
+      "trainerActivities": [
+        "- Deliver a lecture on the code of ethics for IT professionals, emphasizing honesty and integrity.  - Present scenarios involving client confidentiality and data privacy breaches, discussing best practices.  - Facilitate group discussions on resolving ethical dilemmas using professional guidelines."
+      ],
+      "traineeActivities": [
+        "- Engage in the lecture, discussing the importance of ethical behavior in their future roles.  - Participate in scenario analysis, identifying potential ethical pitfalls and proposing solutions.  - Contribute to discussions on professional responsibility and client trust.  Assignment: Write a short essay on the importance of data privacy in computer repair."
+      ],
+      "resourcesAndRefs": [
+        "- Code of ethics documents (e.g., ACM, CompTIA)  - Data protection laws and regulations  - Case studies on ethical dilemmas"
+      ],
+      "assessments": [
+        "- Oral questioning on ethical principles  - Group discussion participation  - Review of essay on data privacy"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "6",
+      "sessionTitle": "Workplace Communication & Teamwork",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply effective communication techniques in a professional workplace setting.  b. Collaborate effectively with colleagues and supervisors in a team environment.  c. Handle conflict and provide constructive feedback professionally."
+      ],
+      "trainerActivities": [
+        "- Conduct interactive exercises on professional communication (verbal, written, digital).  - Organize team-based problem-solving scenarios requiring collaboration and division of labor.  - Facilitate role-playing for conflict resolution and constructive feedback delivery."
+      ],
+      "traineeActivities": [
+        "- Practice professional communication in various simulated workplace interactions.  - Work collaboratively in teams to solve complex IT problems, practicing teamwork.  - Engage in role-playing, practicing conflict resolution and delivering/receiving feedback.  Assignment: Reflect on a team project experience and identify areas for improved communication and collaboration."
+      ],
+      "resourcesAndRefs": [
+        "- Workplace communication guides  - Team-building exercises  - Conflict resolution strategies"
+      ],
+      "assessments": [
+        "- Observation of communication skills  - Performance in team activities  - Role-play assessment"
+      ],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 12,
+      "sessionNumber": "",
+      "sessionTitle": "Unit Conclusion",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Reflect on their complete learning journey and achievements in the unit.  b. Understand the next steps in their educational or professional pathway.  c. Celebrate the successful completion of the 'Perform Computer Repair and Maintenance' unit."
+      ],
+      "trainerActivities": [
+        "- Conduct a final debrief of the entire unit, highlighting key successes and learning points.  - Provide certificates of completion or participation.  - Facilitate a celebratory and forward-looking discussion about trainees' future endeavors."
+      ],
+      "traineeActivities": [
+        "- Participate in the final debrief, sharing their overall experience and learning outcomes.  - Receive their completion certificates and acknowledge their achievements.  - Engage in discussions about future plans, networking, and staying connected with the training institution."
+      ],
+      "resourcesAndRefs": [
+        "- Certificates of completion  - Course feedback forms  - Program alumni network information"
+      ],
+      "assessments": [
+        "- Oral reflection on unit completion  - Participation in debrief  - Submission of course feedback"
+      ],
+      "reflectionsAndDate": ""
+    }
+  ]
+}
