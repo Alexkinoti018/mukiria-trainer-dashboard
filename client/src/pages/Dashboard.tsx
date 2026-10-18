@@ -37,6 +37,9 @@ interface StatCard {
   icon: React.ElementType;
   color: string;
   bg: string;
+  path?: string;
+  badge?: string;
+  badgeColor?: string;
 }
 
 export default function Dashboard() {
@@ -83,6 +86,7 @@ export default function Dashboard() {
       icon: FileText,
       color: "#000953",
       bg: "rgba(0, 9, 83, 0.08)",
+      path: "/trainer/exam-builder",
     },
     {
       label: "Submissions",
@@ -91,6 +95,7 @@ export default function Dashboard() {
       icon: Users,
       color: "#000953",
       bg: "rgba(0, 9, 83, 0.08)",
+      path: "/trainer/grading",
     },
     {
       label: "Average Score",
@@ -99,13 +104,18 @@ export default function Dashboard() {
       icon: TrendingUp,
       color: "#c48820",
       bg: "rgba(196, 136, 32, 0.12)",
+      path: "/trainer/analytics",
     },
     {
       label: "Pending Review",
       value: pendingSubs,
+      change: pendingSubs > 0 ? "Requires grading" : "All up to date",
+      badge: pendingSubs > 0 ? "Action Required" : undefined,
+      badgeColor: pendingSubs > 0 ? "bg-amber-100 text-amber-800 border-amber-300" : undefined,
       icon: Clock,
-      color: "#c48820",
-      bg: "rgba(196, 136, 32, 0.12)",
+      color: pendingSubs > 0 ? "#b45309" : "#c48820",
+      bg: pendingSubs > 0 ? "rgba(245, 158, 11, 0.15)" : "rgba(196, 136, 32, 0.12)",
+      path: "/trainer/grading",
     },
   ];
 
@@ -131,7 +141,7 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="bg-white border border-slate-300 border-l-4 border-l-[#000953] rounded-xl shadow-sm p-6 mb-6 relative overflow-hidden"
+        className="bg-white border border-slate-300 border-l-4 border-l-[#000953] rounded-xl shadow-sm p-5 mb-4 relative overflow-hidden"
       >
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div>
@@ -175,7 +185,7 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.3 }}
-        className="bg-white border border-slate-300 border-l-4 border-l-[#c48820] rounded-xl shadow-sm p-5 mb-6"
+        className="bg-white border border-slate-300 border-l-4 border-l-[#c48820] rounded-xl shadow-sm p-4 sm:p-5 mb-5"
       >
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -234,22 +244,40 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06, duration: 0.3 }}
-            className="bg-white border border-slate-300 rounded-xl shadow-sm p-5"
+            onClick={() => stat.path && navigate(stat.path)}
+            role={stat.path ? "button" : undefined}
+            tabIndex={stat.path ? 0 : undefined}
+            className={`bg-white border border-slate-300 rounded-xl shadow-sm p-4 sm:p-5 relative overflow-hidden transition-all duration-200 ${
+              stat.path
+                ? "cursor-pointer hover:border-[#000953] hover:shadow-md hover:-translate-y-0.5 group"
+                : ""
+            }`}
           >
             <div className="flex items-start justify-between mb-3">
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
+                className="w-9 h-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"
                 style={{ background: stat.bg }}
               >
                 <stat.icon className="w-4 h-4" style={{ color: stat.color }} />
               </div>
+              {stat.badge && (
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide animate-pulse ${stat.badgeColor}`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+                  {stat.badge}
+                </span>
+              )}
+              {stat.path && !stat.badge && (
+                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#000953] group-hover:translate-x-0.5 transition-all" />
+              )}
             </div>
             <div
               className="text-2xl font-bold mb-0.5 font-mono"
@@ -257,11 +285,11 @@ export default function Dashboard() {
             >
               {loading ? "—" : stat.value}
             </div>
-            <div className="text-xs font-bold text-slate-700">
-              {stat.label}
+            <div className="text-xs font-bold text-slate-700 flex items-center justify-between">
+              <span>{stat.label}</span>
             </div>
             {stat.change && (
-              <div className="text-xs mt-1 text-slate-500">
+              <div className="text-xs mt-1 text-slate-500 font-medium">
                 {stat.change}
               </div>
             )}
@@ -305,12 +333,17 @@ export default function Dashboard() {
               </div>
             ) : (
               recentSubs.map((sub) => (
-                <div key={sub.id} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-[#000953]/10 text-[#000953]">
+                <div
+                  key={sub.id}
+                  onClick={() => navigate(`/trainer/grading?search=${encodeURIComponent(sub.reg_number || sub.student_name)}`)}
+                  className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer group"
+                  title={`Open grading details for ${sub.student_name}`}
+                >
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-[#000953]/10 text-[#000953] group-hover:bg-[#000953] group-hover:text-white transition-colors">
                     {sub.student_name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-bold truncate text-[#0f172a]">
+                    <div className="text-sm font-bold truncate text-[#0f172a] group-hover:text-[#000953] transition-colors">
                       {sub.student_name}
                     </div>
                     <div className="text-xs text-slate-500 font-mono">
@@ -330,6 +363,7 @@ export default function Dashboard() {
                     >
                       {sub.status}
                     </span>
+                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#000953] group-hover:translate-x-0.5 transition-all" />
                   </div>
                 </div>
               ))
