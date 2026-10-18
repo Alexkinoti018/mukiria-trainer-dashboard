@@ -4,7 +4,7 @@
  * Resolves cohort key fragmentation, multi-session collision, and data loss once and for all.
  */
 
-export type AttendanceStatus = "X" | "0" | "";
+export type AttendanceStatus = "X" | "0" | "E" | "";
 
 export interface StudentAttendanceRecord {
   attendance: Record<string, AttendanceStatus>; // key: "W{week}_S{session}"
@@ -23,6 +23,7 @@ export function getCanonicalAttendanceClassKey(code: string): string {
   if (norm.includes("ADMIN")) return "ADMIN5_6";
   if (norm.includes("FBS")) return "FBS5_6";
   if (norm.includes("LS") || norm.includes("SURVEY")) return "LS5_6";
+  if (norm.includes("CE") || norm.includes("CIVIL")) return "CE6";
   return norm.replace(/[^A-Z0-9_]/g, "_");
 }
 
@@ -58,6 +59,10 @@ export function getStorageKeysForClass(classCode: string): string[] {
     keys.add("mtti_class_register_ADMIN4/5/6/S/26 MOD 1");
   } else if (canonical === "LS5_6") {
     keys.add("mtti_class_register_LS5/6/S/26");
+  } else if (canonical === "CE6") {
+    keys.add("mtti_class_register_CE6/S/26");
+    keys.add("mtti_class_register_CE6/M/26");
+    keys.add("mtti_class_register_CE6/J/26");
   }
 
   return Array.from(keys);
@@ -88,10 +93,17 @@ export function loadClassAttendanceRegister(classCode: string): Record<string, S
             }
             if (rec?.attendance && typeof rec.attendance === "object") {
               for (const [sessKey, val] of Object.entries(rec.attendance as Record<string, AttendanceStatus>)) {
-                // Ensure marked sessions ('X' or '0') are preserved and never overwritten by empty strings
-                if (val === "X" || val === "0") {
-                  merged[studentId].attendance[sessKey] = val;
-                } else if (merged[studentId].attendance[sessKey] === undefined) {
+                // Non-Destructive Union Merging:
+                // If candidate is marked Present ('X') in any duplicate/historical record, retain Present;
+                // Never drop a verified attendance tick or overwrite with empty string.
+                const existingVal = merged[studentId].attendance[sessKey];
+                if (val === "X") {
+                  merged[studentId].attendance[sessKey] = "X";
+                } else if (val === "0" || val === "E") {
+                  if (existingVal !== "X") {
+                    merged[studentId].attendance[sessKey] = val;
+                  }
+                } else if (existingVal === undefined) {
                   merged[studentId].attendance[sessKey] = val;
                 }
               }
@@ -139,7 +151,7 @@ export function applyRollCallToRegister(
   classCode: string,
   weekNumber: number,
   sessionIndex: number,
-  rollCallMap: Record<string, "X" | "0" | "">
+  rollCallMap: Record<string, AttendanceStatus>
 ): Record<string, StudentAttendanceRecord> {
   const currentRegister = loadClassAttendanceRegister(classCode);
   const sessionKey = `W${weekNumber}_S${sessionIndex}`;
@@ -148,8 +160,14 @@ export function applyRollCallToRegister(
     if (!currentRegister[traineeId]) {
       currentRegister[traineeId] = { attendance: {}, signed: false };
     }
-    currentRegister[traineeId].attendance[sessionKey] = status as AttendanceStatus;
-    if (status === "X") {
+    const existing = currentRegister[traineeId].attendance[sessionKey];
+    // Preserve existing verified mark if incoming is empty
+    if (status === "" && (existing === "X" || existing === "0" || existing === "E")) {
+      // Retain existing verified attendance tick
+    } else {
+      currentRegister[traineeId].attendance[sessionKey] = status as AttendanceStatus;
+    }
+    if (status === "X" || existing === "X") {
       currentRegister[traineeId].signed = true;
     }
   }

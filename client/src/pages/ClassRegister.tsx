@@ -189,10 +189,13 @@ export default function ClassRegister() {
     hodComment: "",
   });
 
+  const [weeklyLecturerComments, setWeeklyLecturerComments] = useState<Record<number, string>>({});
+  const [weeklyHodComments, setWeeklyHodComments] = useState<Record<number, string>>({});
+
   // When class selection changes, synchronize metadata & rehydrate saved comments
   useEffect(() => {
     const commentsKey = `mtti_class_register_comments_${selectedClassCode}`;
-    let savedComments = { lecturerComment: "", hodComment: "" };
+    let savedComments: any = { lecturerComment: "", hodComment: "", weeklyLecturerComments: {}, weeklyHodComments: {} };
     try {
       const raw = localStorage.getItem(commentsKey);
       if (raw) savedComments = JSON.parse(raw);
@@ -209,7 +212,55 @@ export default function ClassRegister() {
       lecturerComment: savedComments.lecturerComment || prev.lecturerComment || "",
       hodComment: savedComments.hodComment || prev.hodComment || "",
     }));
+
+    const wLec = savedComments.weeklyLecturerComments || {};
+    if (!wLec[0] && savedComments.lecturerComment) {
+      wLec[0] = savedComments.lecturerComment;
+    }
+    setWeeklyLecturerComments(wLec);
+
+    const wHod = savedComments.weeklyHodComments || {};
+    if (!wHod[0] && savedComments.hodComment) {
+      wHod[0] = savedComments.hodComment;
+    }
+    setWeeklyHodComments(wHod);
   }, [activeClassConfig, selectedClassCode]);
+
+  const handleWeeklyCommentChange = (type: "lecturer" | "hod", weekIndex: number, val: string) => {
+    if (type === "lecturer") {
+      setWeeklyLecturerComments(prev => {
+        const next = { ...prev, [weekIndex]: val };
+        try {
+          const raw = localStorage.getItem(`mtti_class_register_comments_${selectedClassCode}`);
+          const cur = raw ? JSON.parse(raw) : {};
+          localStorage.setItem(
+            `mtti_class_register_comments_${selectedClassCode}`,
+            JSON.stringify({ ...cur, weeklyLecturerComments: next, lecturerComment: next[0] || cur.lecturerComment || "" })
+          );
+        } catch (e) {}
+        return next;
+      });
+      if (weekIndex === 0) {
+        setMetadata(m => ({ ...m, lecturerComment: val }));
+      }
+    } else {
+      setWeeklyHodComments(prev => {
+        const next = { ...prev, [weekIndex]: val };
+        try {
+          const raw = localStorage.getItem(`mtti_class_register_comments_${selectedClassCode}`);
+          const cur = raw ? JSON.parse(raw) : {};
+          localStorage.setItem(
+            `mtti_class_register_comments_${selectedClassCode}`,
+            JSON.stringify({ ...cur, weeklyHodComments: next, hodComment: next[0] || cur.hodComment || "" })
+          );
+        } catch (e) {}
+        return next;
+      });
+      if (weekIndex === 0) {
+        setMetadata(m => ({ ...m, hodComment: val }));
+      }
+    }
+  };
 
   const handleCommentChange = (field: "lecturerComment" | "hodComment", value: string) => {
     setMetadata(prev => {
@@ -220,6 +271,8 @@ export default function ClassRegister() {
           JSON.stringify({
             lecturerComment: field === "lecturerComment" ? value : prev.lecturerComment,
             hodComment: field === "hodComment" ? value : prev.hodComment,
+            weeklyLecturerComments,
+            weeklyHodComments,
           })
         );
       } catch (e) {}
@@ -1261,23 +1314,24 @@ export default function ClassRegister() {
                     <td colSpan={3} className="border border-black p-2 font-bold text-xs align-middle">
                       Lecturer&apos;s Comment
                     </td>
-                    {Array.from({ length: WEEKS }).map((_, w) => (
-                      <td
-                        key={`lec-comment-wk-${w}`}
-                        colSpan={SESSIONS_PER_WEEK}
-                        className="border border-black border-r-2 border-r-black p-1 align-top h-10"
-                      >
-                        {w === 0 ? (
-                          <input
-                            type="text"
-                            value={metadata.lecturerComment}
-                            onChange={(e) => handleCommentChange("lecturerComment", e.target.value)}
-                            placeholder="Weekly remark..."
-                            className="w-full h-full bg-transparent outline-none text-[10px] font-medium"
+                    {Array.from({ length: WEEKS }).map((_, w) => {
+                      const commentVal = weeklyLecturerComments[w] ?? (w === 0 ? metadata.lecturerComment : "");
+                      return (
+                        <td
+                          key={`lec-comment-wk-${w}`}
+                          colSpan={SESSIONS_PER_WEEK}
+                          className="border border-black border-r-2 border-r-black p-0.5 align-top h-11"
+                        >
+                          <textarea
+                            value={commentVal}
+                            onChange={(e) => handleWeeklyCommentChange("lecturer", w, e.target.value)}
+                            placeholder={`Wk ${w + 1}...`}
+                            rows={2}
+                            className="w-full h-full bg-transparent outline-none text-[8.5px] font-medium leading-tight resize-none p-0.5"
                           />
-                        ) : null}
-                      </td>
-                    ))}
+                        </td>
+                      );
+                    })}
                     <td className="border border-black p-1"></td>
                     <td className="border border-black p-1"></td>
                     <td className="border border-black p-1"></td>
@@ -1287,23 +1341,24 @@ export default function ClassRegister() {
                     <td colSpan={3} className="border border-black p-2 font-bold text-xs align-middle">
                       HOD&apos;s Comment
                     </td>
-                    {Array.from({ length: WEEKS }).map((_, w) => (
-                      <td
-                        key={`hod-comment-wk-${w}`}
-                        colSpan={SESSIONS_PER_WEEK}
-                        className="border border-black border-r-2 border-r-black p-1 align-top h-10"
-                      >
-                        {w === 0 ? (
-                          <input
-                            type="text"
-                            value={metadata.hodComment}
-                            onChange={(e) => handleCommentChange("hodComment", e.target.value)}
-                            placeholder="HOD remark..."
-                            className="w-full h-full bg-transparent outline-none text-[10px] font-medium"
+                    {Array.from({ length: WEEKS }).map((_, w) => {
+                      const commentVal = weeklyHodComments[w] ?? (w === 0 ? metadata.hodComment : "");
+                      return (
+                        <td
+                          key={`hod-comment-wk-${w}`}
+                          colSpan={SESSIONS_PER_WEEK}
+                          className="border border-black border-r-2 border-r-black p-0.5 align-top h-11"
+                        >
+                          <textarea
+                            value={commentVal}
+                            onChange={(e) => handleWeeklyCommentChange("hod", w, e.target.value)}
+                            placeholder={`HOD W${w + 1}...`}
+                            rows={2}
+                            className="w-full h-full bg-transparent outline-none text-[8.5px] font-medium leading-tight resize-none p-0.5"
                           />
-                        ) : null}
-                      </td>
-                    ))}
+                        </td>
+                      );
+                    })}
                     <td className="border border-black p-1"></td>
                     <td className="border border-black p-1"></td>
                     <td className="border border-black p-1"></td>
