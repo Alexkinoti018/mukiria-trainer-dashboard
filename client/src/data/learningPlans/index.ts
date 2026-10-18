@@ -4,6 +4,9 @@ import planItech5ComputerOps from "./plan_IT_CU_ICTA_CR_02_5_MA_itech5.json";
 import planDigitalLiteracyEe6 from "./plan_digital_literacy_ee6.json";
 import planWorkEthicsItech6 from "./plan_IT_OS_ICTA_BC_02_5_MA_itech6.json";
 import planAgre6DigitalLiteracy from "./plan_AGR_CU_EXT_BC_01_5_MA_agre6.json";
+import planFbp6DigitalLiteracy from "./plan_HOS_OS_FBO_BC_01_5_MA_fbp6.json";
+import planIct4Itech6ComputerOps from "./plan_IT_CU_ICTA_CR_02_4_MA_ict4_itech6.json";
+import planItech6InstallSoftware from "./plan_IT_CU_ICTA_CR_01_5_MA_itech6.json";
 
 export * from "./types";
 
@@ -13,6 +16,9 @@ export const OFFICIAL_LEARNING_PLANS: LearningPlanRecord[] = [
   planDigitalLiteracyEe6 as LearningPlanRecord,
   planWorkEthicsItech6 as LearningPlanRecord,
   planAgre6DigitalLiteracy as LearningPlanRecord,
+  planFbp6DigitalLiteracy as LearningPlanRecord,
+  planIct4Itech6ComputerOps as LearningPlanRecord,
+  planItech6InstallSoftware as LearningPlanRecord,
 ];
 
 /**
@@ -38,11 +44,15 @@ export function getOfficialLearningPlan(
     const pTitle = normalizeKey(plan.metadata.unitTitle);
     const pCohort = normalizeKey(plan.metadata.cohortCode);
 
-    if (normUnit && (pUnit === normUnit || pTitle.includes(normUnit) || normUnit.includes(pUnit))) {
-      if (normCohort) {
-        return pCohort.includes(normCohort) || normCohort.includes(pCohort) || pCohort === normCohort;
+    if (normUnit) {
+      const unitMatches = pUnit && (pUnit === normUnit || pUnit.includes(normUnit) || normUnit.includes(pUnit));
+      const titleMatches = pTitle && (pTitle === normUnit || pTitle.includes(normUnit));
+      if (unitMatches || titleMatches) {
+        if (normCohort) {
+          return pCohort.includes(normCohort) || normCohort.includes(pCohort) || pCohort === normCohort;
+        }
+        return true;
       }
-      return true;
     }
 
     if (normCohort && (pCohort.includes(normCohort) || normCohort.includes(pCohort))) {
@@ -87,7 +97,15 @@ export function convertRecordToLearningPlanDocument(
     unitCode: record.metadata.unitCode || "0415 451 12A",
     unitTitle: record.metadata.unitTitle,
     trainerName: record.metadata.trainerName,
-    department: record.metadata.cohortCode.includes("ADMIN") ? "Business Studies" : record.metadata.cohortCode.includes("AGRE") ? "Agriculture" : record.metadata.cohortCode.includes("EE") ? "Electrical & Electronics" : "Computing and Informatics",
+    department: record.metadata.cohortCode.includes("ADMIN")
+      ? "Business Studies"
+      : record.metadata.cohortCode.includes("AGRE")
+      ? "Agriculture"
+      : record.metadata.cohortCode.includes("EE")
+      ? "Electrical & Electronics"
+      : record.metadata.cohortCode.includes("FBP")
+      ? "Hospitality & Institutional Management"
+      : "Computing and Informatics",
     duration: "07 SEP – 13 NOV 2026",
     level: levelNum,
     traineesCount: record.metadata.numberOfTrainees,

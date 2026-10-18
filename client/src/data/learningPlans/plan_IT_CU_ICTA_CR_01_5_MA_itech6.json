@@ -1,0 +1,1025 @@
+{
+  "metadata": {
+    "formNumber": "MTTI/F/CUR/02",
+    "institution": "MUKIRIA TECHNICAL TRAINING INSTITUTE",
+    "unitTitle": "INSTALL COMPUTER SOFTWARE",
+    "unitCode": "IT/CU/ICTA/CR/01/5/MA",
+    "trainerName": "BEATRICE WANGUI MAINA",
+    "level": "6",
+    "dateOfPreparation": "04/05/2026",
+    "dateOfRevision": "",
+    "numberOfTrainees": 36,
+    "cohortCode": "ITECH6/S/25",
+    "skillsSummary": [
+      "To install computer software. It involves installing computer software, testing computer software functionality and performing software maintenance."
+    ],
+    "elementsAndPerformanceCriteria": [
+      {
+        "elementTitle": "1. Install Computer software",
+        "criteria": [
+          "1.1 Computer software identified as per user need.",
+          "1.2 Computer software selected as per workplace procedure.",
+          "1.3 Local user accounts are created as per the workplace procedures",
+          "1.4 Data Backup performed as per work procedure.",
+          "1.5 Computer Software is installed as per software installation manual.",
+          "1.6 Computer Software is configured as per software installation manual."
+        ]
+      },
+      {
+        "elementTitle": "2. Test computer software functionality.",
+        "criteria": [
+          "2.1 Software testing is performed as per user manual.",
+          "2.2 Corrective measures are performed as per user requirements.",
+          "2.3 Computer software functionality is confirmed as per workplace procedures"
+        ]
+      },
+      {
+        "elementTitle": "3. Perform software maintenance.",
+        "criteria": [
+          "3.1 Software maintenance schedule is adopted as per workplace procedure.",
+          "3.2 Software functionality is monitored as per workplace procedure.",
+          "3.3 Software upgrade is conducted as per installation guide.",
+          "3.4 Software update is conducted as per the workplace procedures.",
+          "3.5 Safety procedures are observed as per workplace procedures."
+        ]
+      }
+    ],
+    "preparedBy": {
+      "name": "BEATRICE WANGUI MAINA",
+      "date": "04/05/2026"
+    },
+    "approvedBy": {
+      "name": "GREENWOOD N. MAERIA",
+      "date": "7/05/2026",
+      "title": ""
+    }
+  },
+  "schedule": [
+    {
+      "week": 1,
+      "sessionNumber": "1",
+      "sessionTitle": "Introduction to Computer Software",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Define computer software and its purpose.  b. Classify computer software into major categories.  c. Differentiate between various types of computer software."
+      ],
+      "trainerActivities": [
+        "Trainer to;  - Deliver a presentation explaining the definition and purpose of computer software.  - Facilitate an interactive activity to classify different software examples.  - Lead a group discussion on the characteristics and uses of different software types."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the presentation by asking questions and clarifying understanding.  - Engage in the interactive classification activity and justify their choices.  - Contribute to the group discussion by sharing examples and differentiating software types.  Assignment: Research and list five examples of system software and five examples of application software, explaining their primary functions."
+      ],
+      "resourcesAndRefs": [
+        "References;  Sommerville (2015) Ch.1 \u2013 used to explain software categories & OS roles  Resources;   - Textbooks on computer fundamentals  - PowerPoint presentations on software concepts  - Whiteboard and markers  - Computers (1:1 ratio)  - Projector"
+      ],
+      "assessments": [
+        "Skills   - Q&A during presentation  Knowledge   - Observation of classification activity  - Peer feedback during group discussion  - Review of assignment submissions"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 1,
+      "sessionNumber": "2",
+      "sessionTitle": "Collecting Computer Software User Needs",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify methods for collecting user needs for software.  b. Apply chosen methods to gather specific user requirements.  c. Present findings from user needs collection."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Conduct a mini-lecture on various techniques for collecting user needs (e.g., surveys, interviews).  - Organize a role-playing exercise where trainees practice interviewing 'users'.  - Guide trainees in structuring and presenting their collected user requirements."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the mini-lecture and discuss different techniques for collecting user needs.  - Participate in the role-playing exercise, practicing interview techniques.  - Prepare and present the simulated user requirements to the class.  Assignment: Draft a questionnaire to gather user needs for a specific type of software application."
+      ],
+      "resourcesAndRefs": [
+        "References;  Pressman & Maxim (2019) Ch.5 \u2013 guides requirements elicitation & documentation  Resources;   - Case studies on user requirement gathering  - Handouts on interview/survey techniques  - Whiteboard and markers  - Computers (1:1 ratio)"
+      ],
+      "assessments": [
+        "Skills   - Participation in role-play  - Evaluation of presentation skills  Knowledge  - Review of draft questionnaire"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 1,
+      "sessionNumber": "3",
+      "sessionTitle": "Factors in Computer Software Selection",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Analyze key factors influencing computer software selection.  b. Evaluate software selection criteria based on user needs.  c. Justify software choices considering various technical and non-technical aspects."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Lead a brainstorming session to identify potential factors in software selection.  - Provide a scenario-based activity where trainees evaluate software options against criteria.  - Facilitate a debate on the importance of different software selection factors."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Engage in the brainstorming session, contributing ideas on software selection factors.  - Work in groups on the scenario-based activity, evaluating software based on given criteria.  - Participate in the debate, defending their justifications for software choices.  Assignment: Prepare a comparative analysis of two software solutions for a given business problem."
+      ],
+      "resourcesAndRefs": [
+        "References;  Sommerville (2015) Ch.1 \u2013 used to explain software categories & OS roles  Resources;   - Software product specification sheets  - Industry best practices documents  - Internet access for research  - Computers (1:1 ratio)"
+      ],
+      "assessments": [
+        "Skills   - Group activity performance  -Argumentation in debate  Knowledge   - Assessment of comparative analysis report"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 1,
+      "sessionNumber": "4",
+      "sessionTitle": "Computer Software Acquisition Methods",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Describe various methods for acquiring computer software.  b. Compare the advantages and disadvantages of different acquisition methods.  c. Select the most appropriate software acquisition method for specific scenarios."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Explain different software acquisition methods (e.g., purchase, open source, cloud-based).  - Organize a problem-solving task where groups analyze scenarios and compare acquisition methods.  - Guide a class discussion to consolidate understanding and decision-making processes."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Listen to the explanation and ask clarifying questions about acquisition methods.  - Collaborate in groups on the problem-solving task, comparing and contrasting methods.  - Participate in the class discussion, justifying their selected acquisition methods.  Assignment: Outline the acquisition process for a new operating system for a small business, detailing the chosen method."
+      ],
+      "resourcesAndRefs": [
+        "References;  Gattiker (2005) Ch.4 \u2013 covers software licensing, compliance, and procurement ethics  Resources;   - Articles on software licensing and procurement  - Case studies on software implementation projects"
+      ],
+      "assessments": [
+        "Skills   - Group problem-solving outcomes  - Quality of discussion contributions  Knowledge   - Review of outlined acquisition process"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 2,
+      "sessionNumber": "1",
+      "sessionTitle": "Introduction to Local User Accounts",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the purpose and importance of local user accounts.  b. Distinguish between different types of local user accounts.  c. Recognize the roles and permissions associated with various account types."
+      ],
+      "trainerActivities": [
+        "Trainer to;  - Conduct a lecture on the fundamental concepts of local user accounts and security.  - Present visual examples and demonstrations of different user account types on an operating system.  - Facilitate a Q&A session to clarify roles and permission differences."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Actively listen to the lecture, taking notes and asking questions about user accounts.  - Observe the demonstrations and identify the visual distinctions between account types.  - Participate in the Q&A, articulating their understanding of account roles and permissions.  Assignment: Research and document the default permissions for 'Standard User' and 'Administrator' accounts in a common operating system."
+      ],
+      "resourcesAndRefs": [
+        "References;  Pressman & Maxim (2019) Ch.5 \u2013 guides requirements elicitation & documentation  Resources;   - Operating system documentation  - Security best practices guides  - Computer with projected display  - Whiteboard and markers"
+      ],
+      "assessments": [
+        "Skills   - Engagement in Q&A  - Verbal comprehension checks  Knowledge     - Accuracy of documented research"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 2,
+      "sessionNumber": "2",
+      "sessionTitle": "Creating Local User Accounts",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Prepare the necessary information and settings for creating a user account.  b. Perform the steps to create a local user account on an operating system.  c. Verify the successful creation and initial functionality of the new account."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the step-by-step process of creating various local user accounts.  - Supervise trainees as they practice creating different types of user accounts.  - Provide immediate feedback and troubleshoot common issues during the practice session."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration attentively, noting each step in the account creation process.  - Practice creating local user accounts, following the demonstrated steps.  - Test the newly created accounts and verify their functionality, asking for clarification when needed.  Assignment: Create a new 'Guest' account with specific temporary permissions on a practice machine and document the process."
+      ],
+      "resourcesAndRefs": [
+        "References;  Iheagwara & Blyth (2003) \u2013 best practices in deployment planning & backup strategies  Resources;   - Practice computers (1:1 ratio) with administrative access  - Operating system user management guides  - Projector for demonstration"
+      ],
+      "assessments": [
+        "Skills   - Observation of practical skill during account creation  - Verification of account functionality  Knowledge   - Review of documented creation process"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 2,
+      "sessionNumber": "3",
+      "sessionTitle": "Configuring Local User Accounts",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify various configuration settings available for local user accounts.  b. Apply specific configurations to modify user account properties.  c. Test the applied configurations to ensure they meet specified requirements."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Explain and demonstrate how to modify various user account settings (e.g., password policies, group memberships).  - Present scenarios requiring specific account configurations for trainees to implement.  - Lead a peer review session where trainees verify each other's configurations and offer suggestions."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration of account configuration and take notes on different settings.  - Work through the presented scenarios, applying the required account configurations.  - Participate in the peer review, testing configurations and providing constructive feedback.  Assignment: Configure a 'Standard User' account with restricted access to specific applications and folders on a practice machine."
+      ],
+      "resourcesAndRefs": [
+        "References;  Pressman & Maxim (2019) Ch.5 \u2013 guides requirements elicitation & documentation  Resources;   - Practice computers (1:1 ratio)  - Operating system control panel/settings documentation  - Sample policy templates"
+      ],
+      "assessments": [
+        "Knowledge   - Outcome of peer review  Skills   - Observation of practical skill in configuration  - Verification of configured account restrictions"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 2,
+      "sessionNumber": "4",
+      "sessionTitle": "Importance and Types of Data Backup",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the critical importance of computer software backup.  b. Describe different types of computer software backup strategies.  c. Choose a suitable backup type based on given recovery point and time objectives."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Initiate a discussion on the risks of data loss and the necessity of backup.  - Deliver a presentation differentiating between full, incremental, and differential backups.  - Conduct a case study analysis where trainees propose backup solutions for various scenarios."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Contribute to the discussion, sharing experiences and understanding of data loss risks.  - Engage with the presentation, identifying key differences between backup types.  - Collaborate on the case study, proposing and justifying chosen backup types for each scenario.  Assignment: Outline a backup strategy for a small business's critical data, specifying backup types and frequency."
+      ],
+      "resourcesAndRefs": [
+        "References;  Iheagwara & Blyth (2003) \u2013 best practices in deployment planning & backup strategies  Resources;   - Articles on data loss prevention  - Backup software documentation  - PowerPoint presentation  - Whiteboard"
+      ],
+      "assessments": [
+        "Attitude  - Active participation in discussion  Skills   - Accuracy in differentiating backup types  Knowledge   - Quality of proposed backup solutions"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 3,
+      "sessionNumber": "1",
+      "sessionTitle": "Data Backup Creation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Plan the steps for creating a data backup using backup software.  b. Execute the process of creating a full and an incremental backup.  c. Perform a basic data restoration from a created backup."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the use of a backup utility to create different types of backups.  - Guide trainees through a hands-on exercise to create their own backups of specified data.  - Instruct trainees on the procedure to restore data from a previously created backup."
+      ],
+      "traineeActivities": [
+        "Trainee to:   - Observe the demonstration of backup creation and data restoration processes.  - Practice creating full and incremental backups of sample data on their computers.  - Perform a data restoration exercise, verifying the integrity of the restored files.  Assignment: Document the entire backup and restore procedure for a personal computer, including screenshots."
+      ],
+      "resourcesAndRefs": [
+        "References;  Iheagwara & Blyth (2003) \u2013 best practices in deployment planning & backup strategies  Resources;   - Backup software (e.g., Windows Backup, third-party tools)  - External storage devices (flash drives, external HDDs)  - Practice computers (1:1 ratio)  - Installation manuals"
+      ],
+      "assessments": [
+        "Skills  - Practical demonstration of backup/restore skills  - Verification of backup integrity  Knowledge   - Review of documented procedure"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 3,
+      "sessionNumber": "2",
+      "sessionTitle": "Software Installation Media and Methods",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify various computer software installation media.  b. Differentiate between common computer software installation methods.  c. Select the appropriate installation media and method based on software type and environment."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Present and discuss different forms of software installation media (e.g., optical discs, USB, network shares, cloud).  - Organize a matching exercise to link installation methods (e.g., silent, custom, unattended) with scenarios.  - Facilitate a group discussion on choosing the optimal installation approach for specific software deployments."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Engage with the presentation, examining and discussing different installation media types.  - Participate in the matching exercise, correctly associating methods with scenarios.  - Contribute to the group discussion, articulating justifications for chosen installation media and methods.  Assignment: Research and describe the typical installation media and methods for a popular operating system and a specific enterprise application."
+      ],
+      "resourcesAndRefs": [
+        "References;  Microsoft (2021) \u2013 official guide for Windows installation media creation  Resources;   - Sample installation CDs/DVDs and USB drives  - Documentation on network installation services  - PowerPoint presentation  - Internet access"
+      ],
+      "assessments": [
+        "Skills   - Performance in matching exercise  - Quality of group discussion contributions  Knowledge  - Accuracy of researched descriptions"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 3,
+      "sessionNumber": "3",
+      "sessionTitle": "Software Registration and General Installation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Describe various types of software registration and licensing.  b. Perform the general steps required to install computer software.  c. Confirm the successful installation and basic functionality of installed software."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Explain different software licensing models (e.g., perpetual, subscription, open-source) and registration processes.  - Demonstrate the end-to-end installation of a common application, including registration prompts.  - Supervise trainees as they install a given software package, providing assistance as needed."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Listen to the explanation and discuss licensing models, asking questions for clarity.  - Observe the demonstration of software installation, paying attention to registration steps.  - Install a specified software package on their computers and verify its functionality.  Assignment: Install a free or trial software application, document the installation process, and note any registration steps."
+      ],
+      "resourcesAndRefs": [
+        "References;  Microsoft (2021) \u2013 official guide for Windows installation media creation  Resources;   - Software installation manuals  - Software licensing agreements samples  - Computers (1:1 ratio) with installer files  - Projector"
+      ],
+      "assessments": [
+        "Skills   - Observation of installation process  - Verification of installed software functionality  Knowledge   - Review of documented installation steps"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 3,
+      "sessionNumber": "4",
+      "sessionTitle": "Anti-Malware Identification and Acquisition",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Research and identify suitable anti-malware solutions for different user needs.  b. Compare features and capabilities of various anti-malware software.  c. Select appropriate anti-malware acquisition methods based on budget and requirements."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Lead a guided research session for trainees to explore anti-malware products and their features.  - Facilitate a comparative analysis activity, highlighting pros and cons of different solutions.  - Discuss various acquisition methods for anti-malware software (e.g., free, subscription, bundled)."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Conduct guided research on anti-malware solutions, gathering information on features and reviews.  - Engage in the comparative analysis, evaluating anti-malware products based on specific criteria.  - Participate in the discussion on acquisition methods, outlining suitable options for different scenarios.  Assignment: Select an anti-malware solution for a home user and justify your choice based on its features and acquisition cost."
+      ],
+      "resourcesAndRefs": [
+        "References;  Russinovich et al. (2017) Ch.2 \u2013 covers Windows installation types, performance impact, and optimization  Resources;   - Internet access for research  - Cybersecurity blogs and reviews  - Product datasheets of anti-malware software  - Computers (1:1 ratio)"
+      ],
+      "assessments": [
+        "Knowledge   - Quality of research findings  Skills   - Critical thinking in comparative analysis  - Justification in assignment"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 4,
+      "sessionNumber": "1",
+      "sessionTitle": "Anti-Malware Installation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Prepare a system for anti-malware software installation.  b. Execute the installation process for a chosen anti-malware solution.  c. Verify the successful installation and initial operational status of the anti-malware software."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the best practices for preparing a system (e.g., removing existing antivirus) before installing new anti-malware.  - Guide trainees through a practical session to install an anti-malware application on a test machine.  - Instruct trainees on how to check the anti-malware's status and perform initial virus definition updates."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration of system preparation and take notes on essential pre-installation steps.  - Perform the installation of an anti-malware application on their designated test computers.  - Verify the installation status and initiate virus definition updates, troubleshooting any encountered issues.  Assignment: Install a free anti-malware program on a virtual machine and document the installation and initial setup steps."
+      ],
+      "resourcesAndRefs": [
+        "References;  SANS Institute (2021) \u2013 security best practices for endpoint protection & patch management  Resources;   - Anti-malware installer files  - Test computers/virtual machines (1:1 ratio)  - Installation manuals/guides  - Internet connection for updates"
+      ],
+      "assessments": [
+        "Skills   - Observation of installation procedure  Knowledge   - Verification of anti-malware operational status  - Review of documented installation steps"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 4,
+      "sessionNumber": "2",
+      "sessionTitle": "Anti-Malware Configuration",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify key configuration settings within anti-malware software.  b. Adjust anti-malware settings to meet specific security policies.  c. Schedule and initiate system scans and definition updates."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the configuration options within various anti-malware interfaces.  - Present different security scenarios and task trainees to configure anti-malware accordingly.  - Guide trainees in setting up automated scan schedules and definition update frequencies."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration of anti-malware configuration, noting important settings.  - Apply configurations to anti-malware software on their test machines based on given scenarios.  - Configure and test automated scan and update schedules, verifying their functionality.  Assignment: Customize the scan settings of an installed anti-malware to perform a deep scan weekly and a quick scan daily."
+      ],
+      "resourcesAndRefs": [
+        "References;  SANS Institute (2021) \u2013 security best practices for endpoint protection & patch management  Resources;   - Anti-malware software installed on practice machines  - Security policy templates  - User manuals for anti-malware software"
+      ],
+      "assessments": [
+        "Skills   - Practical demonstration of configuration skills  - Verification of scheduled tasks  - Assessment of customized settings"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 4,
+      "sessionNumber": "3",
+      "sessionTitle": "Importance of Software Configuration",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the significance of proper software configuration for performance and security.  b. Justify configuration decisions based on user requirements and system environment.  c. Identify potential issues arising from misconfigured software."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Lead a discussion on the impact of configuration on software efficiency and security.  - Present case studies of misconfigured software leading to vulnerabilities or performance degradation.  - Facilitate a problem-solving session where trainees propose optimal configurations for hypothetical systems."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Contribute to the discussion, sharing insights on the importance of configuration.  - Analyze the presented case studies, identifying the causes and effects of misconfigurations.  - Collaborate in problem-solving, proposing and defending their optimal software configurations.  Assignment: Write a short report detailing three real-world examples of how misconfigured software led to significant problems."
+      ],
+      "resourcesAndRefs": [
+        "References;  Kaner et al. (1999) Ch.10 \u2013 software deployment strategies & verification methods  Resources;   - Articles on software security and optimization  - Case studies of system failures  - Whiteboard and markers"
+      ],
+      "assessments": [
+        "Knowledge   - Active participation in discussions  Skills   - Analytical skills in case study discussions  - Quality of written report"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 4,
+      "sessionNumber": "4",
+      "sessionTitle": "Software Configuration Tools",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify various tools available for computer software configuration.  b. Demonstrate the basic use of selected software configuration tools.  c. Select the appropriate configuration tool for different software types and tasks."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Introduce different types of configuration tools (e.g., GUI-based, command-line, scripting).  - Demonstrate practical use of a system's built-in configuration tools (e.g., 'msconfig', 'regedit').  - Guide trainees through exercises using these tools to modify software settings."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the introduction to configuration tools and discuss their applications.  - Practice using the demonstrated configuration tools to adjust software settings.  - Select and apply the appropriate tool for given configuration tasks, justifying their choice.  Assignment: Explore and document the functions of 'Task Manager' and 'System Information' utilities for software configuration and monitoring."
+      ],
+      "resourcesAndRefs": [
+        "References;  National Institute of Standards and Technology (2020) \u2013 digital identity & authentication guidelines (applied to local account policies)  Resources;   - Computers (1:1 ratio)  - Operating system utilities documentation  - Online tutorials for specific configuration tools"
+      ],
+      "assessments": [
+        "Skills   - Observation of practical use of tools  - Accuracy of configuration modifications  - Quality of documentation"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 5,
+      "sessionNumber": "1",
+      "sessionTitle": "Advanced Software Installation Practices",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Troubleshoot common software installation errors and failures.  b. Apply best practices for efficient and secure software installation.  c. Optimize software installations for specific performance or security requirements."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Present common installation error messages and guide trainees through troubleshooting steps.  - Lead a workshop on best practices like clean installs, dependency management, and silent installations.  - Provide scenarios where trainees must plan and execute an optimized software installation."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Analyze common installation errors and participate in troubleshooting exercises.  - Practice applying installation best practices during simulated software deployments.  - Develop and execute optimized installation plans for given scenarios.  Assignment: Research a complex software application and outline its recommended installation best practices, including any pre-requisites."
+      ],
+      "resourcesAndRefs": [
+        "References;  Nielsen & Loranger (2006) Ch.3 \u2013 usability principles for software configuration & user interface customization  Resources;   - Software troubleshooting guides  - Online forums and knowledge bases  - Virtual machines for practice  - Installation manuals"
+      ],
+      "assessments": [
+        "Skills   - Problem-solving during troubleshooting  - Evaluation of optimized installation plans  Attitude   - Observation of applied best practices"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 5,
+      "sessionNumber": "2",
+      "sessionTitle": "Advanced Configuration Techniques",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Customize software settings for advanced user preferences and system integration.  b. Automate software configurations using scripting or deployment tools.  c. Document complex software configurations for future reference and reproducibility."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate advanced configuration adjustments, such as registry edits or group policy modifications (with caution).  - Introduce basic scripting for automated configuration and provide templates.  - Guide trainees in developing comprehensive documentation for their complex configurations."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration of advanced configuration techniques, understanding potential impacts.  - Practice using scripting or configuration tools to automate basic software settings.  - Create detailed documentation for a configured software, including steps and justification.  Assignment: Write a simple script to automate the configuration of a specified software's startup behavior."
+      ],
+      "resourcesAndRefs": [
+        "References;  Seacord (2003) Ch.6 \u2013 configuration management & change control in software maintenance  Resources;   - Operating system registry editor and group policy editor  - Scripting language documentation (e.g., PowerShell, Bash)  - Configuration management tools"
+      ],
+      "assessments": [
+        "Skills   - Practical application of advanced techniques  - Functionality of automated scripts  - Clarity and completeness of documentation"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 5,
+      "sessionNumber": "3",
+      "sessionTitle": "Written Assessment 1",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate theoretical understanding of computer software identification and selection.  b. Recall knowledge of local user account management procedures.  c. Explain concepts related to data backup and general software installation principles."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Administer the written continuous assessment test.  - Invigilate the examination to ensure fairness and adherence to rules.  - Collect examination papers upon completion."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Attempt the written continuous assessment test, answering all questions independently.  - Adhere strictly to examination rules and regulations.  - Submit examination paper to the invigilator at the end of the allocated time."
+      ],
+      "resourcesAndRefs": [
+        "References;  Pigoski (1996) Ch.9 \u2013 documentation standards in software maintenance & knowledge transfer  Resources;   - Written assessment 1 candidate tool   - Answer booklets"
+      ],
+      "assessments": [
+        "Knowledge   - Written Assessment Test 1 scores"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 5,
+      "sessionNumber": "4",
+      "sessionTitle": "Practical Assessment  1",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Practically apply skills in creating and configuring local user accounts.  b. Execute data backup and restoration procedures proficiently.  c. Install and configure anti-malware software according to specifications."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Administer the practical continuous assessment test, providing clear instructions.  - Observe trainees' performance during the practical tasks, ensuring compliance.  - Evaluate the outcomes of the practical tasks against defined criteria."
+      ],
+      "traineeActivities": [
+        "Trainee to;  - Perform the assigned practical tasks for user account management, data backup, and software installation.  - Demonstrate proficiency in executing each step accurately and efficiently.  - Ensure all tasks are completed within the given time frame and verify functionality."
+      ],
+      "resourcesAndRefs": [
+        "References;  Pigoski (1996) Ch.9 \u2013 documentation standards in software maintenance & knowledge transfer  Resources;   - Practical Assessment 1 candidate tool   - Practice computers (1:1 ratio) with administrative access  - Backup software and external storage  - Anti-malware installer files"
+      ],
+      "assessments": [
+        "Skills   - Practical Assessment Test observation checklist  1 scores based on task completion and accuracy"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 6,
+      "sessionNumber": "1",
+      "sessionTitle": "Introduction to Software Testing",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the fundamental importance of software testing in the software lifecycle.  b. Describe various computer software testing techniques.  c. Categorize testing techniques based on their application and objectives."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Deliver an introductory presentation on why software testing is crucial and its benefits.  - Present different testing techniques (e.g., unit, integration, system, acceptance testing).  - Lead a mind-mapping activity to help trainees categorize and understand testing techniques."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the presentation by discussing the importance of quality assurance.  - Engage with the presentation, identifying and discussing various testing techniques.  - Collaborate in the mind-mapping activity, classifying testing techniques based on their characteristics.  Assignment: Research and write a short report on the consequences of inadequate software testing in a well-known software failure."
+      ],
+      "resourcesAndRefs": [
+        "References;  Sommerville (2015) Ch.8 \u2013 software testing fundamentals & test planning frameworks  Resources;   - Software testing textbooks  - Articles on quality assurance  - PowerPoint presentation  - Whiteboard"
+      ],
+      "assessments": [
+        "Knowledge   - Engagement in discussion  Skills   - Participation in mind-mapping  - Quality of research report"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 6,
+      "sessionNumber": "2",
+      "sessionTitle": "Software Testing Tools (Part 1)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify common software testing tools like Test Complete and Selenium.  b. Explain the primary functionalities and use cases of these tools.  c. Differentiate between Test Complete and Selenium based on their features and application areas."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Introduce Test Complete and Selenium, highlighting their history and main features.  - Demonstrate basic test case creation and execution using simplified versions or simulations of these tools.  - Lead a comparative discussion, emphasizing the strengths and weaknesses of each tool."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the introduction and demonstration, identifying the core aspects of each tool.  - Practice creating simple test scenarios and understand how they would be executed in the tools.  - Participate in the comparative discussion, articulating differences and similarities between the tools.  Assignment: Create a feature comparison table for Test Complete and Selenium, focusing on automation capabilities and supported technologies."
+      ],
+      "resourcesAndRefs": [
+        "References;  Pressman & Maxim (2019) Ch.22 \u2013 verification & validation techniques in software engineering  Resources;   - Official documentation for Test Complete and Selenium  - Video tutorials on basic usage  - Computers (1:1 ratio) for research  - Projector"
+      ],
+      "assessments": [
+        "Knowledge   - Engagement in discussion  - Accuracy of comparison table  - Q&A responses"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 6,
+      "sessionNumber": "3",
+      "sessionTitle": "Software Testing Tools",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Recognize mobile and API testing tools such as Appium and Postman.  b. Describe the specific applications and benefits of Appium for mobile testing.  c. Understand how Postman is utilized for API testing and development."
+      ],
+      "trainerActivities": [
+        "Trainer to;  - Introduce Appium and Postman, detailing their role in modern software development.  - Demonstrate basic functionality of Postman for sending API requests and viewing responses.  - Discuss the unique challenges of mobile testing and how Appium addresses them."
+      ],
+      "traineeActivities": [
+        "Trainee to:   - Observe the introduction and demonstration, noting the specialized use cases of Appium and Postman.  - Practice sending basic API requests using Postman on their computers.  - Engage in a discussion about mobile testing complexities and Appium's solutions.  Assignment: Use Postman to test a public API (e.g., weather API) and document the request and response."
+      ],
+      "resourcesAndRefs": [
+        "References;  Gattiker (2005) Ch.7 \u2013 defect tracking, classification, and prioritization in user-facing systems  Resources;   - Appium and Postman documentation  - Online resources for API testing  - Computers (1:1 ratio) with Postman installed  - Projector"
+      ],
+      "assessments": [
+        "Skills   - Practical exercise completion with Postman  - Engagement in discussion  - Review of documented API test"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 6,
+      "sessionNumber": "4",
+      "sessionTitle": "Performing Computer Software Testing (Basic)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Prepare basic test cases based on software requirements.  b. Execute fundamental functional tests on a software application.  c. Document test results and identify basic defects."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Provide a sample software application and guide trainees in creating simple test cases for it.  - Supervise trainees as they perform functional tests according to their prepared test cases.  - Instruct trainees on proper defect reporting procedures, including logging observations."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Design and prepare basic test cases for the provided software application.  - Execute the functional tests, carefully following their test cases and observing software behavior.  - Document all test results, including any identified defects, using a structured format.  Assignment: Develop five test cases for a simple calculator application and execute them, documenting the results."
+      ],
+      "resourcesAndRefs": [
+        "References;  Iheagwara & Blyth (2003) \u2013 usability evaluation methods in deployed software systems  Resources;   - Sample software application for testing  - Test case templates  - Defect tracking forms  - Computers (1:1 ratio)"
+      ],
+      "assessments": [
+        "Skills   - Quality of test cases  - Observation of test execution  - Accuracy of defect documentation"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 7,
+      "sessionNumber": "1",
+      "sessionTitle": "Performing Computer Software Testing (Advanced)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Conduct integration tests between multiple software components.  b. Analyze software performance and identify potential bottlenecks.  c. Report comprehensive testing findings and recommendations."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the process of setting up and executing integration tests for two connected applications.  - Introduce basic performance testing concepts and tools, guiding trainees in analyzing system behavior.  - Lead a workshop on creating detailed test reports, including executive summaries and technical details."
+      ],
+      "traineeActivities": [
+        "Trainee to;  - Observe the demonstration of integration testing setup and execution.  - Participate in exercises to analyze basic software performance metrics.  - Prepare and present a comprehensive test report based on simulated testing activities.  Assignment: Research common performance bottlenecks in software and suggest three mitigation strategies."
+      ],
+      "resourcesAndRefs": [
+        "References;  Microsoft (2021) \u2013 error handling guidelines in Windows applications (applied generically)  Resources;   - Integrated software applications for testing  - Basic performance monitoring tools (e.g., Task Manager, Resource Monitor)  - Test report templates"
+      ],
+      "assessments": [
+        "Skills   - Observation of integration testing skills  - Analytical skills in performance analysis  - Quality of test report presentation"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 7,
+      "sessionNumber": "2",
+      "sessionTitle": "Types of Corrective Measures",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Classify different types of corrective measures for software defects.  b. Explain the application of various corrective measures in different scenarios.  c. Identify the triggers and impact of implementing specific corrective actions."
+      ],
+      "trainerActivities": [
+        "Trainer to;  - Present a taxonomy of corrective measures (e.g., hotfixes, patches, major revisions).  - Lead a discussion on when and why each type of corrective measure would be applied.  - Facilitate a problem-solution matching activity for different software defect types."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Engage with the presentation, understanding the classification of corrective measures.  - Contribute to the discussion, explaining the rationale behind applying different measures.  - Participate in the matching activity, correctly associating defects with appropriate corrective actions.  Assignment: Research a historical software bug and describe the corrective measure eventually implemented to fix it."
+      ],
+      "resourcesAndRefs": [
+        "References;  Ubuntu Documentation Team (2022) \u2013 cross-platform compatibility principles & testing approaches  Resources;   - Articles on software development and maintenance  - Case studies of software bug fixes  - Whiteboard or digital collaboration tool"
+      ],
+      "assessments": [
+        "knowledge  - Active participation in discussion  Skills   - Accuracy in matching activity  - Quality of research on historical bug fix"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 7,
+      "sessionNumber": "3",
+      "sessionTitle": "Software Corrective Tools",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify software tools used for diagnosing and correcting software issues.  b. Describe the functions and capabilities of common corrective tools.  c. Select appropriate corrective tools for specific software troubleshooting tasks."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Introduce various troubleshooting and corrective tools (e.g., debuggers, system restore, diagnostic utilities).  - Demonstrate the basic use of a diagnostic utility to identify system errors.  - Organize a scenario-based exercise where trainees choose and justify corrective tools for given problems."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the introduction and demonstration, identifying different corrective tools and their features.  - Practice using a diagnostic utility to analyze system logs for error messages.  - Work through scenarios, selecting and justifying the use of specific corrective tools.  Assignment: Explore and document the capabilities of 'Event Viewer' and 'Resource Monitor' in a Windows environment for diagnosing software issues."
+      ],
+      "resourcesAndRefs": [
+        "References;  Russinovich et al. (2017) Ch.13 \u2013 Windows performance analysis & resource monitoring tools  Resources;   - Operating system diagnostic utilities  - Software development environment debuggers (conceptual)  - Computers (1:1 ratio)  - Online tutorials"
+      ],
+      "assessments": [
+        "Skills  - Observation of practical tool usage  - Justification of tool selection  - Quality of documented exploration"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 7,
+      "sessionNumber": "4",
+      "sessionTitle": "Performing Corrective Measures",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Diagnose software issues using appropriate troubleshooting techniques.  b. Implement corrective solutions to resolve identified software problems.  c. Verify the effectiveness of implemented fixes and prevent recurrence."
+      ],
+      "trainerActivities": [
+        "Trainer to;  - Present simulated software problems and guide trainees through a systematic diagnostic process.  - Demonstrate the application of common corrective measures (e.g., applying patches, reverting changes).  - Supervise trainees as they work to diagnose and apply fixes to practice software issues."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Analyze simulated software problems, applying diagnostic techniques to identify root causes.  - Practice implementing various corrective measures on test systems or virtual machines.  - Verify that the implemented fixes have resolved the issues and suggest preventive actions.  Assignment: Document a troubleshooting process for a hypothetical software crash, including diagnostic steps, corrective actions, and verification."
+      ],
+      "resourcesAndRefs": [
+        "References;  Windows Deployment Team (2020) \u2013 security configuration testing for deployed systems  Resources;   - Virtual machines with pre-configured software issues  - Software patches and hotfixes  - Troubleshooting flowcharts  - Computers (1:1 ratio)"
+      ],
+      "assessments": [
+        "Skills   - Problem-solving during diagnosis  - Observation of corrective measure implementation  - Verification of issue resolution"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 8,
+      "sessionNumber": "1",
+      "sessionTitle": "Confirming Software Functionality (Part 1)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Define software functionality and its importance in user satisfaction.  b. Perform initial verification checks to confirm software operation.  c. Document the status of software functionality post-installation or update."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Lead a discussion on what constitutes 'software functionality' and user expectations.  - Demonstrate a series of initial checks to confirm core software functionality.  - Guide trainees in developing a checklist for documenting the functional status of software."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Contribute to the discussion, defining functionality and discussing user satisfaction.  - Observe the demonstration and then practice initial functional checks on various software.  - Develop and use a checklist to document the functional status of installed software.  Assignment: Create a checklist for verifying the core functionality of a web browser after installation."
+      ],
+      "resourcesAndRefs": [
+        "References;  Apache OpenOffice (2023) \u2013 automation scripting examples for repetitive testing tasks  Resources;   - User manuals for various software applications  - Sample software to check  - Checklists for functional verification  - Computers (1:1 ratio)"
+      ],
+      "assessments": [
+        "Knowledge   - Engagement in discussion  Skills   - Practical verification performance  - Quality of developed checklist"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 8,
+      "sessionNumber": "2",
+      "sessionTitle": "Confirming Software Functionality (Part 2) & Revision",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Validate software performance against specified requirements.  b. Troubleshoot discrepancies or unexpected behaviors in software functionality.  c. Consolidate knowledge and prepare for Element 2 assessments."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Present scenarios requiring validation of software against user requirements.  - Conduct a hands-on session focusing on diagnosing and resolving functionality issues.  - Facilitate a comprehensive review of Element 2 content, including Q&A and mock questions."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in validating software against requirements for given scenarios.  - Diagnose and attempt to resolve simulated software functionality discrepancies.  - Actively engage in the Element 2 review, asking questions and attempting mock questions.  Assignment: Review all Element 2 materials and prepare a list of potential assessment questions."
+      ],
+      "resourcesAndRefs": [
+        "References;  SANS Institute (2021) \u2013 incident and defect management in IT operations  Resources;   - Software requirement specifications  - Debugging tools  - Element 2 learning materials  - Computers (1:1 ratio)"
+      ],
+      "assessments": [
+        "Skills  - Performance in validation activities  - Problem-solving skills in troubleshooting  Knowledge   - Active participation in revision"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 8,
+      "sessionNumber": "3",
+      "sessionTitle": "Written  Assessment  2",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate theoretical understanding of software testing concepts and techniques.  b. Recall knowledge of various software testing tools and their applications.  c. Explain the types and methods of implementing corrective measures for software issues."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Administer the written continuous assessment test.  - Invigilate the examination to ensure fairness and adherence to rules.  - Collect examination papers upon completion."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Attempt the written continuous assessment test, answering all questions independently.  - Adhere strictly to examination rules and regulations.  - Submit examination paper to the invigilator at the end of the allocated time."
+      ],
+      "resourcesAndRefs": [
+        "References;  TVET CDACC (2025) \u2013 testing competency assessment criteria  Resources;   - Written Assessment 2 candidate tool   - Answer booklets"
+      ],
+      "assessments": [
+        "Knowledge   - Written Assessment Test 2 scores"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 8,
+      "sessionNumber": "4",
+      "sessionTitle": "Practical Assessment  2",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Design and execute test cases for a given software application.  b. Utilize software testing tools for basic functional or API testing.  c. Perform corrective measures to resolve identified software malfunctions."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Administer the practical continuous assessment test, providing clear instructions.  - Observe trainees' performance during the practical tasks, ensuring compliance.  - Evaluate the outcomes of the practical tasks against defined criteria."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Perform the assigned practical tasks for creating test cases, using testing tools, and applying corrective measures.  - Demonstrate proficiency in executing each step accurately and efficiently.  - Ensure all tasks are completed within the given time frame and verify functionality."
+      ],
+      "resourcesAndRefs": [
+        "References;  TVET CDACC (2025) \u2013 testing competency assessment criteria  Resources;   - Practical Assessment 2 candidate tool   - Practice computers (1:1 ratio) with testing tools (e.g., Postman)  - Sample software application for testing  - Troubleshooting guides"
+      ],
+      "assessments": [
+        "Skills   - Practical Assessment Test 2 observation checklist  based on task completion and accuracy"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 9,
+      "sessionNumber": "1",
+      "sessionTitle": "Introduction to Software Maintenance",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Define software maintenance and its significance for long-term software health.  b. Explain the importance of ongoing software maintenance activities.  c. Differentiate between the primary types of software maintenance."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Initiate a discussion on the lifespan of software and the need for continuous care.  - Deliver a presentation highlighting the benefits and strategic importance of software maintenance.  - Conduct a brainstorming session to identify initial thoughts on different maintenance types."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the discussion, sharing perspectives on software longevity and care.  - Engage with the presentation, identifying key reasons for software maintenance.  - Contribute to the brainstorming session, suggesting initial classifications for maintenance types.  Assignment: Research and explain the business implications of neglecting software maintenance for a large enterprise."
+      ],
+      "resourcesAndRefs": [
+        "References;  Myers et al. (2011) Ch.9 \u2013 maintenance task categorization & scheduling in software lifecycle  Resources;   - Articles on software lifecycle management  - Case studies of system obsolescence  - PowerPoint presentation  - Whiteboard"
+      ],
+      "assessments": [
+        "Knowledge   - Active participation in discussion  - Engagement with presentation content  - Quality of research assignment"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 9,
+      "sessionNumber": "2",
+      "sessionTitle": "Types of Software Maintenance",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Categorize software maintenance into adaptive, perfective, preventive, and corrective types.  b. Describe the distinct characteristics and objectives of each maintenance type.  c. Provide real-world examples illustrating each type of software maintenance."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Conduct a detailed lecture on Adaptive, Perfective, Preventive, and Corrective maintenance.  - Organize a group activity where trainees analyze scenarios and assign the correct maintenance type.  - Facilitate a peer discussion where groups present their analysis and provide justifications."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Actively listen to the lecture, taking notes on the definitions and characteristics of each maintenance type.  - Collaborate in group activity, classifying maintenance scenarios and preparing justifications.  - Participate in the peer discussion, presenting their analysis and defending their classifications.  Assignment: For each maintenance type (Adaptive, Perfective, Preventive, Corrective), identify a specific software update or action you have observed or heard about."
+      ],
+      "resourcesAndRefs": [
+        "References;  Nielsen & Loranger (2006) \u2013 patch impact analysis & user experience considerations  Resources;   - Software engineering textbooks  - Industry articles on maintenance strategies  - Case studies of software evolution  - Whiteboard"
+      ],
+      "assessments": [
+        "Knowledge   - Accuracy of classification in group activity  - Quality of justification in discussion  - Relevance of examples in assignment"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 9,
+      "sessionNumber": "3",
+      "sessionTitle": "Preparing Software Maintenance Schedule",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify key factors influencing the development of a maintenance schedule.  b. Develop a systematic software maintenance schedule based on best practices.  c. Integrate various maintenance activities into a comprehensive schedule plan."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Lead a discussion on the elements and considerations for a robust maintenance schedule (e.g., criticality, resources).  - Guide trainees through a workshop where they design a maintenance schedule for a hypothetical system.  - Facilitate a peer review of drafted schedules, providing constructive feedback for improvement."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Contribute to the discussion, identifying crucial factors for maintenance scheduling.  - Work in groups to develop a detailed maintenance schedule plan for a given scenario.  - Participate in the peer review, evaluating schedules and offering suggestions for optimization.  Assignment: Create a weekly and monthly maintenance schedule for a small office's computer systems, including tasks and estimated durations."
+      ],
+      "resourcesAndRefs": [
+        "References;  Seacord (2003) Ch.4 \u2013 version migration strategies & upgrade validation techniques fences  Resources;   - Sample maintenance schedules  - Project planning tools or templates  - Articles on IT service management  - Whiteboard"
+      ],
+      "assessments": [
+        "Skills   - Engagement in discussion  - Quality of drafted maintenance schedules  - Constructive feedback during peer review"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 9,
+      "sessionNumber": "4",
+      "sessionTitle": "Software Updates (Service Packs & Version Upgrades)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Differentiate between service packs and version upgrades in software updates.  b. Apply procedures for installing service packs to existing software.  c. Manage the process of conducting major software version upgrades."
+      ],
+      "trainerActivities": [
+        "Trainer to;  - Explain the nature and purpose of service packs and major version upgrades.  - Demonstrate the process of applying a service pack to an application.  - Guide trainees through a simulated major version upgrade, discussing pre-requisites and rollback plans."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Engage with the explanation, identifying the distinctions between service packs and version upgrades.  - Observe the demonstration and then practice applying a simulated service pack installation.  - Participate in the simulated version upgrade, discussing risks and mitigation strategies.  Assignment: Outline a step-by-step plan for upgrading a critical operating system to its next major version, including backup and verification steps."
+      ],
+      "resourcesAndRefs": [
+        "References;  Pigoski (1996) Ch.7 \u2013 driver management & hardware-software compatibility troubleshooting  Resources;   - Software update documentation  - Virtual machines for practice  - Sample service pack installers  - Installation manuals"
+      ],
+      "assessments": [
+        "Knowledge   - Active participation in discussion  Skills   - Observation of practical application skills  - Quality of outlined upgrade plan"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 10,
+      "sessionNumber": "1",
+      "sessionTitle": "Software Updates (Security & Drivers)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Implement security upgrades to protect software from vulnerabilities.  b. Update device drivers to improve hardware compatibility and performance.  c. Ensure proper functionality and stability after applying security and driver updates."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Conduct a discussion on the importance of security patches and driver updates.  - Demonstrate the process of checking for and installing security updates for an OS and applications.  - Supervise trainees as they update a device driver and verify its impact on hardware functionality."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - participate to the discussion, asking questions about the criticality of security and driver updates.  - Observe the demonstration and then practice installing security updates on test systems.  - Perform a device driver update and rigorously test the affected hardware for correct operation.  Assignment: Research a recent critical security vulnerability in an operating system and describe how it was patched, including the update's version."
+      ],
+      "resourcesAndRefs": [
+        "References;  Pigoski (1996) Ch.7 \u2013 driver management & hardware-software compatibility troubleshooting  Resources;   - Operating system update services (e.g., Windows Update)  - Device manufacturer websites for drivers  - Test computers (1:1 ratio)  - Cybersecurity news feeds"
+      ],
+      "assessments": [
+        "Skills   - Observation of update processes  - Verification of hardware functionality post-update  Knowledge   - Accuracy of research findings"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 10,
+      "sessionNumber": "2",
+      "sessionTitle": "Software Updates (Utility Programs) & Monitoring Tools",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Update utility programs to ensure their optimal performance and compatibility.  b. Identify various software functionality monitoring tools.  c. Explain the basic usage and purpose of common monitoring tools."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Explain the role of utility programs and the benefits of keeping them updated.  - Demonstrate the process of updating a common utility program.  - Introduce and briefly demonstrate a range of software monitoring tools (e.g., performance monitors, log analyzers)."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Engage with the explanation, understanding the importance of utility program updates.  - Observe the demonstration and then practice updating a utility program on their machines.  - Identify the presented monitoring tools and discuss their potential applications.  Assignment: List five common utility programs you use and describe how you would check for and apply updates for each."
+      ],
+      "resourcesAndRefs": [
+        "References;  Mueller (2018) Ch.24 \u2013 system optimization, cleanup, and maintenance procedures  Resources;   - Utility program documentation  - Performance monitoring software (e.g., Task Manager, Resource Monitor)  - Computers (1:1 ratio)  - Internet access"
+      ],
+      "assessments": [
+        "Skills   - Practical application of update process  - Quality of documented update procedures  Attitude   - Active participation in discussion"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 10,
+      "sessionNumber": "3",
+      "sessionTitle": "Operating System Event Logs",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Locate and navigate operating system event logs.  b. Interpret different types of event logs (e.g., error, warning, information).  c. Analyze event log data to diagnose software and system issues."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate how to access and navigate the 'Event Viewer' or equivalent system logs.  - Explain the meaning and significance of various event log types with examples.  - Present scenarios involving system issues and guide trainees in using logs for diagnosis."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration and then practice navigating event logs on their computers.  - Analyze sample event logs, interpreting different types of entries.  - Work through diagnostic scenarios, using event log analysis to identify potential problems.  Assignment: Review your computer's 'System' and 'Application' event logs and identify two 'Error' or 'Warning' events, describing their potential causes."
+      ],
+      "resourcesAndRefs": [
+        "References;  Sommerville (2015) Ch.11 \u2013 log analysis, diagnostic techniques, and root cause analysis  Resources;   - Computers (1:1 ratio) with administrative access  - Operating system event log documentation  - Case studies of system failures diagnosed via logs"
+      ],
+      "assessments": [
+        "Skills   - Practical skills in log navigation  - Accuracy in log interpretation  - Problem-solving using log analysis"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 10,
+      "sessionNumber": "4",
+      "sessionTitle": "Conducting Software Upgrade (Importance & Types)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain the strategic importance and benefits of software upgrades.  b. Classify different types of software upgrades (e.g., major, minor).  c. Plan a software upgrade strategy based on organizational needs and compatibility."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Lead a discussion on the business value and benefits derived from timely software upgrades.  - Present various software upgrade categories and their implications.  - Organize a group activity where trainees develop a preliminary upgrade strategy for a given application."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Contribute to the discussion, articulating the advantages of software upgrades.  - Engage with the presentation, differentiating between major and minor upgrade types.  - Collaborate in the group activity, creating a basic upgrade strategy, considering risks and benefits.  Assignment: Research and document the upgrade path for a specific software product from an older version to its latest, noting any prerequisites."
+      ],
+      "resourcesAndRefs": [
+        "References;  Gattiker (2005) Ch.8 \u2013 troubleshooting frameworks & diagnostic workflows in IT support  Resources;   - Articles on IT modernization  - Software vendor upgrade guides  - Whiteboard or digital collaboration tool"
+      ],
+      "assessments": [
+        "Attitude   - Active participation in discussion  Skills   - Quality of developed upgrade strategy  - Accuracy of documented upgrade path"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 11,
+      "sessionNumber": "1",
+      "sessionTitle": "Conducting Software Upgrade (Process)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Prepare a system for a major software upgrade, including backup procedures.  b. Execute the steps involved in performing a software upgrade.  c. Verify the successful completion of the upgrade and new software functionality."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the pre-upgrade steps, including data backup and compatibility checks.  - Guide trainees through a simulated software upgrade process on a test environment.  - Instruct trainees on post-upgrade verification methods to ensure full functionality and data integrity."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration of pre-upgrade preparations and practice backing up critical data.  - Perform a simulated software upgrade, following best practices for execution.  - Conduct post-upgrade verification tests, confirming system stability and software functionality.  Assignment: Perform an in-place upgrade of a non-critical software application (e.g., web browser) and document the entire process, including verification."
+      ],
+      "resourcesAndRefs": [
+        "References;  Gattiker (2005) Ch.8 \u2013 troubleshooting frameworks & diagnostic workflows in IT support  Resources;   - Software upgrade installers  - Virtual machines or test systems (1:1 ratio)  - Backup software  - Upgrade checklists"
+      ],
+      "assessments": [
+        "Skills   - Practical execution of upgrade steps  - Accuracy of post-upgrade verification  Attitude   - Completeness of documented process"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 11,
+      "sessionNumber": "2",
+      "sessionTitle": "Conducting Software Update (Importance & Types)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Justify the importance of regular software updates for security and performance.  b. Distinguish between various types of software updates (e.g., patches, hotfixes).  c. Prepare a system for routine software updates to minimize disruption."
+      ],
+      "trainerActivities": [
+        "Trainer to;  - Lead a discussion on the risks of outdated software and the benefits of regular updates.  - Present and differentiate between common types of software updates and their release cycles.  - Guide trainees in developing a pre-update checklist to ensure smooth execution."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Contribute to the discussion, articulating the need for regular updates.  - Engage with the presentation, identifying and discussing various update types.  - Collaborate on developing a comprehensive pre-update checklist for a system.  Assignment: Monitor official announcements for a popular software product and identify a recent 'patch' and 'hotfix', noting their purpose."
+      ],
+      "resourcesAndRefs": [
+        "References;  Iheagwara & Blyth (2003) \u2013 user support systems & knowledge management in software maintenance  Resources;   - Cybersecurity reports on vulnerabilities  - Software vendor change logs  - Whiteboard or digital collaboration tool"
+      ],
+      "assessments": [
+        "Attitude   - Active participation in discussion  Skills   - Quality of developed pre-update checklist  - Accuracy of identified patch/hotfix"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 11,
+      "sessionNumber": "3",
+      "sessionTitle": "Conducting Software Update (Process) & Safety Procedures",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Perform the process of applying routine software updates.  b. Observe safety procedures during computer software maintenance.  c. Utilize Personal Protective Equipment (PPE) correctly during maintenance activities."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the application of a routine software update, highlighting best practices.  - Present and discuss essential safety procedures for working with computer hardware and software.  - Guide trainees in identifying and demonstrating the correct use of relevant PPE (e.g., anti-glare screens, gloves)."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration and then practice applying routine software updates on test systems.  - Engage in a discussion on safety procedures, identifying potential hazards.  - Demonstrate the correct use of PPE relevant to computer maintenance, such as anti-glare screens and gloves.  Assignment: Create a safety checklist for performing hardware maintenance tasks that might involve software updates."
+      ],
+      "resourcesAndRefs": [
+        "References;  Pressman & Maxim (2019) Ch.27 \u2013 preventive maintenance planning & automation in software operations  Resources;   - Software update tools  - Test computers (1:1 ratio)  - Safety procedure manuals  - Various PPE items (overall/apron/dust coat, anti-glare screens, gloves)"
+      ],
+      "assessments": [
+        "Skills   - Practical application of update process  - Correct demonstration of PPE use  Attitude  - Observation of safety adherence"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 11,
+      "sessionNumber": "4",
+      "sessionTitle": "Element 3 Revision & Final Preparations",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Review comprehensively all topics related to software maintenance.  b. Clarify any remaining doubts or complex concepts regarding software updates and upgrades.  c. Strategize for the final assessments by identifying areas for further study and practice."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Lead a structured review session covering all aspects of software maintenance from scheduling to safety.  - Facilitate a dedicated Q&A session for trainees to address specific queries or challenging topics.  - Conduct a final mock assessment or practice quiz to gauge readiness and identify weak points."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Actively participate in the structured review, summarizing key concepts and processes.  - Engage in the Q&A session, posing questions and contributing to clarifications.  - Attempt the mock assessment, analyze their performance, and develop a personalized study plan.  Assignment: Create a comprehensive study guide covering all three elements of the unit, focusing on key terms, processes, and tools."
+      ],
+      "resourcesAndRefs": [
+        "References;  Pressman & Maxim (2019) Ch.27 \u2013 preventive maintenance planning & automation in software operations  Resources;   - All unit learning materials and handouts  - Mock assessment questions  - Whiteboard or digital collaborative tool"
+      ],
+      "assessments": [
+        "Skills   - Active participation in review and Q&A  - Performance in mock assessment  Knowledge   - Quality of comprehensive study guide"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 12,
+      "sessionNumber": "1",
+      "sessionTitle": "Written Assessment  3",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Demonstrate comprehensive theoretical knowledge across all unit elements: installation, testing, and maintenance.  b. Recall complex procedures and concepts related to software functionality and troubleshooting.  c. Explain the principles of software management, including upgrades, updates, and safety protocols."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Administer the final written continuous assessment test covering all unit competencies.  - Invigilate the examination strictly to maintain academic integrity.  - Collect all examination papers and ensure they are securely handled."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Attempt the comprehensive written final assessment, answering all questions to the best of their ability.  - Adhere to all examination rules and time limits.  - Submit their completed examination papers to the invigilator."
+      ],
+      "resourcesAndRefs": [
+        "Resources;  - Written Assessment 3 candidate tool   - Answer booklets"
+      ],
+      "assessments": [
+        "Knowledge   - Written Assessment Test 3  scores"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 12,
+      "sessionNumber": "2",
+      "sessionTitle": "Practical Assessment 3",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Perform complex software installation and configuration tasks independently.  b. Execute comprehensive software testing and corrective measures for identified issues.  c. Demonstrate proficiency in software maintenance activities, including upgrades and safety adherence."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Administer the final practical continuous assessment test, outlining complex, multi-stage tasks.  - Observe and evaluate trainees' practical performance across all competencies, providing necessary resources.  - Assess the final output and process of each trainee against the defined performance criteria."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Execute the multi-stage practical tasks, demonstrating mastery of software installation, testing, and maintenance.  - Apply problem-solving skills to overcome any challenges encountered during the tasks.  - Ensure all tasks are completed accurately, efficiently, and with adherence to safety procedures."
+      ],
+      "resourcesAndRefs": [
+        "References;  Pressman & Maxim (2019) Ch.27 \u2013 preventive maintenance planning & automation in software operations  Resources;   - Practical Assessment 3 candidate tool   - Computers (1:1 ratio) with administrative access and relevant software  - Testing and diagnostic tools  - Backup devices and PPE"
+      ],
+      "assessments": [
+        "Skills   - Practical Assessment Test 3 observation checklist  scores based on performance, accuracy, and adherence to procedures"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    }
+  ]
+}

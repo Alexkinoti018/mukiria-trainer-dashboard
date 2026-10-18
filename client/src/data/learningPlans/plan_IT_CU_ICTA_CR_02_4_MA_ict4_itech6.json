@@ -1,0 +1,1247 @@
+{
+  "metadata": {
+    "formNumber": "MTTI/F/CUR/02",
+    "institution": "MUKIRIA TECHNICAL TRAINING INSTITUTE",
+    "unitTitle": "PERFORM COMPUTER OPERATIONS",
+    "unitCode": "IT/CU/ICTA/CR/02/4/MA",
+    "trainerName": "BEATRICE WANGUI MAINA",
+    "level": "4 & 6",
+    "dateOfPreparation": "04/05/2026",
+    "dateOfRevision": "",
+    "numberOfTrainees": 0,
+    "cohortCode": "ICT4/ITECH6/M/26",
+    "skillsSummary": [
+      "To perform computer operations. It involves processing computerized word documents, manipulating computerized spreadsheets, maintaining computerized databases, preparing PowerPoint presentation slides, manipulating graphic application and performing online collaboration."
+    ],
+    "elementsAndPerformanceCriteria": [
+      {
+        "elementTitle": "1. Process computerized word document",
+        "criteria": [
+          "1.1 Ergonomics risk factors observed as per workplace procedures",
+          "1.2 Word document is created as per work requirements",
+          "1.3 Tables are created and manipulated as per work requirements",
+          "1.4 Mail merging is performed as per work requirements",
+          "1.5 Word processing Objects are inserted as per user requirements",
+          "1.6 List of figures and table of content are generated as per user requirements",
+          "1.7 Computerized Word documents are printed as per workplace procedure."
+        ]
+      },
+      {
+        "elementTitle": "2. Manipulate computerized spread sheet",
+        "criteria": [
+          "2.1 Spreadsheet workbook is created as per work requirements",
+          "2.2 Cell referencing is performed as per task requirements",
+          "2.3 Formula and functions are applied as per work requirements",
+          "2.4 Charts are generated as per work requirements"
+        ]
+      },
+      {
+        "elementTitle": "3. Maintain computerized database",
+        "criteria": [
+          "3.1 Computerized database user requirements are collected as per work requirements.",
+          "3.2 Computerized database schemas are designed as per task requirements.",
+          "3.3 Creation of Computerized database objects as per task requirements.",
+          "3.4 Data manipulation is performed as per task requirements."
+        ]
+      },
+      {
+        "elementTitle": "4. Prepare Power point presentation",
+        "criteria": [
+          "4.1 PowerPoint Presentation requirements are collected as per work requirements",
+          "4.2 PowerPoint slides are created as per work requirement",
+          "4.3 Presentation views are exhibited as per work requirements.",
+          "4.4 Animations and transitions are performed as per work requirements",
+          "4.5 PowerPoint slides are manipulated as per work requirements",
+          "4.6 PowerPoint slides are printed as per work requirements"
+        ]
+      },
+      {
+        "elementTitle": "5. Manipulate graphic application",
+        "criteria": [
+          "5.1 Identifying graphic design requirements",
+          "5.2 Graphic design created as per task requirements",
+          "5.3 Graphic design published as per the task requirements"
+        ]
+      },
+      {
+        "elementTitle": "6. Perform document production",
+        "criteria": [
+          "6.1 Document is printed as per user specifications",
+          "6.2 Documents are scanned as per user specifications",
+          "6.3 Documents are duplicated as per user specifications"
+        ]
+      },
+      {
+        "elementTitle": "7. Perform Online Collaboration",
+        "criteria": [
+          "7.1 Identification of Online collaboration tools as per the task requirements",
+          "7.2 Prepare online collaboration as per the task requirements.",
+          "7.3 Apply online collaborative tools as per the task requirements.",
+          "7.4 Demonstrating Mobile collaborations as per task requirements"
+        ]
+      }
+    ],
+    "preparedBy": {
+      "name": "BEATRICE WANGUI MAINA",
+      "date": "04/05/2026"
+    },
+    "approvedBy": {
+      "name": "GREENWOOD N. MAERIA",
+      "date": "7/05/2026",
+      "title": ""
+    }
+  },
+  "schedule": [
+    {
+      "week": 1,
+      "sessionNumber": "ADMISSION WEEK",
+      "sessionTitle": "ADMISSION WEEK",
+      "learningOutcomes": [
+        "ADMISSION WEEK"
+      ],
+      "trainerActivities": [
+        "ADMISSION WEEK"
+      ],
+      "traineeActivities": [
+        "ADMISSION WEEK"
+      ],
+      "resourcesAndRefs": [],
+      "assessments": [],
+      "reflectionsAndDate": ""
+    },
+    {
+      "week": 2,
+      "sessionNumber": "1",
+      "sessionTitle": "Introduction to Computer Operations & Word Processing Basics",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Observe ergonomics risk factors as per workplace procedures.  b. Discuss the key concepts and types of word processors.  c. Create basic word documents as per work requirements."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Facilitate a discussion on ergonomics in a computer workspace and demonstrate correct setup.  - Present an overview of word processing concepts, software types, and document creation basics.  - Guide trainees through a hands-on exercise to create a simple word document."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the discussion, observe the demonstration, and arrange their workspace ergonomically.  - Engage in a Q&A session about word processors and identify different types.  - Follow instructions to create and save their first word document.  Assignment: Research and list five common ergonomic risk factors in an office setting and suggest solutions for each."
+      ],
+      "resourcesAndRefs": [
+        "References;  Collins, A., Brown, J. S., & Holum, A. (1991). Cognitive apprenticeship: Making thinking visible. American Educator, 15(3), 6-11, 38-46.  Resources;   Computer workstations, Word processing software (e.g., MS Word), Projector, Whiteboard, Ergonomics guidelines manual, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Observation of ergonomic setup  Knowledge   Q&A on word processor types  Document creation exercise"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 2,
+      "sessionNumber": "2",
+      "sessionTitle": "Editing  Word Documents",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply word document editing features in a word document.  b. Utilize text and paragraph editing features effectively."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate various word document editing features.  - Demonstrate various text and paragraph editing functions (e.g., cut, copy, paste, find, replace)."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then practice using editing features on a sample document.  - Apply various text and paragraph formatting styles to a given document during the practical session.  Assignment: Edit  a provided draft report according to specific style guidelines."
+      ],
+      "resourcesAndRefs": [
+        "References;  Williams, R. (2014). The Non-Designer's Design Book (4th ed.). Peachpit Press.  Resources;   Computer workstations, Word processing software, Sample documents for editing, Style guides, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical exercise on document editing  Observation of trainees using productivity tools"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 2,
+      "sessionNumber": "3",
+      "sessionTitle": "Formatting Word Documents",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply text and paragraph formatting features in a word document.  b. Utilize text and paragraph formatting features effectively.  c. Enhance productivity using basic word processing options and help resources."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate various text and paragraph formatting functions.  - Lead a practical session on applying text formatting (e.g., font, size, bold) and paragraph formatting (e.g., alignment, indentation).  - Instruct trainees on using productivity features like basic options/preferences, help resources, and zoom tools."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then practice using formatting features on a sample document.  - Apply various text and paragraph formatting styles to a given document during the practical session.  - Explore and use the help resources and adjust zoom levels within the word processor.  Assignment: Format a provided draft report according to specific style guidelines."
+      ],
+      "resourcesAndRefs": [
+        "References;  Williams, R. (2014). The Non-Designer's Design Book (4th ed.). Peachpit Press.  Resources;   Computer workstations, Word processing software, Sample documents for editing, Style guides, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical exercise on formatting  Observation of trainees using productivity tools"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 2,
+      "sessionNumber": "4",
+      "sessionTitle": "Style Systems & Document Automation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to;  Implement style systems for consistent document formatting."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Guide creation of custom style set: 1) Paragraph styles, 2) Character styles, 3) Linked styles, 4) List styles."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Create comprehensive style set for technical documentation, testing inheritance and modifications."
+      ],
+      "resourcesAndRefs": [
+        "References: Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). Design Patterns: Elements of Reusable Object-Oriented Software. Addison-Wesley.  Resources  Style hierarchy diagrams, style creation worksheets, template examples."
+      ],
+      "assessments": [
+        "Skills:   Create and manage style sets, design templates, implement formatting consistency.  Attitude: Demonstrates systematic approach to formatting and appreciation for design consistency."
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 2,
+      "sessionNumber": "5",
+      "sessionTitle": "Style Systems & Document Automation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to;  Implement style systems for consistent document formatting."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate template creation with embedded styles for organizational consistency.  - Show style import/export and template attachment procedures."
+      ],
+      "traineeActivities": [
+        "Trainee to;  - Build corporate template with complete style set for standardized document production.  -Practice style transfer between documents and templates."
+      ],
+      "resourcesAndRefs": [
+        "References; Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). Design Patterns: Elements of Reusable Object-Oriented Software. Addison-Wesley.  Resources; Style hierarchy diagrams, style creation worksheets, template examples."
+      ],
+      "assessments": [
+        "Skills:   Create and manage style sets, design templates, implement formatting consistency.  Knowledge: Understands style inheritance, template engineering, and organizational standardization.  Assignment: Create style guide and template for academic papers with at least 10 custom styles."
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 2,
+      "sessionNumber": "6",
+      "sessionTitle": "Working with Tables in Word Documents",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Insert tables into a word document with various configurations.  b. Manipulate table structures by adding/deleting rows and columns.  c. Apply basic formatting to tables for improved readability."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate different methods for inserting tables, including drawing tables and converting text to tables.  - Guide trainees through practical exercises on manipulating table elements like merging cells, splitting cells, and resizing.  - Facilitate a session on applying table styles, borders, and shading to enhance visual presentation."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration and then practice inserting tables using different techniques.  - Execute tasks to add, delete, and adjust rows/columns and cells within tables.  - Apply various formatting options to tables to meet specified design requirements.  Assignment: Create a schedule or data sheet using a table, including merging cells and applying borders."
+      ],
+      "resourcesAndRefs": [
+        "References;  M\u00fcller-Brockmann, J. (1996). Grid Systems in Graphic Design. Niggli Verlag.  Resources;   Computer workstations, Word processing software, Practice exercises for tables, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical table creation and manipulation task  Knowledge   Q&A on table formatting options"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 3,
+      "sessionNumber": "1",
+      "sessionTitle": "Advanced Table Features & Data Presentation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to;  Implement complex table structures with calculations and references."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Present table as database concept with fields, records, and relationships. Introduce relational thinking.  -Guide creation of complex table systems: 1) Nested tables, 2) Table formulas and calculations, Cross-references to table data, 4) Table sorting and filtering.  - Demonstrate linking Excel data to Word tables with live updates."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Plan table structure for complex data presentation, considering relationships between data elements.  - Build complex table system with nested elements, formulas, and cross-references.  - Create Word table linked to Excel source, testing update functionality."
+      ],
+      "resourcesAndRefs": [
+        "References;   Few, S. (2012). Show Me the Numbers: Designing Tables and Graphs to Enlighten. Analytics Press.  Resources; Complex table examples, formula reference guide, accessibility standards document."
+      ],
+      "assessments": [
+        "Skills:   Create complex table structures, implement table calculations, integrate with external data.  Attitude:   Shows patience with detailed table construction and commitment to data accuracy.  Assignment: Create product catalog with nested tables, calculations, and Excel data links."
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 3,
+      "sessionNumber": "2",
+      "sessionTitle": "Mail Merge in Word",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Prepare data sources and main documents for mail merge.  b. Perform mail merging to generate personalized documents."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Explain the concept of mail merge and demonstrate the steps for preparing data sources and the main document.  - Guide trainees through a practical mail merge exercise to create personalized letters or labels."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the explanation, observe the preparation steps, and identify components of mail merge.  - Practice performing a mail merge operation to produce a set of personalized documents.  Assignment: Create a personalized invitation letter using mail merge."
+      ],
+      "resourcesAndRefs": [
+        "References;  Few, S. (2012). Show Me the Numbers: Designing Tables and Graphs to Enlighten. Analytics Press.  Resources;   Computer workstations, Word processing software, Sample data source and main document, Image files, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Successful completion of a mail merge task"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 3,
+      "sessionNumber": "3",
+      "sessionTitle": "Graphics Integration",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to;  Integrate images, shapes, and graphics into professional documents."
+      ],
+      "trainerActivities": [
+        "Trainer to;  - Discuss image-text integration strategies.  - Guide integration of 5 graphic types: 1) Photographs with text wrapping, 2) Shapes and arrows, 3) SmartArt diagrams, 4) Icons and symbols, 5) Charts from Excel."
+      ],
+      "traineeActivities": [
+        "Trainee to;  - Evaluate documents with/without graphics, assessing communication effectiveness.  - Insert and format all 5 graphic types in practice document, experimenting with different layout options."
+      ],
+      "resourcesAndRefs": [
+        "References;   Lester, P. M. (2014). Visual Communication: Images with Messages (6th ed.). Wadsworth Publishing.  Resources; Image library, graphic element examples, compression software."
+      ],
+      "assessments": [
+        "Skills:   Insert and format graphics, integrate visual elements, optimize document file size.  Knowledge: Understands visual communication principles and graphic integration techniques."
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 3,
+      "sessionNumber": "4",
+      "sessionTitle": "Graphics Integration & Document Enhancement",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to;  Integrate images, shapes, and graphics into professional documents."
+      ],
+      "trainerActivities": [
+        "Trainer to;  - Guide strategic graphic addition to improve comprehension and engagement.  - Demonstrate image compression and file size optimization techniques."
+      ],
+      "traineeActivities": [
+        "Trainee to;  - Add appropriate graphics to text-heavy document, improving visual appeal and clarity.  - Compress images and reduce file size while maintaining quality."
+      ],
+      "resourcesAndRefs": [
+        "References;   Lester, P. M. (2014). Visual Communication: Images with Messages (6th ed.). Wadsworth Publishing.  Resources; Image library, graphic element examples, compression software."
+      ],
+      "assessments": [
+        "Skills:   Insert and format graphics, integrate visual elements, optimize document file size.  Attitude: Demonstrates creativity in visual enhancement and technical precision in formatting.  Assignment: Create illustrated instructional document with at least 5 different graphic elements."
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 3,
+      "sessionNumber": "5",
+      "sessionTitle": "Object Insertion in Word",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Insert various word processing objects (pictures, shapes) into documents."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Conduct a hands-on demonstration of inserting and formatting pictures, shapes, and other objects into a word document."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration and then insert and modify different types of objects in a document.  Assignment: Create a personalized invitation letter and insert a company logo."
+      ],
+      "resourcesAndRefs": [
+        "References;  Few, S. (2012). Show Me the Numbers: Designing Tables and Graphs to Enlighten. Analytics Press.  Resources;   Computer workstations, Word processing software, Sample data source and main document, Image files, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Observation of object insertion skills"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 3,
+      "sessionNumber": "6",
+      "sessionTitle": "Generating Lists, Table of Contents & Printing Word Documents",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Generate a list of figures in a document.  b. Create and update a table of contents automatically.  c. Prepare and print computerized word documents according to workplace procedures."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the process of inserting captions and generating a list of figures automatically.  - Guide trainees through the steps to create, customize, and update a table of contents using built-in features.  - Instruct on print setup options, previewing documents, and executing print commands for word documents."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration and practice generating a list of figures for a document with images.  - Follow instructions to create a table of contents for a multi-section document and update it after modifications.  - Configure print settings (e.g., page range, copies) and print a word document.  Assignment: Create a short technical report with at least two figures and a table of contents, then print it."
+      ],
+      "resourcesAndRefs": [
+        "References;  Few, S. (2012). Show Me the Numbers: Designing Tables and Graphs to Enlighten. Analytics Press.  Resources;   Computer workstations, Word processing software, Documents with multiple sections and figures, Printer, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical task on generating lists and TOC  Print output evaluation  Knowledge   Q&A on printing procedures"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 4,
+      "sessionNumber": "1",
+      "sessionTitle": "Spreadsheet Concepts",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain fundamental spreadsheet concepts and elements.  b. Identify the components of a spreadsheet window (worksheet, workbook, rows, columns, cells)."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Introduce key spreadsheet concepts and terms, using a projector to highlight examples.  - Point out and explain the different elements of the spreadsheet interface in a live demonstration."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Engage in the introductory discussion, ask clarifying questions, and define spreadsheet terms.  - Observe the demonstration, identify interface components, and participate in a Q&A."
+      ],
+      "resourcesAndRefs": [
+        "References;  Educational Psychologist, 50(4), 258-283.  ISO 9001. (2015). Quality management systems \u2014 Requirements. International Organization for Standardization.  Resources;   Computer workstations, Spreadsheet software (e.g., MS Excel), Projector, Whiteboard, Recommended textbooks"
+      ],
+      "assessments": [
+        "Knowledge   Verbal Q&A on spreadsheet concepts"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 4,
+      "sessionNumber": "2",
+      "sessionTitle": "Workbook Creation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Create new spreadsheet workbooks as per work requirements."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Guide trainees step-by-step through the process of opening a spreadsheet application and creating a new workbook."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Follow the instructions to launch the application and successfully create and save a new blank workbook.  Assignment: Open the spreadsheet application and explore its interface, identifying and labeling at least 10 different components."
+      ],
+      "resourcesAndRefs": [
+        "References;  Educational Psychologist, 50(4), 258-283.  ISO 9001. (2015). Quality management systems \u2014 Requirements. International Organization for Standardization.  Resources;   Computer workstations, Spreadsheet software (e.g., MS Excel), Projector, Whiteboard, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills Observation of workbook creation  Worksheet identification activity"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 4,
+      "sessionNumber": "3",
+      "sessionTitle": "Cell Referencing and Spreadsheet Editing",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Differentiate between relative, absolute, and mixed cell referencing.  b. Apply various cell referencing types in formulas.  c. Perform essential spreadsheet editing features (inserting/removing rows/columns, adjusting height/width)."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Explain and demonstrate the application of relative, absolute, and mixed cell referencing with practical examples.  - Lead a practical exercise where trainees apply different referencing types in simple calculations.  - Show how to insert, remove, and adjust rows/columns and manage worksheet properties like renaming and moving."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstrations, differentiate between referencing types, and take part in a conceptual Q&A.  - Practice creating formulas using relative, absolute, and mixed references in a given dataset.  - Execute commands to modify worksheet structure by adding/deleting rows/columns and adjusting cell sizes."
+      ],
+      "resourcesAndRefs": [
+        "References;  Power, D. J. (2015). A Brief History of Spreadsheets. DSSResources.com.  Resources;   Computer workstations, Spreadsheet software, Sample data for referencing exercises, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical exercise on cell referencing  Observation of spreadsheet editing  Knowledge   Q&A on worksheet management"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 4,
+      "sessionNumber": "4",
+      "sessionTitle": "Spreadsheet Editing features",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  Perform essential spreadsheet editing features (inserting/removing rows/columns, adjusting height/width)."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Show how to insert, remove, and adjust rows/columns and manage worksheet properties like renaming and moving."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Execute commands to modify worksheet structure by adding/deleting rows/columns and adjusting cell sizes.  Assignment: Create a simple budget sheet using different cell referencing types for calculations."
+      ],
+      "resourcesAndRefs": [
+        "References;  Power, D. J. (2015). A Brief History of Spreadsheets. DSSResources.com.  Resources;   Computer workstations, Spreadsheet software, Sample data for referencing exercises, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Observation of spreadsheet editing  Knowledge   Q&A on worksheet management"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 4,
+      "sessionNumber": "3",
+      "sessionTitle": "Data Manipulation and Types in Spreadsheets",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Perform effective data entry into spreadsheet cells.  b. Identify and work with various types of data in a spreadsheet.  c. Sort and filter data to extract specific information."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate efficient data entry techniques and best practices in spreadsheets.  - Explain different data types (text, number, date, currency) and how to format cells accordingly.  - Guide trainees through practical exercises on sorting data by single or multiple columns and applying various filters."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then practice entering data accurately and efficiently into a spreadsheet.  - Identify data types in a given dataset and apply appropriate cell formatting.  - Practice sorting and filtering data to answer specific questions or extract required information.  Assignment: Enter a list of customer data, then sort it by name and filter by region."
+      ],
+      "resourcesAndRefs": [
+        "References;  Day, A. L. (2012). Mastering Financial Modelling in Microsoft Excel (3rd ed.). Pearson.  Resources;   Computer workstations, Spreadsheet software, Sample datasets for practice, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Observation of data entry skills  Practical data sorting and filtering task  Knowledge   Q&A on data types"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 4,
+      "sessionNumber": "4   &  5",
+      "sessionTitle": "Formulas and Functions: Arithmetic and Logical",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Understand the syntax of formulas and functions.  b. Apply arithmetic functions (SUM, AVERAGE, MIN, MAX) to perform calculations.  c. Utilize logical functions (IF) for conditional analysis in spreadsheets."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Explain the fundamental syntax of formulas and functions, emphasizing argument structure.  - Demonstrate the use of common arithmetic functions like SUM, AVERAGE, MIN, and MAX with various datasets.  - Guide trainees in applying the IF function to perform conditional calculations and decision-making."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the explanations, participate in identifying correct function syntax, and ask questions.  - Practice using arithmetic functions to calculate totals, averages, minimums, and maximums in provided datasets.  - Implement the IF function to solve scenarios requiring conditional logic in their spreadsheets.  Assignment: Create a grade sheet for students, calculating total marks, average, highest, lowest, and assigning 'Pass'/'Fail' using the IF function."
+      ],
+      "resourcesAndRefs": [
+        "References;  Microsoft. (2023). Excel Functions by Category. Microsoft Support Documentation.  Resources;   Computer workstations, Spreadsheet software, Datasets for formula practice, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical application of arithmetic and logical functions  Knowledge   Formula review  Q&A on function syntax"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 4,
+      "sessionNumber": "6",
+      "sessionTitle": "Look-up Functions",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply look-up functions (VLOOKUP, HLOOKUP) for data retrieval."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the application of VLOOKUP and HLOOKUP functions to retrieve data from tables."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstrations, then practice using look-up functions to retrieve specific data points from large datasets.  Assignment: Create an invoice template using VLOOKUP for product prices"
+      ],
+      "resourcesAndRefs": [
+        "References;  Microsoft. (2023). Excel Functions by Category. Microsoft Support Documentation.  Resources;   Computer workstations, Spreadsheet software, Datasets for look-up functions, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical task on look-up functions."
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 5,
+      "sessionNumber": "1  &  2",
+      "sessionTitle": "Computerized spreadsheet Worksheet Formatting",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Format worksheet elements (font styles, alignment, borders, shading).  b. Implement headers and footers for professional spreadsheet presentation."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Lead a practical session on applying various formatting options including font styles, text alignment, and cell borders/shading.  - Instruct trainees on how to insert and customize headers and footers for printing and document identification."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Apply diverse formatting to a given worksheet to improve its visual appeal and readability.  - Practice adding relevant information to headers and footers of a spreadsheet.  Assignment: Create an invoice template using VLOOKUP for product prices and apply professional formatting."
+      ],
+      "resourcesAndRefs": [
+        "References;  Microsoft. (2023). Excel Functions by Category. Microsoft Support Documentation.  Resources;   Computer workstations, Spreadsheet software, Datasets for look-up functions, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical task on formatting worksheets   Observation of header/footer implementation"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 5,
+      "sessionNumber": "3  &  4",
+      "sessionTitle": "Chart Generation and Spreadsheet Printing",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify different types of charts suitable for various data.  b. Insert and customize charts (labelling, editing) in a spreadsheet.  c. Prepare and print computerized spreadsheet workbooks according to specifications."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Discuss various chart types (bar, line, pie) and demonstrate their appropriate use for different data representations.  - Guide trainees through the process of inserting charts from selected data and customizing their appearance and labels.  - Instruct on print setup, page break preview, and printing workbooks, including specific sheets or selections."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the discussion, identify suitable chart types for sample data, and ask questions.  - Practice creating different charts from given data, then editing titles, legends, and data labels.  - Configure print settings to print specific parts of a workbook or entire worksheets, ensuring professional output.  Assignment: Create a sales report including a bar chart and a pie chart, then print the report."
+      ],
+      "resourcesAndRefs": [
+        "References;  Walkenbach, J. (2019). Excel 2019 Bible. Wiley.  Resources;   Computer workstations, Spreadsheet software, Sample data for charts, Printer, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical chart creation and customization  Print output evaluation  Knowledge   Q&A on chart types"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 5,
+      "sessionNumber": "5  &  6",
+      "sessionTitle": "Chart Generation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify different types of charts suitable for various data.  b. Insert and customize charts (labelling, editing) in a spreadsheet."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Discuss various chart types (bar, line, pie) and demonstrate their appropriate use for different data representations.  - Guide trainees through the process of inserting charts from selected data and customizing their appearance and labels."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the discussion, identify suitable chart types for sample data, and ask questions.  - Practice creating different charts from given data, then editing titles, legends, and data labels.  Assignment: Create a sales report including a bar chart and a pie chart"
+      ],
+      "resourcesAndRefs": [
+        "References;  Walkenbach, J. (2019). Excel 2019 Bible. Wiley.  Resources;   Computer workstations, Spreadsheet software, Sample data for charts, Printer, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical chart creation and customization  Knowledge   Q&A on chart types"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 6,
+      "sessionNumber": "1  &  2",
+      "sessionTitle": "Data Validation & Protection Systems",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to;  Implement comprehensive data validation and worksheet protection systems."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Guide creation of: 1) Drop-down lists with named ranges, 2) Input restrictions (dates, numbers, text length), 3) Custom validation formulas, 4) Input messages and error alerts.  - Demonstrate worksheet/workbook protection with password security and specific cell locking/unlocking."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Build comprehensive validation system for business form, testing all rules with valid/invalid data.  - Apply protection to financial model, locking formulas while allowing data entry in specific cells."
+      ],
+      "resourcesAndRefs": [
+        "References;   Few, S. (2009). Now You See It: Simple Visualization Techniques for Quantitative Analysis. Analytics Press.  Resources; Validation rule examples, protection configuration guide, audit trail templates."
+      ],
+      "assessments": [
+        "Skills:   Implement data validation rules, configure worksheet protection, create basic audit trails.  Attitude:   Shows commitment to data integrity and careful implementation of protection systems.  Knowledge: Understands validation concepts, protection mechanisms, and audit trail principles."
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 6,
+      "sessionNumber": "3  &  4",
+      "sessionTitle": "Computerized Spreadsheet workbook  Printing",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Prepare and print computerized spreadsheet workbooks according to specifications."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Instruct on print setup, page break preview, and printing workbooks, including specific sheets or selections."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Configure print settings to print specific parts of a workbook or entire worksheets, ensuring professional output.  Assignment: Create a sales report including a bubble chart and a line chart, then print the report."
+      ],
+      "resourcesAndRefs": [
+        "References;  Walkenbach, J. (2019). Excel 2019 Bible. Wiley.  Resources;   Computer workstations, Spreadsheet software, Sample data for charts, Printer, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Print output evaluation  Knowledge   Q&A on printer setup"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 6,
+      "sessionNumber": "5&6",
+      "sessionTitle": "Practical Assessment 1",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply word processing skills to create and format documents.  b. Utilize spreadsheet functions and charts to analyze data.  c. Create basic database tables and perform data entry."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Administering and invigilating the practical examination for Assessment 1.  - Providing clear instructions for practical tasks in word processing, spreadsheets, and databases.  - Observing trainees' practical application of skills and documenting performance."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Attempting the practical examination tasks according to instructions.  - Demonstrating proficiency in creating documents, manipulating data, and designing database objects.  - Troubleshooting practical issues independently during the Assessment."
+      ],
+      "resourcesAndRefs": [
+        "References;  Resources;   Computer workstations, Word processing software, Spreadsheet software, Database Management System, Task instructions"
+      ],
+      "assessments": [
+        "Skills   Practical Assessment 1 examination"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 7,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Introduction to Databases and User Requirements",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Explain key database concepts and organization.  b. Differentiate between various database relationships.  c. Collect computerized database user requirements as per work requirements."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Introduce fundamental database concepts such as tables, records, fields, and their organization.  - Illustrate and explain different types of database relationships (one-to-one, one-to-many, many-to-many) with examples.  - Facilitate a group activity where trainees practice collecting user requirements for a hypothetical database system."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the discussion, define database terminology, and distinguish between database components.  - Identify and explain different database relationships based on provided scenarios.  - Collaborate in groups to gather and document user requirements for a specified database purpose.  Assignment: Document the user requirements for a small library management database, including entities and their attributes."
+      ],
+      "resourcesAndRefs": [
+        "References;  Date, C. J. (2003). An Introduction to Database Systems (8th ed.). Addison-Wesley.  Connolly, T. M., & Begg, C. E. (2014). Database Systems: A Practical Approach to Design, Implementation, and Management (6th ed.). Pearson.  Resources;   Computer workstations, Projector, Whiteboard, Case studies for user requirements, Recommended textbooks"
+      ],
+      "assessments": [
+        "Knowledge   Verbal Q&A on database concepts  Group presentation of user requirement  Skills  Conceptual mapping activity"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 7,
+      "sessionNumber": "3&4",
+      "sessionTitle": "Designing Database Schemas (ERD & Relational Models)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Understand the purpose of database schemas.  b. Design Entity-Relationship Diagram (ERD) models.  c. Convert ERD models into relational database models."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Explain the importance of database schemas and their role in database design.  - Demonstrate the steps involved in creating ERD models, including entities, attributes, and relationships.  - Guide trainees through exercises to translate ERD models into relational schemas, identifying tables, primary keys, and foreign keys."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the discussion on database schemas and their importance.  - Practice designing ERD models for simple scenarios, identifying all necessary components.  - Convert self-designed ERD models into corresponding relational database tables and relationships.  Assignment: Design an ERD for a simple online store, then convert it into a relational model with tables and keys."
+      ],
+      "resourcesAndRefs": [
+        "References;  Chen, P. P. (1976). The entity-relationship model: Toward a unified view of data. ACM Transactions on Database Systems, 1(1), 9-36.  Codd, E. F. (1970). A relational model of data for large shared data banks. Communications of the ACM, 13(6), 377-387.  Resources;   Computer workstations, Whiteboard/Diagramming tools, Sample scenarios for ERD, Recommended textbooks"
+      ],
+      "assessments": [
+        "Knowledge   ERD design exercise  Relational model conversion task  Peer review of designs"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 7,
+      "sessionNumber": "5&6",
+      "sessionTitle": "Creation of Computerized Database Objects - Tables",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Understand the structure and function of database tables.  b. Create new database tables with appropriate data types and primary keys.  c. Define relationships between tables using foreign keys."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Explain the concept of tables as the fundamental building blocks of a relational database and their role.  - Demonstrate how to create tables in a database management system (DBMS), specifying field names, data types, and primary keys.  - Guide trainees through establishing relationships between tables using foreign keys in a practical exercise."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the explanation, articulate the function of tables, and identify table components.  - Observe the demonstration, then create several tables in the DBMS with defined fields and primary keys.  - Practice creating relationships between the tables they have created, using foreign keys.  Assignment: Create a database for a small business with tables for Customers, Orders, and Products, defining relationships between them."
+      ],
+      "resourcesAndRefs": [
+        "References;  ISO/IEC 9075. (2016). Information technology \u2014 Database languages \u2014 SQL. International Organization for Standardization.  Resources;   Computer workstations, Database Management System (e.g., MS Access, MySQL Workbench), Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical table creation task  Relationship establishment exercise  Knowledge Q&A on table design"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 8,
+      "sessionNumber": "1",
+      "sessionTitle": "Creation of Database Objects - Forms and Queries",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Design user-friendly database forms for data entry.  b. Create simple selection queries to retrieve specific data.  c. Understand the purpose and basic structure of action queries."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the process of creating database forms for data input and editing, focusing on user experience.  - Guide trainees through building selection queries to retrieve data based on various criteria from multiple tables.  - Introduce the concept of action queries (e.g., append, update, delete) and discuss their use and implications."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration and then design and implement data entry forms for their database tables.  - Practice creating and running selection queries to answer specific data retrieval questions.  - Participate in the discussion on action queries, identifying scenarios where they would be used and their potential impact.  Assignment: Create a data entry form for the 'Customers' table and a query to list customers from a specific city."
+      ],
+      "resourcesAndRefs": [
+        "References;  Elmasri, R., & Navathe, S. B. (2016). Fundamentals of Database Systems (7th ed.). Pearson.  Resources;   Computer workstations, Database Management System, Sample data for forms and queries, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical form design   Query creation exercise  Knowledge Group discussion on query types"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 8,
+      "sessionNumber": "2",
+      "sessionTitle": "Creation of Database Objects",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Generate professional database reports summarizing data.  b. Customize report layouts and content."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate how to create various types of database reports (e.g., tabular, grouped) from tables or queries.  - Guide trainees through customizing report elements such as headings, footers, groupings, and calculations."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration and then create reports based on their database tables or query results.  - Practice modifying report layouts, adding summaries, and adjusting fields for optimal presentation.  Assignment: Create a sales report from your database showing total sales per product."
+      ],
+      "resourcesAndRefs": [
+        "References;  Nielsen, J. (1994). Usability Engineering. Morgan Kaufmann.  Resources;   Computer workstations, Database Management System,"
+      ],
+      "assessments": [
+        "Skills   Practical report generation task  Knowledge Q&A on report customization"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 8,
+      "sessionNumber": "3   &  4",
+      "sessionTitle": "Data Manipulation in Databases",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Insert new records into database tables.  b. Update existing records accurately.  c. Delete records from a database as required."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the process of inserting new data records into database tables using forms or direct table input.  - Guide trainees through updating existing records to reflect changes in information, ensuring data integrity.  - Instruct on safely deleting records from database tables, emphasizing precautions against accidental data loss."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then practice adding new records into their database tables.  - Execute tasks to modify and update specific fields or entire records within their database.  - Practice deleting selected records, confirming the operation and understanding its consequences.  Assignment: Populate your database with sample data, then perform update and delete operations on a few records."
+      ],
+      "resourcesAndRefs": [
+        "References;  Chamberlin, D. D., & Boyce, R. F. (1974). SEQUEL: A structured English query language. Proceedings of the 1974 ACM SIGFIDET Workshop, 249-264.  Resources;   Computer workstations, Database Management System, Sample data for manipulation, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical data manipulation exercise (insert, update, delete)   Observation of data integrity  Knowledge   Q&A on data modification"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 8,
+      "sessionNumber": "5&6",
+      "sessionTitle": "Advanced Database Queries & Relationships",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Create complex selection queries with multiple criteria and joins.  b. Implement aggregate functions in queries for summary data.  c. Refine database relationships for improved data integrity."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate how to construct complex queries involving multiple tables and advanced criteria using SQL or query builders.  - Guide trainees through applying aggregate functions (e.g., COUNT, AVG, SUM) in queries to generate summary results.  - Facilitate a discussion on refining and optimizing database relationships to ensure referential integrity and efficiency."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then practice building complex queries to extract detailed information from their database.  - Execute queries that use aggregate functions to summarize data, such as counting orders or averaging sales.  - Participate in the discussion, analyze existing relationships, and propose improvements for data integrity.  Assignment: Create a query to show the total number of orders for each customer and refine the customer-order relationship."
+      ],
+      "resourcesAndRefs": [
+        "References;  Garcia-Molina, H., Ullman, J. D., & Widom, J. (2008). Database Systems: The Complete Book (2nd ed.). Pearson.  Resources;   Computer workstations, Database Management System, Datasets for advanced queries, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical advanced query creation  Knowledge   Q&A on aggregate functions  Group discussion on database normalization"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 9,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Database Security and Backup Procedures",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify common database security threats.  b. Implement basic security measures for a database.  c. Perform database backup and recovery procedures."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Discuss common database security vulnerabilities and potential threats.  - Demonstrate how to implement basic security features like user accounts, permissions, and password protection.  - Guide trainees through the steps of backing up a database and restoring it from a backup file."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the discussion, identify security risks, and propose preventative measures.  - Practice setting up user roles and permissions within a database system.  - Execute database backup operations and simulate a recovery process from a previous backup.  Assignment: Secure your database by creating a user account with limited permissions ."
+      ],
+      "resourcesAndRefs": [
+        "References;  Garcia-Molina, H., Ullman, J. D., & Widom, J. (2008). Database Systems: The Complete Book (2nd ed.). Pearson.  Resources;   Computer workstations, Database Management System, Security policy documents, Recommended textbooks"
+      ],
+      "assessments": [
+        "Knowledge   Discussion on security threats  Skills   Practical security implementation   Backup/restore demonstration and observation"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 9,
+      "sessionNumber": "3  &  4",
+      "sessionTitle": "Database Backup Procedures  And printing .",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Perform database backup and recovery procedures.  b. Print database objects (tables, forms, queries, reports) effectively."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Guide trainees through the steps of backing up a database and restoring it from a backup file.  - Instruct on the procedure for printing different database objects, including previewing and print settings."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Execute database backup operations and simulate a recovery process from a previous backup.  - Configure print options and print examples of their tables, forms, queries, and reports.  Assignment: Secure your database by creating a user account with limited permissions and perform a full database backup."
+      ],
+      "resourcesAndRefs": [
+        "References;  Garcia-Molina, H., Ullman, J. D., & Widom, J. (2008). Database Systems: The Complete Book (2nd ed.). Pearson.  Resources;   Computer workstations, Database Management System, Security policy documents, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical security implementation   Backup/restore demonstration and observation  Print output evaluation"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 9,
+      "sessionNumber": "5&6",
+      "sessionTitle": "Introduction to Presentation Software",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Define key terms related to PowerPoint presentations.  b. Identify types of presentation software and their elements.  c. Collect PowerPoint presentation requirements for a given task."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Introduce fundamental terms and concepts associated with presentation software and design principles.  - Present different types of presentation software and demonstrate the main elements of their interface.  - Lead a brainstorming session to gather and analyze requirements for a sample PowerPoint presentation scenario."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in defining terms, engage in Q&A, and articulate the purpose of presentation software.  - Observe the demonstration, identify interface components of various presentation tools, and compare their features.  - Collaborate in groups to identify and document specific requirements for a hypothetical presentation.  Assignment: Research and list three different presentation software options, noting their pros and cons."
+      ],
+      "resourcesAndRefs": [
+        "References;  Mayer, R. E. (2009). Multimedia Learning (2nd ed.). Cambridge University Press.  Resources;   Computer workstations, Presentation software (e.g., MS PowerPoint, Google Slides), Projector, Whiteboard, Case studies for presentation requirements, Recommended textbooks"
+      ],
+      "assessments": [
+        "Knowledge   Verbal Q&A on presentation terms  Group presentation of requirement  Software comparison activity"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 10,
+      "sessionNumber": "1",
+      "sessionTitle": "Creating PowerPoint Slides and Layouts",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify different types of presentation layouts.  b. Design an effective PowerPoint presentation layout.  c. Create and save new PowerPoint presentations."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Discuss various slide layouts (e.g., title slide, content slide) and factors influencing layout design.  - Demonstrate how to design an effective presentation layout using master slides and custom templates.  - Guide trainees through the process of creating new presentations, adding slides, and saving them in appropriate formats."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the discussion, identify different layout types, and suggest design considerations.  - Observe the demonstration, then practice designing custom slide layouts using master slides.  - Create a new multi-slide presentation, populate it with placeholder content, and save it.  Assignment: Create a five-slide presentation outline for a product launch, incorporating different layout types."
+      ],
+      "resourcesAndRefs": [
+        "References;  Lester, P. M. (2014). Visual Communication: Images with Messages (6th ed.). Wadsworth Publishing.  Resources;   Computer workstations, Presentation software, Sample presentation templates, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical layout design task   Presentation creation exercise,  Knowledge Q&A on slide layouts"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 10,
+      "sessionNumber": "2",
+      "sessionTitle": "Exhibiting Presentation Views & Working with Slides",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Understand and use different presentation views (Normal, Outline, Slide Sorter).  b. Work efficiently with presentations, switching between open files.  c. Manipulate PowerPoint slides by adding/editing data/text."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the functionality and purpose of various presentation views (Normal, Outline, Slide Sorter, Notes Page, Reading View).  - Guide trainees through switching between multiple open PowerPoint presentations efficiently.  - Instruct on adding, editing, and formatting text and data on individual slides."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, identify when to use each view, and practice switching between them.  - Practice opening and navigating between several presentation files.  - Add new text boxes, edit existing text, and apply basic formatting to slide content.  Assignment: Open three different presentations and copy a slide from one to another, then reorder them in Slide Sorter view."
+      ],
+      "resourcesAndRefs": [
+        "References;  Lester, P. M. (2014). Visual Communication: Images with Messages (6th ed.). Wadsworth Publishing.  Resources;   Computer workstations, Presentation software, Multiple sample presentations, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical use of presentation views  Observation of slide manipulation"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 10,
+      "sessionNumber": "3",
+      "sessionTitle": "Animations and Transitions in PowerPoint",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply slide animations to objects and text.  b. Implement slide transitions between slides.  c. Customize animation and transition effects for effective delivery."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate how to apply various animation effects to text and objects on slides.  - Guide trainees through selecting and applying different slide transition effects between slides.  - Instruct on customizing animation timings, speeds, and triggers, as well as transition durations and sounds."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then practice applying different animation effects to elements on their slides.  - Experiment with various slide transitions and apply them to their presentation.  - Customize the speed and sequence of animations and transitions to create a visually engaging presentation.  Assignment: Enhance a 5-slide presentation by adding appropriate animations to text/objects and transitions between slides."
+      ],
+      "resourcesAndRefs": [
+        "References;  Mayer, R. E. (2009). Multimedia Learning (2nd ed.). Cambridge University Press.  Resources;   Computer workstations, Presentation software, Sample presentation for animations, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical application of animations and transitions  Knowledge   Peer review of presentation  Q&A on effect customization"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 10,
+      "sessionNumber": "4",
+      "sessionTitle": "Manipulating PowerPoint Slides (Objects & Formatting)",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Format data and text within PowerPoint slides effectively.  b. Insert and manipulate presentation objects like tables and charts.  c. Implement headers, footers, and slide numbering."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate advanced text and paragraph formatting within PowerPoint, including themes and design variations.  - Guide trainees through inserting and customizing tables and charts directly within slides.  - Instruct on adding and formatting headers, footers, and slide numbers to ensure consistent presentation identity."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then apply various formatting options to text and data on their slides to achieve a professional look.  - Practice inserting and adapting tables and charts from external data into their presentation slides.  - Add and customize headers, footers, and slide numbering across their presentation.  Assignment: Create a company overview slide with an embedded table and chart, then ensure consistent header/footer information."
+      ],
+      "resourcesAndRefs": [
+        "References;  Mayer, R. E. (2009). Multimedia Learning (2nd ed.). Cambridge University Press.  Resources;   Computer workstations, Presentation software, Sample data for charts/tables, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical task on object insertion and formatting   Observation of header/footer implementation  Knowledge   Q&A on slide manipulation"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 10,
+      "sessionNumber": "5",
+      "sessionTitle": "Printing PowerPoint Slides and Final Review",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Understand print setup options for PowerPoint presentations.  b. Print PowerPoint slides, handouts, and notes effectively.  c. Review and finalize a presentation for delivery."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate various print options for presentations, including printing slides, handouts, and notes pages.  - Guide trainees through configuring print settings for different output formats and reviewing print previews.  - Facilitate a final review session, emphasizing quality checks, consistency, and readiness for presentation delivery."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then practice selecting appropriate print layouts for their presentation.  - Configure print settings and print different versions of their presentation (e.g., 2 slides per page, notes page).  - Participate in the review process, conducting self-checks and peer reviews of their presentations.  Assignment: Prepare a complete presentation, ensuring all elements are finalized, then print handouts (3 slides per page) and speaker notes."
+      ],
+      "resourcesAndRefs": [
+        "References;  Lester, P. M. (2014). Visual Communication: Images with Messages (6th ed.). Wadsworth Publishing.  Resources;   Computer workstations, Presentation software, Printer, Sample presentations for printing, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Print output evaluation  Knowledge   Peer review of final presentation  Q&A on presentation readiness"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 10,
+      "sessionNumber": "6",
+      "sessionTitle": "Practical Assessment 2",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply database skills to create objects and manipulate data.  b. Create and enhance a PowerPoint presentation with animations and objects.  c. Perform document production tasks including printing and scanning."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Administering and invigilating the practical examination for Assessment 2.  - Providing clear instructions for practical tasks in database management, presentation software, and document production.  - Observing trainees' practical application of skills and documenting performance."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Attempting the practical examination tasks according to instructions.  - Demonstrating proficiency in database object creation, presentation design, and document handling.  - Troubleshooting practical issues independently during the Assessment."
+      ],
+      "resourcesAndRefs": [
+        "References;  Resources;   Computer workstations, Database Management System, Presentation software, Multifunction printer/scanner, Task instructions"
+      ],
+      "assessments": [
+        "Skills   Practical Assessment 2"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 11,
+      "sessionNumber": "1",
+      "sessionTitle": "Graphic Application Requirements and Types",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Define terms related to graphic design and applications.  b. Identify different types of graphic application software.  c. Understand various types of publication designs (templates, banners, brochures)."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Introduce key graphic design terminology and concepts, explaining their relevance.  - Present a range of graphic application software, highlighting their features and typical uses.  - Discuss and show examples of different publication designs, explaining their purpose and characteristics."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the discussion, define graphic design terms, and engage in Q&A.  - Identify various graphic software applications and differentiate between raster and vector graphics.  - Analyze examples of templates, banners, brochures, and other designs, articulating their design elements.  Assignment: Research and compare two popular graphic design software, listing their main features and target users."
+      ],
+      "resourcesAndRefs": [
+        "References;  Waller, R. (2012). Graphic Design History. Pearson.  Resources;   Computer workstations, Projector, Whiteboard, Examples of graphic design software, Sample publication designs, Recommended textbooks"
+      ],
+      "assessments": [
+        "Knowledge   Verbal Q&A on graphic design terms  Discussion on software types  Analysis of publication designs"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 11,
+      "sessionNumber": "2",
+      "sessionTitle": "Elements of Graphic Application Window & Basic Tasks",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Identify the key elements of a graphic application window.  b. Perform basic tasks like selecting publication type and page setup.  c. Utilize rulers, guides, and page views for design accuracy."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the layout and key features of a graphic application window (e.g., toolbars, panels, canvas).  - Guide trainees through initiating a new project, selecting publication types, and configuring page setup.  - Instruct on the use of rulers, guides, and different page views to assist in precise design and layout."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, identify specific elements of the graphic application interface, and ask questions.  - Practice setting up a new document, choosing a publication type, and defining page dimensions.  - Use rulers and guides to align elements accurately and switch between different page views for design inspection.  Assignment: Set up a new document in a graphic application, configuring it for a business card design with appropriate dimensions and guides."
+      ],
+      "resourcesAndRefs": [
+        "References;  M\u00fcller-Brockmann, J. (1996). Grid Systems in Graphic Design. Niggli Verlag.  Resources;   Computer workstations, Graphic design software (e.g., Canva, Adobe Express), Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Observation of document setup skills  Practical use of rulers/guides  Knowledge   Q&A on interface elements"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 11,
+      "sessionNumber": "3",
+      "sessionTitle": "Adding and Editing Content in Graphic Publications",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Add various content elements to a publication.  b. Edit content within a graphic design project effectively.  c. Format text and paragraphs in a publication for visual appeal."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate how to add text boxes, images, and shapes to a graphic design layout.  - Guide trainees through editing existing content, including resizing, repositioning, and modifying properties.  - Instruct on applying text formatting (font, size, color) and paragraph styles (alignment, spacing) within the design."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then practice inserting different content types into their design project.  - Execute tasks to modify text, images, and shapes, adapting them to the overall design.  - Apply various formatting options to text and paragraphs to achieve desired visual effects.  Assignment: Design a simple flyer, adding text headlines, body copy, and an image, then edit and format them."
+      ],
+      "resourcesAndRefs": [
+        "References;  Bringhurst, R. (2012). The Elements of Typographic Style (4th ed.). Hartley & Marks.  Resources;   Computer workstations, Graphic design software, Sample text and image assets, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical task on adding and editing content   Observation of formatting skills"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 11,
+      "sessionNumber": "4",
+      "sessionTitle": "Page Formatting in Graphic Publications",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Implement columns, borders, and shading for page design.  b. Utilize headers, footers, and backgrounds in publications.  c. Apply watermarks and adjust page orientation."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate how to apply columns, borders, and shading to enhance page layout.  - Guide trainees through adding headers, footers, and custom backgrounds to their publication pages.  - Instruct on inserting watermarks and changing page orientation (portrait/landscape) as needed for the design."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then practice adding columns, borders, and shading to different sections of their publication.  - Apply headers, footers, and a thematic background to their design project.  - Implement a watermark and adjust the page orientation to suit the content.  Assignment: Design a newsletter page with two columns, a unique background, and a discrete watermark, then adjust orientation if necessary."
+      ],
+      "resourcesAndRefs": [
+        "References;  Lester, P. M. (2014). Visual Communication: Images with Messages (6th ed.). Wadsworth Publishing.  Resources;   Computer workstations, Graphic design software, Sample designs for formatting, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical task on page formatting   Observation of background/watermark implementation"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 11,
+      "sessionNumber": "5",
+      "sessionTitle": "Working with Graphic Objects - Textboxes & Tables",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Create and manipulate textboxes for diverse text layouts.  b. Insert and customize tables within graphic publications.  c. Apply effects and properties to text and tables."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the creation and advanced manipulation of textboxes, including linking textboxes and text wrapping.  - Guide trainees through inserting and formatting tables for presenting structured data within a graphic design.  - Instruct on applying various effects like shadows, transparency, and borders to textboxes and tables."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then practice creating complex textbox layouts and managing text flow.  - Insert a table into their graphic publication and customize its appearance to match the design.  - Experiment with effects and properties to enhance the visual appeal of textboxes and tables.  Assignment: Design a product comparison chart within a graphic publication, using textboxes and a table with custom effects."
+      ],
+      "resourcesAndRefs": [
+        "References;  Itten, J. (1970). The Elements of Color. Van Nostrand Reinhold.  Resources;   Computer workstations, Graphic design software, Sample data for tables, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical task on textboxes and tables   Observation of effects application"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 11,
+      "sessionNumber": "6",
+      "sessionTitle": "Working with Graphic Objects - Shapes & Pictures",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Create and modify various shapes for design elements.  b. Insert and manipulate pictures (PNG, JPEG, GIF) in a publication.  c. Apply image editing techniques (cropping, resizing, filters) to pictures."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate how to draw and customize different geometric and freeform shapes.  - Guide trainees through inserting various image formats (PNG, JPEG, GIF) and positioning them correctly.  - Instruct on applying basic image editing functions such as cropping, resizing, rotation, and color adjustments."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then practice drawing and customizing shapes to create visual elements.  - Insert different types of images into their design and arrange them effectively.  - Apply cropping, resizing, and simple filters to images to integrate them seamlessly into the publication.  Assignment: Design a poster with a prominent image, incorporating custom shapes and basic image edits."
+      ],
+      "resourcesAndRefs": [
+        "References;  Itten, J. (1970). The Elements of Color. Van Nostrand Reinhold.  Resources;   Computer workstations, Graphic design software, Image files (PNG, JPEG, GIF), Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical task on shapes and picture manipulation   Observation of image editing  Knowledge   Q&A on image formats"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 12,
+      "sessionNumber": "1",
+      "sessionTitle": "Publishing Graphic Designs",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Prepare a graphic publication for output.  b. Understand and apply print setup options for graphic designs.  c. Print graphic publications according to task requirements."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate the process of preparing a graphic publication for various output methods (e.g., web, print).  - Guide trainees through print setup options specific to graphic design, such as resolution, color modes, and bleed.  - Instruct on how to send a graphic design to a printer, considering paper size and quality settings."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then practice preparing their graphic designs for different publishing scenarios.  - Configure print settings for their design project, ensuring correct resolution and color profiles.  - Print a hard copy of their graphic publication, verifying the output quality.  Assignment: Finalize a brochure design for print, including setting bleed and trim marks, then print a draft copy."
+      ],
+      "resourcesAndRefs": [
+        "References;  Itten, J. (1970). The Elements of Color. Van Nostrand Reinhold.  Resources;   Computer workstations, Graphic design software, Printer, Sample designs for printing, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical task on publication preparation and printing  Print output evaluation  Knowledge   Q&A on publishing considerations"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 12,
+      "sessionNumber": "2",
+      "sessionTitle": "Perform document production",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  Identify different types of scanners, their functionalities and process of document scanning.  Understand the concept of document duplication, identify various methods for duplicating documents and Perform document duplication as per user specifications."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Present various types of scanners, explain their typical uses and Demonstrate the step-by-step process of scanning a document  - Demonstrate various techniques for duplicating documents using copiers, multifunction printers, and digital file copying."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the discussion, identify scanner types, and differentiate their applications as you Observe the demonstration, then follow the process to scan a document using a scanner.  - Observe the demonstrations, then identify the most appropriate duplication method for different scenarios.  Assignment: Scan a multi-page document into a single PDF file and another document as a JPEG image."
+      ],
+      "resourcesAndRefs": [
+        "References;  Resources;   Computer workstations, Scanner, Sample documents for scanning, Scanning software, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical document scanning task  Practical document duplication task  Observation of file saving  Knowledge   Q&A on scanner types and settings"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 12,
+      "sessionNumber": "3",
+      "sessionTitle": "Introduction to Online Collaboration",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Define online collaboration and its importance.  b. Identify factors to consider when choosing online collaboration tools.  c. List common online collaboration tools."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Introduce the concept of online collaboration, explaining its benefits and impact on teamwork.  - Lead a discussion on the key factors (e.g., features, security, cost, ease of use) for selecting collaboration tools.  - Present various popular online collaboration tools (e.g., Microsoft Teams, Google Drive, Zoom) and their primary functions."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the discussion, define online collaboration, and articulate its advantages.  - Engage in a group activity to identify and prioritize factors for choosing collaboration tools.  - Identify and categorize different online collaboration tools based on their features and use cases.  Assignment: Research three different online collaboration tools and compare them based on the factors discussed in class."
+      ],
+      "resourcesAndRefs": [
+        "References;  Grudin, J. (1994). Computer-supported cooperative work: History and focus. Computer, 27(5), 19-26.  Resources;   Computer workstations, Projector, Whiteboard, Case studies of collaborative projects, Recommended textbooks"
+      ],
+      "assessments": [
+        "Knowledge   Group discussion on collaboration benefits  Q&A on tool selection factors  List of collaboration tools identified"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 12,
+      "sessionNumber": "4",
+      "sessionTitle": "Online Collaboration Preparation and Setup",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Understand key concepts in online collaboration setup.  b. Prepare for online collaboration by downloading necessary software.  c. Register and/or set up user accounts for collaboration tools."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Explain the foundational concepts involved in setting up online collaboration environments (e.g., user roles, permissions).  - Demonstrate the process of downloading and installing necessary software or client applications for selected tools.  - Guide trainees step-by-step through registering for user accounts and configuring basic profile settings on a chosen platform."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the explanation, articulate setup concepts, and ask clarifying questions.  - Observe the demonstration, then download and install a required collaboration client software.  - Practice creating a user account on a designated online collaboration platform and updating their profile.  Assignment: Create an account on a chosen online collaboration platform (e.g., Google Meet) and familiarize yourself with its settings."
+      ],
+      "resourcesAndRefs": [
+        "References;  Grudin, J. (1994). Computer-supported cooperative work: History and focus. Computer, 27(5), 19-26.  Resources;   Computer workstations, Internet access, Selected online collaboration platforms, Installation guides, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Observation of software installation  Account setup verification"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 12,
+      "sessionNumber": "5",
+      "sessionTitle": "Application of Online Collaborative Tools - Cloud Storage , emails and calendars",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Utilize online storage media for file sharing and collaboration.  b. Upload and download files to/from cloud storage platforms.  c. Send and receive emails effectively, utilizing various tools and settings for efficient communication and retrieval.  d. Use online calendars for scheduling and event management."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Demonstrate how to use online storage platforms (ee.g., Google Drive, OneDrive) for storing and accessing files.  - Instruct on setting sharing permissions (e.g., view only, edit) for collaborative documents and folders.  - Demonstrate how to compose, send, and receive emails, including attaching files and using advanced settings.  - Instruct on scheduling events, setting reminders, and sharing calendars using online calendar tools."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Observe the demonstration, then practice navigating a cloud storage interface.  - Upload various types of files to their cloud storage account and organize them into folders.  - Observe the demonstration, then compose and send emails, attaching documents and using CC/BCC options.  - Create an event in an online calendar, invite participants, and set a reminder.  Assignment: Share a document from your cloud storage with a classmate, granting them 'view only' access, and another with 'edit' access."
+      ],
+      "resourcesAndRefs": [
+        "References;  Ferrazzi, K. (2014). Getting Virtual Teams Right. Harvard Business Review.  Resources;   Computer workstations, Internet access, Google Drive/OneDrive accounts, Sample files for upload, Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Practical file upload/download  Sharing permissions exercise  Practical email sending/receiving  Calendar event creation exercise  Knowledge   Q&A on cloud storage features"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 12,
+      "sessionNumber": "6",
+      "sessionTitle": "Demonstrating Mobile Collaborations",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Understand key concepts in mobile applications for collaboration.  b. Identify relevant mobile application permissions for collaboration tools.  c. Utilize mobile devices for collaborative tasks, including synchronization."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Introduce the role of mobile devices in collaboration and key features of mobile collaboration apps.  - Discuss and demonstrate how to manage mobile application permissions for security and functionality.  - Guide trainees through using mobile versions of collaboration tools for tasks like document editing and message synchronization."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Participate in the discussion, identifying mobile-specific collaboration benefits and challenges.  - Examine and configure app permissions on their mobile devices for selected collaboration tools.  - Practice performing collaborative tasks (e.g., editing a shared document, participating in a chat) using their mobile devices, observing synchronization.  Assignment: Use a mobile collaboration app to edit a shared document and send a message to a group chat."
+      ],
+      "resourcesAndRefs": [
+        "References;  Mell, P., & Grance, T. (2011). The NIST Definition of Cloud Computing. National Institute of Standards and Technology.  Resources;   Mobile devices (smartphones/tablets), Internet access, Mobile collaboration apps (e.g., Google Docs app, Microsoft Teams app), Recommended textbooks"
+      ],
+      "assessments": [
+        "Skills   Observation of mobile app usage  Knowledge   Q&A on app permissions  Discussion on mobile collaboration best practices"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 12,
+      "sessionNumber": "",
+      "sessionTitle": "Practical Assessment 3",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:  a. Apply all acquired skills in computer operations to solve complex problems.  b. Demonstrate competence across elements graphic application, document production and online collaboration.  c. Execute tasks accurately and efficiently under examination conditions."
+      ],
+      "trainerActivities": [
+        "Trainer to;   - Administering and invigilating practical Assessment 3  - Ensuring all examination conditions are met and providing necessary technical support without assisting with task execution.  - Collecting and securing all completed practical work and assessment evidence."
+      ],
+      "traineeActivities": [
+        "Trainee to;   - Attempting the comprehensive practical Assessment 3 according to all instructions and criteria.  - Applying integrated knowledge and skills from all learning outcomes to complete the assigned tasks.  - Managing time, resources, and problem-solving effectively to achieve the required level of performance."
+      ],
+      "resourcesAndRefs": [
+        "References;  Resources;   Computer workstations, All required software, Comprehensive practical task sheet, Timer, Assessment rubrics"
+      ],
+      "assessments": [
+        "Skills   Practical Assessment 3"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    }
+  ]
+}

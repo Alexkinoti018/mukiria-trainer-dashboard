@@ -1,0 +1,511 @@
+{
+  "metadata": {
+    "formNumber": "MTTI/F/CUR/02",
+    "institution": "MUKIRIA TECHNICAL TRAINING INSTITUTE",
+    "unitTitle": "APPLY DIGITAL LITERACY.",
+    "unitCode": "HOS/OS/FBO/BC/01/5/MA",
+    "trainerName": "BEATRICE WANGUI MAINA",
+    "level": "6",
+    "dateOfPreparation": "04/05/2026",
+    "dateOfRevision": "",
+    "numberOfTrainees": 18,
+    "cohortCode": "FBP6/S/24/S/25",
+    "skillsSummary": [
+      "Effectively use digital devices such as smartphone, tablets, laptops and desktop PCs."
+    ],
+    "elementsAndPerformanceCriteria": [
+      {
+        "elementTitle": "1. Operate computer devices",
+        "criteria": [
+          "1.1 Computer device usage is determined as per workplace requirements.",
+          "1.2 Computer hardware is identified according to job requirements.",
+          "1.3 Computer software is identified according to workplace requirements.",
+          "1.4 Computer devices are turned on or off as per the correct workplace procedure.",
+          "1.5 Mouse techniques are applied in solving tasks as per workplace requirements.",
+          "1.6 Key board techniques are applied in solving tasks as per workplace requirements.",
+          "1.7 Computer files and folders are created and managed as per workplace requirements.",
+          "1.8 Internet connection options are identified and applied in connecting computer devices to the Internet.",
+          "1.9 External devices are identified and connected to the computer devices as per the job requirement."
+        ]
+      },
+      {
+        "elementTitle": "2. Solve tasks using Office suite",
+        "criteria": [
+          "2.1 Word processing concepts are applied in solving workplace tasks as per job requirements.",
+          "2.2 Worksheet data is entered and prepared in accordance with work procedures.",
+          "2.3 Worksheet data is built and edited in accordance with workplace procedures.",
+          "2.4 Data manipulation on a worksheet is undertaken in accordance with work requirements.",
+          "2.5 Worksheets are saved and printed in accordance with job requirements.",
+          "2.6 Electronic presentation concepts are applied in solving workplace tasks as per job requirements."
+        ]
+      },
+      {
+        "elementTitle": "3. Manage data and information",
+        "criteria": [
+          "3.1 Office internet services are identified and applied in accordance with office procedures.",
+          "3.2 Internet access applications are determined in accordance with office operation procedures.",
+          "3.3 Internet search is performed as per job requirements.",
+          "3.4 Online digital content is downloaded in accordance with workplace requirements.",
+          "3.5 Digital content is identified and backed up in accordance with workplace procedures."
+        ]
+      },
+      {
+        "elementTitle": "4. Perform online communication and collaboration",
+        "criteria": [
+          "4.1 Netiquette principles are observed as per work requirements.",
+          "4.2 Electronic mail communication is executed in accordance with workplace policy.",
+          "4.3 Digital content copyright and licenses are identified and applied according to workplace policies and regulatory requirements.",
+          "4.4 Online collaboration tools are applied in accordance with workplace policies and regulatory requirements."
+        ]
+      },
+      {
+        "elementTitle": "5. Apply cyber security skills",
+        "criteria": [
+          "5.1 Data protection and privacy is classified in accordance with workplace policies and regulatory requirements.",
+          "5.2 Internet security threats are identified as per workplace policies and regulatory requirements.",
+          "5.3 Computer threats and crimes are detected in accordance to Information Management security guidelines",
+          "5.4 Cybersecurity control measures are applied in accordance with workplace policies and regulatory requirements."
+        ]
+      },
+      {
+        "elementTitle": "6. Perform online jobs",
+        "criteria": [
+          "6.1 Online job platforms are identified as per the job requirements.",
+          "6.2 Online accounts and profiles are created in accordance with the work requirements.",
+          "6.3 Online jobs are identified according to the bidder's skill set.",
+          "6.4 Online digital identity is managed according to industry best practices.",
+          "6.5 Online job bidding is done as per the specific job requirements.",
+          "6.6 Online tasks are executed according to the job requirements.",
+          "6.7 Personal online payment account is managed in accordance with financial regulations."
+        ]
+      },
+      {
+        "elementTitle": "7. Apply job entry techniques",
+        "criteria": [
+          "7.1 Job opportunities are sought based on competencies.",
+          "7.2 A winning resume/CV is developed as per job advertisement.",
+          "7.3 An application/cover letter is developed based on the job advertisement.",
+          "7.4 Certificates and testimonials are organized as per resume.",
+          "7.5 Interview skills are demonstrated as per job advertisement."
+        ]
+      }
+    ],
+    "preparedBy": {
+      "name": "BEATRICE WANGUI MAINA",
+      "date": "04/05/2026"
+    },
+    "approvedBy": {
+      "name": "GREENWOOD N. MAERIA",
+      "date": "7/05/2026",
+      "title": ""
+    }
+  },
+  "schedule": [
+    {
+      "week": 1,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Introduction to Computer Systems and Hardware",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:",
+        "a. Classify different types of computers based on their characteristics.",
+        "b. Define key terms related to digital literacy and computer systems.",
+        "c. Identify major components of computer hardware and their functions."
+      ],
+      "trainerActivities": [
+        "Trainer to;",
+        "- Lead a brainstorming session on the definition and importance of digital literacy.",
+        "- Facilitate a group activity where trainees classify various computer types and explain their uses.",
+        "- Demonstrate the identification and connection of various computer hardware components."
+      ],
+      "traineeActivities": [
+        "Trainee to;",
+        "- Participate in the brainstorming session and contribute to defining digital literacy.",
+        "- Collaborate in the group activity, classify computer types, and present their findings.",
+        "- Observe the demonstration, then identify and connect computer hardware components in practical pairs.",
+        "Assignment: 'Research and write a short report on the evolution of computer systems from the first generation to the present day.'"
+      ],
+      "resourcesAndRefs": [
+        "References:  Mall, R. (2018). Fundamentals of software engineering. PHI Learning Pvt. Ltd.   People.bu.edu/briefcomputerhistory.html",
+        "Resources:   - Digital Literacy textbook",
+        "- Computer hardware components (CPU, monitor, keyboard, mouse, printer, etc.)",
+        "- Whiteboard and markers"
+      ],
+      "assessments": [
+        "Knowledge   - Group activity presentation",
+        "Skills   - Observation of hardware identification and connection"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 2,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Computer Software, File Management and Internet Connectivity",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:",
+        "a. Apply basic mouse and keyboard techniques for computer operation.",
+        "b. Create and manage computer files and folders efficiently.",
+        "c. Distinguish between different types of computer software and their functions."
+      ],
+      "trainerActivities": [
+        "Trainer to;",
+        "- Conduct a practical workshop on effective mouse and keyboard usage, including shortcuts.",
+        "- Guide trainees through a hands-on exercise on creating, naming, and organizing files and folders.",
+        "- Explain and demonstrate the process of booting a computer and customizing the desktop environment."
+      ],
+      "traineeActivities": [
+        "Trainee to;",
+        "- Practice mouse and keyboard techniques, participating in speed and accuracy exercises.",
+        "- Follow the guided exercise to create and manage a structured file and folder system.",
+        "- Observe the demonstration, then practice booting the computer and customizing their desktop settings.",
+        "Assignment: 'Prepare a step-by-step guide on how to connect a computer to the internet using different methods.'"
+      ],
+      "resourcesAndRefs": [
+        "References:  Rajaraman, A. (1995). Introduction to computers. In Academic Library Automation (pp. 6-16). New Delhi, Ess Ess Publications.",
+        "Resources:   - Computers with various operating systems and application software",
+        "- Mouse and keyboard practice applications",
+        "- Internet access"
+      ],
+      "assessments": [
+        "Skills   - Practical exercise on file/folder management",
+        "- Observation of mouse and keyboard proficiency"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 3,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Word Processing Concepts and Applications",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:",
+        "a. Create and format word documents with various text and paragraph styles.",
+        "b. Insert and manipulate tables and graphical objects within a document.",
+        "c. Utilize mail merge functionality to generate personalized documents."
+      ],
+      "trainerActivities": [
+        "Trainer to;",
+        "- Provide a hands-on tutorial on creating new documents, applying formatting to text and paragraphs.",
+        "- Lead a guided practice session on inserting and resizing tables and graphical objects into a word document.",
+        "- Demonstrate the steps involved in performing a basic mail merge operation."
+      ],
+      "traineeActivities": [
+        "Trainee to;",
+        "- Create new documents, applying learned formatting techniques to different sections.",
+        "- Practice inserting tables and graphics, adjusting their properties as per instructions.",
+        "- Follow the mail merge demonstration, then attempt to create a batch of personalized letters.",
+        "Assignment: 'Design a professional letter template in Microsoft Word, including a table and a company logo.'"
+      ],
+      "resourcesAndRefs": [
+        "References:  Schneider, G. M., & Gersting, J. (2018). Invitation to computer science. Cengage Learning.",
+        "Resources:   - Computers with Microsoft Word",
+        "- Sample document templates",
+        "- Projector and screen"
+      ],
+      "assessments": [
+        "Skills   - Practical document creation and formatting task",
+        "- Review of mail merge output"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 4,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Written Assessment 1",
+      "learningOutcomes": [
+        "By the end of the session trainee should be able to:",
+        "Attempt to answer questions as per the given instructions"
+      ],
+      "trainerActivities": [
+        "Trainer to;",
+        "-Administering the written assessment.",
+        "- Invigilating the examination process to ensure fairness and adherence to rules."
+      ],
+      "traineeActivities": [
+        "Trainee to;",
+        "- Attempting the written assessment to the best of their ability.",
+        "- Adhering strictly to examination rules and regulations."
+      ],
+      "resourcesAndRefs": [
+        "References:  Schneider, G. M., & Gersting, J. (2018). Invitation to computer science. Cengage Learning.",
+        "Resources:   - Written Assessment 1 candidate tool.",
+        "- Answer booklets"
+      ],
+      "assessments": [
+        "knowledge  - Written assessment 1",
+        "Attitudes",
+        "1. Integrity",
+        "2. Focus",
+        "3. Diligence"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 5,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Spreadsheet Concepts and Data Manipulation",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:",
+        "a. Create and manage worksheets using Microsoft Excel.",
+        "b. Perform data manipulation using basic formulae, functions, sorting, and filtering.",
+        "c. Represent data visually through charts and graphs."
+      ],
+      "trainerActivities": [
+        "Trainer to;",
+        "- Conduct a step-by-step demonstration on creating an Excel workbook and entering different data types.",
+        "- Facilitate a practical exercise where trainees apply various formulae and functions for data calculation and manipulation.",
+        "- Guide trainees through the process of generating and customizing different types of charts from worksheet data."
+      ],
+      "traineeActivities": [
+        "Trainee to;",
+        "- Create their own Excel workbooks, accurately entering and organizing diverse datasets.",
+        "- Practice using specified formulae and functions to sort, filter, and calculate data.",
+        "- Develop and customize charts that effectively represent the manipulated data.",
+        "Assignment: 'Create an expense tracker spreadsheet for a small business, including formulas for totals and a chart visualizing monthly expenditure.'"
+      ],
+      "resourcesAndRefs": [
+        "References:  Northcutt, S., & Novak, J. (2002). Network intrusion detection. Sams Publishing.   Panko, R. R. (2010). Corporate computer and network security, 2/e. Pearson Education India.   Page",
+        "Resources:   - Computers with Microsoft Excel",
+        "- Sample data sets for practice",
+        "- Online tutorials for advanced Excel functions"
+      ],
+      "assessments": [
+        "Skills   - Practical exercise on spreadsheet creation and formula application",
+        "- Review of generated charts"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 6,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Electronic Presentations: Design and Delivery",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:",
+        "a. Create engaging electronic presentations with multiple slides and effective text management.",
+        "b. Integrate charts and graphical objects into presentations to enhance visual appeal.",
+        "c. Apply slide effects, transitions, and proper navigation for effective delivery."
+      ],
+      "trainerActivities": [
+        "Trainer to;",
+        "- Deliver a practical session on creating new PowerPoint presentations and managing slide content.",
+        "- Demonstrate how to insert and format charts and various graphical objects within presentation slides.",
+        "- Guide trainees in applying slide transitions and animations, and practicing presentation   delivery."
+      ],
+      "traineeActivities": [
+        "Trainee to;",
+        "- Develop a multi-slide presentation, organizing content and managing text elements effectively.",
+        "- Practice integrating and formatting charts and images into their presentation slides.",
+        "- Experiment with different transitions and animations, then deliver a short presentation to peers.",
+        "Assignment: 'Prepare a short presentation on 'The Benefits of Digital Literacy' using all the learned PowerPoint features.'"
+      ],
+      "resourcesAndRefs": [
+        "References:  Barbara, B. (2016). Teach Yourself Visually PowerPoint 2016.",
+        "Resources:   - Computers with Microsoft PowerPoint",
+        "- Projector and screen for presentations",
+        "- Sample presentation templates"
+      ],
+      "assessments": [
+        "Knowledge   - Peer evaluation of trainee presentations",
+        "Skills   - Review of presentation slide design and content"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 7,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Managing Data, Information, and Internet Usage",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:",
+        "a. Establish and utilize internet connections for various online services.",
+        "b. Perform effective web searches and critically evaluate retrieved information.",
+        "c. Identify and apply methods for digital data backup and content management."
+      ],
+      "trainerActivities": [
+        "Trainer to;",
+        "- Conduct a practical session on establishing internet connections and utilizing various internet services.",
+        "- Lead a guided research activity, demonstrating advanced search techniques and criteria for evaluating online sources.",
+        "- Facilitate a hands-on exercise on downloading digital content and implementing different data backup strategies."
+      ],
+      "traineeActivities": [
+        "Trainee to;",
+        "- Practice connecting to the internet and accessing different web-based services.",
+        "- Participate in the guided research, applying critical thinking to select and verify online information.",
+        "- Download specified files and implement both online and offline data backup procedures.",
+        "Assignment: 'Compile a list of 5 reputable online sources for IT news, explaining why each is considered reliable.'"
+      ],
+      "resourcesAndRefs": [
+        "References:  Panko, R. R. (2010). Corporate computer and network security, 2/e. Pearson Education India.",
+        "Resources:   - Computers with internet access",
+        "- Web browsers and search engines",
+        "- External storage devices, cloud storage access"
+      ],
+      "assessments": [
+        "Skills   - Practical assessment of internet navigation and search skills",
+        "- Review of data backup implementation"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 8,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Written Assessment  2",
+      "learningOutcomes": [
+        "By the end of the session trainee should be able to:",
+        "Attempt to answer questions as per the given instructions"
+      ],
+      "trainerActivities": [
+        "Trainer to;",
+        "-Administering the written assessment.",
+        "- Invigilating the examination process to ensure fairness and adherence to rules."
+      ],
+      "traineeActivities": [
+        "Trainee to;",
+        "- Attempting the written assessment to the best of their ability.",
+        "- Adhering strictly to examination rules and regulations."
+      ],
+      "resourcesAndRefs": [
+        "References:  Panko, R. R. (2010). Corporate computer and network security, 2/e. Pearson Education India.",
+        "Resources:   - Written Assessment 2 candidate tool.",
+        "- Answer booklets"
+      ],
+      "assessments": [
+        "Knowledge   - Written assessment 2",
+        "Attitudes",
+        "1. Integrity",
+        "2. Discipline"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 9,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Online Communication and Collaboration Skills",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:",
+        "a. Apply netiquette principles in all online communication.",
+        "b. Execute effective electronic mail communication and management.",
+        "c. Utilize online collaboration tools for shared tasks and digital content."
+      ],
+      "trainerActivities": [
+        "Trainer to;",
+        "- Lead a role-playing exercise demonstrating appropriate and inappropriate netiquette in online scenarios.",
+        "- Guide trainees through a practical session on composing, sending, receiving, and organizing professional emails.",
+        "- Facilitate a collaborative project using an online productivity application, demonstrating file sharing and real-time editing."
+      ],
+      "traineeActivities": [
+        "Trainee to;",
+        "- Participate in role-playing, practicing proper netiquette and providing constructive feedback.",
+        "- Practice managing their email accounts, sending attachments, and creating organized folders.",
+        "- Work collaboratively on a shared document or presentation, utilizing online tools for communication and task allocation.",
+        "Assignment: 'Participate in an online forum discussion (simulated or real) on a given topic, ensuring adherence to netiquette principles.'"
+      ],
+      "resourcesAndRefs": [
+        "References:  Northcutt, S., & Novak, J. (2002). Network intrusion detection. Sams Publishing.",
+        "Resources:   - Computers with internet access and email client",
+        "- Access to online collaboration platforms (e.g., Google Workspace, Microsoft Teams)",
+        "- Netiquette guidelines handouts"
+      ],
+      "assessments": [
+        "Skills   - Observation of email communication skills",
+        "- Evaluation of collaborative project participation"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 10,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Applying Cybersecurity Skills",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:",
+        "a. Identify various internet security threats and potential computer crimes.",
+        "b. Apply fundamental data protection and privacy principles.",
+        "c. Implement cybersecurity control measures to safeguard computer systems and information."
+      ],
+      "trainerActivities": [
+        "Trainer to;",
+        "- Conduct an interactive presentation on common internet security threats and real-world examples of computer crimes.",
+        "- Lead a discussion on the core principles of data security and privacy, illustrating their importance with case studies.",
+        "- Guide trainees through a practical demonstration of applying passwords, antivirus software, and data backup as security measures."
+      ],
+      "traineeActivities": [
+        "Trainee to;",
+        "- Engage in discussions, analyzing different cyber threats and their potential impact.",
+        "- Participate in case study analysis, identifying data protection vulnerabilities and proposing solutions.",
+        "- Practice creating strong passwords, updating antivirus definitions, and performing secure data backups.",
+        "Assignment: 'Research and summarize the key provisions of the 'Computer Misuse and Cybercrimes Act No.5 of 2018' in Kenya.'"
+      ],
+      "resourcesAndRefs": [
+        "References:  Panko, R. R. (2010). Corporate computer and network security, 2/e. Pearson Education India.",
+        "Resources:   - Computers with internet access and antivirus software",
+        "- Case studies on cyber threats and data breaches",
+        "- Relevant cybersecurity legislation documents"
+      ],
+      "assessments": [
+        "Knowledge   - Group discussion on cybercrime scenarios",
+        "Skills   - Practical demonstration of applying security settings"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 11,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Online Jobs and Professional Job Entry Techniques",
+      "learningOutcomes": [
+        "By the end of the session, the trainee should be able to:",
+        "a. Identify and navigate online job platforms to explore opportunities.",
+        "b. Develop a professional resume/CV and cover letter for job applications.",
+        "c. Demonstrate essential interview skills, including preparation for virtual settings."
+      ],
+      "trainerActivities": [
+        "Trainer to;",
+        "- Facilitate a guided tour of popular online job platforms, demonstrating how to create profiles and search for jobs.",
+        "- Provide a workshop on developing compelling resumes/CVs and crafting effective cover letters using word processing tools.",
+        "- Conduct a simulated virtual interview session, offering feedback on professional presence and digital etiquette."
+      ],
+      "traineeActivities": [
+        "Trainee to;",
+        "- Explore various online job platforms, creating a sample profile and identifying potential job listings.",
+        "- Draft their own resume/CV and a tailored cover letter for a hypothetical job advertisement.",
+        "- Participate in the simulated virtual interview, practicing their communication, body language, and technical readiness.",
+        "Assignment: 'Create a basic digital portfolio (e.g., using Google Sites) showcasing a skill or project.'"
+      ],
+      "resourcesAndRefs": [
+        "References:  Panko, R. R. (2010). Corporate computer and network security, 2/e. Pearson Education India.   Page",
+        "Resources:   - Computers with internet access to job platforms",
+        "- Resume/CV templates and sample cover letters",
+        "- Video conferencing tools for simulated interviews"
+      ],
+      "assessments": [
+        "Knowledge   - Review of drafted resume/CV and cover letter",
+        "Skills   - Observation of simulated interview performance"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    },
+    {
+      "week": 12,
+      "sessionNumber": "1&2",
+      "sessionTitle": "Written assessment 3 ",
+      "learningOutcomes": [
+        "By the end of the session trainee should be able to:",
+        "Attempt to answer questions as per the given instructions"
+      ],
+      "trainerActivities": [
+        "Trainer to;",
+        "-Administering the written assessment.",
+        "- Invigilating the examination process to ensure fairness and adherence to rules."
+      ],
+      "traineeActivities": [
+        "Trainee to;",
+        "- Attempting the written assessment comprehensively.",
+        "- Adhering strictly to examination rules and regulations."
+      ],
+      "resourcesAndRefs": [
+        "References:  Mall, R. (2018). Fundamentals of software engineering. PHI Learning Pvt. Ltd.   People.bu.edu/briefcomputerhistory.html",
+        "Resources:   - Written assessment 3 candidate tool",
+        "- Answer booklets"
+      ],
+      "assessments": [
+        "Knowledge   - Written Assessment  3"
+      ],
+      "reflectionsAndDate": "REMARKS   DATE"
+    }
+  ]
+}
