@@ -29,6 +29,7 @@ import { useExam } from "@/contexts/ExamContext";
 import type { Exam, Submission } from "@/lib/supabase";
 import { format } from "date-fns";
 import { getTrainerLiveStatus } from "@/lib/academicCalendar";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface StatCard {
   label: string;
@@ -44,6 +45,7 @@ interface StatCard {
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
+  const { user } = useAuth();
   const { exams, submissions } = useExam();
   const [loading, setLoading] = useState(false);
   const [now, setNow] = useState(new Date());
@@ -54,7 +56,8 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const liveStatus = useMemo(() => getTrainerLiveStatus("Alexander Kinoti", now), [now]);
+  const trainerName = user?.name || "Alexander Kinoti";
+  const liveStatus = useMemo(() => getTrainerLiveStatus(trainerName, now), [trainerName, now]);
   const { context } = liveStatus;
 
   const totalSubs = submissions.length;
@@ -195,7 +198,7 @@ export default function Dashboard() {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#c48820]">
-                  Live Class Schedule • Alexander Kinoti
+                  Live Class Schedule • {trainerName}
                 </span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 text-[#000953] border border-slate-300">
                   {context.dayName}

@@ -16,7 +16,11 @@ import React, {
 } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
-import { syncTrainerToProfessionalDocuments, type SyncResult } from "@/lib/timetableSyncService";
+import {
+  syncTrainerToProfessionalDocuments,
+  findFacultyInTimetable,
+  type SyncResult,
+} from "@/lib/timetableSyncService";
 
 export interface AuthUser {
   id: string;
@@ -442,42 +446,96 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               : requestedRole === "hod"
                 ? DEMO_USERS[DEMO_HOD_PIN]
                 : DEMO_USERS[DEMO_TRAINER_PIN];
-        } else {
-          resolvedUser = DEMO_USERS[cleanPin] || null;
-        }
-
-        // Check registered trainers store if not resolved by fixed demo pins
-        if (!resolvedUser && typeof localStorage !== "undefined") {
-          try {
-            const rawReg = localStorage.getItem("mtti_registered_trainers");
-            if (rawReg) {
-              const regList = JSON.parse(rawReg);
-              if (Array.isArray(regList)) {
-                const foundTrainer = regList.find((t: any) => {
-                  const tEmail = (t.email || "").toLowerCase();
-                  const tPhone = (t.phone || "").replace(/[\s-]/g, "");
-                  const tName = (t.name || "").toLowerCase();
-                  const cId = cleanId.toLowerCase().replace(/[\s-]/g, "");
-                  return (
-                    (tEmail && tEmail === cleanId.toLowerCase()) ||
-                    (tPhone && tPhone === cId) ||
-                    (tName && tName === cleanId.toLowerCase())
-                  );
-                });
-                if (foundTrainer && (cleanPin === (foundTrainer.pin || "1234") || cleanPin === "1234" || cleanPin === "@Race5778")) {
-                  resolvedUser = {
-                    id: foundTrainer.id,
-                    name: foundTrainer.name,
-                    email: foundTrainer.email,
-                    phone: foundTrainer.phone,
-                    role: "trainer",
-                    department_id: foundTrainer.department,
-                  };
-                  syncTrainerToProfessionalDocuments(foundTrainer);
+        } else if (
+          requestedRole === "trainer" ||
+          (!requestedRole && (cleanPin === "1234" || cleanId.toLowerCase().includes("trainer")))
+        ) {
+          // 1. Check registered trainers store
+          if (typeof localStorage !== "undefined") {
+            try {
+              const rawReg = localStorage.getItem("mtti_registered_trainers");
+              if (rawReg) {
+                const regList = JSON.parse(rawReg);
+                if (Array.isArray(regList)) {
+                  const foundTrainer = regList.find((t: any) => {
+                    const tEmail = (t.email || "").toLowerCase();
+                    const tPhone = (t.phone || "").replace(/[\s-]/g, "");
+                    const tName = (t.name || "").toLowerCase();
+                    const cId = cleanId.toLowerCase().replace(/[\s-]/g, "");
+                    return (
+                      (tEmail && tEmail === cleanId.toLowerCase()) ||
+                      (tPhone && tPhone === cId) ||
+                      (tName &&
+                        (tName === cleanId.toLowerCase() ||
+                          tName.includes(cleanId.toLowerCase()) ||
+                          cleanId.toLowerCase().includes(tName)))
+                    );
+                  });
+                  if (
+                    foundTrainer &&
+                    (cleanPin === (foundTrainer.pin || "1234") ||
+                      cleanPin === "1234" ||
+                      cleanPin === "@Race5778")
+                  ) {
+                    resolvedUser = {
+                      id: foundTrainer.id,
+                      name: foundTrainer.name,
+                      email: foundTrainer.email,
+                      phone: foundTrainer.phone,
+                      role: "trainer",
+                      department_id: foundTrainer.department,
+                      assigned_units: foundTrainer.units,
+                    };
+                    syncTrainerToProfessionalDocuments(foundTrainer);
+                  }
                 }
               }
+            } catch {}
+          }
+
+          // 2. If not registered in local store, check if identifier matches any of the 117 institutional faculty in master timetable
+          if (
+            !resolvedUser &&
+            cleanId &&
+            cleanId !== "1234" &&
+            cleanId !== "trainer" &&
+            cleanId !== "042" &&
+            !cleanId.toLowerCase().includes("alexander")
+          ) {
+            const facultyMatch = findFacultyInTimetable(cleanId);
+            if (facultyMatch && (cleanPin === "1234" || cleanPin === "@Race5778")) {
+              const canonicalName = facultyMatch.name.replace(/^(mr|md|ms|mrs)\.?\s+/i, (m: string) =>
+                m.toUpperCase()
+              );
+              resolvedUser = {
+                id: `trainer-${facultyMatch.id}`,
+                name: canonicalName,
+                email: `${canonicalName.toLowerCase().replace(/[^a-z0-9]/g, ".")}@mtti.ac.ke`,
+                phone: "+254 700 000 000",
+                role: "trainer",
+                department_id: facultyMatch.department,
+                assigned_units: facultyMatch.units,
+              };
+              syncTrainerToProfessionalDocuments({
+                id: resolvedUser.id,
+                name: resolvedUser.name,
+                email: resolvedUser.email!,
+                phone: resolvedUser.phone!,
+                department: resolvedUser.department_id || "Computing & Informatics",
+                classes: facultyMatch.classes || [],
+                units: facultyMatch.units || [],
+                timetableTrainerId: facultyMatch.id,
+              });
             }
-          } catch {}
+          }
+
+          // 3. Fallback / Default demo trainer: Alexander Kinoti
+          // Triggered by PIN 1234 when cleanId is empty, "1234", "trainer", "MTTI-EMP-042", "Alexander Kinoti", etc.
+          if (!resolvedUser && (cleanPin === "1234" || cleanPin === "@Race5778")) {
+            resolvedUser = DEMO_USERS[DEMO_TRAINER_PIN];
+          }
+        } else {
+          resolvedUser = DEMO_USERS[cleanPin] || null;
         }
 
         if (!resolvedUser) {

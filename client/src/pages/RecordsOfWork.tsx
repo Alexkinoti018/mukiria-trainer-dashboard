@@ -22,6 +22,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCurrentTrainerProfile } from "@/lib/timetableSyncService";
 import { 
   getStoredRecordsOfWork, 
   saveStoredRecordsOfWork, 
@@ -109,9 +110,34 @@ export default function RecordsOfWork() {
   useEffect(() => {
     const loadedRecords = getStoredRecordsOfWork();
     const loadedPlans = getStoredSessionPlans();
-    setRecords(loadedRecords);
-    setSessionPlans(loadedPlans);
-  }, []);
+    const isPrivileged = user?.role === "admin" || user?.role === "hod";
+    const profile = getCurrentTrainerProfile(user);
+    const trainerClasses = new Set((profile.classes || []).map((c: string) => c.toUpperCase().trim()));
+    const trainerNameClean = profile.name.toLowerCase().trim();
+
+    const scopedRecords = isPrivileged
+      ? loadedRecords
+      : loadedRecords
+          .filter(
+            (r) =>
+              (r.signature && r.signature.toLowerCase().includes(trainerNameClean)) ||
+              (r.class_code && trainerClasses.has(r.class_code.toUpperCase().trim()))
+          )
+          .map((r) => ({ ...r, signature: profile.name }));
+
+    const scopedPlans = isPrivileged
+      ? loadedPlans
+      : loadedPlans
+          .filter(
+            (p) =>
+              (p.trainer_name && p.trainer_name.toLowerCase().includes(trainerNameClean)) ||
+              (p.class_code && trainerClasses.has(p.class_code.toUpperCase().trim()))
+          )
+          .map((p) => ({ ...p, trainer_name: profile.name, signature: profile.name }));
+
+    setRecords(scopedRecords.length > 0 ? scopedRecords : loadedRecords);
+    setSessionPlans(scopedPlans.length > 0 ? scopedPlans : loadedPlans);
+  }, [user]);
 
   // Sync delivered session plans into Record of Work
   const handleAutoSync = () => {

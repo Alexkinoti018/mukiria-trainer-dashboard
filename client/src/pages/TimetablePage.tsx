@@ -37,9 +37,15 @@ import {
 } from "@/lib/academicCalendar";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+import { useAuth } from "@/contexts/AuthContext";
+import { getCurrentTrainerProfile } from "@/lib/timetableSyncService";
 
 export default function TimetablePage() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const isPrivileged = user?.role === "admin" || user?.role === "hod";
+  const trainerProfile = useMemo(() => getCurrentTrainerProfile(user), [user]);
+
   const [currentTime, setCurrentTime] = useState(() => new Date());
   
   // Real-time clock tick every second
@@ -58,7 +64,7 @@ export default function TimetablePage() {
       const stored = localStorage.getItem("mtti_selected_timetable_trainer");
       if (stored) return stored;
     }
-    return "mr-alexander-kinoti";
+    return trainerProfile.timetableTrainerId || "mr-alexander-kinoti";
   });
   const [trainerSearchQuery, setTrainerSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
@@ -82,12 +88,19 @@ export default function TimetablePage() {
     });
   }, [trainers, trainerSearchQuery, selectedDepartment]);
 
-  // Currently viewed trainer object
+  // Currently viewed trainer object (strictly scoped to logged-in trainer in trainer portal)
   const activeTrainer = useMemo(() => {
+    if (!isPrivileged) {
+      const matched = trainers.find((t: any) => t.id === (trainerProfile.timetableTrainerId || selectedTrainerId)) ||
+                      trainers.find((t: any) => t.name.toLowerCase().includes(trainerProfile.name.toLowerCase())) ||
+                      trainers.find((t: any) => t.name.includes("ALEXANDER KINOTI")) ||
+                      trainers[0];
+      return matched;
+    }
     return trainers.find((t: any) => t.id === selectedTrainerId) || 
            trainers.find((t: any) => t.name.includes("ALEXANDER KINOTI")) || 
            trainers[0];
-  }, [trainers, selectedTrainerId]);
+  }, [trainers, selectedTrainerId, isPrivileged, trainerProfile]);
 
   // Live status for active trainer
   const liveStatus = useMemo(() => {
@@ -598,26 +611,28 @@ export default function TimetablePage() {
         {/* ── Filter & Search Toolbar (Print:hidden) ── */}
         <div className="bg-card border border-border p-4 rounded-xl shadow-sm space-y-4 print:hidden">
           
-          {/* Quick Trainer Buttons */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            <span className="text-xs font-bold text-muted-foreground whitespace-nowrap">Quick Trainers:</span>
-            {quickTrainers.map((qt) => (
-              <button
-                key={qt.id}
-                onClick={() => {
-                  setSelectedTrainerId(qt.id);
-                  setViewMode("trainer");
-                }}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-                  selectedTrainerId === qt.id && viewMode === "trainer"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border"
-                }`}
-              >
-                {qt.name}
-              </button>
-            ))}
-          </div>
+          {/* Quick Trainer Buttons - Exclusively for HOD and Administrator Governance */}
+          {isPrivileged && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              <span className="text-xs font-bold text-muted-foreground whitespace-nowrap">Faculty Directory:</span>
+              {quickTrainers.map((qt) => (
+                <button
+                  key={qt.id}
+                  onClick={() => {
+                    setSelectedTrainerId(qt.id);
+                    setViewMode("trainer");
+                  }}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+                    selectedTrainerId === qt.id && viewMode === "trainer"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border"
+                  }`}
+                >
+                  {qt.name}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border">
             
@@ -629,7 +644,7 @@ export default function TimetablePage() {
                   viewMode === "trainer" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
                 }`}
               >
-                By Trainer ({trainers.length})
+                {isPrivileged ? `By Trainer (${trainers.length})` : "My Schedule"}
               </button>
               <button
                 onClick={() => setViewMode("class")}
@@ -637,7 +652,7 @@ export default function TimetablePage() {
                   viewMode === "class" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
                 }`}
               >
-                By Class / Cohort
+                {isPrivileged ? "By Class / Cohort" : "My Assigned Cohorts"}
               </button>
               <button
                 onClick={() => setViewMode("venue")}
@@ -652,27 +667,37 @@ export default function TimetablePage() {
             {/* Context Filters */}
             {viewMode === "trainer" && (
               <div className="flex items-center gap-2 flex-1 max-w-xl">
-                <div className="relative flex-1">
-                  <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={trainerSearchQuery}
-                    onChange={(e) => setTrainerSearchQuery(e.target.value)}
-                    placeholder="Search any of 117 trainers or subjects..."
-                    className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-1.5 text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-                  />
-                </div>
-                <select
-                  value={selectedTrainerId}
-                  onChange={(e) => setSelectedTrainerId(e.target.value)}
-                  className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs font-bold text-foreground outline-none cursor-pointer max-w-[220px]"
-                >
-                  {filteredTrainers.map((t: any) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
+                {isPrivileged ? (
+                  <>
+                    <div className="relative flex-1">
+                      <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={trainerSearchQuery}
+                        onChange={(e) => setTrainerSearchQuery(e.target.value)}
+                        placeholder="Search any of 117 trainers or subjects..."
+                        className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-1.5 text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <select
+                      value={selectedTrainerId}
+                      onChange={(e) => setSelectedTrainerId(e.target.value)}
+                      className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs font-bold text-foreground outline-none cursor-pointer max-w-[220px]"
+                    >
+                      {filteredTrainers.map((t: any) => (
+                        <option key={t.id} value={t.id}>
+                          {t.name}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
+                    <span className="font-bold">Faculty:</span>
+                    <strong className="text-foreground">{activeTrainer.name}</strong>
+                    <span className="text-muted-foreground">({activeTrainer.department})</span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -684,7 +709,10 @@ export default function TimetablePage() {
                   onChange={(e) => setSelectedClassFilter(e.target.value)}
                   className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs font-bold text-foreground outline-none cursor-pointer flex-1"
                 >
-                  {(masterTimetable as any).classes.map((cls: string) => (
+                  {(isPrivileged
+                    ? (masterTimetable as any).classes
+                    : (activeTrainer.classes?.length ? activeTrainer.classes : (masterTimetable as any).classes)
+                  ).map((cls: string) => (
                     <option key={cls} value={cls}>
                       {cls}
                     </option>

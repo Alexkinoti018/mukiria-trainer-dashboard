@@ -4,6 +4,8 @@ import { supabase, isSupabaseConfigured, normalizeAssessmentTaskSlot } from "@/l
 import { toast } from "sonner";
 import { useTrainees, findMatchingTrainee, syncScoreToContinuousMarksheet } from "@/contexts/TraineeContext";
 import { useExam } from "@/contexts/ExamContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { getCurrentTrainerProfile } from "@/lib/timetableSyncService";
 import ObservationChecklistMarkingModal from "./ObservationChecklistMarkingModal";
 import { calculateCdaccWeightedMark } from "@/lib/assessmentTaxonomy";
 import html2canvas from "html2canvas";
@@ -61,8 +63,12 @@ export function AssessmentMarksSheet() {
   const [poeDate, setPoeDate] = useState("07/10/2026");
   const [assessmentSeries, setAssessmentSeries] = useState("NOV/DEC 2026");
 
+  const { user } = useAuth();
+  const isPrivileged = user?.role === "admin" || user?.role === "hod";
+  const profile = getCurrentTrainerProfile(user);
+
   // Sign-off names
-  const [assessorName, setAssessorName] = useState("Alexander Kinoti");
+  const [assessorName, setAssessorName] = useState(() => (user?.name || "Alexander Kinoti"));
   const [verifierName, setVerifierName] = useState("HOD Computing & Informatics");
   
   // Class selection for targeted marksheet - remembers trainer selection across reloads
@@ -137,11 +143,18 @@ export function AssessmentMarksSheet() {
     return () => window.removeEventListener("mtti-marks-updated", handleMarksUpdated);
   }, []);
 
-  // Distinct classes available from trainees roster (excluding pulled down cohorts)
+  // Distinct classes available from trainees roster (scoped to this trainer's teaching cohorts if in trainer portal)
   const availableClasses = useMemo(() => {
-    return Array.from(new Set(trainees.map(t => t.classCode).filter(Boolean)))
+    const rawClasses = Array.from(new Set(trainees.map(t => t.classCode).filter(Boolean)))
       .filter(cls => cls !== "FBS6 MOD/12026" && !cls.includes("12026"));
-  }, [trainees]);
+    
+    if (!isPrivileged && profile.classes && profile.classes.length > 0) {
+      const trainerClasses = new Set(profile.classes.map(c => c.toUpperCase().trim()));
+      const scoped = rawClasses.filter(c => trainerClasses.has(c.toUpperCase().trim()));
+      return scoped.length > 0 ? scoped : rawClasses;
+    }
+    return rawClasses;
+  }, [trainees, isPrivileged, profile]);
 
   const getClassStorageKey = (cls: string) => {
     const clean = cls.replace(/[^a-zA-Z0-9_-]/g, "_");

@@ -39,6 +39,7 @@ import {
 } from "@/lib/mockSessionPlans";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCurrentTrainerProfile } from "@/lib/timetableSyncService";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import { saveSessionPlanToOffline, getAllOfflineSessionPlans, enqueueSyncItem } from "@/lib/offlineStore";
@@ -182,9 +183,10 @@ export default function SessionPlans() {
   };
 
   const handleOpenCreate = () => {
+    const profile = getCurrentTrainerProfile(user);
     setSelectedPlan(null);
-    setFormTrainerName("MR. ALEXANDER KINOTI");
-    setFormDepartment("COMPUTING AND INFORMATICS");
+    setFormTrainerName(`MR. ${profile.name.replace(/^(mr|md|ms|mrs)\.?\s+/i, "").toUpperCase()}`);
+    setFormDepartment(profile.department ? profile.department.toUpperCase() : "COMPUTING AND INFORMATICS");
     setFormUnitName("PERFORM COMPUTER ESSENTIALS");
     setFormUnitCode("IT/CU/ICTA/CR/01/4/MA");
     setFormClassCode("ICT4/ITECH6/S/26 MOD 1");
@@ -837,7 +839,8 @@ export default function SessionPlans() {
       doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
       const unitDetails = filterUnit !== "all" ? plans.find(p => p.unit_code === filterUnit) : null;
-      doc.text(`Trainer: MR. ALEXANDER KINOTI   |   Unit: ${unitDetails?.unit_name || "All Units"} (${filterUnit})   |   Class: ${filterClass}`, margin + 5, y + 13);
+      const exportTrainerName = getCurrentTrainerProfile(user).name.toUpperCase();
+      doc.text(`Trainer: ${exportTrainerName}   |   Unit: ${unitDetails?.unit_name || "All Units"} (${filterUnit})   |   Class: ${filterClass}`, margin + 5, y + 13);
 
       y += 17;
 
@@ -1076,8 +1079,19 @@ export default function SessionPlans() {
     toast.success("Backup JSON file exported!");
   };
 
+  // Multi-tenant Trainer Scoping
+  const isPrivileged = user?.role === "admin" || user?.role === "hod";
+  const profile = getCurrentTrainerProfile(user);
+  const trainerClasses = new Set((profile.classes || []).map((c: string) => c.toUpperCase().trim()));
+  const trainerNameClean = profile.name.toLowerCase().trim();
+
   // Filtered lists
   const filteredPlans = plans.filter((p) => {
+    const matchesTrainer =
+      isPrivileged ||
+      (p.trainer_name && p.trainer_name.toLowerCase().includes(trainerNameClean)) ||
+      (p.class_code && trainerClasses.has(p.class_code.toUpperCase().trim()));
+
     const matchesSearch =
       p.session_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.unit_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1086,10 +1100,15 @@ export default function SessionPlans() {
     
     const matchesUnit = filterUnit === "all" ? true : p.unit_code === filterUnit;
     const matchesClass = filterClass === "all" ? true : p.class_code === filterClass;
-    return matchesSearch && matchesUnit && matchesClass;
+    return matchesTrainer && matchesSearch && matchesUnit && matchesClass;
   });
 
   const filteredLp = learningPlans.filter((lp) => {
+    const matchesTrainer =
+      isPrivileged ||
+      (lp.trainer_name && lp.trainer_name.toLowerCase().includes(trainerNameClean)) ||
+      (lp.class_code && trainerClasses.has(lp.class_code.toUpperCase().trim()));
+
     const matchesSearch =
       lp.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lp.unit_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1097,21 +1116,33 @@ export default function SessionPlans() {
     
     const matchesUnit = filterUnit === "all" ? true : lp.unit_code === filterUnit;
     const matchesClass = filterClass === "all" ? true : lp.class_code === filterClass;
-    return matchesSearch && matchesUnit && matchesClass;
+    return matchesTrainer && matchesSearch && matchesUnit && matchesClass;
   });
 
   const filteredRows = recordsOfWork.filter((row) => {
+    const matchesTrainer =
+      isPrivileged ||
+      (row.signature && row.signature.toLowerCase().includes(trainerNameClean)) ||
+      (row.class_code && trainerClasses.has(row.class_code.toUpperCase().trim()));
+
     const matchesSearch =
       row.work_actually_covered.toLowerCase().includes(searchQuery.toLowerCase()) ||
       row.unit_code.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesUnit = filterUnit === "all" ? true : row.unit_code === filterUnit;
     const matchesClass = filterClass === "all" ? true : row.class_code === filterClass;
-    return matchesSearch && matchesUnit && matchesClass;
+    return matchesTrainer && matchesSearch && matchesUnit && matchesClass;
   });
 
-  const uniqueUnits = Array.from(new Set(learningPlans.map(p => p.unit_code)));
-  const uniqueClasses = Array.from(new Set(learningPlans.map(p => p.class_code)));
+  const scopedLp = isPrivileged
+    ? learningPlans
+    : learningPlans.filter(
+        (lp) =>
+          (lp.trainer_name && lp.trainer_name.toLowerCase().includes(trainerNameClean)) ||
+          (lp.class_code && trainerClasses.has(lp.class_code.toUpperCase().trim()))
+      );
+  const uniqueUnits = Array.from(new Set(scopedLp.map(p => p.unit_code)));
+  const uniqueClasses = Array.from(new Set(scopedLp.map(p => p.class_code)));
 
   const unitNameMap = useMemo(() => {
     const map: Record<string, string> = {};

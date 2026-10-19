@@ -25,6 +25,7 @@ import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCurrentTrainerProfile } from "@/lib/timetableSyncService";
 import curriculumDatabaseRaw from "@/lib/curriculum_database.json";
 import parsedTemplatesRaw from "@/lib/parsed_templates.json";
 import {
@@ -282,7 +283,40 @@ export default function LearningPlan() {
         localStorage.setItem("mtti_custom_learning_plans", JSON.stringify(allPlans));
       }
     
-    setPlans(allPlans);
+    // Multi-tenant Trainer Scoping: If user is an individual trainer, strictly show their own educational documents!
+    const isPrivileged = user?.role === "admin" || user?.role === "hod";
+    const profile = getCurrentTrainerProfile(user);
+
+    let displayPlans = allPlans;
+    if (!isPrivileged) {
+      const trainerClasses = new Set((profile.classes || []).map((c: string) => c.toUpperCase().trim()));
+      const trainerUnits = (profile.units || []).map((u: string) => u.toUpperCase().trim());
+      const trainerNameClean = profile.name.toLowerCase().trim();
+
+      displayPlans = allPlans
+        .filter((p) => {
+          // Matches by trainer name
+          if (p.trainerName && p.trainerName.toLowerCase().includes(trainerNameClean)) return true;
+          // Matches by assigned class
+          if (p.classCode && trainerClasses.has(p.classCode.toUpperCase().trim())) return true;
+          // Matches by assigned unit
+          if (
+            trainerUnits.some(
+              (u: string) => p.unitTitle.toUpperCase().includes(u) || p.unitCode.toUpperCase().includes(u)
+            )
+          ) {
+            return true;
+          }
+          return false;
+        })
+        .map((p) => ({
+          ...p,
+          trainerName: profile.name,
+          department: profile.department || p.department,
+        }));
+    }
+
+    setPlans(displayPlans.length > 0 ? displayPlans : allPlans);
 
     // 1. Check URL parameters (e.g. ?code=... or ?id=... or ?cohort=...)
     const urlParams = new URLSearchParams(window.location.search);

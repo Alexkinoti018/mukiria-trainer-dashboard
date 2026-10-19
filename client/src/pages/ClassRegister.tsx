@@ -177,8 +177,8 @@ export default function ClassRegister() {
     return MTTI_CLASSES.find(c => c.code === selectedClassCode) || MTTI_CLASSES[0];
   }, [selectedClassCode]);
 
-  const [metadata, setMetadata] = useState({
-    lecturer: "ALEXANDER KINOTI",
+  const [metadata, setMetadata] = useState(() => ({
+    lecturer: (user?.name || "ALEXANDER KINOTI").toUpperCase(),
     className: activeClassConfig.name,
     subject: activeClassConfig.subject,
     department: activeClassConfig.department,
@@ -188,7 +188,7 @@ export default function ClassRegister() {
     assessmentDate: academicContext.shortDate,
     lecturerComment: "",
     hodComment: "",
-  });
+  }));
 
   const [weeklyLecturerComments, setWeeklyLecturerComments] = useState<Record<number, string>>({});
   const [weeklyHodComments, setWeeklyHodComments] = useState<Record<number, string>>({});
@@ -905,7 +905,7 @@ export default function ClassRegister() {
         work_actually_covered: `Delivered practical lecture on ${metadata.subject}. Verified competencies for all present trainees.`,
         reflection: "Trainees demonstrated consistent engagement. Attendance logged.",
         status: "delivered" as const,
-        signature: "ALEXANDER KINOTI",
+        signature: (user?.name || "ALEXANDER KINOTI").toUpperCase(),
         signature_date: academicContext.shortDate
       }
     ];

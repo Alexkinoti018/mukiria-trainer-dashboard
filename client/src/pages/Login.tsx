@@ -593,6 +593,18 @@ export default function Login() {
                   autoComplete={activeRole === "trainee" ? "off" : "username"}
                 />
               </div>
+              {activeRole === "trainer" && identifier.trim() === "1234" && (
+                <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1 mt-1">
+                  <Check className="w-3.5 h-3.5 shrink-0" />
+                  Quick Access: Logging in as Lead Trainer Alexander Kinoti
+                </p>
+              )}
+              {activeRole === "trainer" && identifier.trim().length >= 3 && identifier.trim() !== "1234" && (
+                <p className="text-[11px] text-blue-600 font-medium flex items-center gap-1 mt-1">
+                  <Sparkles className="w-3.5 h-3.5 text-[#c48820] shrink-0" />
+                  Timetable Sync: Linking faculty schedule for &quot;{identifier.trim()}&quot; (PIN: 1234)
+                </p>
+              )}
             </div>
 
             {/* 2. Security PIN / Password Input with Visibility Toggle */}
