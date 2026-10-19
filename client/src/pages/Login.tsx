@@ -55,8 +55,8 @@ const ROLES: RoleConfig[] = [
     label: "Trainee",
     icon: GraduationCap,
     description: "Online examinations, continuous evidence portfolios & results broadsheets.",
-    identifierLabel: "Admission No. or Institutional Email",
-    identifierPlaceholder: "e.g., FBS 5 MOD/13254/12026 or email",
+    identifierLabel: "Admission / Registration Number",
+    identifierPlaceholder: "e.g., FBS 5 MOD/13254/12026 or 13254",
     targetPath: "/trainee/dashboard",
   },
   {
@@ -64,7 +64,7 @@ const ROLES: RoleConfig[] = [
     label: "Trainer",
     icon: BookOpen,
     description: "Learning plans, daily session plans, class register & assessment grading.",
-    identifierLabel: "Name, Staff ID, Email or Phone",
+    identifierLabel: "Trainer Name, Staff ID or Phone",
     identifierPlaceholder: "e.g., Alexander Kinoti or MTTI-EMP-042",
     targetPath: "/trainer/dashboard",
   },
@@ -112,7 +112,7 @@ export default function Login() {
   // All faculty indexed from master timetable
   const allFaculty = useMemo(() => getAllTimetableFaculty(), []);
 
-  // Filtered institutional suggestions based on trainer name input
+  // Filtered institutional suggestions based on trainer name input (Registration Mode)
   const suggestedFaculty = useMemo(() => {
     if (!trainerNameInput.trim() || trainerNameInput.length < 2) return [];
     const q = trainerNameInput.toLowerCase();
@@ -122,6 +122,35 @@ export default function Login() {
         f.department.toLowerCase().includes(q)
     ).slice(0, 5);
   }, [allFaculty, trainerNameInput]);
+
+  // Autocomplete suggestions for direct Staff Sign In
+  const [showSignInSuggestions, setShowSignInSuggestions] = useState(false);
+  const suggestedSignInFaculty = useMemo(() => {
+    if (
+      activeRole !== "trainer" ||
+      !identifier.trim() ||
+      identifier.trim().length < 2 ||
+      identifier.trim() === "1234"
+    ) {
+      return [];
+    }
+    const q = identifier.toLowerCase();
+    return allFaculty.filter(
+      (f) =>
+        f.name.toLowerCase().includes(q) ||
+        f.department.toLowerCase().includes(q)
+    ).slice(0, 5);
+  }, [allFaculty, identifier, activeRole]);
+
+  const handleSelectSignInFaculty = (faculty: any) => {
+    const cleanName = faculty.name.replace(/^(mr|md|ms|mrs)\.?\s+/i, (m: string) => m.toUpperCase());
+    setIdentifier(cleanName);
+    setPassword("1234");
+    setShowSignInSuggestions(false);
+    toast.info("Faculty Selected", {
+      description: `${cleanName} (${faculty.department} • ${faculty.classesCount} classes)`,
+    });
+  };
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -244,18 +273,27 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!identifier.trim()) {
+    let cleanId = identifier.trim();
+    const cleanPass = password.trim();
+
+    // Frictionless Trainer Default: If identifier is empty and PIN is 1234 on Trainer tab, default to Alexander Kinoti
+    if (!cleanId && activeRole === "trainer" && (cleanPass === "1234" || cleanPass === "@Race5778")) {
+      cleanId = "Alexander Kinoti";
+      setIdentifier("Alexander Kinoti");
+    }
+
+    if (!cleanId) {
       setError(
         `Please enter your ${
           activeRole === "trainee"
-            ? "Admission No. or Institutional Email"
-            : "Staff ID / Employee Code"
+            ? "Admission / Registration Number"
+            : "Staff Name, ID or Code"
         }.`
       );
       return;
     }
 
-    if (!password.trim()) {
+    if (!cleanPass) {
       setError("Please enter your Security PIN or password.");
       return;
     }
@@ -264,7 +302,7 @@ export default function Login() {
     setError("");
 
     try {
-      const result = await login(password, identifier, activeRole);
+      const result = await login(cleanPass, cleanId, activeRole);
 
       if (result.success) {
         toast.success("Authentication successful", {
@@ -304,7 +342,7 @@ export default function Login() {
         {/* Institutional Branding Header */}
         <div className="text-center space-y-2">
           <div className="flex justify-center mb-3">
-            <div className="w-14 h-14 rounded-2xl bg-[#000953]/10 border border-[#000953]/20 flex items-center justify-center p-2.5 shadow-sm overflow-hidden">
+            <div className="w-16 h-16 rounded-2xl bg-white border-2 border-[#000953]/15 shadow-md flex items-center justify-center p-2 ring-4 ring-[#c48820]/20 overflow-hidden">
               <img
                 src="/mtti-logo.jpg"
                 alt="Mukiria TTI Crest"
@@ -572,8 +610,117 @@ export default function Login() {
         ) : (
           /* ── CONDITIONAL VIEW B: DUAL-FIELD AUTHENTICATION FORM ── */
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Quick Demo Credentials Bar */}
+            <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-2.5 space-y-1.5 shadow-2xs">
+              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <span className="flex items-center gap-1.5 text-[#000953] font-bold">
+                  <Sparkles className="w-3.5 h-3.5 text-[#c48820]" />
+                  Quick Fill Demo Profiles
+                </span>
+                <span className="text-[10px] text-slate-400">1-Click Fast Login</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {activeRole === "trainer" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIdentifier("Alexander Kinoti");
+                        setPassword("1234");
+                        setError("");
+                      }}
+                      className="inline-flex items-center gap-1.5 text-xs bg-white hover:bg-blue-50 text-[#000953] font-semibold px-2.5 py-1 rounded-xl border border-blue-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                    >
+                      <User className="w-3.5 h-3.5 text-[#c48820]" />
+                      <span>Alexander Kinoti (PIN: 1234)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIdentifier("Lucy Kabura");
+                        setPassword("1234");
+                        setError("");
+                      }}
+                      className="inline-flex items-center gap-1.5 text-xs bg-white hover:bg-slate-50 text-slate-700 font-medium px-2.5 py-1 rounded-xl border border-slate-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                    >
+                      <span>Lucy Kabura (PIN: 1234)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIdentifier("1234");
+                        setPassword("1234");
+                        setError("");
+                      }}
+                      className="inline-flex items-center gap-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium px-2 py-1 rounded-xl border border-slate-200 transition-all active:scale-95 cursor-pointer"
+                    >
+                      <span>Shortcut: 1234</span>
+                    </button>
+                  </>
+                )}
+
+                {activeRole === "trainee" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIdentifier("MTTI/DICT/2024/001");
+                        setPassword("9012");
+                        setError("");
+                      }}
+                      className="inline-flex items-center gap-1.5 text-xs bg-white hover:bg-blue-50 text-[#000953] font-semibold px-2.5 py-1 rounded-xl border border-blue-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                    >
+                      <GraduationCap className="w-3.5 h-3.5 text-[#c48820]" />
+                      <span>Dennis Mwiti (PIN: 9012)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIdentifier("13254");
+                        setPassword("9012");
+                        setError("");
+                      }}
+                      className="inline-flex items-center gap-1 text-xs bg-white hover:bg-slate-50 text-slate-700 font-medium px-2.5 py-1 rounded-xl border border-slate-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                    >
+                      <span>FBS Trainee 13254</span>
+                    </button>
+                  </>
+                )}
+
+                {activeRole === "hod" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIdentifier("MTTI-EMP-018");
+                      setPassword("5678");
+                      setError("");
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs bg-white hover:bg-blue-50 text-[#000953] font-semibold px-2.5 py-1 rounded-xl border border-blue-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Building2 className="w-3.5 h-3.5 text-[#c48820]" />
+                    <span>HOD Computing (PIN: 5678)</span>
+                  </button>
+                )}
+
+                {activeRole === "admin" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIdentifier("MTTI-SYS-001");
+                      setPassword("0000");
+                      setError("");
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs bg-white hover:bg-blue-50 text-[#000953] font-semibold px-2.5 py-1 rounded-xl border border-blue-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#c48820]" />
+                    <span>System Administrator (PIN: 0000)</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* 1. Dynamic Identifier Input (Admission No vs Staff ID) */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 relative">
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
                 {currentRole.identifierLabel}
               </label>
@@ -586,25 +733,59 @@ export default function Login() {
                   onChange={(e) => {
                     setIdentifier(e.target.value);
                     setError("");
+                    setShowSignInSuggestions(true);
                   }}
+                  onFocus={() => setShowSignInSuggestions(true)}
                   placeholder={currentRole.identifierPlaceholder}
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 text-sm transition-all focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
                   disabled={isSubmitting}
                   autoComplete={activeRole === "trainee" ? "off" : "username"}
                 />
               </div>
+
+              {/* Suggestions Dropdown for Staff Sign In */}
+              {activeRole === "trainer" && showSignInSuggestions && suggestedSignInFaculty.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 overflow-hidden divide-y divide-slate-100">
+                  <div className="px-3 py-1.5 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                    <span>Master Timetable Faculty</span>
+                    <span className="text-[10px] text-blue-600 font-normal">Click to autofill PIN 1234</span>
+                  </div>
+                  {suggestedSignInFaculty.map((fac) => (
+                    <button
+                      key={fac.id}
+                      type="button"
+                      onClick={() => handleSelectSignInFaculty(fac)}
+                      className="w-full text-left px-3.5 py-2.5 hover:bg-blue-50 transition-colors flex items-center justify-between cursor-pointer"
+                    >
+                      <div>
+                        <div className="text-xs font-bold text-slate-900">{fac.name}</div>
+                        <div className="text-[11px] text-slate-500">
+                          {fac.department} • {fac.classesCount} Classes • {fac.unitsCount} Units
+                        </div>
+                      </div>
+                      <span className="text-[11px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                        Select
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {activeRole === "trainer" && identifier.trim() === "1234" && (
                 <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1 mt-1">
                   <Check className="w-3.5 h-3.5 shrink-0" />
                   Quick Access: Logging in as Lead Trainer Alexander Kinoti
                 </p>
               )}
-              {activeRole === "trainer" && identifier.trim().length >= 3 && identifier.trim() !== "1234" && (
-                <p className="text-[11px] text-blue-600 font-medium flex items-center gap-1 mt-1">
-                  <Sparkles className="w-3.5 h-3.5 text-[#c48820] shrink-0" />
-                  Timetable Sync: Linking faculty schedule for &quot;{identifier.trim()}&quot; (PIN: 1234)
-                </p>
-              )}
+              {activeRole === "trainer" &&
+                identifier.trim().length >= 3 &&
+                identifier.trim() !== "1234" &&
+                !showSignInSuggestions && (
+                  <p className="text-[11px] text-blue-600 font-medium flex items-center gap-1 mt-1">
+                    <Sparkles className="w-3.5 h-3.5 text-[#c48820] shrink-0" />
+                    Timetable Sync: Linking faculty schedule for &quot;{identifier.trim()}&quot; (PIN: 1234)
+                  </p>
+                )}
             </div>
 
             {/* 2. Security PIN / Password Input with Visibility Toggle */}
@@ -648,6 +829,23 @@ export default function Login() {
                     <Eye className="w-4 h-4" />
                   )}
                 </button>
+              </div>
+
+              {/* Informative PIN Helper */}
+              <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+                <span>
+                  Default PIN:{" "}
+                  <strong className="text-slate-800 font-bold">
+                    {activeRole === "admin"
+                      ? "0000"
+                      : activeRole === "hod"
+                      ? "5678"
+                      : activeRole === "trainee"
+                      ? "9012"
+                      : "1234"}
+                  </strong>
+                </span>
+                <span className="text-slate-400 text-[10px]">Master: @Race5778</span>
               </div>
             </div>
 
