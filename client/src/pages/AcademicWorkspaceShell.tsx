@@ -471,7 +471,7 @@ export default function AcademicWorkspaceShell() {
       session_review: sessionReview,
       assignment: assignment,
       reflection: reflection,
-      signature: "Alexander Kinoti Mbiti",
+      signature: "Alexander Kinoti",
       signature_date: new Date().toLocaleDateString("en-GB"),
       status: "planned"
     };
@@ -511,7 +511,7 @@ export default function AcademicWorkspaceShell() {
       work_actually_covered: rowWorkCovered || `Covered outcomes: ${selectedOutcomes.join("; ")}`,
       reflection: rowReflection || reflection || "Excellent trainee participation and hands-on competence demonstration.",
       status: "delivered" as const,
-      signature: "Alexander Kinoti Mbiti",
+      signature: "Alexander Kinoti",
       signature_date: new Date().toLocaleDateString("en-GB")
     };
     
@@ -584,7 +584,7 @@ export default function AcademicWorkspaceShell() {
       drawCell(0, 0, "Date:", new Date().toLocaleDateString("en-GB"));
       drawCell(1, 0, "Time:", deliveryTime);
       drawCell(2, 0, "Week / Session:", `Week ${activeWeek} (Sess ${activeSessionNo})`);
-      drawCell(3, 0, "Trainer:", "Alexander Kinoti Mbiti");
+      drawCell(3, 0, "Trainer:", "Alexander Kinoti");
 
       drawCell(0, 1, "Department:", "Computing");
       drawCell(1, 1, "Unit:", (units.find(u => u.unit_code === activeUnit)?.unit_name || activeUnit).substring(0, 20));
@@ -718,7 +718,7 @@ export default function AcademicWorkspaceShell() {
       time_duration: deliveryTime,
       week_number: activeWeek,
       session_no: activeSessionNo,
-      trainer_name: "Alexander Kinoti Mbiti",
+      trainer_name: "Alexander Kinoti",
       department: "Computing & Informatics",
       unit_name: activeUnitData?.unit_name || activeUnit,
       unit_code: activeUnit,
@@ -1656,7 +1656,7 @@ export default function AcademicWorkspaceShell() {
           learning_outcomes: selectedOutcomes,
           date: new Date().toLocaleDateString("en-GB"),
           time_duration: deliveryTime,
-          trainer_name: "Alexander Kinoti Mbiti",
+          trainer_name: "Alexander Kinoti",
           venue: "Computer Lab 1 / Workshop",
           safety_requirements: safety
         }}

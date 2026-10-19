@@ -26,10 +26,21 @@ import {
   CheckSquare,
   Wrench,
   Calendar,
-  Terminal
+  Terminal,
+  RefreshCw,
+  CheckCircle2,
+  Mail,
+  Phone,
+  Layers,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import {
+  getCurrentTrainerProfile,
+  saveTrainerProfile,
+  syncTrainerToProfessionalDocuments,
+  TrainerProfile,
+} from "@/lib/timetableSyncService";
 
 interface NavItem {
   icon: React.ElementType;
@@ -184,6 +195,36 @@ export default function TrainerLayout({
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [profile, setProfile] = useState<TrainerProfile>(() => getCurrentTrainerProfile(user));
+  const [editName, setEditName] = useState(profile.name);
+  const [editEmail, setEditEmail] = useState(profile.email);
+  const [editPhone, setEditPhone] = useState(profile.phone);
+
+  useEffect(() => {
+    const current = getCurrentTrainerProfile(user);
+    setProfile(current);
+    setEditName(current.name);
+    setEditEmail(current.email);
+    setEditPhone(current.phone);
+  }, [user]);
+
+  const handleSyncTimetable = () => {
+    const updated: TrainerProfile = {
+      ...profile,
+      name: editName.trim() || profile.name,
+      email: editEmail.trim() || profile.email,
+      phone: editPhone.trim() || profile.phone,
+    };
+    saveTrainerProfile(updated);
+    const res = syncTrainerToProfessionalDocuments(updated);
+    setProfile(updated);
+    toast.success("Professional Documents Synchronized", {
+      description: `Aligned ${res.timetableSessionsCount} timetable periods with Learning Plans, Session Plans, Registers & Records of Work for ${updated.name}.`,
+    });
+    setIsSyncModalOpen(false);
+  };
+
   const handleLogout = async () => {
     await logout();
     toast.success("Logged out successfully");
@@ -273,17 +314,33 @@ export default function TrainerLayout({
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 hover:bg-muted rounded-lg transition-colors print:hidden"
-          >
-            {mobileOpen ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
-          </button>
+          {/* Top Bar Actions */}
+          <div className="flex items-center gap-2.5">
+            {/* Quick Profile & Timetable Sync Pill */}
+            <button
+              onClick={() => setIsSyncModalOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary text-xs font-semibold transition-all shadow-sm cursor-pointer"
+              title="Click to view and synchronize trainer profile and timetable across all professional documents"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-[#c48820]" />
+              <span className="truncate max-w-[130px] font-bold">{profile.name}</span>
+              <span className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-primary/15 text-[10px] uppercase font-bold text-primary">
+                {profile.classes?.length || 5} Classes
+              </span>
+            </button>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="md:hidden p-2 hover:bg-muted rounded-lg transition-colors print:hidden"
+            >
+              {mobileOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Content Area */}
@@ -315,6 +372,127 @@ export default function TrainerLayout({
           </>
         )}
       </AnimatePresence>
+
+      {/* Timetable & Professional Documents Sync Modal */}
+      {isSyncModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-card text-card-foreground border border-border w-full max-w-lg rounded-2xl shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                  <RefreshCw className="w-4 h-4 text-[#c48820]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-foreground">Trainer Timetable & Document Sync</h3>
+                  <p className="text-xs text-muted-foreground">Term 3, 2026 Institutional Alignment</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsSyncModalOpen(false)}
+                className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              {/* Linked Institutional Timetable Information */}
+              <div className="p-3 bg-muted/50 rounded-xl space-y-1.5 border border-border">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-foreground">Master Timetable Profile:</span>
+                  <span className="font-bold text-primary">{profile.timetableTrainerId || "mr-alexander-kinoti"}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Department:</span>
+                  <span className="font-medium text-foreground">{profile.department}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Assigned Cohorts:</span>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {(profile.classes || []).map((c) => (
+                      <span key={c} className="px-2 py-0.5 rounded-md bg-primary/10 text-primary font-mono text-[10px] font-semibold">
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Assigned Units:</span>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {(profile.units || []).map((u) => (
+                      <span key={u} className="px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground font-mono text-[10px]">
+                        {u}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Editable Fields */}
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-foreground">Trainer Name (Canonical)</label>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    placeholder="e.g. Alexander Kinoti"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-foreground">Email Address</label>
+                    <input
+                      type="email"
+                      value={editEmail}
+                      onChange={(e) => setEditEmail(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      placeholder="e.g. trainer@mtti.ac.ke"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-foreground">Phone Number</label>
+                    <input
+                      type="tel"
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      placeholder="e.g. +254 722 000 000"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 bg-blue-50/70 border border-blue-200/60 rounded-xl text-blue-900 text-[11px] leading-relaxed">
+                <p className="font-semibold text-blue-950">Synchronized Documents:</p>
+                <p>
+                  Master Timetable • Learning Plans (MTTI/F/CUR/02) • Daily Session Plans (MTTI/F/CUR/05) • Class Registers (MTTI/REG/CUR/02 & 03) • Records of Work (MTTI/F/CUR/03)
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+              <button
+                type="button"
+                onClick={() => setIsSyncModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:bg-muted transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={handleSyncTimetable}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-[#c48820]" />
+                <span>Synchronize Documents</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

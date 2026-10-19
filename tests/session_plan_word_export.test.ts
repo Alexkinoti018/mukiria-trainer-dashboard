@@ -70,7 +70,7 @@ describe("Client-Side TVET CDACC Handlers & Export Engines Verification", () => 
       time_duration: "8:00 AM - 10:00 AM",
       week_number: 3,
       session_no: 1,
-      trainer_name: "Alexander Kinoti Mbiti",
+      trainer_name: "Alexander Kinoti",
       department: "Computing & Informatics",
       unit_name: "Computer Application II",
       unit_code: "ICT/CU/IT/CR/6/6",

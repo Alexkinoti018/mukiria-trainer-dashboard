@@ -113,7 +113,7 @@ describe("Graded Exam PDF Generator & Marking Scheme Serialization", () => {
 
     it("ensures Faith Mwende and multi-section exams render both Section A and Section B with CDACC sign-off", () => {
       const faithSub = FBS_COHORT_SUBMISSIONS.find((s) => s.student_name === "Faith Mwende") || submission;
-      const unified = buildUnifiedGradedExamData(faithSub, exam, "Alexander Kinoti Mbiti");
+      const unified = buildUnifiedGradedExamData(faithSub, exam, "Alexander Kinoti");
 
       expect(unified.section_a.length).toBeGreaterThan(0);
       expect(unified.section_b.length).toBeGreaterThan(0);

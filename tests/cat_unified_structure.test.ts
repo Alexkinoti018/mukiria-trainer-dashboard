@@ -103,7 +103,7 @@ describe("CAT Unified Structure (No Section A or B) Suite", () => {
       const unifiedCat = buildUnifiedGradedExamData(
         catSubmission,
         sampleCat,
-        "Alexander Kinoti Mbiti",
+        "Alexander Kinoti",
         ""
       );
 
@@ -121,7 +121,7 @@ describe("CAT Unified Structure (No Section A or B) Suite", () => {
       const unifiedWa1 = buildUnifiedGradedExamData(
         wa1Submission,
         wa1Exam,
-        "Alexander Kinoti Mbiti",
+        "Alexander Kinoti",
         ""
       );
 
@@ -135,7 +135,7 @@ describe("CAT Unified Structure (No Section A or B) Suite", () => {
       const unifiedCat = buildUnifiedGradedExamData(
         catSubmission,
         sampleCat,
-        "Alexander Kinoti Mbiti",
+        "Alexander Kinoti",
         ""
       );
 

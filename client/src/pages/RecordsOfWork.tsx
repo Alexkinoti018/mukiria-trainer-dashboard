@@ -103,7 +103,7 @@ export default function RecordsOfWork() {
     work_actually_covered: "",
     reflection: "",
     status: "delivered" as "delivered" | "partial" | "postponed",
-    signature: user?.email ? user.email.split("@")[0].toUpperCase() : "A. KINOTI"
+    signature: user?.name || (user?.email ? user.email.split("@")[0].toUpperCase() : "Alexander Kinoti")
   });
 
   useEffect(() => {
@@ -138,7 +138,7 @@ export default function RecordsOfWork() {
           work_actually_covered: `Delivered ${plan.session_title}. Covered learning outcomes: ${plan.learning_outcomes.slice(0, 2).join("; ")}.`,
           reflection: plan.reflection || "Class demonstrated full understanding of practical demonstrations.",
           status: "delivered",
-          signature: plan.signature || user?.email?.split("@")[0].toUpperCase() || "A. KINOTI",
+          signature: plan.signature || user?.name || (user?.email?.split("@")[0].toUpperCase()) || "Alexander Kinoti",
           signature_date: plan.signature_date || new Date().toLocaleDateString("en-GB")
         };
         updated.push(newRecord);
@@ -171,7 +171,7 @@ export default function RecordsOfWork() {
       const recordsToExport = selectedUnit === "all" ? records : filteredRecords;
       const payload = {
         term: "Term 3, 2026",
-        trainer_name: user?.email ? user.email.split("@")[0].toUpperCase() : "ALEXANDER KINOTI",
+        trainer_name: user?.name || (user?.email ? user.email.split("@")[0].toUpperCase() : "ALEXANDER KINOTI"),
         department: "Department of Computing and Informatics",
         compiled_date: new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" }),
         records: recordsToExport
@@ -235,7 +235,7 @@ export default function RecordsOfWork() {
       work_actually_covered: "",
       reflection: "Learners actively engaged with the practical exercises.",
       status: "delivered",
-      signature: user?.email ? user.email.split("@")[0].toUpperCase() : "A. KINOTI"
+      signature: user?.name || (user?.email ? user.email.split("@")[0].toUpperCase() : "Alexander Kinoti")
     });
     setIsModalOpen(true);
   };
@@ -472,7 +472,7 @@ export default function RecordsOfWork() {
                 MTTI/F/CUR/02
               </div>
               <p className="text-[11px] mt-1 text-gray-600">Term: <strong>{academicContext.term} (Week {academicContext.currentWeek})</strong></p>
-              <p className="text-[11px] text-gray-600">Trainer: <strong>{user?.email?.split('@')[0].toUpperCase() || "ALEXANDER KINOTI"}</strong></p>
+              <p className="text-[11px] text-gray-600">Trainer: <strong>{user?.name || (user?.email?.split('@')[0].toUpperCase()) || "ALEXANDER KINOTI"}</strong></p>
             </div>
           </div>
 
@@ -593,7 +593,7 @@ export default function RecordsOfWork() {
             <div>
               <p className="font-bold">Trainer Sign-off:</p>
               <div className="mt-4 border-b border-black w-64 pb-1">
-                Name: <strong>{user?.email?.split('@')[0].toUpperCase() || "ALEXANDER KINOTI"}</strong>
+                Name: <strong>{user?.name || (user?.email?.split('@')[0].toUpperCase()) || "ALEXANDER KINOTI"}</strong>
               </div>
               <p className="text-[10px] text-gray-500 mt-1">Date: {new Date().toLocaleDateString("en-GB")}</p>
             </div>

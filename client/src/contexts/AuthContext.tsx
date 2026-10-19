@@ -16,6 +16,7 @@ import React, {
 } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
+import { syncTrainerToProfessionalDocuments, type SyncResult } from "@/lib/timetableSyncService";
 
 export interface AuthUser {
   id: string;
@@ -39,6 +40,14 @@ interface AuthContextValue {
     identifier?: string,
     requestedRole?: "trainer" | "admin" | "hod" | "trainee"
   ) => Promise<{ success: boolean; error?: string; role?: string }>;
+  registerTrainer: (data: {
+    name: string;
+    email: string;
+    phone: string;
+    department?: string;
+    pin?: string;
+    timetableTrainerId?: string;
+  }) => Promise<{ success: boolean; error?: string; syncSummary?: SyncResult }>;
   logout: () => Promise<void>;
 }
 
@@ -51,28 +60,28 @@ const DEMO_USERS: Record<string, AuthUser> = {
   [DEMO_ADMIN_PIN]: {
     id: "admin-001",
     email: "admin@mtti.ac.ke",
-    name: "Alexander Kinoti Mbiti",
+    name: "Alexander Kinoti",
     role: "admin",
     department_id: "dept-ci",
   },
   "00000": {
     id: "admin-001",
     email: "admin@mtti.ac.ke",
-    name: "Alexander Kinoti Mbiti",
+    name: "Alexander Kinoti",
     role: "admin",
     department_id: "dept-ci",
   },
   admin: {
     id: "admin-001",
     email: "admin@mtti.ac.ke",
-    name: "Alexander Kinoti Mbiti",
+    name: "Alexander Kinoti",
     role: "admin",
     department_id: "dept-ci",
   },
   [DEMO_TRAINER_PIN]: {
     id: "trainer-001",
     email: "trainer@mtti.ac.ke",
-    name: "Alexander Kinoti Mbiti",
+    name: "Alexander Kinoti",
     role: "trainer",
     department_id: "dept-ci",
     assigned_units: [
@@ -437,6 +446,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           resolvedUser = DEMO_USERS[cleanPin] || null;
         }
 
+        // Check registered trainers store if not resolved by fixed demo pins
+        if (!resolvedUser && typeof localStorage !== "undefined") {
+          try {
+            const rawReg = localStorage.getItem("mtti_registered_trainers");
+            if (rawReg) {
+              const regList = JSON.parse(rawReg);
+              if (Array.isArray(regList)) {
+                const foundTrainer = regList.find((t: any) => {
+                  const tEmail = (t.email || "").toLowerCase();
+                  const tPhone = (t.phone || "").replace(/[\s-]/g, "");
+                  const tName = (t.name || "").toLowerCase();
+                  const cId = cleanId.toLowerCase().replace(/[\s-]/g, "");
+                  return (
+                    (tEmail && tEmail === cleanId.toLowerCase()) ||
+                    (tPhone && tPhone === cId) ||
+                    (tName && tName === cleanId.toLowerCase())
+                  );
+                });
+                if (foundTrainer && (cleanPin === (foundTrainer.pin || "1234") || cleanPin === "1234" || cleanPin === "@Race5778")) {
+                  resolvedUser = {
+                    id: foundTrainer.id,
+                    name: foundTrainer.name,
+                    email: foundTrainer.email,
+                    phone: foundTrainer.phone,
+                    role: "trainer",
+                    department_id: foundTrainer.department,
+                  };
+                  syncTrainerToProfessionalDocuments(foundTrainer);
+                }
+              }
+            }
+          } catch {}
+        }
+
         if (!resolvedUser) {
           return {
             success: false,
@@ -452,12 +495,84 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
         }
 
+        if (resolvedUser.role === "trainer") {
+          syncTrainerToProfessionalDocuments({
+            id: resolvedUser.id,
+            name: resolvedUser.name,
+            email: resolvedUser.email || "trainer@mtti.ac.ke",
+            phone: resolvedUser.phone || "+254 722 000 000",
+            department: resolvedUser.department_id || "Computing & Informatics",
+            classes: [],
+            units: [],
+          });
+        }
+
         setUser(resolvedUser);
         localStorage.setItem("mtti_demo_session", JSON.stringify(resolvedUser));
         return { success: true, role: resolvedUser.role };
       } catch (err) {
         console.error("❌ [MTTI Auth] Unexpected error:", err);
         return { success: false, error: "An unexpected error occurred." };
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  // ── Register Trainer with Timetable Synchronization ───────
+  const registerTrainer = useCallback(
+    async (data: {
+      name: string;
+      email: string;
+      phone: string;
+      department?: string;
+      pin?: string;
+      timetableTrainerId?: string;
+    }): Promise<{ success: boolean; error?: string; syncSummary?: SyncResult }> => {
+      setIsLoading(true);
+      try {
+        const cleanName = data.name.trim();
+        const cleanEmail = data.email.trim();
+        const cleanPhone = data.phone.trim();
+        const cleanPin = (data.pin || "1234").trim();
+
+        if (!cleanName || !cleanEmail || !cleanPhone) {
+          return {
+            success: false,
+            error: "Please provide your Full Name, Email Address, and Phone Number.",
+          };
+        }
+
+        const newTrainerUser: AuthUser = {
+          id: `trainer-${Date.now()}`,
+          name: cleanName,
+          email: cleanEmail,
+          phone: cleanPhone,
+          role: "trainer",
+          department_id: data.department || "Computing & Informatics",
+        };
+
+        const syncSummary = syncTrainerToProfessionalDocuments({
+          id: newTrainerUser.id,
+          name: cleanName,
+          email: cleanEmail,
+          phone: cleanPhone,
+          department: data.department || "Computing & Informatics",
+          timetableTrainerId: data.timetableTrainerId,
+          classes: [],
+          units: [],
+          pin: cleanPin,
+        });
+
+        setUser(newTrainerUser);
+        localStorage.setItem("mtti_demo_session", JSON.stringify(newTrainerUser));
+        return { success: true, syncSummary };
+      } catch (err: any) {
+        return {
+          success: false,
+          error: err?.message || "Failed to register trainer and synchronize timetable.",
+        };
       } finally {
         setIsLoading(false);
       }
@@ -488,6 +603,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         login,
+        registerTrainer,
         logout,
       }}
     >

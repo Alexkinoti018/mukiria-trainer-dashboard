@@ -921,7 +921,7 @@ export function exportGradedExamPDFClientSide(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.2);
   doc.setTextColor(51, 65, 85);
-  doc.text(`Assessor Name: ${data.trainer_name || "Alexander Kinoti Mbiti"}`, margin + 3, y + 9.2);
+  doc.text(`Assessor Name: ${data.trainer_name || "Alexander Kinoti"}`, margin + 3, y + 9.2);
   doc.text(`Assessor Signature: _______________________`, margin + 3, y + 13.8);
   doc.text(`Evaluation Date: ${data.evaluated_at || new Date().toLocaleDateString("en-GB")}`, margin + 3, y + 17.8);
 

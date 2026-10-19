@@ -52,8 +52,14 @@ export default function TimetablePage() {
 
   const academicContext = useMemo(() => getAcademicContext(currentTime), [currentTime]);
 
-  // Selected trainer state (defaults to Alexander Kinoti)
-  const [selectedTrainerId, setSelectedTrainerId] = useState<string>("mr-alexander-kinoti");
+  // Selected trainer state (defaults to synchronized trainer or Alexander Kinoti)
+  const [selectedTrainerId, setSelectedTrainerId] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("mtti_selected_timetable_trainer");
+      if (stored) return stored;
+    }
+    return "mr-alexander-kinoti";
+  });
   const [trainerSearchQuery, setTrainerSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
   const [viewMode, setViewMode] = useState<"trainer" | "class" | "venue">("trainer");

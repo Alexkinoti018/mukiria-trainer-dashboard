@@ -149,7 +149,7 @@ export function exportSessionPlanWordClientSide(plan: SessionPlanPayload): { fil
     </tr>
     <tr>
       <td class="lbl">Trainer Name:</td>
-      <td class="val"><strong>${escapeHtml(plan.trainer_name || "Alexander Kinoti Mbiti")}</strong></td>
+      <td class="val"><strong>${escapeHtml(plan.trainer_name || "Alexander Kinoti")}</strong></td>
       <td class="lbl">Department:</td>
       <td class="val">${escapeHtml(plan.department || "Computing & Informatics")}</td>
     </tr>
@@ -231,7 +231,7 @@ export function exportSessionPlanWordClientSide(plan: SessionPlanPayload): { fil
     <tr>
       <td style="width: 50%;">
         <strong>Trainer Signature:</strong> ___________________________<br>
-        <span style="font-size: 9pt; color: #555555;">Alexander Kinoti Mbiti</span>
+        <span style="font-size: 9pt; color: #555555;">${escapeHtml(plan.trainer_name || "Alexander Kinoti")}</span>
       </td>
       <td style="width: 50%; text-align: right;">
         <strong>Date:</strong> ${escapeHtml(plan.signature_date || new Date().toLocaleDateString("en-GB"))}<br>
