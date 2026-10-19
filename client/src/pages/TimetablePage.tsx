@@ -58,8 +58,11 @@ export default function TimetablePage() {
 
   const academicContext = useMemo(() => getAcademicContext(currentTime), [currentTime]);
 
-  // Selected trainer state (defaults to synchronized trainer or Alexander Kinoti)
+  // Selected trainer state (strictly defaults to logged-in trainer's timetable id)
   const [selectedTrainerId, setSelectedTrainerId] = useState<string>(() => {
+    if (!isPrivileged && trainerProfile.timetableTrainerId) {
+      return trainerProfile.timetableTrainerId;
+    }
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("mtti_selected_timetable_trainer");
       if (stored) return stored;
@@ -91,10 +94,15 @@ export default function TimetablePage() {
   // Currently viewed trainer object (strictly scoped to logged-in trainer in trainer portal)
   const activeTrainer = useMemo(() => {
     if (!isPrivileged) {
-      const matched = trainers.find((t: any) => t.id === (trainerProfile.timetableTrainerId || selectedTrainerId)) ||
-                      trainers.find((t: any) => t.name.toLowerCase().includes(trainerProfile.name.toLowerCase())) ||
-                      trainers.find((t: any) => t.name.includes("ALEXANDER KINOTI")) ||
-                      trainers[0];
+      const matched =
+        trainers.find((t: any) => t.id === trainerProfile.timetableTrainerId) ||
+        trainers.find(
+          (t: any) =>
+            t.name.toLowerCase().includes(trainerProfile.name.toLowerCase()) ||
+            trainerProfile.name.toLowerCase().includes(t.name.toLowerCase())
+        ) ||
+        trainers.find((t: any) => t.id === selectedTrainerId) ||
+        trainers[0];
       return matched;
     }
     return trainers.find((t: any) => t.id === selectedTrainerId) || 

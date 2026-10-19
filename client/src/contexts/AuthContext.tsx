@@ -516,16 +516,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 department_id: facultyMatch.department,
                 assigned_units: facultyMatch.units,
               };
-              syncTrainerToProfessionalDocuments({
-                id: resolvedUser.id,
-                name: resolvedUser.name,
-                email: resolvedUser.email!,
-                phone: resolvedUser.phone!,
-                department: resolvedUser.department_id || "Computing & Informatics",
-                classes: facultyMatch.classes || [],
-                units: facultyMatch.units || [],
-                timetableTrainerId: facultyMatch.id,
-              });
             }
           }
 
@@ -554,14 +544,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (resolvedUser.role === "trainer") {
+          const facultyMatch = findFacultyInTimetable(resolvedUser.name);
+          const timetableTrainerId =
+            facultyMatch?.id || (resolvedUser as any).timetableTrainerId || "mr-alexander-kinoti";
+          const trainerClasses =
+            facultyMatch?.classes && facultyMatch.classes.length > 0
+              ? facultyMatch.classes
+              : resolvedUser.assigned_units || [];
+          const trainerUnits = facultyMatch?.units && facultyMatch.units.length > 0 ? facultyMatch.units : [];
+
           syncTrainerToProfessionalDocuments({
             id: resolvedUser.id,
             name: resolvedUser.name,
-            email: resolvedUser.email || "trainer@mtti.ac.ke",
+            email: resolvedUser.email || `${timetableTrainerId}@mtti.ac.ke`,
             phone: resolvedUser.phone || "+254 722 000 000",
-            department: resolvedUser.department_id || "Computing & Informatics",
-            classes: [],
-            units: [],
+            department: resolvedUser.department_id || facultyMatch?.department || "Computing & Informatics",
+            classes: trainerClasses,
+            units: trainerUnits,
+            timetableTrainerId,
           });
         }
 

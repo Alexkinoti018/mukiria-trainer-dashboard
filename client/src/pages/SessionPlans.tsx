@@ -111,7 +111,7 @@ export default function SessionPlans() {
   const [logWorkCovered, setLogWorkCovered] = useState("");
   const [logReflection, setLogReflection] = useState("");
   const [logStatus, setLogStatus] = useState<"delivered" | "partial" | "postponed">("delivered");
-  const [logSignature, setLogSignature] = useState("Alexander Kinoti");
+  const [logSignature, setLogSignature] = useState(() => getCurrentTrainerProfile(user).name);
   const [logSignatureDate, setLogSignatureDate] = useState("");
 
   useEffect(() => {
@@ -184,14 +184,16 @@ export default function SessionPlans() {
 
   const handleOpenCreate = () => {
     const profile = getCurrentTrainerProfile(user);
+    const firstClass = profile.classes && profile.classes[0] ? profile.classes[0] : "ICT4/ITECH6/S/26 MOD 1";
+    const firstUnit = profile.units && profile.units[0] ? profile.units[0] : "General Competency";
     setSelectedPlan(null);
-    setFormTrainerName(`MR. ${profile.name.replace(/^(mr|md|ms|mrs)\.?\s+/i, "").toUpperCase()}`);
+    setFormTrainerName(profile.name.toUpperCase());
     setFormDepartment(profile.department ? profile.department.toUpperCase() : "COMPUTING AND INFORMATICS");
-    setFormUnitName("PERFORM COMPUTER ESSENTIALS");
-    setFormUnitCode("IT/CU/ICTA/CR/01/4/MA");
-    setFormClassCode("ICT4/ITECH6/S/26 MOD 1");
-    setFormLevel("4 & 6");
-    setFormTraineesCount(19);
+    setFormUnitName(firstUnit);
+    setFormUnitCode(`CU/${firstClass.split("/")[0] || "MTTI"}/01`);
+    setFormClassCode(firstClass);
+    setFormLevel(firstClass.includes("4") ? "4 & 6" : firstClass.includes("5") ? "5" : "6");
+    setFormTraineesCount(20);
     setFormDate("07/10/2026");
     setFormTimeDuration("10:30-12:30");
     setFormWeekNumber(6);
@@ -208,7 +210,7 @@ export default function SessionPlans() {
     setFormSessionReview("");
     setFormAssignment("");
     setFormReflection("Pending review of trainee engagement and comprehension.");
-    setFormSignature("Alexander Kinoti");
+    setFormSignature(profile.name);
     setFormSignatureDate("07/10/2026");
 
     setIsEditorOpen(true);
@@ -298,7 +300,7 @@ export default function SessionPlans() {
     setFormSessionReview(`Recap of core competencies in ${week.topic}.`);
     setFormAssignment(`Practical exercise reinforcing concepts of ${week.topic}.`);
     setFormReflection("Pending review of trainee engagement and comprehension.");
-    setFormSignature("Alexander Kinoti");
+    setFormSignature(getCurrentTrainerProfile(user).name);
     setFormSignatureDate(new Date().toLocaleDateString("en-GB"));
 
     setActiveTab("session");
@@ -308,6 +310,7 @@ export default function SessionPlans() {
 
   // ── Open Record of Work Log Form ──
   const handleOpenRecordLog = (plan: SessionPlan) => {
+    const prof = getCurrentTrainerProfile(user);
     setLogSessionPlan(plan);
     setLogDateDelivered(plan.date);
     setLogTraineesPresent(plan.trainees_count - 2); // Assume high attendance by default
@@ -318,7 +321,7 @@ export default function SessionPlans() {
     setLogWorkCovered(`Successfully conducted class session on ${plan.session_title}. Trainees completed exercises on: ${plan.learning_outcomes.join(", ")}.`);
     setLogReflection(plan.reflection || "Trainees achieved the desired outcome. Satisfactory comprehension.");
     setLogStatus("delivered");
-    setLogSignature(plan.signature || "Alexander Kinoti");
+    setLogSignature(plan.signature || prof.name);
     setLogSignatureDate(plan.date);
     
     setIsRecordLogOpen(true);
@@ -1141,8 +1144,26 @@ export default function SessionPlans() {
           (lp.trainer_name && lp.trainer_name.toLowerCase().includes(trainerNameClean)) ||
           (lp.class_code && trainerClasses.has(lp.class_code.toUpperCase().trim()))
       );
-  const uniqueUnits = Array.from(new Set(scopedLp.map(p => p.unit_code)));
-  const uniqueClasses = Array.from(new Set(scopedLp.map(p => p.class_code)));
+  const scopedPlans = isPrivileged
+    ? plans
+    : plans.filter(
+        (p) =>
+          (p.trainer_name && p.trainer_name.toLowerCase().includes(trainerNameClean)) ||
+          (p.class_code && trainerClasses.has(p.class_code.toUpperCase().trim()))
+      );
+  const uniqueUnits = Array.from(
+    new Set([
+      ...scopedLp.map((p) => p.unit_code),
+      ...scopedPlans.map((p) => p.unit_code),
+    ])
+  ).filter(Boolean);
+  const uniqueClasses = Array.from(
+    new Set([
+      ...scopedLp.map((p) => p.class_code),
+      ...scopedPlans.map((p) => p.class_code),
+      ...(profile.classes || []),
+    ])
+  ).filter(Boolean);
 
   const unitNameMap = useMemo(() => {
     const map: Record<string, string> = {};

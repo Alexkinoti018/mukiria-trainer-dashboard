@@ -315,9 +315,6 @@ const isTerm3CompliantUnit = (unitCode?: string, unitName?: string, classCode?: 
   // Pull down FBS6 MOD/12026
   if (cls === "FBS6 MOD/12026" || cls.includes("12026")) return false;
 
-  // Remove non-Term 3 cohorts (2023, 2024, 2025)
-  if (cls.includes("/24") || cls.includes("/25") || cls.includes("/23")) return false;
-
   return true;
 };
 

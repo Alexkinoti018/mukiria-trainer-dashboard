@@ -93,10 +93,14 @@ export default function RecordsOfWork() {
   const [editingRecord, setEditingRecord] = useState<RecordOfWork | null>(null);
   const [isExportingBook, setIsExportingBook] = useState(false);
 
+  const profile = useMemo(() => getCurrentTrainerProfile(user), [user]);
+  const initialClassCode = profile.classes && profile.classes[0] ? profile.classes[0] : "ICT4/ITECH6/S/26 MOD 1";
+  const initialUnitCode = profile.units && profile.units[0] ? `CU/${initialClassCode.split("/")[0] || "MTTI"}/01` : "IT/CU/ICTA/CR/01/4/MA";
+
   // Form State for Manual / Edit
   const [formData, setFormData] = useState({
-    unit_code: "IT/CU/ICTA/CR/01/4/MA",
-    class_code: "ICT4/ITECH6/S/26 MOD 1",
+    unit_code: initialUnitCode,
+    class_code: initialClassCode,
     week_number: academicContext.currentWeek,
     date_delivered: academicContext.shortDate,
     hours_covered: 2,
@@ -104,16 +108,16 @@ export default function RecordsOfWork() {
     work_actually_covered: "",
     reflection: "",
     status: "delivered" as "delivered" | "partial" | "postponed",
-    signature: user?.name || (user?.email ? user.email.split("@")[0].toUpperCase() : "Alexander Kinoti")
+    signature: profile.name,
   });
 
   useEffect(() => {
     const loadedRecords = getStoredRecordsOfWork();
     const loadedPlans = getStoredSessionPlans();
     const isPrivileged = user?.role === "admin" || user?.role === "hod";
-    const profile = getCurrentTrainerProfile(user);
-    const trainerClasses = new Set((profile.classes || []).map((c: string) => c.toUpperCase().trim()));
-    const trainerNameClean = profile.name.toLowerCase().trim();
+    const currentProfile = getCurrentTrainerProfile(user);
+    const trainerClasses = new Set((currentProfile.classes || []).map((c: string) => c.toUpperCase().trim()));
+    const trainerNameClean = currentProfile.name.toLowerCase().trim();
 
     const scopedRecords = isPrivileged
       ? loadedRecords
@@ -123,7 +127,7 @@ export default function RecordsOfWork() {
               (r.signature && r.signature.toLowerCase().includes(trainerNameClean)) ||
               (r.class_code && trainerClasses.has(r.class_code.toUpperCase().trim()))
           )
-          .map((r) => ({ ...r, signature: profile.name }));
+          .map((r) => ({ ...r, signature: currentProfile.name }));
 
     const scopedPlans = isPrivileged
       ? loadedPlans
@@ -133,10 +137,10 @@ export default function RecordsOfWork() {
               (p.trainer_name && p.trainer_name.toLowerCase().includes(trainerNameClean)) ||
               (p.class_code && trainerClasses.has(p.class_code.toUpperCase().trim()))
           )
-          .map((p) => ({ ...p, trainer_name: profile.name, signature: profile.name }));
+          .map((p) => ({ ...p, trainer_name: currentProfile.name, signature: currentProfile.name }));
 
-    setRecords(scopedRecords.length > 0 ? scopedRecords : loadedRecords);
-    setSessionPlans(scopedPlans.length > 0 ? scopedPlans : loadedPlans);
+    setRecords(isPrivileged ? loadedRecords : scopedRecords);
+    setSessionPlans(isPrivileged ? loadedPlans : scopedPlans);
   }, [user]);
 
   // Sync delivered session plans into Record of Work
