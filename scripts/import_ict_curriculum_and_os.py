@@ -1,0 +1,2212 @@
+import json
+import os
+
+CLIENT_DB_PATH = r"C:\Users\Administrator\Desktop\mukiria-trainer-dashboard\client\src\lib\curriculum_database.json"
+BACKEND_DB_PATH = r"C:\Users\Administrator\Desktop\mukiria-trainer-dashboard\backend\data\curriculum_database.json"
+
+ICT_OFFICIAL_UNITS = [
+    # ─── LEVEL 4 / MODULE 1 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CR-01-4-MA",
+        "unit_code": "IT/CU/ICTA/CR/01/4/MA",
+        "isced_code": "0611 351 01A",
+        "cdacc_code": "IT/CU/ICTA/CR/01/4/MA",
+        "os_code": "IT/OS/ICTA/CR/01/4/MA",
+        "unit_title": "Perform Computer Essentials",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 4,
+        "module": "Module 1",
+        "credit_factor": 12,
+        "duration_hours": 120,
+        "description": "This unit covers the competencies required in performing computer essentials. It involves managing computer devices, managing desktop settings, performing file management, managing computer software, and performing online jobs.",
+        "source_file": "TVET CDACC ICT Level 4 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Manage computer devices",
+                "duration_hours": 20,
+                "content": [
+                    "Selection of computer hardware devices (computer case, monitor, keyboard, mouse)",
+                    "Internal components (hard disk drive, motherboard, video cards)",
+                    "Disassembling and cleaning of computer hardware devices",
+                    "Assembling and connecting computer hardware devices",
+                    "Cold booting and warm booting procedures as per UEFI standards",
+                    "Connecting and configuring peripheral devices (printer, speaker, mouse, keyboard, projector)"
+                ],
+                "assessment_methods": ["Practical", "Oral questions", "Written tests", "Observation", "Reports", "Portfolio of evidence"]
+            },
+            {
+                "title": "2. Manage desktop settings",
+                "duration_hours": 30,
+                "content": [
+                    "Customization of desktop icons and settings",
+                    "Date and time settings configuration",
+                    "Desktop customization: background colour, pictures, themes, taskbar, menu bar, text size, brightness"
+                ],
+                "assessment_methods": ["Practical", "Oral questions", "Written tests", "Observation", "Reports", "Portfolio of evidence"]
+            },
+            {
+                "title": "3. Perform file management",
+                "duration_hours": 20,
+                "content": [
+                    "Introduction to files and folders, directory hierarchy",
+                    "Creating files and folders, file naming conventions",
+                    "Compression and extraction of folders (ZIP/RAR)",
+                    "Transferring and sharing files/folders across media and network",
+                    "File protection: password protection, file encryption"
+                ],
+                "assessment_methods": ["Practical", "Oral questions", "Written tests", "Observation", "Reports", "Portfolio of evidence"]
+            },
+            {
+                "title": "4. Manage computer software",
+                "duration_hours": 20,
+                "content": [
+                    "Selecting data backup media and performing routine data backup",
+                    "Installation and configuration of software (applications, OS, utility programs)",
+                    "Optimization of computer software: updates, service packs, disk cleanup, defragmentation"
+                ],
+                "assessment_methods": ["Practical", "Oral questions", "Written tests", "Observation", "Reports", "Portfolio of evidence"]
+            },
+            {
+                "title": "5. Perform online jobs",
+                "duration_hours": 30,
+                "content": [
+                    "Introduction to online working and remote task execution",
+                    "Types of online jobs and platforms (Upwork, Freelancer, Fiverr, Remotask, Appen)",
+                    "Online account and profile management, digital identity",
+                    "Online job bidding, executing client deliverables, online payment accounts management"
+                ],
+                "assessment_methods": ["Practical Assessment", "Project", "Third Party Report", "Portfolio of Evidence", "Written Assessment", "Oral Questioning"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Manage computer devices",
+                "performance_criteria": [
+                    "1.1 Computer hardware devices are selected as per user requirement.",
+                    "1.2 Computer hardware devices are disassembled as per user requirement.",
+                    "1.3 Computer hardware devices are assembled as per user requirement.",
+                    "1.4 Computer booting process is performed as per Unified Extensible Firmware Interface (UEFI) standards.",
+                    "1.5 Computer peripheral devices are connected as per user manual."
+                ]
+            },
+            {
+                "element_title": "2. Manage desktop settings",
+                "performance_criteria": [
+                    "2.1 Desktop icons are customized as per user manual.",
+                    "2.2 Desktop date and time are set as per user manual.",
+                    "2.3 Desktop configuration settings are performed as per user manual."
+                ]
+            },
+            {
+                "element_title": "3. Perform file management",
+                "performance_criteria": [
+                    "3.1 Files and folders are created per work specifications.",
+                    "3.2 Files and folders are transferred between various media as per user requirements.",
+                    "3.3 File protection is performed as per work specifications."
+                ]
+            },
+            {
+                "element_title": "4. Manage computer software",
+                "performance_criteria": [
+                    "4.1 Data backup media is selected as per work requirements.",
+                    "4.2 Data backup is performed as per work requirements.",
+                    "4.3 Computer software is installed as per work requirements.",
+                    "4.4 Computer software is optimized as per software standards."
+                ]
+            },
+            {
+                "element_title": "5. Perform online jobs",
+                "performance_criteria": [
+                    "5.1 Online job platforms are identified as per the job requirements.",
+                    "5.2 Online accounts and profiles are created in accordance with the work requirements.",
+                    "5.3 Online jobs are identified according to the bidder's skillset.",
+                    "5.4 Online digital identity is managed according to industry best practices.",
+                    "5.5 Online job bidding is done as per the specific job requirements.",
+                    "5.6 Online tasks are executed according to the job requirements.",
+                    "5.7 Personal online payment account is managed in accordance with financial regulations."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "ADMISSION, ORIENTATION & COMPUTER HARDWARE SELECTION", "outcomes": ["Reporting, orientation, safety pledge, selection of hardware devices"], "resources": ["Lab workstations", "Safety manuals", "System units"], "safety": "Standard electrical safety and workstation ergonomics."},
+            {"week": 2, "title": "HARDWARE DISASSEMBLY & ASSEMBLY PROCEDURES", "outcomes": ["Disassemble computer components, internal cleaning, safe reassembly"], "resources": ["Toolkit", "Anti-static wrist straps", "System units"], "safety": "Anti-static grounding and sharp edge precautions."},
+            {"week": 3, "title": "UEFI BOOTING & PERIPHERAL CONNECTIONS", "outcomes": ["Execute UEFI cold and warm boot, connect and configure printer, scanner, projector"], "resources": ["Monitors", "Printers", "Projectors", "Cables"], "safety": "Power cable rating and voltage regulation verification."},
+            {"week": 4, "title": "DESKTOP SETTINGS & OPERATING SYSTEM CONFIGURATION", "outcomes": ["Customize icons, resolution, taskbar, menu bar, date/time and themes"], "resources": ["OS Windows/Linux", "Monitors", "Display adapters"], "safety": "Ergonomic viewing distance and screen brightness limits."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (CAT 1 - LO1 & LO2)", "outcomes": ["Evaluate competencies in hardware management and desktop settings (15 Marks)"], "resources": ["CAT Papers", "Assessment marking guide"], "safety": "Examination integrity regulations."},
+            {"week": 6, "title": "FILE MANAGEMENT, ARCHIVING & ENCRYPTION", "outcomes": ["Directory tree creation, file compression/extraction, password protection and encryption"], "resources": ["Storage media", "Archive utilities (7-Zip)"], "safety": "Cyber hygiene and secure credential storage."},
+            {"week": 7, "title": "DATA BACKUP PROCEDURES & STORAGE MEDIA", "outcomes": ["Select backup media, perform full and incremental backup, verify backup integrity"], "resources": ["External hard drives", "Flash drives", "Cloud storage"], "safety": "Secure handling of storage media and data confidentiality."},
+            {"week": 8, "title": "SOFTWARE INSTALLATION, UPDATES & DISK OPTIMIZATION", "outcomes": ["Install application software, configure utilities, run disk cleanup and defragmenter"], "resources": ["Application software suite", "OS utilities"], "safety": "Antivirus scanning before installation."},
+            {"week": 9, "title": "ONLINE JOBS PLATFORMS, BIDDING & DIGITAL IDENTITY", "outcomes": ["Create freelancer profile, manage professional digital identity, bid on sample projects"], "resources": ["Broadband internet", "Web browsers", "Job portals"], "safety": "Online scam prevention and data privacy."},
+            {"week": 10, "title": "CONTINUOUS ASSESSMENT TEST 2 & PRACTICAL PORTFOLIO", "outcomes": ["Final comprehensive assessment of file management, software optimization, and online deliverables"], "resources": ["Assessment rubric", "Portfolios of evidence"], "safety": "Institutional assessment regulations."}
+        ],
+        "suggested_resources": ["Computers (1:1 ratio)", "Projector (25:1)", "Printers (13:1)", "Flash drives (5:1)", "External hard drive (5:1)", "Computer repair toolbox (5:1)", "Antistatic gloves (1:1)"],
+        "safety_protocols": "Strict adherence to workshop safety rules, electrical safety protocols, anti-static precautions, and ergonomic guidelines."
+    },
+
+    # ─── LEVEL 4 / MODULE 1 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CR-02-4-MA",
+        "unit_code": "IT/CU/ICTA/CR/02/4/MA",
+        "isced_code": "0611 351 02A",
+        "cdacc_code": "IT/CU/ICTA/CR/02/4/MA",
+        "os_code": "IT/OS/ICTA/CR/02/4/MA",
+        "unit_title": "Perform Computer Operations",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 4,
+        "module": "Module 1",
+        "credit_factor": 15,
+        "duration_hours": 150,
+        "description": "This unit covers the competencies required to perform computer operations. It involves processing computerized word documents, manipulating computerized spreadsheets, maintaining computerized databases, preparing PowerPoint presentation slides, manipulating graphic applications, and performing online collaboration.",
+        "source_file": "TVET CDACC ICT Level 4 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Process computerized word document",
+                "duration_hours": 30,
+                "content": [
+                    "Ergonomics risk factors and safe typing posture",
+                    "Word document creation, text editing, paragraph formatting, document styling",
+                    "Table creation, cell merging, borders, formulas in tables",
+                    "Mail merge preparation and output generation",
+                    "Inserting objects (pictures, shapes, tables, charts), list of figures, table of contents, printing"
+                ],
+                "assessment_methods": ["Practical assessment", "Simulations", "Project", "Observation checklist", "Written assessment"]
+            },
+            {
+                "title": "2. Manipulate computerized spreadsheet",
+                "duration_hours": 30,
+                "content": [
+                    "Worksheet and workbook concepts, rows, columns, cells",
+                    "Cell referencing: relative, absolute, and mixed cell referencing",
+                    "Spreadsheet editing: inserting, renaming, moving, and deleting worksheets",
+                    "Formulas and functions: syntax, arithmetic (SUM, AVERAGE, MIN, MAX), logical (IF, AND, OR), lookup (VLOOKUP, HLOOKUP)",
+                    "Formatting: font styles, alignment, borders, shading, headers/footers",
+                    "Chart generation: column, bar, pie, line charts, print setup"
+                ],
+                "assessment_methods": ["Practical assessment", "Simulations", "Project", "Observation checklist", "Written assessment"]
+            },
+            {
+                "title": "3. Maintain computerized database",
+                "duration_hours": 30,
+                "content": [
+                    "Database concepts, relationships (1:1, 1:M, M:N), organization",
+                    "Schema design, ERD models, relational models",
+                    "Creation of objects: tables, records, fields, keys (primary, foreign)",
+                    "Data manipulation: insert, retrieve, update, delete records",
+                    "Forms, queries, and reports generation and printing"
+                ],
+                "assessment_methods": ["Practical assessment", "Simulations", "Project", "Observation checklist", "Written assessment"]
+            },
+            {
+                "title": "4. Prepare PowerPoint presentation",
+                "duration_hours": 20,
+                "content": [
+                    "Slide layouts, slide views, design principles",
+                    "Animations and slide transitions, timing",
+                    "Presentation objects: tables, charts, multimedia",
+                    "Presenter view, slide show delivery, handout printing"
+                ],
+                "assessment_methods": ["Practical assessment", "Simulations", "Project", "Written assessment"]
+            },
+            {
+                "title": "5. Manipulate graphic application",
+                "duration_hours": 25,
+                "content": [
+                    "Graphic design principles and requirements",
+                    "Publication types: banners, booklets, brochures, flyers, posters, certificates",
+                    "Page setup, columns, borders, shading, watermarks, orientation",
+                    "Graphic objects: textboxes, shapes, pictures, export formats (PNG, JPEG, PDF), publication printing"
+                ],
+                "assessment_methods": ["Practical assessment", "Simulations", "Project", "Written assessment"]
+            },
+            {
+                "title": "6. Perform online collaboration",
+                "duration_hours": 15,
+                "content": [
+                    "Tools: MS Teams, Skype, Google Drive, Zoom, Google Meet, Slack",
+                    "Account setup, cloud storage sharing, collaborative document editing",
+                    "Calendar scheduling, online meetings, mobile collaboration synchronization"
+                ],
+                "assessment_methods": ["Practical assessment", "Simulations", "Project", "Written assessment"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Process computerized word document",
+                "performance_criteria": [
+                    "1.1 Ergonomics risk factors observed as per workplace procedures.",
+                    "1.2 Word document is created as per work requirements.",
+                    "1.3 Tables are created and manipulated as per work requirements.",
+                    "1.4 Mail merging is performed as per work requirements.",
+                    "1.5 Word processing objects are inserted as per user requirements.",
+                    "1.6 List of figures and table of content are generated as per user requirements.",
+                    "1.7 Computerized word documents are printed as per workplace procedure."
+                ]
+            },
+            {
+                "element_title": "2. Manipulate computerized spreadsheet",
+                "performance_criteria": [
+                    "2.1 Spreadsheet workbook is created as per work requirements.",
+                    "2.2 Cell referencing is performed as per task requirements.",
+                    "2.3 Formula and functions are applied as per work requirements.",
+                    "2.4 Charts are generated as per work requirements."
+                ]
+            },
+            {
+                "element_title": "3. Maintain computerized database",
+                "performance_criteria": [
+                    "3.1 Computerized database user requirements are collected as per work requirements.",
+                    "3.2 Computerized database schemas are designed as per task requirements.",
+                    "3.3 Creation of computerized database objects as per task requirements.",
+                    "3.4 Data manipulation is performed as per task requirements."
+                ]
+            },
+            {
+                "element_title": "4. Prepare PowerPoint presentation",
+                "performance_criteria": [
+                    "4.1 PowerPoint presentation requirements are collected as per work requirements.",
+                    "4.2 PowerPoint slides are created as per work requirement.",
+                    "4.3 Presentation views are exhibited as per work requirements.",
+                    "4.4 Animations and transitions are performed as per work requirements.",
+                    "4.5 PowerPoint slides are manipulated as per work requirements.",
+                    "4.6 PowerPoint slides are printed as per work requirements."
+                ]
+            },
+            {
+                "element_title": "5. Manipulate graphic application",
+                "performance_criteria": [
+                    "5.1 Identifying graphic design requirements.",
+                    "5.2 Graphic design created as per task requirements.",
+                    "5.3 Graphic design published as per the task requirements."
+                ]
+            },
+            {
+                "element_title": "6. Perform document production",
+                "performance_criteria": [
+                    "6.1 Document is printed as per user specifications.",
+                    "6.2 Documents are scanned as per user specifications.",
+                    "6.3 Documents are duplicated as per user specifications."
+                ]
+            },
+            {
+                "element_title": "7. Perform online collaboration",
+                "performance_criteria": [
+                    "7.1 Identification of online collaboration tools as per task requirements.",
+                    "7.2 Prepare online collaboration as per the task requirements.",
+                    "7.3 Apply online collaborative tools as per the task requirements.",
+                    "7.4 Demonstrating mobile collaborations as per task requirements."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "ADMISSION, ERGONOMICS & WORD DOCUMENT CREATION", "outcomes": ["Orientation, typing ergonomics, document formatting"], "resources": ["Word Processor", "Workstations"], "safety": "Repetitive strain prevention and ergonomic seating."},
+            {"week": 2, "title": "ADVANCED WORD PROCESSING: TABLES & MAIL MERGE", "outcomes": ["Table styling, mail merge recipient list, merged letters and envelopes"], "resources": ["Office Suite", "Printer"], "safety": "Paper handling and printer safety."},
+            {"week": 3, "title": "SPREADSHEET BASICS & CELL REFERENCING", "outcomes": ["Worksheet navigation, data entry, relative/absolute/mixed referencing"], "resources": ["Spreadsheet software", "Practice worksheets"], "safety": "Visual strain prevention."},
+            {"week": 4, "title": "SPREADSHEET FORMULAS, FUNCTIONS & CHARTS", "outcomes": ["Apply SUM, IF, VLOOKUP, generate column/pie charts"], "resources": ["Spreadsheet software", "Sample datasets"], "safety": "Workstation posture."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (CAT 1 - WORD & EXCEL)", "outcomes": ["Evaluate practical competencies in word processing and financial modeling"], "resources": ["CAT evaluation briefs", "Exam computers"], "safety": "Test compliance standards."},
+            {"week": 6, "title": "DATABASE CONCEPTS, TABLES & RELATIONSHIPS", "outcomes": ["Relational schemas, primary keys, creating tables and relationships in Access/MySQL"], "resources": ["DBMS software", "ERD templates"], "safety": "Data backup before modification."},
+            {"week": 7, "title": "DATABASE QUERIES, FORMS & REPORTS", "outcomes": ["Design select and action queries, input forms, and summary reports"], "resources": ["Database files", "Printers"], "safety": "Integrity constraints adherence."},
+            {"week": 8, "title": "POWERPOINT PRESENTATION DESIGN & SLIDE MASTERS", "outcomes": ["Create professional slide decks, transitions, custom animations, presenter mode"], "resources": ["Presentation software", "Projector"], "safety": "Projector beam eye safety."},
+            {"week": 9, "title": "DESKTOP PUBLISHING & GRAPHIC PUBLICATIONS", "outcomes": ["Design brochures, posters, business cards using publisher/vector graphics"], "resources": ["DTP software", "Color printers", "Heavy stock paper"], "safety": "Paper cutter and trimmer safety."},
+            {"week": 10, "title": "ONLINE COLLABORATION & FINAL SUMMATIVE PRACTICAL", "outcomes": ["Collaborative document editing, cloud storage, final practical exam"], "resources": ["Google Workspace / MS 365", "Final rubric"], "safety": "Institutional exam protocols."}
+        ],
+        "suggested_resources": ["Computers (1:1)", "Projector (25:1)", "Printers (13:1)", "Application software suite (5:1)", "Scanner (1:13)", "Printing paper (1 ream:20)"],
+        "safety_protocols": "Ergonomic guidelines, anti-glare screen filters, safe electrical socket usage."
+    },
+
+    # ─── LEVEL 4 / MODULE 2 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CR-03-4-MA",
+        "unit_code": "IT/CU/ICTA/CR/03/4/MA",
+        "isced_code": "0612 351 03A",
+        "cdacc_code": "IT/CU/ICTA/CR/03/4/MA",
+        "os_code": "IT/OS/ICTA/CR/03/4/MA",
+        "unit_title": "Perform Computer Network Setup",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 4,
+        "module": "Module 2",
+        "credit_factor": 20,
+        "duration_hours": 200,
+        "description": "This unit covers the competencies required to set up computer networks. It involves terminating network cables, connecting network cables, setting up network devices, and performing computer network maintenance.",
+        "source_file": "TVET CDACC ICT Level 4 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Terminate computer network cables",
+                "duration_hours": 70,
+                "content": [
+                    "Selection of network devices, topologies, and networking tools",
+                    "Cable color coding (T568A and T568B standards)",
+                    "Network cable trunking: tools, measuring, spirit level, drilling, trunking installation",
+                    "Cable termination: stripping, wire arranging, crimping RJ45, punch down on patch panels"
+                ],
+                "assessment_methods": ["Practical", "Oral questions", "Written tests", "Observation", "Portfolio of evidence"]
+            },
+            {
+                "title": "2. Connect computer network cables",
+                "duration_hours": 70,
+                "content": [
+                    "Safety measures in networking: PPE, overall, gloves, safety boots, first aid",
+                    "Setting up network devices: routers, switches, bridges, hubs, access points",
+                    "Cable testing: continuity testing, wire mapping, length testing, fault detection (cable tester, multimeter)",
+                    "Networking standards: HTTP, IEEE 802.1, TCP/IP, network connection establishment"
+                ],
+                "assessment_methods": ["Practical", "Oral questions", "Written tests", "Observation", "Portfolio of evidence"]
+            },
+            {
+                "title": "3. Perform computer network maintenance",
+                "duration_hours": 60,
+                "content": [
+                    "Monitoring network status: port/interface, cable connections, power supply",
+                    "Troubleshooting computer network faults",
+                    "Optimizing computer network: upgrading hardware devices, upgrading cables"
+                ],
+                "assessment_methods": ["Practical", "Oral questions", "Written tests", "Observation", "Portfolio of evidence"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Terminate computer network cables",
+                "performance_criteria": [
+                    "1.1 Network devices are selected as per technical requirements.",
+                    "1.2 Network cable trunking is performed as per work requirements.",
+                    "1.3 Network cable termination is performed as per work requirements."
+                ]
+            },
+            {
+                "element_title": "2. Connect computer network cables",
+                "performance_criteria": [
+                    "2.1 Safety measures are observed as per workplace procedure.",
+                    "2.2 Setting up network devices is performed as per work requirements.",
+                    "2.3 Network cable testing is performed as per work requirements.",
+                    "2.4 Network cable connection performed as per networking standards.",
+                    "2.5 Network connection is established as per networking standards.",
+                    "2.6 Network testing is performed as per work requirements."
+                ]
+            },
+            {
+                "element_title": "3. Perform computer network maintenance",
+                "performance_criteria": [
+                    "3.1 Computer network is monitored as per work requirement.",
+                    "3.2 Computer network troubleshooting is performed as per networking standards.",
+                    "3.3 Computer network is optimized as per networking standards."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "NETWORKING PRINCIPLES, TOPOLOGIES & SAFETY", "outcomes": ["Network topologies, tools identification, PPE and electrical safety"], "resources": ["Network toolkit", "PPE equipment"], "safety": "Electrical safety, anti-static measures, boots/gloves."},
+            {"week": 2, "title": "CABLE TRUNKING & PATHWAY INSTALLATION", "outcomes": ["Measure, cut, level, and mount trunking channels on lab walls"], "resources": ["Trunking channels", "Spirit level", "Drill", "Screws"], "safety": "Drilling dust masks and safety goggles."},
+            {"week": 3, "title": "UTP CABLE PREPARATION & T568A/B TERMINATION", "outcomes": ["Strip UTP cables, arrange color codes according to T568A and T568B, crimp RJ45"], "resources": ["UTP Cat 6", "RJ45 connectors", "Crimping tool", "Stripper"], "safety": "Cutter safety and eye protection from wire clippings."},
+            {"week": 4, "title": "PATCH PANEL PUNCH DOWN & KEYSTONE JACKS", "outcomes": ["Punch down cables to patch panel and wall modules using punch-down tool"], "resources": ["Patch panel", "Punch down tool", "Keystone jacks"], "safety": "Tool grip and controlled impact force."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (CABLE TERMINATION)", "outcomes": ["Practical timed assessment of cable crimping and patch panel termination"], "resources": ["Test kits", "Cable testers", "Evaluation rubric"], "safety": "Workshop assessment protocols."},
+            {"week": 6, "title": "CABLE TESTING: WIRE MAPPING & CONTINUITY", "outcomes": ["Execute continuity, wire-map, crossover, and length tests using cable tester"], "resources": ["Digital cable testers", "Multimeters"], "safety": "De-energized testing precautions."},
+            {"week": 7, "title": "SWITCH & ROUTER PHYSICAL SETUP & CABLING", "outcomes": ["Mount switches/routers in rack, connect patch cords, link access points"], "resources": ["Rack cabinet", "Switches", "Routers", "Patch cords"], "safety": "Rack weight balance and grounded power supplies."},
+            {"week": 8, "title": "TCP/IP CONFIGURATION & LOCAL CONNECTIVITY", "outcomes": ["Configure IPv4 addresses, subnet masks, default gateways, ping verification"], "resources": ["Client PCs", "Console cables", "Wireshark"], "safety": "Authorized IP assignment protocols."},
+            {"week": 9, "title": "NETWORK TROUBLESHOOTING & PERFORMANCE OPTIMIZATION", "outcomes": ["Diagnose physical faults, replace damaged patch cords, test bandwidth"], "resources": ["Tone generator", "Network monitoring software"], "safety": "Secure cable routing avoiding trip hazards."},
+            {"week": 10, "title": "FINAL NETWORK SETUP PRACTICAL ASSESSMENT", "outcomes": ["End-to-end network deployment, documentation, and certification test"], "resources": ["Complete lab installation", "Grading rubric"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Computers (1:1)", "Switches (5:1)", "Routers (5:1)", "Crimping tools (1:1)", "Cable testers (5:1)", "UTP Ethernet cable (300m:10)", "RJ45 connectors (300 pcs:10)", "Punch-down tool (5:1)", "Antistatic gloves (1:1)"],
+        "safety_protocols": "Use of insulated tools, PPE (overalls, dust coats, gloves, boots), first aid kit accessibility."
+    },
+
+    # ─── LEVEL 4 / MODULE 2 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CR-04-4-MA",
+        "unit_code": "IT/CU/ICTA/CR/04/4/MA",
+        "isced_code": "0714 351 04A",
+        "cdacc_code": "IT/CU/ICTA/CR/04/4/MA",
+        "os_code": "IT/OS/ICTA/CR/04/4/MA",
+        "unit_title": "Perform Computer Repair and Maintenance",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 4,
+        "module": "Module 2",
+        "credit_factor": 20,
+        "duration_hours": 200,
+        "description": "This unit covers the competencies required for performing computer repair and maintenance. It involves performing computer troubleshooting, repairing faulty components, testing computer component functionality, and performing preventive maintenance.",
+        "source_file": "TVET CDACC ICT Level 4 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Perform computer troubleshooting",
+                "duration_hours": 50,
+                "content": [
+                    "User data assessment and documenting faulty computer user complaints",
+                    "Computer troubleshooting approaches: symptomatic, divide and conquer, top-down",
+                    "Basic hardware faults identification and user data analysis",
+                    "Formulating problem-solving hypotheses and determining remedies"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            },
+            {
+                "title": "2. Repair faulty components",
+                "duration_hours": 60,
+                "content": [
+                    "Selection and acquisition of computer replacement parts",
+                    "Assembly of repair tools: screwdrivers, tweezers, pliers, cutters, chip extractor, hex wrench, torx",
+                    "Safety procedures: PPE, anti-static precautions, fire safety, emergency contacts",
+                    "Disassembly and reassembly of computer components as per manufacturer manual",
+                    "Proper disposal of faulty/obsolete components (e-waste, pollution, hazards)"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            },
+            {
+                "title": "3. Test computer component functionality",
+                "duration_hours": 60,
+                "content": [
+                    "Performing Power-On Self-Test (POST) and interpreting beep codes",
+                    "Testing techniques: RAM test, HDD/SSD health diagnostics, GPU benchmarking",
+                    "Evaluation of test results and generating functionality reports"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            },
+            {
+                "title": "4. Perform computer maintenance",
+                "duration_hours": 30,
+                "content": [
+                    "Computer maintenance scheduling (daily, weekly, monthly, termly)",
+                    "Maintenance utilities: disk cleanup, defragmentation, firmware update, thermal paste renewal",
+                    "Physical cleaning of heatsinks, fans, and power supplies",
+                    "Compilation of computer maintenance reports and service logs"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Perform computer troubleshooting",
+                "performance_criteria": [
+                    "1.1 User data is assessed as per workplace procedures.",
+                    "1.2 Computer problems are identified as per the assessed user data.",
+                    "1.3 Solution to the problem is determined as per workplace procedure."
+                ]
+            },
+            {
+                "element_title": "2. Repair faulty components",
+                "performance_criteria": [
+                    "2.1 Computer components for replacement are selected as per the workplace procedure.",
+                    "2.2 Tools for repairing or replacing are assembled as per the workplace procedure.",
+                    "2.3 Safety procedures are observed as per workplace procedures.",
+                    "2.4 Faulty computer components are repaired or replaced as per the manufacturer's manual.",
+                    "2.5 Obsolete or faulty computer components are disposed as per workplace procedures."
+                ]
+            },
+            {
+                "element_title": "3. Test computer component functionality",
+                "performance_criteria": [
+                    "3.1 Computer is switched on for POST test as per workplace procedure.",
+                    "3.2 Computer component test is performed as per workplace procedure.",
+                    "3.3 Computer component's functionality report is generated as per workplace procedure."
+                ]
+            },
+            {
+                "element_title": "4. Perform computer maintenance",
+                "performance_criteria": [
+                    "4.1 Computer maintenance is scheduled as per the workplace procedure.",
+                    "4.2 Computer maintenance is performed as per the workplace procedure.",
+                    "4.3 Computer maintenance report is generated as per workplace procedure."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "TROUBLESHOOTING METHODOLOGY & USER DATA ASSESSMENT", "outcomes": ["Document user problem reports, apply diagnostic flowcharts, isolate faults"], "resources": ["Diagnostic forms", "Defective PCs"], "safety": "ESD prevention, wristband grounding."},
+            {"week": 2, "title": "POST DIAGNOSTICS & HARDWARE FAULT IDENTIFICATION", "outcomes": ["Interpret BIOS/UEFI POST beep codes, identify RAM, CPU, GPU failures"], "resources": ["Motherboards", "POST diagnostic cards"], "safety": "High-voltage capacitor precautions in PSUs."},
+            {"week": 3, "title": "POWER SUPPLY UNIT (PSU) & MOTHERBOARD REPAIR", "outcomes": ["Test PSU rail voltages (+12V, +5V, +3.3V) with multimeter, inspect capacitors"], "resources": ["Digital multimeters", "ATX power testers"], "safety": "Never open sealed PSU casings under charge."},
+            {"week": 4, "title": "RAM, STORAGE (HDD/SSD) TESTING & REPLACEMENT", "outcomes": ["Run MemTest86, verify SMART health attributes, clone and replace drives"], "resources": ["SATA/NVMe drives", "Diagnostic software"], "safety": "Safe handling of delicate electronics."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (HARDWARE REPAIR)", "outcomes": ["Practical diagnosis and successful replacement of faulty internal module"], "resources": ["Grading criteria", "Timed lab benches"], "safety": "Workshop testing safety."},
+            {"week": 6, "title": "THERMAL MANAGEMENT & PROCESSOR RE-PASTING", "outcomes": ["Remove heatsink, clean thermal interface material, apply thermal compound, mount fan"], "resources": ["Thermal paste", "Isopropyl alcohol", "Lint-free cloths"], "safety": "Chemical safety when using solvents."},
+            {"week": 7, "title": "PERIPHERAL REPAIR (PRINTERS, MONITORS & ACCESSORIES)", "outcomes": ["Clear printer paper jams, clean rollers, replace toner/cartridges, fix cable fraying"], "resources": ["Laser/Inkjet printers", "Replacement parts"], "safety": "High-temperature fuser precautions."},
+            {"week": 8, "title": "PREVENTIVE MAINTENANCE SCHEDULING & BLOWING", "outcomes": ["Create maintenance schedules, perform compressed-air dust cleaning"], "resources": ["Air blower", "Dust masks", "Cleaning brushes"], "safety": "Respiratory dust protection and outdoor cleaning area."},
+            {"week": 9, "title": "E-WASTE MANAGEMENT & DISPOSAL COMPLIANCE", "outcomes": ["Classify electronic waste, segregate hazardous elements (lead/mercury), log scrap inventory"], "resources": ["Waste bins", "E-waste logbook"], "safety": "Environmental protection and toxic materials handling."},
+            {"week": 10, "title": "FINAL REPAIR PROJECT & MAINTENANCE LOG AUDIT", "outcomes": ["Comprehensive repair documentation, final practical certification exam"], "resources": ["Completed repair workstations", "Service logs"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Computers (1:1)", "Computer repair toolbox (5:1)", "Digital multimeters (5:1)", "Air blower (1:10)", "External hard drive (5:1)", "Antistatic mats and wrist straps (1:1)"],
+        "safety_protocols": "Anti-static grounding, use of insulated screwdrivers, proper handling of thermal paste and cleaning agents, e-waste compliance."
+    },
+
+    # ─── LEVEL 5 / MODULE 3 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CC-01-5-MA",
+        "unit_code": "IT/CU/ICTA/CC/01/5/MA",
+        "isced_code": "0714 441 04A",
+        "cdacc_code": "IT/CU/ICTA/CC/01/5/MA",
+        "os_code": "IT/OS/ICTA/CC/01/5/MA",
+        "unit_title": "Apply Basic Electronics",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 5,
+        "module": "Module 3",
+        "credit_factor": 10,
+        "duration_hours": 100,
+        "description": "This unit specifies the competencies required to apply basic electronics. It involves identifying electric circuits, identifying electronic components, applying semiconductor theory, classifying computer memory, applying logic gates, and performing Boolean algebra operations.",
+        "source_file": "TVET CDACC ICT Level 5 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Identify electric circuits",
+                "duration_hours": 10,
+                "content": [
+                    "Definition and components of an electrical circuit",
+                    "Electrical quantities and SI units (EMF in volts, current in amperes, power in watts, energy in joules, resistance in ohms)",
+                    "Types of electrical circuits: AC (Alternating Current) and DC (Direct Current)"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Written tests", "Portfolio of Evidence"]
+            },
+            {
+                "title": "2. Identify electronic components",
+                "duration_hours": 10,
+                "content": [
+                    "Identification, characteristics and applications of resistors, capacitors, diodes, and inductors",
+                    "Characteristics of integrated circuits (ICs)"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Written tests", "Portfolio of Evidence"]
+            },
+            {
+                "title": "3. Apply semiconductor theory",
+                "duration_hours": 20,
+                "content": [
+                    "Structure of matter, electrons in conductors and semiconductors",
+                    "Types of semiconductor materials: Silicon, Germanium",
+                    "P-type and N-type materials, P-N junction diodes (forward and reverse biasing)",
+                    "Types and operations of transistors (PNP, NPN) and circuit applications"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Written tests", "Portfolio of Evidence"]
+            },
+            {
+                "title": "4. Classify computer memory",
+                "duration_hours": 10,
+                "content": [
+                    "Primary and secondary memory, RAM, ROM, DAM",
+                    "Memory hierarchy speed: registers, cache memory, main memory, secondary storage, tertiary storage",
+                    "Memory classification by technology: semiconductor, magnetic, optical"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Written tests", "Portfolio of Evidence"]
+            },
+            {
+                "title": "5. Apply logic gates",
+                "duration_hours": 30,
+                "content": [
+                    "Identification of logic gates: AND, OR, NOT, NAND, NOR, XOR, XNOR",
+                    "Development of logic circuits",
+                    "Simplification methods: Boolean algebra, Karnaugh Maps (K-Maps), Quine-McCluskey, software and CAD tools",
+                    "Application of logic gates in computer electronic circuits"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Written tests", "Portfolio of Evidence"]
+            },
+            {
+                "title": "6. Perform Boolean algebra operations",
+                "duration_hours": 20,
+                "content": [
+                    "Boolean variables, logical operations, Boolean expressions",
+                    "Laws and rules of Boolean algebra, truth tables, De Morgan's theorem",
+                    "Sum of Products (SOPs) and simplification rules"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Written tests", "Portfolio of Evidence"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Identify electrical circuits",
+                "performance_criteria": [
+                    "1.1 Electrical circuit are identified as per electrical engineering principles.",
+                    "1.2 Electrical quantities and their S.I units are identified as per electrical engineering standards.",
+                    "1.3 Types of electrical circuits are identified as per electrical engineering standards."
+                ]
+            },
+            {
+                "element_title": "2. Identify electronic components",
+                "performance_criteria": [
+                    "2.1 Electronic components are identified as per electrical engineering standard.",
+                    "2.2 Characteristic of electronic components are identified as per their operations.",
+                    "2.3 Application of electronic components are identified as per workplace functions.",
+                    "2.4 Characteristics of integrated circuit are identified as per the standard mode of operations."
+                ]
+            },
+            {
+                "element_title": "3. Apply semiconductor theory",
+                "performance_criteria": [
+                    "3.1 Explanation of semiconductor theory is done as per the electronics principles.",
+                    "3.2 Structure of matter is described as per electronics principles.",
+                    "3.3 Electrons in conductors and semiconductors are explained as per electronics principles.",
+                    "3.4 Types of semiconductor materials are identified as per electronics principles.",
+                    "3.5 P-type and N-type materials are explained as per electronics principles.",
+                    "3.6 Description of P-N junction diodes operations is done as per their operations.",
+                    "3.7 Types and operations of transistors are identified as per electronics principles.",
+                    "3.8 Semiconductor theory is applied in electrical circuits as per electronics principles."
+                ]
+            },
+            {
+                "element_title": "4. Classify computer memory",
+                "performance_criteria": [
+                    "4.1 Classification of computer memories are identified as per their characteristics.",
+                    "4.2 Memory hierarchy is identified as per memory speed.",
+                    "4.3 Levels of memory storage are identified as per technology used.",
+                    "4.4 Classification of memories is done as per the technology used."
+                ]
+            },
+            {
+                "element_title": "5. Apply logic gates",
+                "performance_criteria": [
+                    "5.1 Logic gates are identified as per the Digital Electronics principles.",
+                    "5.2 Logic circuits are developed as per the standard procedures.",
+                    "5.3 Logic circuits are simplified as per the standard procedures.",
+                    "5.4 Apply logic gates in electronic circuits as per digital electronics principles."
+                ]
+            },
+            {
+                "element_title": "6. Perform Boolean algebra operations",
+                "performance_criteria": [
+                    "6.1 Key concepts in Boolean algebra are explained as per the digital electronics principles.",
+                    "6.2 Boolean expressions are demonstrated as per the SOPs.",
+                    "6.3 Basic Boolean operations are performed as per the SOPs.",
+                    "6.4 Methods of simplifying Boolean expressions are illustrated as per the SOPs.",
+                    "6.5 Boolean laws and theorems are illustrated as per the SOPs.",
+                    "6.6 Simplification rules for Boolean expressions are illustrated as per the SOPs."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "ELECTRICAL QUANTITIES, SI UNITS & CIRCUIT BASICS", "outcomes": ["Ohm's law, AC/DC analysis, measuring current/voltage/resistance"], "resources": ["Multimeters", "Power supply", "Resistors"], "safety": "Current limits and safe voltage handling."},
+            {"week": 2, "title": "PASSIVE ELECTRONIC COMPONENTS (R, C, L)", "outcomes": ["Color code reading, capacitance testing, inductance calculation"], "resources": ["Capacitor tester", "Breadboards", "Components"], "safety": "Polarized capacitor orientation."},
+            {"week": 3, "title": "SEMICONDUCTOR THEORY & P-N JUNCTION DIODES", "outcomes": ["Forward and reverse biasing, diode characteristic curves, rectifiers"], "resources": ["Diodes (1N4007)", "Oscilloscope", "Signal generator"], "safety": "Diode thermal thresholds."},
+            {"week": 4, "title": "BIPOLAR JUNCTION TRANSISTORS (NPN & PNP)", "outcomes": ["Transistor switching, amplification, pinout identification (E, B, C)"], "resources": ["Transistors (BC547, 2N2222)", "Breadboard kits"], "safety": "Static sensitive IC precautions."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (CIRCUITS & COMPONENTS)", "outcomes": ["Theoretical and practical verification of semiconductor components (15 Marks)"], "resources": ["Exam papers", "Breadboards"], "safety": "Lab safety regulations."},
+            {"week": 6, "title": "COMPUTER MEMORY HIERARCHY & ARCHITECTURES", "outcomes": ["Differentiate registers, L1/L2/L3 cache, DRAM, SRAM, and flash memory"], "resources": ["Memory modules", "Motherboards"], "safety": "Handle memory by edges only."},
+            {"week": 7, "title": "BASIC LOGIC GATES (AND, OR, NOT, NAND, NOR)", "outcomes": ["Construct truth tables, verify outputs using 7400 series TTL ICs"], "resources": ["TTL ICs (7408, 7432, 7404)", "LEDs", "Logic trainer"], "safety": "Regulated 5V Vcc power supply enforcement."},
+            {"week": 8, "title": "XOR, XNOR GATES & BOOLEAN ALGEBRA THEOREMS", "outcomes": ["Implement XOR/XNOR circuits, apply De Morgan's laws on combinational logic"], "resources": ["7486 XOR ICs", "Logic probes"], "safety": "Short-circuit detection."},
+            {"week": 9, "title": "LOGIC CIRCUIT SIMPLIFICATION USING KARNAUGH MAPS", "outcomes": ["Simplify 3-variable and 4-variable logic equations using K-maps and SOP"], "resources": ["Logic simulation software (Logisim)"], "safety": "Software workspace ergonomics."},
+            {"week": 10, "title": "FINAL COMBINATIONAL LOGIC PROJECT & CDACC EXAM", "outcomes": ["Construct half-adder/full-adder circuit, final competency assessment"], "resources": ["Complete electronic kits", "Grading rubric"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Digital Multimeters (5:1)", "Oscilloscopes (5:1)", "Power supplies (5:1)", "Logic gate kits (5:1)", "Transistors & Diodes (5:1)", "Semiconductor materials (3:1)", "Breadboards (1:1)"],
+        "safety_protocols": "Power supply calibration, anti-static precautions, safe soldering procedures, component current-limiting."
+    },
+
+    # ─── LEVEL 5 / MODULE 3 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CR-01-5-MA",
+        "unit_code": "IT/CU/ICTA/CR/01/5/MA",
+        "isced_code": "0619 451 06A",
+        "cdacc_code": "IT/CU/ICTA/CR/01/5/MA",
+        "os_code": "IT/OS/ICTA/CR/01/5/MA",
+        "unit_title": "Install Computer Software",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 5,
+        "module": "Module 3",
+        "credit_factor": 16,
+        "duration_hours": 160,
+        "description": "This unit covers the competencies required to install computer software. It involves the ability to install computer software, test computer software functionality, and perform software maintenance.",
+        "source_file": "TVET CDACC ICT Level 5 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Install computer software",
+                "duration_hours": 70,
+                "content": [
+                    "Identification and classification of software, collecting user needs",
+                    "Software selection factors and acquisition methods",
+                    "Manage local user accounts (Standard, Administrator, Guest)",
+                    "Data backup creation before installation",
+                    "Software installation media and methods (ISO, bootable USB, network)",
+                    "Software registration, anti-malware installation and configuration",
+                    "Software configuration tools and environment variables"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            },
+            {
+                "title": "2. Test computer software functionality",
+                "duration_hours": 40,
+                "content": [
+                    "Software testing importance and testing techniques",
+                    "Testing tools: TestComplete, Selenium, Appium, Postman",
+                    "Performing testing and corrective measures",
+                    "Confirming software functionality against technical specifications"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            },
+            {
+                "title": "3. Perform computer software maintenance",
+                "duration_hours": 50,
+                "content": [
+                    "Software maintenance schedules: adaptive, perfective, preventive, corrective",
+                    "Software updates: service packs, version upgrades, security patches, device drivers",
+                    "Software functionality monitoring tools and OS event logs (Error, Warning, Info, Success Audit, Failure Audit)",
+                    "Conducting software upgrades and updates adhering to safety procedures"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Install computer software",
+                "performance_criteria": [
+                    "1.1 Computer software identified as per user need.",
+                    "1.2 Computer software selected as per workplace procedure.",
+                    "1.3 Local user accounts are created as per the workplace procedures.",
+                    "1.4 Data backup performed as per work procedure.",
+                    "1.5 Computer software is installed as per software installation manual.",
+                    "1.6 Computer software is configured as per software installation manual."
+                ]
+            },
+            {
+                "element_title": "2. Test computer software functionality",
+                "performance_criteria": [
+                    "2.1 Software testing is performed as per user manual.",
+                    "2.2 Corrective measures are performed as per user requirements.",
+                    "2.3 Computer software functionality is confirmed as per workplace procedures."
+                ]
+            },
+            {
+                "element_title": "3. Perform software maintenance",
+                "performance_criteria": [
+                    "3.1 Software maintenance schedule is adopted as per workplace procedure.",
+                    "3.2 Software functionality is monitored as per workplace procedure.",
+                    "3.3 Software upgrade is conducted as per installation guide.",
+                    "3.4 Software update is conducted as per the workplace procedures.",
+                    "3.5 Safety procedures are observed as per workplace procedures."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "SOFTWARE REQUIREMENTS ANALYSIS & COMPATIBILITY CHECK", "outcomes": ["Audit hardware specs, review OS compatibility, collect software user needs"], "resources": ["System specs tools", "Installation media"], "safety": "Verified trusted installation sources."},
+            {"week": 2, "title": "USER ACCOUNT ROLES & PRE-INSTALLATION BACKUPS", "outcomes": ["Configure standard/admin/guest accounts, perform full system restore point"], "resources": ["Backup utilities", "External media"], "safety": "Data security and credential hashing."},
+            {"week": 3, "title": "OPERATING SYSTEM DEPLOYMENT & BOOTABLE MEDIA", "outcomes": ["Create UEFI bootable USB, partition SSD, clean install Linux/Windows OS"], "resources": ["Rufus", "USB 3.0 flash drives", "ISO images"], "safety": "Data loss prevention via disk verification."},
+            {"week": 4, "title": "APPLICATION SUITES & ENTERPRISE SOFTWARE SETUP", "outcomes": ["Automate bulk installation, configure license server, configure PATH variables"], "resources": ["Office suites", "IDE tools", "Silent installers"], "safety": "License compliance verification."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (INSTALLATION & CONFIG)", "outcomes": ["Timed practical: OS and enterprise software installation and configuration"], "resources": ["Test PCs", "Exam evaluation guide"], "safety": "Examination integrity standards."},
+            {"week": 6, "title": "ANTI-MALWARE & ENDPOINT SECURITY DEPLOYMENT", "outcomes": ["Install antivirus, configure real-time protection, scheduled scanning, exclusion rules"], "resources": ["Enterprise antivirus", "Firewall consoles"], "safety": "Quarantine management and threat isolation."},
+            {"week": 7, "title": "AUTOMATED & MANUAL SOFTWARE TESTING (POSTMAN/SELENIUM)", "outcomes": ["Run smoke tests, regression tests, API endpoint verification with Postman"], "resources": ["Postman", "Selenium IDE", "Browser drivers"], "safety": "Test in sandbox environments."},
+            {"week": 8, "title": "EVENT LOG MONITORING & DIAGNOSTIC AUDITING", "outcomes": ["Analyze Windows Event Viewer / Linux syslog for Error, Warning, and Audit events"], "resources": ["Event Viewer", "Log analyzer tools"], "safety": "System log tamper prevention."},
+            {"week": 9, "title": "PATCH MANAGEMENT, SERVICE PACKS & VERSION UPGRADES", "outcomes": ["Deploy WSUS/apt updates, verify rollback plans, install cumulative hotfixes"], "resources": ["Update repositories", "Virtual machines"], "safety": "Change management protocols and backup before patch."},
+            {"week": 10, "title": "FINAL SOFTWARE AUDIT, PORTFOLIO & CDACC TEST", "outcomes": ["Comprehensive software maintenance audit, documentation, and practical exam"], "resources": ["Completed lab systems", "Audit sheets"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Computers (1:1)", "Installation CDs/DVDs & USBs (1:1)", "Software suite (5:1)", "Antivirus licenses (1:1)", "Projector (25:1)"],
+        "safety_protocols": "Data backup before software modification, virus scanning of all external media, software copyright and licensing laws adherence."
+    },
+
+    # ─── LEVEL 5 / MODULE 3 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-BC-02-5-MA",
+        "unit_code": "IT/CU/ICTA/BC/02/5/MA",
+        "isced_code": "0417 441 02A",
+        "cdacc_code": "IT/CU/ICTA/BC/02/5/MA",
+        "os_code": "IT/OS/ICTA/BC/02/5/MA",
+        "unit_title": "Apply Work Ethics and Practices",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 5,
+        "module": "Module 3",
+        "credit_factor": 4,
+        "duration_hours": 40,
+        "description": "This unit covers competencies required to effectively apply work ethics and practices. It involves applying self-management skills, promoting ethical work practices and values, promoting teamwork, maintaining professional and personal development, applying problem-solving, and promoting customer care.",
+        "source_file": "TVET CDACC ICT Level 5 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Apply self-management skills",
+                "duration_hours": 10,
+                "content": ["Self-awareness, personal vision/mission/goals, emotional intelligence, stress management, assertiveness, punctuality and target setting"],
+                "assessment_methods": ["Observation", "Written assessment", "Oral assessment", "Portfolio of evidence", "Project"]
+            },
+            {
+                "title": "2. Promote ethical work practices and values",
+                "duration_hours": 10,
+                "content": ["Integrity, core values, patriotism, professionalism, codes of conduct, industry policies and confidentiality"],
+                "assessment_methods": ["Observation", "Written assessment", "Oral assessment", "Third party reports"]
+            },
+            {
+                "title": "3. Promote teamwork",
+                "duration_hours": 5,
+                "content": ["Team formation, roles and objectives, conflict resolution, diversity mainstreaming, healthy workplace relations"],
+                "assessment_methods": ["Observation", "Written assessment", "Oral assessment", "Third party reports"]
+            },
+            {
+                "title": "4. Maintain professional and personal development",
+                "duration_hours": 5,
+                "content": ["Continuous learning, professional certifications, licensing, training needs assessment, career planning"],
+                "assessment_methods": ["Observation", "Written assessment", "Oral assessment", "Portfolio of evidence"]
+            },
+            {
+                "title": "5. Apply problem-solving skills",
+                "duration_hours": 5,
+                "content": ["Root cause analysis, critical thinking, decision making models, innovative solutions implementation"],
+                "assessment_methods": ["Observation", "Written assessment", "Project", "Practical"]
+            },
+            {
+                "title": "6. Promote customer care",
+                "duration_hours": 5,
+                "content": ["Customer needs identification, active listening, complaints handling, customer retention strategies"],
+                "assessment_methods": ["Observation", "Written assessment", "Oral assessment", "Third party report"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Apply self-management skills",
+                "performance_criteria": [
+                    "1.1 Personal vision, mission and goals are formulated based on potential and concerning organization objectives.",
+                    "1.2 Self-esteem and a positive self-image are developed and maintained.",
+                    "1.3 Emotional intelligence and stress management are demonstrated as per workplace requirements.",
+                    "1.4 Assertiveness is developed and maintained based on job requirements.",
+                    "1.5 Accountability and responsibility for one's actions are demonstrated.",
+                    "1.6 Time management, attendance and punctuality are observed as per organization policy.",
+                    "1.7 Personal goals are managed as per organization's objective."
+                ]
+            },
+            {
+                "element_title": "2. Promote ethical work practices and values",
+                "performance_criteria": [
+                    "2.1 Integrity is demonstrated as per acceptable norms.",
+                    "2.2 Codes of conduct is applied as per workplace requirements.",
+                    "2.3 Policies and guidelines are observed as per workplace requirements.",
+                    "2.4 Professionalism is exercised in line with organizational policies."
+                ]
+            },
+            {
+                "element_title": "3. Promote teamwork",
+                "performance_criteria": [
+                    "3.1 Teams are formed to enhance productivity based on organization's objectives.",
+                    "3.2 Duties are assigned to teams under organization policy.",
+                    "3.3 Team activities are managed and coordinated as per set objectives.",
+                    "3.4 Conflicts are resolved between team members in line with organization policy.",
+                    "3.5 Gender and diversity-related issues are mainstreamed in accordance with workplace policy."
+                ]
+            },
+            {
+                "element_title": "4. Maintain professional and personal development",
+                "performance_criteria": [
+                    "4.1 Personal growth and development needs are identified and assessed.",
+                    "4.2 Training and career opportunities are identified and utilized.",
+                    "4.3 Licenses and certifications relevant to the career are obtained and renewed.",
+                    "4.4 Dynamism and on-the-job learning are embraced in line with organizational goals."
+                ]
+            },
+            {
+                "element_title": "5. Apply problem-solving skills",
+                "performance_criteria": [
+                    "5.1 Creative, innovative and practical solutions are developed based on the problem.",
+                    "5.2 Independence and initiative in identifying and solving problems are demonstrated.",
+                    "5.3 Problem-solving strategies are applied as per workplace guidelines."
+                ]
+            },
+            {
+                "element_title": "6. Promote customer care",
+                "performance_criteria": [
+                    "6.1 Customers' needs are identified based on their characteristics.",
+                    "6.2 Customer feedback is allowed and facilitated in line with organization policies.",
+                    "6.3 Customer concerns and complaints are analyzed and resolved.",
+                    "6.4 Customer retention strategies are developed and implemented."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "PERSONAL VISION, VALUES & PROFESSIONAL ETHICS", "outcomes": ["Formulate individual career mission, align with professional codes of conduct"], "resources": ["Ethics handbook", "Case studies"], "safety": "Workplace confidentiality standards."},
+            {"week": 2, "title": "TIME MANAGEMENT, PUNCTUALITY & TARGET SETTING", "outcomes": ["Apply Eisenhower matrix, manage daily schedule, set realistic performance KPIs"], "resources": ["Daily planners", "Time tracking tools"], "safety": "Ergonomics and workplace stress management."},
+            {"week": 3, "title": "EMOTIONAL INTELLIGENCE & STRESS MANAGEMENT", "outcomes": ["Identify stress triggers, practice empathy, de-escalate workplace pressure"], "resources": ["Self-assessment rubrics"], "safety": "Mental wellness and healthy lifestyle practices."},
+            {"week": 4, "title": "WORKPLACE CODES OF CONDUCT & DATA INTEGRITY", "outcomes": ["Apply NDA guidelines, prevent intellectual property breaches, demonstrate integrity"], "resources": ["Corporate policy docs", "Compliance cases"], "safety": "Data protection compliance (DPA 2019)."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (ETHICS & SELF-MANAGEMENT)", "outcomes": ["Evaluate individual comprehension of workplace ethics and compliance"], "resources": ["CAT papers", "Case evaluation"], "safety": "Assessment integrity standards."},
+            {"week": 6, "title": "TEAM DYNAMICS, COLLABORATION & INCLUSIVITY", "outcomes": ["Participate in group roles, manage conflict, mainstream gender and diversity"], "resources": ["Team building exercises"], "safety": "Psychological safety in group environments."},
+            {"week": 7, "title": "CRITICAL THINKING & ROOT CAUSE PROBLEM SOLVING", "outcomes": ["Apply 5-Whys and Fishbone diagram to solve operational IT breakdowns"], "resources": ["Problem solving templates"], "safety": "Hazard analysis in problem isolation."},
+            {"week": 8, "title": "CUSTOMER SERVICE EXCELLENCE & COMPLAINT HANDLING", "outcomes": ["Handle difficult IT client tickets, follow up service requests, build client trust"], "resources": ["Helpdesk simulations", "Feedback forms"], "safety": "Professional customer communication decorum."},
+            {"week": 9, "title": "CAREER ROADMAPPING, CERTIFICATIONS & LIFELONG LEARNING", "outcomes": ["Map technical certification pathway (CompTIA, Cisco, Microsoft, AWS)"], "resources": ["Certification syllabi", "Career portals"], "safety": "Professional accreditation awareness."},
+            {"week": 10, "title": "FINAL WORK ETHICS ROLEPLAY & EVALUATION", "outcomes": ["Simulated workplace committee evaluation, client dispute resolution test"], "resources": ["Roleplay scenario sheets", "Rubrics"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Case study handouts (5:1)", "Textbooks (5:1)", "Whiteboard (1:25)", "Projector (1:25)"],
+        "safety_protocols": "Adherence to professional code of conduct, psychological safety, zero tolerance for harassment."
+    },
+
+    # ─── LEVEL 5 / MODULE 3 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CR-02-5-MA",
+        "unit_code": "IT/CU/ICTA/CR/02/5/MA",
+        "isced_code": "0612 451 07A",
+        "cdacc_code": "IT/CU/ICTA/CR/02/5/MA",
+        "os_code": "IT/OS/ICTA/CR/02/5/MA",
+        "unit_title": "Perform Network Design and Management",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 5,
+        "module": "Module 3",
+        "credit_factor": 16,
+        "duration_hours": 160,
+        "description": "This unit covers the competencies required to perform network design and management. It involves designing computer networks, installing computer networks, testing computer networks, and performing computer network maintenance.",
+        "source_file": "TVET CDACC ICT Level 5 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Design computer network",
+                "duration_hours": 40,
+                "content": [
+                    "User needs collections and network requirements documentation",
+                    "Network types: LAN, WAN, PAN, MAN; network topologies: star, ring, mesh, hybrid, point-to-point",
+                    "Hierarchical network design (Core, Distribution, Access) vs flat network",
+                    "Greenfield and brownfield site preparation and floor plan design",
+                    "Fundamental design goals: Scalability, Availability, Security, Manageability"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            },
+            {
+                "title": "2. Install computer network",
+                "duration_hours": 60,
+                "content": [
+                    "Safety measures, cable management, labeling, electrical safety, fire safety",
+                    "Network device identification (switches, routers, APs, transmission media, servers, storage)",
+                    "Network tools assembly (crimpers, strippers, fiber tools, punch-down, multimeter, tone generator)",
+                    "IP addressing: IPv4, IPv6, subnetting (CIDR), VLSM, DHCP configuration",
+                    "Switch & router configuration: VLANs, routing protocols (RIP, OSPF, EIGRP), ACLs, NAT/PAT, port security, STP, LACP",
+                    "Wireless access point configuration: SSID, security (WPA3), network documentation"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            },
+            {
+                "title": "3. Test computer network",
+                "duration_hours": 30,
+                "content": [
+                    "Testing tools: clamp meter, voltmeter, cable tester, signal tester, Ping, Traceroute, Wireshark",
+                    "Testing types: Performance, Functional, Security testing",
+                    "Generating and presenting network test reports"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            },
+            {
+                "title": "4. Perform computer network maintenance",
+                "duration_hours": 30,
+                "content": [
+                    "Maintenance schedule preparation and network monitoring",
+                    "Monitoring tools: Ping, Tracert, NSLookup, IPConfig, Speed test, Wireshark",
+                    "Analyzing network performance data, Quality of Service (QoS) implementation",
+                    "Compilation of network maintenance reports"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Design computer network",
+                "performance_criteria": [
+                    "1.1 User needs are collected as per the workplace procedure.",
+                    "1.2 Physical network design is developed as per user requirements.",
+                    "1.3 Logical network design is developed as per user requirements.",
+                    "1.4 Computer network design is mapped out as per user requirements."
+                ]
+            },
+            {
+                "element_title": "2. Install computer network",
+                "performance_criteria": [
+                    "2.1 Safety measures are observed as per workplace procedure.",
+                    "2.2 Computer network components are identified as per the network design.",
+                    "2.3 Computer network is set up as per the network design.",
+                    "2.4 Computer network is configured as per the network design.",
+                    "2.5 Computer network is documented as per the network design.",
+                    "2.6 Computer network components are disposed as per workplace procedures."
+                ]
+            },
+            {
+                "element_title": "3. Test computer network",
+                "performance_criteria": [
+                    "3.1 Network testing tools and equipment are identified as per the work requirement.",
+                    "3.2 Network components are tested as per the workplace procedure.",
+                    "3.3 Network testing report is developed as per the work requirement."
+                ]
+            },
+            {
+                "element_title": "4. Perform computer network maintenance",
+                "performance_criteria": [
+                    "4.1 Computer network maintenance schedule is prepared as per workplace procedure.",
+                    "4.2 Computer network is monitored as per maintenance schedule.",
+                    "4.3 Computer network is optimized as per the user requirements.",
+                    "4.4 Computer network maintenance report is developed as per workplace procedure."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "NETWORK REQUIREMENTS ELICITATION & TOPOLOGY DESIGN", "outcomes": ["Gather bandwidth/host counts, select hierarchical 3-layer architecture"], "resources": ["Packet Tracer / GNS3", "Design templates"], "safety": "Environmental requirements for server rooms."},
+            {"week": 2, "title": "IP SUBNETTING DESIGN (VLSM & CIDR)", "outcomes": ["Divide network blocks into departmental subnets, minimize wasted host addresses"], "resources": ["Subnet calculators", "IP planning sheets"], "safety": "Logical network security boundaries."},
+            {"week": 3, "title": "PHYSICAL CABLING INFRASTRUCTURE & RACK SETUP", "outcomes": ["Install patch panels, manage cable routing, label wall jacks and faceplates"], "resources": ["Cat6 cables", "Rack cabinet", "Label maker"], "safety": "Proper cable bend radius and fire barrier preservation."},
+            {"week": 4, "title": "VLAN CONFIGURATION & INTER-VLAN ROUTING", "outcomes": ["Configure 802.1Q trunks, access ports, router-on-a-stick, and SVI interfaces"], "resources": ["Managed Layer 2/3 switches", "Routers"], "safety": "Prevent loop storms using Rapid Spanning Tree (RSTP)."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (VLAN & IP CONFIG)", "outcomes": ["Practical timed configuration of segmented corporate subnets"], "resources": ["Physical lab switches", "Exam rubric"], "safety": "Console cable grounding."},
+            {"week": 6, "title": "DYNAMIC ROUTING PROTOCOLS (OSPF & RIP)", "outcomes": ["Configure single-area OSPF, verify routing tables, convergence tests"], "resources": ["Cisco routers", "Console terminal software"], "safety": "Secure routing update authentication."},
+            {"week": 7, "title": "NETWORK ACCESS CONTROL (ACLS) & NAT/PAT", "outcomes": ["Implement standard and extended ACLs, configure overload NAT for internet access"], "resources": ["Routers", "Internet gateway link"], "safety": "Firewall default-deny policy enforcement."},
+            {"week": 8, "title": "WIRELESS ACCESS POINT DEPLOYMENT (WPA3 & SSIDS)", "outcomes": ["Deploy PoE access points, configure employee and guest SSIDs, channel planning"], "resources": ["Wireless APs", "PoE switches"], "safety": "RF radiation distance safety standards."},
+            {"week": 9, "title": "PACKET CAPTURE, TRAFFIC ANALYSIS & QOS", "outcomes": ["Capture packets using Wireshark, analyze latency, configure QoS bandwidth priority"], "resources": ["Wireshark", "Traffic generators"], "safety": "Network data eavesdropping ethics compliance."},
+            {"week": 10, "title": "FINAL ENTERPRISE NETWORK PROJECT & ASSESSMENT", "outcomes": ["Deploy complete functional campus network, complete documentation and exam"], "resources": ["Enterprise lab setup", "Evaluation sheet"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Computers (1:1)", "Switches (5:1)", "Routers (5:1)", "Gateways (5:1)", "UTP Ethernet Cable 300m (1:10)", "Fibre Modules SFP (5:1)", "Network tool kit (1:1)", "Antistatic gloves (1:1)"],
+        "safety_protocols": "Use of insulated tools, ESD wrist straps, equipment power rating verification, fire extinguishers (CO2/Dry powder)."
+    },
+
+    # ─── LEVEL 5 / MODULE 4 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CC-02-5-MA",
+        "unit_code": "IT/CU/ICTA/CC/02/5/MA",
+        "isced_code": "0613 451 05A",
+        "cdacc_code": "IT/CU/ICTA/CC/02/5/MA",
+        "os_code": "IT/OS/ICTA/CC/02/5/MA",
+        "unit_title": "Apply Computer Programming Principles",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 5,
+        "module": "Module 4",
+        "credit_factor": 18,
+        "duration_hours": 180,
+        "description": "This unit covers the competencies required to apply computer programming principles. It involves applying computer programming skills, demonstrating structured programming skills, and demonstrating object-oriented programming skills.",
+        "source_file": "TVET CDACC ICT Level 5 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Apply computer programming skills",
+                "duration_hours": 50,
+                "content": [
+                    "Programming language categories: procedural, object-oriented, functional",
+                    "Programming paradigms: functional, procedural, object-oriented, imperative, declarative",
+                    "Program Development Life Cycle (PDLC) stages and best practices",
+                    "Program design tools: Flow charts, Decision tables, Decision trees, Pseudocode, Algorithms",
+                    "Program writing tools and IDEs: Text editors, compilers, linkers, debuggers, Visual Studio, Code::Blocks"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Written tests", "Portfolio of Evidence"]
+            },
+            {
+                "title": "2. Demonstrate structured programming skills",
+                "duration_hours": 60,
+                "content": [
+                    "Identifiers, variables, constants, and naming conventions in C language",
+                    "User-defined data types in C: structures, arrays, functions, pointers",
+                    "Data control structures: selection (if-else, switch), loops (for, while, do-while), sequence",
+                    "Data structures: arrays, queues, stacks, linked lists",
+                    "Subroutines: functions, passing parameters by value/reference",
+                    "Debugging techniques and compilation process in C"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Written tests", "Portfolio of Evidence"]
+            },
+            {
+                "title": "3. Demonstrate object-oriented programming skills",
+                "duration_hours": 70,
+                "content": [
+                    "Objects and classes in C++ language, access specifiers (public, private, protected)",
+                    "Object methods, constructors, destructors",
+                    "Namespaces, data abstraction, encapsulation",
+                    "Class templates and inheritance (single, multiple, multilevel, hierarchical)",
+                    "Polymorphism: function overloading, operator overloading, virtual functions"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Written tests", "Portfolio of Evidence"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Apply computer programming skills",
+                "performance_criteria": [
+                    "1.1 Programming language types are identified as per user requirements.",
+                    "1.2 Programming paradigms are applied as per user requirements.",
+                    "1.3 Program development life cycle is applied as per work requirements.",
+                    "1.4 Program design tools are applied as per user requirements.",
+                    "1.5 Program writing tools are identified as per system requirements."
+                ]
+            },
+            {
+                "element_title": "2. Demonstrate structured programming skills",
+                "performance_criteria": [
+                    "2.1 Identifiers are declared as per program design specification.",
+                    "2.2 Initialization of variables and constants is performed according to design specifications.",
+                    "2.3 User-defined data types are applied as per system requirements.",
+                    "2.4 Computer program input is created as per program design.",
+                    "2.5 Data control structures in a program are applied as per design requirements.",
+                    "2.6 Data structures in a program are applied as per design specifications.",
+                    "2.7 Computer program subroutines are created as per user needs.",
+                    "2.8 Computer program output is coded as per user requirements.",
+                    "2.9 Computer program debugging is performed as per work procedures.",
+                    "2.10 Computer program is compiled as per system requirements."
+                ]
+            },
+            {
+                "element_title": "3. Demonstrate object-oriented programming skills",
+                "performance_criteria": [
+                    "3.1 Objects and classes are implemented as per work procedures.",
+                    "3.2 Objects methods are declared as per application requirements.",
+                    "3.3 Namespaces are applied as per work procedures.",
+                    "3.4 Data abstraction concepts are applied as per work procedures.",
+                    "3.5 Object encapsulations are applied as per work procedures.",
+                    "3.6 Class templates are implemented as per application requirements.",
+                    "3.7 Class inheritance is implemented as per application requirements.",
+                    "3.8 Polymorphism is implemented as per application requirements."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "PROGRAMMING PARADIGMS & ALGORITHM DESIGN TOOLS", "outcomes": ["Draft flowcharts, write pseudocode, trace dry-run execution tables"], "resources": ["Flowchart software", "C Compiler IDE"], "safety": "Keyboard ergonomics."},
+            {"week": 2, "title": "C SYNTAX, DATA TYPES, VARIABLES & OPERATORS", "outcomes": ["Compile C programs, handle formatted I/O (printf, scanf), operators"], "resources": ["GCC Compiler / Code::Blocks", "Tutorial files"], "safety": "Display eye strain prevention."},
+            {"week": 3, "title": "CONTROL STRUCTURES: SELECTION & ITERATION LOOPS", "outcomes": ["Write if-else-if ladders, switch-case, for/while/do-while loops"], "resources": ["IDE workstations", "Code exercises"], "safety": "Workstation posture."},
+            {"week": 4, "title": "ARRAYS, STRINGS & MODULAR FUNCTIONS IN C", "outcomes": ["Declare 1D/2D arrays, implement string manipulation, pass arguments to functions"], "resources": ["C IDE", "Sample code repository"], "safety": "Prevent memory leak in allocation."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (STRUCTURED C PROGRAMMING)", "outcomes": ["Timed coding practical: Implement algorithmic solution in structured C"], "resources": ["Secure exam environment", "Rubric"], "safety": "Assessment integrity standards."},
+            {"week": 6, "title": "POINTERS, DYNAMIC MEMORY & STRUCTURES IN C", "outcomes": ["Pointer arithmetic, dereferencing, struct definitions, malloc/free"], "resources": ["GDB debugger", "Memory visualization tools"], "safety": "Null pointer check standards."},
+            {"week": 7, "title": "INTRODUCTION TO C++ OOP: CLASSES & OBJECTS", "outcomes": ["Define classes, public/private access specifiers, constructors and destructors"], "resources": ["C++ Compiler / VS Code"], "safety": "Clean code and documentation rules."},
+            {"week": 8, "title": "ENCAPSULATION, DATA ABSTRACTION & OPERATOR OVERLOADING", "outcomes": ["Implement getters/setters, friend functions, overload arithmetic operators"], "resources": ["C++ IDE", "OOP challenge sheets"], "safety": "Error handling standards."},
+            {"week": 9, "title": "INHERITANCE (SINGLE/MULTIPLE) & POLYMORPHISM", "outcomes": ["Implement derived classes, base constructors, virtual functions, runtime dispatch"], "resources": ["C++ IDE", "Inheritance diagrams"], "safety": "Software architecture principles."},
+            {"week": 10, "title": "FINAL OOP PROJECT & CDACC SUMMATIVE EXAM", "outcomes": ["Develop full console management system utilizing classes, inheritance, and file I/O"], "resources": ["Exam workstations", "Marking guide"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Computers (1:1)", "IDEs (C, C++, Visual Studio, Code::Blocks) (1:1)", "Textbooks (1:5)", "Projector (25:1)", "Flash drives (5:1)"],
+        "safety_protocols": "Ergonomic seating, regular visual break intervals, secure coding best practices (buffer overflow prevention)."
+    },
+
+    # ─── LEVEL 5 / MODULE 4 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CR-03-5-MA",
+        "unit_code": "IT/CU/ICTA/CR/03/5/MA",
+        "isced_code": "0612 451 08A",
+        "cdacc_code": "IT/CU/ICTA/CR/03/5/MA",
+        "os_code": "IT/OS/ICTA/CR/03/5/MA",
+        "unit_title": "Manage Computerized Database Systems",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 5,
+        "module": "Module 4",
+        "credit_factor": 20,
+        "duration_hours": 200,
+        "description": "This unit covers the competencies required to manage computerized database systems. It involves designing computerized databases, creating computerized databases, manipulating computerized databases, testing computerized databases, and maintaining computerized databases.",
+        "source_file": "TVET CDACC ICT Level 5 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Design computerized database",
+                "duration_hours": 30,
+                "content": [
+                    "DBMS concepts, functions, applications, architecture (3-level ANSI-SPARC)",
+                    "Database requirements gathering techniques and assessment report",
+                    "Database models: relational, hierarchical, network, object-oriented, dimensional",
+                    "Database design: Conceptual, ERDs (entities, attributes, relationships), Logical (table normalization 1NF, 2NF, 3NF), Physical (data types, indexing, constraints)"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            },
+            {
+                "title": "2. Create a computerized database",
+                "duration_hours": 60,
+                "content": [
+                    "Database objects: Tables, forms, queries, reports, macros",
+                    "Fields, records, data types, field properties, primary and foreign keys",
+                    "Database development: creation and linking of tables, integrity constraints (entity, referential, domain)",
+                    "Database indexing (primary and secondary), data relationships (1:1, 1:N, M:N)"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            },
+            {
+                "title": "3. Manipulate computerized database",
+                "duration_hours": 60,
+                "content": [
+                    "Database operations: INSERT, SELECT, UPDATE, DELETE",
+                    "SQL querying languages: DDL, DML, DCL, writing complex SQL commands, SQL views",
+                    "Database report generation, editing, formatting, headers/footers, printing"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            },
+            {
+                "title": "4. Test computerized database",
+                "duration_hours": 30,
+                "content": [
+                    "Test plan development, importance of database testing",
+                    "Structural testing (schema, table, column), functional testing (whitebox, blackbox), stored procedures, non-functional testing (load, stress)",
+                    "Preparing test data, validating database query results, test reports generation"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            },
+            {
+                "title": "5. Maintain computerized database",
+                "duration_hours": 20,
+                "content": [
+                    "Database optimization: query optimization, indexing strategies, partitioning, storage management",
+                    "Database maintenance schedule preparation, backup and recovery procedures (full, differential, transaction log)",
+                    "Database monitoring tools: resource utilization, query performance, transaction logs, alerting"
+                ],
+                "assessment_methods": ["Practical assessment", "Project", "Observation checklist", "Product checklist", "Written assessment", "Portfolio of evidence"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Design computerized database",
+                "performance_criteria": [
+                    "1.1 Computerized database requirements are established as per user needs.",
+                    "1.2 Computerized database models are developed as per user needs.",
+                    "1.3 Computerized database is designed as per user requirements."
+                ]
+            },
+            {
+                "element_title": "2. Create computerized database",
+                "performance_criteria": [
+                    "2.1 Computerized database objects are created as per user requirements.",
+                    "2.2 Computerized database is developed as per the computer database design.",
+                    "2.3 Computerized database data relationships are established as per the database design."
+                ]
+            },
+            {
+                "element_title": "3. Manipulate computerized database",
+                "performance_criteria": [
+                    "3.1 Database is populated as per the workplace procedure.",
+                    "3.2 Data is retrieved as per the workplace requirement.",
+                    "3.3 Data report is developed as per workplace requirement."
+                ]
+            },
+            {
+                "element_title": "4. Test computerized database",
+                "performance_criteria": [
+                    "4.1 Test plan is developed as per user requirements.",
+                    "4.2 Test data is prepared as per user requirements.",
+                    "4.3 Database is tested as per the work requirement.",
+                    "4.4 Database test report is generated as per work requirement."
+                ]
+            },
+            {
+                "element_title": "5. Maintain computerized database",
+                "performance_criteria": [
+                    "5.1 Database is optimized as per the user requirements.",
+                    "5.2 Computer database maintenance schedule is prepared as per workplace procedure.",
+                    "5.3 Computer database is monitored as per database maintenance schedule.",
+                    "5.4 Computer database maintenance report is generated as per workplace procedure."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "DATABASE REQUIREMENTS ELICITATION & ERD MODELING", "outcomes": ["Identify entities, cardinality, construct Chen and Crow's Foot ER diagrams"], "resources": ["Draw.io / Visio", "Requirements briefs"], "safety": "Secure storage of business logic documents."},
+            {"week": 2, "title": "RELATIONAL MODEL & NORMALIZATION (1NF, 2NF, 3NF)", "outcomes": ["Decompose unnormalized data tables into 3NF, eliminate anomalies"], "resources": ["Normalization sheets", "Sample data"], "safety": "Prevent data loss in schema transitions."},
+            {"week": 3, "title": "DATA DEFINITION LANGUAGE (DDL) IN MYSQL", "outcomes": ["CREATE TABLE, define PRIMARY/FOREIGN keys, ALTER TABLE, DROP, TRUNCATE"], "resources": ["MySQL / MariaDB / XAMPP", "phpMyAdmin"], "safety": "Prevent accidental DROP without backup."},
+            {"week": 4, "title": "DATA MANIPULATION LANGUAGE (DML) & BASIC QUERIES", "outcomes": ["INSERT INTO, UPDATE, DELETE, SELECT with WHERE, ORDER BY, GROUP BY"], "resources": ["MySQL Workbench", "Practice DB"], "safety": "Validate WHERE clauses before running UPDATE/DELETE."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (SCHEMA & SQL DML)", "outcomes": ["Timed practical: Database schema creation and query execution (15 Marks)"], "resources": ["Exam MySQL servers", "Rubric"], "safety": "Assessment compliance rules."},
+            {"week": 6, "title": "ADVANCED SQL: JOINS, AGGREGATE FUNCTIONS & SUBQUERIES", "outcomes": ["INNER, LEFT, RIGHT, FULL OUTER joins, HAVING clauses, nested queries"], "resources": ["Retail dataset", "SQL IDE"], "safety": "Query execution time monitoring."},
+            {"week": 7, "title": "INDEXING, VIEWS & STORED PROCEDURES", "outcomes": ["Create B-tree indexes, define secure SQL views, implement stored procedures"], "resources": ["MySQL Workbench"], "safety": "Access privilege restrictions."},
+            {"week": 8, "title": "TRANSACTIONS (ACID), BACKUP (MYSQLDUMP) & RECOVERY", "outcomes": ["COMMIT, ROLLBACK, execute mysqldump exports, verify point-in-time recovery"], "resources": ["Backup storage", "Terminal/CLI"], "safety": "Encryption of database dump archives."},
+            {"week": 9, "title": "DATABASE PERFORMANCE TUNING & QUERY OPTIMIZATION", "outcomes": ["Use EXPLAIN query plans, analyze slow query logs, optimize join efficiency"], "resources": ["Performance schema tools"], "safety": "Server CPU load threshold observation."},
+            {"week": 10, "title": "FINAL DATABASE PROJECT & CDACC CERTIFICATION EXAM", "outcomes": ["Deploy complete institutional relational database with reporting dashboard"], "resources": ["Live DB servers", "Evaluation sheet"], "safety": "Institutional assessment regulations."}
+        ],
+        "suggested_resources": ["Computers (1:1)", "Microsoft Access (1:1)", "MySQL / MariaDB (1:1)", "WAMP/XAMPP (1:1)", "Test Data Generator (1:1)", "Printers (5:1)", "Projector (25:1)"],
+        "safety_protocols": "Database backup before updates, principle of least privilege in user access, secure credential storage."
+    },
+
+    # ─── LEVEL 5 / MODULE 4 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-BC-01-5-MA",
+        "unit_code": "IT/CU/ICTA/BC/01/5/MA",
+        "isced_code": "0031 441 01A",
+        "cdacc_code": "IT/CU/ICTA/BC/01/5/MA",
+        "os_code": "IT/OS/ICTA/BC/01/5/MA",
+        "unit_title": "Apply Communication Skills",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 5,
+        "module": "Module 4",
+        "credit_factor": 4,
+        "duration_hours": 40,
+        "description": "This unit covers the competencies required to apply communication skills. It involves applying communication channels, written, non-verbal, oral, and group communication skills.",
+        "source_file": "TVET CDACC ICT Level 5 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Apply communication channels",
+                "duration_hours": 5,
+                "content": ["Communication process, principles of effective communication, channels, modes, barriers, flow/patterns, organizational policies"],
+                "assessment_methods": ["Oral questions", "Written assessment", "Observation", "Portfolio of Evidence", "Practical assessment"]
+            },
+            {
+                "title": "2. Apply written communication skills",
+                "duration_hours": 10,
+                "content": ["Types of written communication, elements of communication, organization requirements for written business correspondence"],
+                "assessment_methods": ["Oral assessment", "Written assessment", "Observation", "Portfolio of Evidence", "Practical assessment"]
+            },
+            {
+                "title": "3. Apply non-verbal communication skills",
+                "duration_hours": 10,
+                "content": ["Body language and gestures, body posture, workplace dressing code, cultural sensitivity"],
+                "assessment_methods": ["Oral assessment", "Written assessment", "Observation", "Portfolio of Evidence"]
+            },
+            {
+                "title": "4. Apply oral communication skills",
+                "duration_hours": 5,
+                "content": ["Types of oral communication pathways, effective questioning techniques, workplace etiquette, active listening"],
+                "assessment_methods": ["Oral assessment", "Written assessment", "Observation", "Practical assessment"]
+            },
+            {
+                "title": "5. Apply group discussion skills",
+                "duration_hours": 10,
+                "content": ["Establishing rapport, resolving issues, action plans, group organization, turn-taking, conflict resolution, teamwork"],
+                "assessment_methods": ["Oral assessment", "Written assessment", "Observation", "Practical assessment"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Apply communication channels",
+                "performance_criteria": [
+                    "1.1 Specific communication channels are identified and applied as per workplace requirements.",
+                    "1.2 Challenges are identified and addressed as per operational standards.",
+                    "1.3 Communication channels are evaluated to meet workplace needs."
+                ]
+            },
+            {
+                "element_title": "2. Apply written communication skills",
+                "performance_criteria": [
+                    "2.1 Types of written communication are identified and applied according to workplace requirements.",
+                    "2.2 Written communication needs are identified and implemented according to workplace procedures.",
+                    "2.3 Written communication guidelines are analyzed, evaluated, and revised."
+                ]
+            },
+            {
+                "element_title": "3. Apply non-verbal communication skills",
+                "performance_criteria": [
+                    "3.1 Existing non-verbal communication techniques are identified and applied as per organization policy.",
+                    "3.2 Non-verbal communication techniques are articulated and modelled to enhance inclusivity."
+                ]
+            },
+            {
+                "element_title": "4. Apply oral communication skills",
+                "performance_criteria": [
+                    "4.1 Types of oral communication are identified and established as per organization policy.",
+                    "4.2 Pathways of oral communication are identified and established as per organization policy.",
+                    "4.3 Pathways of oral communication are reviewed according to organization procedures.",
+                    "4.4 Pathways of oral communication are maintained according to organization standards."
+                ]
+            },
+            {
+                "element_title": "5. Apply group communication skills",
+                "performance_criteria": [
+                    "5.1 Group communication strategies are applied as per workplace needs.",
+                    "5.2 Groups are organized in accordance with workplace procedures.",
+                    "5.3 Effective questioning, listening and non-verbal communication techniques are used.",
+                    "5.4 Group communication challenges are identified and addressed according to workplace needs."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "COMMUNICATION PROCESS & PRINCIPLES", "outcomes": ["Understand sender-receiver loop, barriers to communication"], "resources": ["Handouts"], "safety": "Classroom etiquette."},
+            {"week": 2, "title": "WRITTEN CORRESPONDENCE: MEMOS, EMAILS & LETTERS", "outcomes": ["Draft formal business memos and technical emails"], "resources": ["Word processor"], "safety": "Digital communication decency."},
+            {"week": 3, "title": "TECHNICAL REPORT WRITING & DOCUMENTATION", "outcomes": ["Structure executive summaries, technical incident reports"], "resources": ["Report templates"], "safety": "Accuracy and data integrity."},
+            {"week": 4, "title": "NON-VERBAL CUES & WORKPLACE DRESS CODE", "outcomes": ["Interpret body language, professional attire in corporate IT"], "resources": ["Video clips"], "safety": "Inclusivity and respect."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (WRITTEN & ORAL)", "outcomes": ["Evaluate business correspondence drafting"], "resources": ["Test papers"], "safety": "Exam regulations."},
+            {"week": 6, "title": "EFFECTIVE QUESTIONING & ACTIVE LISTENING", "outcomes": ["Practice open/closed questioning in client support"], "resources": ["Roleplay scenario cards"], "safety": "Respectful dialogue."},
+            {"week": 7, "title": "ORAL PRESENTATIONS & PUBLIC SPEAKING", "outcomes": ["Deliver technical presentation using slide deck"], "resources": ["Projector", "Microphone"], "safety": "Microphone cable safety."},
+            {"week": 8, "title": "GROUP DISCUSSIONS & TURN-TAKING PROTOCOLS", "outcomes": ["Moderate meeting, take minutes, manage talk-time"], "resources": ["Meeting minutes templates"], "safety": "Orderly meeting procedures."},
+            {"week": 9, "title": "CONFLICT RESOLUTION & NEGOTIATION SKILLS", "outcomes": ["De-escalate workplace conflict, reach compromise"], "resources": ["Case studies"], "safety": "Psychological safety."},
+            {"week": 10, "title": "FINAL ORAL INTERVIEW & PORTFOLIO ASSESSMENT", "outcomes": ["Simulated job interview and communication portfolio evaluation"], "resources": ["Interview scorecards"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Textbooks (5:1)", "Projector (25:1)", "Computers/Smartphones (1:1)", "Whiteboard (25:1)"],
+        "safety_protocols": "Respectful professional dialogue, psychological safety, adherence to equality and diversity policies."
+    },
+
+    # ─── LEVEL 5 / MODULE 4 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-BC-03-5-MA",
+        "unit_code": "IT/CU/ICTA/BC/03/5/MA",
+        "isced_code": "0413 441 03A",
+        "cdacc_code": "IT/CU/ICTA/BC/03/5/MA",
+        "os_code": "IT/OS/ICTA/BC/03/5/MA",
+        "unit_title": "Apply Entrepreneurial Skills",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 5,
+        "module": "Module 4",
+        "credit_factor": 4,
+        "duration_hours": 40,
+        "description": "This unit covers the competencies required to demonstrate an understanding of entrepreneurship. It involves applying financial literacy, applying entrepreneurial concepts, identifying entrepreneurship opportunities, applying business legal aspects, innovating business strategies, and developing business plans.",
+        "source_file": "TVET CDACC ICT Level 5 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Apply financial literacy",
+                "duration_hours": 5,
+                "content": ["Personal finance management, budgeting, savings, debt, loans, investments, insurance products"],
+                "assessment_methods": ["Observation", "Project", "Written assessment", "Oral assessment", "Third party report"]
+            },
+            {
+                "title": "2. Apply entrepreneurial concept",
+                "duration_hours": 5,
+                "content": ["Entrepreneurs vs business persons, types, characteristics, salaried vs self-employment, requirements"],
+                "assessment_methods": ["Observation", "Project", "Written assessment", "Oral assessment"]
+            },
+            {
+                "title": "3. Identify entrepreneurship opportunities",
+                "duration_hours": 5,
+                "content": ["Sources of business ideas, evaluation, business life cycle"],
+                "assessment_methods": ["Observation", "Project", "Written assessment", "Oral assessment"]
+            },
+            {
+                "title": "4. Apply business legal aspects",
+                "duration_hours": 10,
+                "content": ["Forms of ownership (sole proprietorship, partnership, limited company), registration, licensing, contracts, employment and tax laws"],
+                "assessment_methods": ["Observation", "Project", "Written assessment", "Oral assessment"]
+            },
+            {
+                "title": "5. Innovate business strategies",
+                "duration_hours": 5,
+                "content": ["Creativity, innovative standards, linkages, ICT in business growth"],
+                "assessment_methods": ["Observation", "Project", "Written assessment", "Oral assessment"]
+            },
+            {
+                "title": "6. Develop business plan",
+                "duration_hours": 10,
+                "content": ["Executive summary, marketing plan, organizational/management plan, production/operation plan, financial plan, presentation, incubation"],
+                "assessment_methods": ["Observation", "Written assessment", "Project", "Oral assessment"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Apply financial literacy skills",
+                "performance_criteria": [
+                    "1.1 Sources of personal and business funds are identified as per financial procedures.",
+                    "1.2 Personal finances are managed as per financial standards.",
+                    "1.3 Savings are managed as per financial standards.",
+                    "1.4 Debts are managed as per financial standards.",
+                    "1.5 Investments are undertaken as per financial standards.",
+                    "1.6 Insurance services are procured as per financial standards."
+                ]
+            },
+            {
+                "element_title": "2. Apply entrepreneurial concept",
+                "performance_criteria": [
+                    "2.1 Entrepreneurs and business persons are distinguished as per principles of entrepreneurship.",
+                    "2.2 Types of entrepreneurs are identified.",
+                    "2.3 Ways of becoming an entrepreneur are identified.",
+                    "2.4 Characteristics of entrepreneurs are identified.",
+                    "2.5 Salaried employment and self-employment are distinguished.",
+                    "2.6 Requirements for entry into self-employment are identified.",
+                    "2.7 Roles of an entrepreneur in an enterprise are determined."
+                ]
+            },
+            {
+                "element_title": "3. Identify entrepreneurial opportunities",
+                "performance_criteria": [
+                    "3.1 Business ideas are identified as per business procedures.",
+                    "3.2 Factors to consider when evaluating viability are explored.",
+                    "3.3 Entrepreneurial opportunities are evaluated.",
+                    "3.4 Business life cycle is analyzed."
+                ]
+            },
+            {
+                "element_title": "4. Apply business legal aspects",
+                "performance_criteria": [
+                    "4.1 Forms of business ownership are identified as per legal practices.",
+                    "4.2 Business registration and licensing processes are identified.",
+                    "4.3 Types of contracts and agreements are analyzed.",
+                    "4.4 Employment and taxation laws are identified."
+                ]
+            },
+            {
+                "element_title": "5. Innovate business strategies",
+                "performance_criteria": [
+                    "5.1 Business innovation strategies are determined.",
+                    "5.2 Creativity in business development is demonstrated.",
+                    "5.3 Linkages with other entrepreneurs are created.",
+                    "5.4 ICT is incorporated in business growth and development."
+                ]
+            },
+            {
+                "element_title": "6. Develop business plan",
+                "performance_criteria": [
+                    "6.1 Business idea is described as per business format.",
+                    "6.2 Business description is developed.",
+                    "6.3 Marketing plan is developed.",
+                    "6.4 Organizational plan is prepared.",
+                    "6.5 Production plan is prepared.",
+                    "6.6 Financial plan is prepared.",
+                    "6.7 Executive summary is prepared.",
+                    "6.8 Business plan is presented as per best practice."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "FINANCIAL LITERACY & CASHFLOW MANAGEMENT", "outcomes": ["Personal budgeting, tracking income vs expenses, savings"], "resources": ["Budget spreadsheets"], "safety": "Financial record confidentiality."},
+            {"week": 2, "title": "ENTREPRENEURIAL MINDSET & OPPORTUNITY DISCOVERY", "outcomes": ["Identify market gaps in IT services, ideate startup ventures"], "resources": ["Ideation sheets"], "safety": "Intellectual property ideation."},
+            {"week": 3, "title": "BUSINESS LEGAL STRUCTURES & BRS REGISTRATION", "outcomes": ["Compare Sole Proprietorship vs Ltd, register on eCitizen BRS"], "resources": ["eCitizen templates"], "safety": "Statutory compliance awareness."},
+            {"week": 4, "title": "TAXATION (KRA PIN, VAT, TURNOVER TAX) & CONTRACTS", "outcomes": ["File KRA sample returns, draft freelance service contracts"], "resources": ["KRA iTax guides", "Contract templates"], "safety": "Tax compliance and legal safeguards."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (LEGAL & FINANCIAL)", "outcomes": ["Evaluate comprehension of startup finance and registration"], "resources": ["CAT papers"], "safety": "Exam integrity standards."},
+            {"week": 6, "title": "MARKETING STRATEGY & DIGITAL PROMOTION IN IT", "outcomes": ["Digital marketing, social media ad campaigns, client acquisition"], "resources": ["Social media platforms"], "safety": "Truth in advertising standards."},
+            {"week": 7, "title": "OPERATIONS, PRICING & HARDWARE/SOFTWARE SOURCING", "outcomes": ["Cost of goods sold (COGS), IT service rate cards, vendor negotiation"], "resources": ["Pricing calculators"], "safety": "Procurement ethics."},
+            {"week": 8, "title": "FINANCIAL PLANNING: CASHFLOW, BREAK-EVEN & BALANCE SHEET", "outcomes": ["Project 12-month cashflow, calculate break-even sales volume"], "resources": ["Financial models in Excel"], "safety": "Financial projection accuracy."},
+            {"week": 9, "title": "BUSINESS PLAN AUTHORING & EXECUTIVE SUMMARY", "outcomes": ["Compile comprehensive 15-page business plan for tech startup"], "resources": ["Business plan templates"], "safety": "Document version control."},
+            {"week": 10, "title": "BUSINESS PLAN PITCH & CDACC CERTIFICATION DEFENSE", "outcomes": ["Pitch venture to mock investor panel, final examination"], "resources": ["Pitch deck", "Projector"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Textbooks (5:1)", "Business plan templates (5:1)", "Computers (1:1)", "Projector (25:1)"],
+        "safety_protocols": "Statutory compliance with KRA, Business Registration Service, ethical financial management."
+    },
+
+    # ─── LEVEL 6 / MODULE 5 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CC-01-6-MA",
+        "unit_code": "IT/CU/ICTA/CC/01/6/MA",
+        "isced_code": "0541 541 01A",
+        "cdacc_code": "IT/CU/ICTA/CC/01/6/MA",
+        "os_code": "IT/OS/ICTA/CC/03/5/MA",
+        "unit_title": "Apply Discrete Mathematical Concepts",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 6,
+        "module": "Module 5",
+        "credit_factor": 12,
+        "duration_hours": 120,
+        "description": "This unit covers the competence to apply discrete mathematical concepts. It involves carrying out set theory operations, performing matrix operations, applying number systems, applying logic gates, performing sequence and series, and demonstrating graph theory.",
+        "source_file": "TVET CDACC ICT Level 6 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Carry out set theory operations",
+                "duration_hours": 20,
+                "content": [
+                    "Sets representation: roster form, set-builder notation, statement form, tabular form",
+                    "Order and uniqueness, types of sets (finite, infinite, subset, proper subset, universal, empty, equal, equivalent, singleton, disjoint)",
+                    "Set operations: cardinality, union, intersection, difference, complement, Venn diagrams"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Group discussions", "Observation", "Third Party report", "Portfolio of Evidence", "Written tests"]
+            },
+            {
+                "title": "2. Perform matrix operations",
+                "duration_hours": 20,
+                "content": [
+                    "Matrix definition, dimension, elements, applications in computer graphics, robotics, machine learning",
+                    "Types: row, column, zero, square, diagonal, upper/lower triangular, scalar, identity, transposed, symmetric, skew-symmetric, orthogonal",
+                    "Operations: sum, subtraction, multiplication (2x2 and 3x3 matrices)",
+                    "Determinant of 2x2 and 3x3 matrices, Cramer's rule, Gaussian elimination, matrix inverse and co-factor method"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Group discussions", "Observation", "Written tests"]
+            },
+            {
+                "title": "3. Apply number systems",
+                "duration_hours": 20,
+                "content": [
+                    "Number systems: Decimal, Binary, Octal, Hexadecimal, absolute and place values, MSB, LSB, base",
+                    "Base conversions between all four systems",
+                    "Binary arithmetic: addition, subtraction, multiplication, division, 1's and 2's complement",
+                    "Octal and Hexadecimal arithmetic",
+                    "Binary codes: BCD, ASCII, EBCDIC, Gray Code, Excess-3"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Observation", "Written tests"]
+            },
+            {
+                "title": "4. Apply logic gates",
+                "duration_hours": 20,
+                "content": [
+                    "Logic gates: AND, OR, NOT, NAND, NOR, XOR, XNOR",
+                    "Boolean algebra laws: commutative, associative, distributive, identity, null, complement, De Morgan's theorem",
+                    "Karnaugh Maps (K-maps) simplification, applications in processors, digital signal processing, memory devices"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Observation", "Written tests"]
+            },
+            {
+                "title": "5. Perform sequence and series operations",
+                "duration_hours": 20,
+                "content": [
+                    "Summation of sequences: term, index, general nth term, finite/infinite sequence",
+                    "Arithmetic series and progression (AP), general form and sum",
+                    "Geometric series and progression (GP), general form and sum"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Observation", "Written tests"]
+            },
+            {
+                "title": "6. Demonstrate graph theory",
+                "duration_hours": 20,
+                "content": [
+                    "Graph structure and terminologies: vertex/node, edge, degree of vertex, path, cycle, connected graph, digraph, undirected graph",
+                    "Types of graphs and representations: Adjacency matrix, Adjacency list, Incidence matrix",
+                    "Applications of graphs in computer networks, social networks, transport networks, task scheduling"
+                ],
+                "assessment_methods": ["Practical Activities", "Project work", "Demonstration", "Observation", "Written tests"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Carry out set theory operations",
+                "performance_criteria": [
+                    "1.1 Sets are represented as per workplace requirements.",
+                    "1.2 Sets are applied as per workplace requirements.",
+                    "1.3 Set operations are applied as per workplace requirements."
+                ]
+            },
+            {
+                "element_title": "2. Perform matrix operations",
+                "performance_criteria": [
+                    "2.1 Matrices are identified as per workplace requirements.",
+                    "2.2 Matrix operations are applied as per workplace requirements.",
+                    "2.3 Determinant of a matrix is applied as per workplace requirements.",
+                    "2.4 Inverse of a matrix is applied as per workplace requirements."
+                ]
+            },
+            {
+                "element_title": "3. Apply number systems",
+                "performance_criteria": [
+                    "3.1 Number systems are identified as per workplace requirements.",
+                    "3.2 Base conversion is performed as per workplace requirements.",
+                    "3.3 Binary arithmetic operations are performed as per workplace requirements.",
+                    "3.4 Binary codes are identified as per workplace requirements.",
+                    "3.5 Representation of decimals in BCD is carried out.",
+                    "3.6 BCD arithmetic is performed as per workplace requirements."
+                ]
+            },
+            {
+                "element_title": "4. Apply logic gates",
+                "performance_criteria": [
+                    "4.1 Logic gates are identified as per workplace requirements.",
+                    "4.2 Boolean algebra is applied as per workplace requirements.",
+                    "4.3 Logic gates are applied as per workplace requirements."
+                ]
+            },
+            {
+                "element_title": "5. Perform sequence and series operations",
+                "performance_criteria": [
+                    "5.1 Summation of a sequence is applied as per workplace requirements.",
+                    "5.2 Arithmetic series is applied as per workplace requirements.",
+                    "5.3 Geometric series is applied as per workplace requirements."
+                ]
+            },
+            {
+                "element_title": "6. Demonstrate graph theory",
+                "performance_criteria": [
+                    "6.1 Key graph terminologies are applied as per workplace requirements.",
+                    "6.2 Types of graphs are applied as per workplace requirements.",
+                    "6.3 Representation of graphs are applied as per workplace requirements.",
+                    "6.4 Applications of graphs are applied as per workplace requirements."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "SET THEORY, REPRESENTATIONS & OPERATIONS", "outcomes": ["Roster/builder notation, Venn diagram proofs, Union/Intersection/Complement"], "resources": ["Mathematical worksheets", "Whiteboard"], "safety": "Classroom visual comfort."},
+            {"week": 2, "title": "MATRIX TYPES & BASIC OPERATIONS (ADDITION/SCALAR/PRODUCT)", "outcomes": ["Matrix classification, 2x2 and 3x3 addition, subtraction, matrix multiplication"], "resources": ["Scientific calculators", "Graphing tools"], "safety": "Calculations verification protocol."},
+            {"week": 3, "title": "DETERMINANTS, CRAMER'S RULE & GAUSSIAN ELIMINATION", "outcomes": ["Calculate 2x2/3x3 determinants, solve system of linear equations using Cramer's rule"], "resources": ["Math software (Python NumPy / MATLAB)"], "safety": "Safe computer lab usage."},
+            {"week": 4, "title": "MATRIX INVERSION & COMPUTER GRAPHICS TRANSFORMATIONS", "outcomes": ["Calculate inverse using adjugate/cofactor, 2D translation and rotation matrices"], "resources": ["Python / Jupyter Notebook"], "safety": "Workstation ergonomics."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (SETS & MATRICES)", "outcomes": ["Comprehensive timed assessment on sets, matrix operations and systems of equations"], "resources": ["CAT examination papers"], "safety": "Assessment integrity regulations."},
+            {"week": 6, "title": "NUMBER SYSTEMS & RADIX CONVERSIONS (DEC, BIN, OCT, HEX)", "outcomes": ["Execute decimal, binary, octal, hexadecimal conversions, fractional numbers"], "resources": ["Conversion tables", "CLI tools"], "safety": "Screen contrast adjustments."},
+            {"week": 7, "title": "BINARY ARITHMETIC, 2'S COMPLEMENT & BCD CODES", "outcomes": ["Binary addition/subtraction using 2's complement, BCD addition, Gray code"], "resources": ["Logic simulator", "Calculators"], "safety": "Arithmetic overflow detection."},
+            {"week": 8, "title": "LOGIC GATES, BOOLEAN ALGEBRA & K-MAP MINIMIZATION", "outcomes": ["De Morgan's proofs, 4-variable K-maps, minimize SOP and POS expressions"], "resources": ["Logisim", "Boolean algebra worksheets"], "safety": "Clean design standards."},
+            {"week": 9, "title": "ARITHMETIC & GEOMETRIC SEQUENCES (AP & GP)", "outcomes": ["Calculate nth term, arithmetic and geometric sums, convergence of infinite GP"], "resources": ["Sequence plotters"], "safety": "Analytical rigor standards."},
+            {"week": 10, "title": "GRAPH THEORY, ADJACENCY MATRICES & CDACC EXAM", "outcomes": ["Graph representations (adjacency matrix/list), Dijkstra shortest path, final exam"], "resources": ["Network graph models", "Final exam paper"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Computers / Smartphones (1:1)", "Textbooks (5:1)", "Scientific calculators (1:1)", "Graph papers (1 ream:5)", "Projector (25:1)"],
+        "safety_protocols": "Standard computer laboratory safety, display glare prevention, mathematical calculation verification."
+    },
+
+    # ─── LEVEL 6 / MODULE 5 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CC-02-6-MA",
+        "unit_code": "IT/CU/ICTA/CC/02/6/MA",
+        "isced_code": "0613 541 02A",
+        "cdacc_code": "IT/CU/ICTA/CC/02/6/MA",
+        "os_code": "IT/OS/ICTA/CC/04/6/MA",
+        "unit_title": "Perform System Analysis and Design",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 6,
+        "module": "Module 5",
+        "credit_factor": 12,
+        "duration_hours": 110,
+        "description": "This unit covers the competencies required to perform system analysis and design. It involves applying system analysis and design concepts, applying approaches to system development and project planning, performing system analysis, performing system design, performing system testing, performing system implementation and maintenance.",
+        "source_file": "TVET CDACC ICT Level 6 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Apply System Analysis and Design concepts",
+                "duration_hours": 10,
+                "content": ["System standards constraints, properties of systems, elements (input, process, output, feedback, control, environment), system classification (open/closed, adaptive, deterministic), types of IS (MIS, TPS, DSS, OAS, ESS)"],
+                "assessment_methods": ["Project", "Practical exercises", "Written assessments", "Observation", "Case study", "Checklist"]
+            },
+            {
+                "title": "2. Apply approaches to system development and project planning",
+                "duration_hours": 20,
+                "content": ["SDLC models (Waterfall, Prototyping, DSDM, Object-Oriented, Agile), SDLC phases, Project planning tools: PERT, CPM, Gantt charts, Risk management, Budgeting, WBS"],
+                "assessment_methods": ["Project", "Practical exercises", "Written assessments", "Case study"]
+            },
+            {
+                "title": "3. Perform System Analysis",
+                "duration_hours": 20,
+                "content": ["Role of system analyst, structured analysis tools (Pseudocode, Structured English, Decision Trees, Decision Tables, Data Flow Diagrams - DFDs, Data Dictionaries), Cost-Benefit Analysis, Gap analysis"],
+                "assessment_methods": ["Project", "Practical exercises", "Written assessments", "Checklist"]
+            },
+            {
+                "title": "4. Perform System Design",
+                "duration_hours": 20,
+                "content": ["Software Requirements Specification (SRS) document preparation, components of design (Quality, Timeliness, Cost-Effectiveness), Logical and Physical design, UI wireframes, Database schemas, Modularization"],
+                "assessment_methods": ["Project", "Practical exercises", "Written assessments", "Checklist"]
+            },
+            {
+                "title": "5. Perform system testing",
+                "duration_hours": 10,
+                "content": ["Types of testing: Unit, Integration, System, Usability, Acceptance, Blackbox, Whitebox; System debugging procedures, Test reports development"],
+                "assessment_methods": ["Project", "Practical exercises", "Written assessments", "Checklist"]
+            },
+            {
+                "title": "6. Perform System Implementation",
+                "duration_hours": 20,
+                "content": ["Implementation methods: Direct changeover, Phased, Pilot, Parallel running; User training, Data conversion, Hardware/Software deployment"],
+                "assessment_methods": ["Project", "Practical exercises", "Written assessments", "Checklist"]
+            },
+            {
+                "title": "7. Perform system maintenance",
+                "duration_hours": 10,
+                "content": ["System reviews, maintenance types (Corrective, Adaptive, Perfective, Preventive), System audit reports"],
+                "assessment_methods": ["Project", "Practical exercises", "Written assessments", "Checklist"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Apply System Analysis and Design concepts",
+                "performance_criteria": [
+                    "1.1 Constraints of a system standard are identified as per work procedures.",
+                    "1.2 Properties of a system are identified as per work procedures.",
+                    "1.3 Elements of a system are identified as per work procedures.",
+                    "1.4 Classification of systems is done as per work procedures.",
+                    "1.5 Types of information system are identified as per work procedures.",
+                    "1.6 System models are identified as per work procedures.",
+                    "1.7 Categories of information are identified as per work procedures.",
+                    "1.8 System analysis and design concepts are applied as per user needs."
+                ]
+            },
+            {
+                "element_title": "2. Apply approaches to system development and project planning",
+                "performance_criteria": [
+                    "2.1 System development approaches are identified as per work procedures.",
+                    "2.2 System development life cycle models are identified as per work procedures.",
+                    "2.3 Activities involved in SDLC are identified as per work procedures.",
+                    "2.4 SDLC phases are identified as per work procedures.",
+                    "2.5 Project planning and system development approaches are applied as per user needs."
+                ]
+            },
+            {
+                "element_title": "3. Perform System Analysis",
+                "performance_criteria": [
+                    "3.1 Overview of system analysis is determined according to work procedures.",
+                    "3.2 Attributes of structured analysis are identified as per user needs.",
+                    "3.3 Tools and techniques of system analysis are identified according to work procedures.",
+                    "3.4 System analysis activities are performed as per user need."
+                ]
+            },
+            {
+                "element_title": "4. Perform System Design",
+                "performance_criteria": [
+                    "4.1 Software requirements specification (SRS) document is prepared as per user needs.",
+                    "4.2 Components of system design are identified based on SRS document.",
+                    "4.3 Inputs and outputs of System Design are identified as per SRS document.",
+                    "4.4 Types of system design are identified as per system design principles.",
+                    "4.5 Stages of system design are identified according to system design principles.",
+                    "4.6 Data modelling techniques are applied as per user needs."
+                ]
+            },
+            {
+                "element_title": "5. Perform system testing",
+                "performance_criteria": [
+                    "5.1 Types of system testing are identified as per system requirements.",
+                    "5.2 System debugging is performed as per system requirement.",
+                    "5.3 System testing is performed as per the test plan.",
+                    "5.4 System test report is developed as per workplace procedure."
+                ]
+            },
+            {
+                "element_title": "6. Perform System Implementation",
+                "performance_criteria": [
+                    "6.1 System implementation methods are identified as per system implementation standards.",
+                    "6.2 Appropriate implementation method is selected according to user needs.",
+                    "6.3 Prerequisite implementation procedures are performed as per user needs.",
+                    "6.4 System is deployed according to the selected implementation method procedure."
+                ]
+            },
+            {
+                "element_title": "7. Perform system maintenance",
+                "performance_criteria": [
+                    "7.1 System reviewed according to organization policy.",
+                    "7.2 System maintenance is performed according to the review outcome.",
+                    "7.3 System maintenance report is developed as per workplace procedures."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "SYSTEM CONCEPTS, CLASSIFICATION & FEASIBILITY STUDY", "outcomes": ["Classify information systems (TPS, MIS, DSS), technical/economic feasibility analysis"], "resources": ["Feasibility templates"], "safety": "Institutional documentation security."},
+            {"week": 2, "title": "SDLC MODELS & PROJECT MANAGEMENT (GANTT, PERT/CPM)", "outcomes": ["Compare Waterfall, Agile, DSDM, construct Gantt charts, find critical path"], "resources": ["MS Project / GanttProject"], "safety": "Project milestone tracking."},
+            {"week": 3, "title": "REQUIREMENTS DETERMINATION & INTERVIEWING TECHNIQUES", "outcomes": ["Conduct user interviews, design questionnaires, create requirement traceability matrix"], "resources": ["Survey forms", "Audio recorders"], "safety": "Ethical consent and user privacy."},
+            {"week": 4, "title": "DATA FLOW DIAGRAMS (DFD LEVELS 0, 1, 2) & DATA DICTIONARY", "outcomes": ["Draw context diagrams, level 1 DFDs, define data stores and data flows"], "resources": ["CASE tools / Draw.io"], "safety": "Process logic consistency rules."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (ANALYSIS & DFD MODELING)", "outcomes": ["Evaluate system analysis, feasibility, and DFD decomposition (15 Marks)"], "resources": ["Examination scenario briefs"], "safety": "Assessment integrity regulations."},
+            {"week": 6, "title": "DECISION TABLES, DECISION TREES & STRUCTURED ENGLISH", "outcomes": ["Construct decision tables for complex business logic, eliminate ambiguities"], "resources": ["Logic modeling sheets"], "safety": "Logical completeness verification."},
+            {"week": 7, "title": "SOFTWARE REQUIREMENTS SPECIFICATION (SRS) AUTHORING", "outcomes": ["Write complete IEEE 830-compliant SRS document for institutional system"], "resources": ["IEEE 830 SRS templates"], "safety": "Scope and requirement sign-off standards."},
+            {"week": 8, "title": "UI/UX DESIGN, WIREFRAMES & DATABASE SCHEMA DESIGN", "outcomes": ["Design user interfaces, input validation, output reports, relational schemas"], "resources": ["Figma", "UI mockups"], "safety": "Accessibility (a11y) design standards."},
+            {"week": 9, "title": "TEST PLANNING, IMPLEMENTATION STRATEGIES & CHANGEOVER", "outcomes": ["Prepare test cases (Unit/Integration), compare direct vs parallel changeover"], "resources": ["Test case templates"], "safety": "Data rollback and business continuity plan."},
+            {"week": 10, "title": "FINAL SYSTEM ANALYSIS DEFENSE & CDACC ASSESSMENT", "outcomes": ["Present complete SRS and architectural design portfolio, summative exam"], "resources": ["Presentation projector", "Rubric"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Computers (1:1)", "CASE Tools / UML Modeling Software (1:1)", "Textbooks (5:1)", "Projector (25:1)"],
+        "safety_protocols": "Protection of proprietary system designs, confidentiality agreements, data protection compliance."
+    },
+
+    # ─── LEVEL 6 / MODULE 5 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CR-01-6-MA",
+        "unit_code": "IT/CU/ICTA/CR/01/6/MA",
+        "isced_code": "0613 551 03A",
+        "cdacc_code": "IT/CU/ICTA/CR/01/6/MA",
+        "os_code": "IT/OS/ICTA/CR/01/6/MA",
+        "unit_title": "Develop Website Application",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 6,
+        "module": "Module 5",
+        "credit_factor": 22,
+        "duration_hours": 220,
+        "description": "This unit covers the competencies required to develop website systems. It involves performing website application user need analysis, designing website applications, developing website applications, hosting website applications, testing website applications, and maintaining website applications.",
+        "source_file": "TVET CDACC ICT Level 6 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Perform website Application user need analysis",
+                "duration_hours": 30,
+                "content": ["Introduction to web programming, history, HTML5, CSS, scripting languages, functional/non-functional requirements, documentation tools, user requirement review"],
+                "assessment_methods": ["Practical test", "Projects", "Learner portfolio of evidence", "Oral questioning", "Written tests"]
+            },
+            {
+                "title": "2. Design website application",
+                "duration_hours": 50,
+                "content": ["Design principles, UX design, tools (Figma, WordPress, Canvas, Wix, Adobe Dreamweaver), User-Centered Design, visual design, interaction design, wireframing/prototyping, visual hierarchy, site map and SEO"],
+                "assessment_methods": ["Practical test", "Projects", "Learner portfolio of evidence", "Case study"]
+            },
+            {
+                "title": "3. Develop website application",
+                "duration_hours": 60,
+                "content": [
+                    "HTML5 Coding: tags, semantic structure, formatting, tables, linking, layouts, multimedia, forms, DOM, events, Bootstrap/Tailwind frameworks",
+                    "Cascading Style Sheets (CSS): classes/IDs, inheritance, box model, responsive flexbox/grid",
+                    "Website Scripting: JavaScript fundamentals, statements, syntax, variables, operators, event handling, DOM manipulation",
+                    "Backend creation: MySQL database creation, SQL, CRUD, joins, aggregate functions",
+                    "Frontend & backend integration: PHP development, data types, functions, classes, objects, cookies, session management, forms handling, error handling, secure PHP, MVC architecture, jQuery and AJAX"
+                ],
+                "assessment_methods": ["Practical test", "Projects", "Learner portfolio of evidence", "Written tests"]
+            },
+            {
+                "title": "4. Host the website application",
+                "duration_hours": 40,
+                "content": ["Hosting platforms and services, cPanel, Plesk, installing web servers (Apache, Nginx), database setup (MySQL, PostgreSQL), uploading files (FTP/SSH), server configuration, virtual hosts, SSL/TLS, firewalls, backup configuration"],
+                "assessment_methods": ["Practical test", "Projects", "Learner portfolio of evidence", "Written tests"]
+            },
+            {
+                "title": "5. Test the website application",
+                "duration_hours": 20,
+                "content": ["Website application test plans, testing techniques: Functionality, Black box, Regression, Unit, Usability, Interface, Cross-browser compatibility, Performance, Security testing, Test reports"],
+                "assessment_methods": ["Practical test", "Projects", "Written tests", "Case study"]
+            },
+            {
+                "title": "6. Maintain the website application",
+                "duration_hours": 20,
+                "content": ["Website monitoring tools (Google Analytics), traffic analysis, logging, bug fixing, content updating, version upgrades, vulnerability scans, backup tools"],
+                "assessment_methods": ["Practical test", "Projects", "Written tests", "Case study"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Perform website application user need analysis",
+                "performance_criteria": [
+                    "1.1 Website user requirements are identified as per user needs.",
+                    "1.2 Website user requirements specifications process is documented as per user needs.",
+                    "1.3 Website user requirement specifications are reviewed as per user need report."
+                ]
+            },
+            {
+                "element_title": "2. Design website application",
+                "performance_criteria": [
+                    "2.1 Website application design tools are selected as per user needs.",
+                    "2.2 Website application design methods are implemented as per user needs.",
+                    "2.3 Website application visual hierarchy is developed as per user needs.",
+                    "2.4 Website application site map is created as per user needs."
+                ]
+            },
+            {
+                "element_title": "3. Develop website application",
+                "performance_criteria": [
+                    "3.1 Front-end web pages are created as per website application design.",
+                    "3.2 Website backend is created as per website application design.",
+                    "3.3 Website application is integrated to the backend as per workplace procedure."
+                ]
+            },
+            {
+                "element_title": "4. Host the website application",
+                "performance_criteria": [
+                    "4.1 Website application hosting platform is selected as per host requirements.",
+                    "4.2 Server environment is setup as per host requirements.",
+                    "4.3 Website application files are uploaded as per host requirements.",
+                    "4.4 Website server is configured as per host requirements."
+                ]
+            },
+            {
+                "element_title": "5. Test the website application",
+                "performance_criteria": [
+                    "5.1 Website application test plan is developed as per workplace procedures.",
+                    "5.2 Website application testing techniques are selected as per workplace procedures.",
+                    "5.3 Website application is tested as per workplace procedures.",
+                    "5.4 Test report is developed as per workplace procedures."
+                ]
+            },
+            {
+                "element_title": "6. Maintain the website application",
+                "performance_criteria": [
+                    "6.1 Website is monitored as per workplace procedures.",
+                    "6.2 Monitoring report is developed as per workplace procedures.",
+                    "6.3 Website application bugs are fixed as per monitoring report.",
+                    "6.4 Website application is updated as per workplace procedures.",
+                    "6.5 Website is backed up in accordance with workplace procedures."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "WEB STANDARDS, INFORMATION ARCHITECTURE & WIREFRAMES", "outcomes": ["Define site structure, create wireframes in Figma, write semantic HTML5"], "resources": ["Figma", "VS Code"], "safety": "Visual design ergonomics."},
+            {"week": 2, "title": "RESPONSIVE STYLING (CSS3, FLEXBOX & CSS GRID)", "outcomes": ["Mobile-first responsive design, media queries, CSS variables, typography"], "resources": ["Web browsers", "DevTools"], "safety": "Screen brightness comfort."},
+            {"week": 3, "title": "MODERN CSS FRAMEWORKS (TAILWIND & BOOTSTRAP)", "outcomes": ["Build multi-column component cards, responsive navigation bars, modal dialogs"], "resources": ["Tailwind CSS", "Bootstrap 5"], "safety": "Code optimization standards."},
+            {"week": 4, "title": "CLIENT-SIDE SCRIPTING WITH MODERN JAVASCRIPT (ES6+)", "outcomes": ["DOM manipulation, event listeners, form validation, fetch API calls"], "resources": ["JavaScript engines", "Browsers"], "safety": "Cross-site scripting (XSS) input sanitization."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (FRONT-END RESPONSIVE WEB)", "outcomes": ["Timed practical: Build functional responsive landing page with JS validation"], "resources": ["Exam environment", "Rubric"], "safety": "Assessment integrity standards."},
+            {"week": 6, "title": "BACKEND DATABASE ARCHITECTURE (MYSQL & SQL CRUD)", "outcomes": ["Design web app database, create normalized tables, write CRUD operations"], "resources": ["MySQL / phpMyAdmin", "XAMPP"], "safety": "Database credentials security."},
+            {"week": 7, "title": "SERVER-SIDE PROGRAMMING WITH PHP & PDO", "outcomes": ["Connect PHP to MySQL via PDO, handle POST/GET data, user session state"], "resources": ["PHP 8.x", "Apache server"], "safety": "SQL injection prevention using parameterized queries."},
+            {"week": 8, "title": "AUTHENTICATION, COOKIES & ASYNC AJAX/FETCH", "outcomes": ["Password hashing (bcrypt), login/logout sessions, async data updates without reload"], "resources": ["Postman", "AJAX scripts"], "safety": "Session hijacking and CSRF token defenses."},
+            {"week": 9, "title": "WEB HOSTING (CPANEL, APACHE/NGINX) & SSL DEPLOYMENT", "outcomes": ["Configure virtual hosts, upload files via SFTP, bind custom domain, install Let's Encrypt SSL"], "resources": ["Hosting server / cPanel", "OpenSSL"], "safety": "HTTPS encryption and firewall security."},
+            {"week": 10, "title": "FINAL FULL-STACK WEB PROJECT & CDACC EXAM", "outcomes": ["Live deployment of complete responsive web application, final practical evaluation"], "resources": ["Web servers", "Final grading rubric"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Computers (1:1)", "Web server (Apache/Nginx) (1:25)", "Hosting server (1:25)", "VS Code / IDEs (1:1)", "Printers (6:1)", "Flash drives (5:1)"],
+        "safety_protocols": "OWASP top 10 security compliance (SQL injection prevention, XSS prevention, CSRF protection), data backup."
+    },
+
+    # ─── LEVEL 6 / MODULE 6 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CR-02-6-MA",
+        "unit_code": "IT/CU/ICTA/CR/02/6/MA",
+        "isced_code": "0612 551 04A",
+        "cdacc_code": "IT/CU/ICTA/CR/02/6/MA",
+        "os_code": "IT/OS/ICTA/CR/02/6/MA",
+        "unit_title": "Manage ICT Security",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 6,
+        "module": "Module 6",
+        "credit_factor": 15,
+        "duration_hours": 150,
+        "description": "This unit covers the competencies required to manage ICT security. It involves assessing security needs, installing security control measures, and maintaining ICT system security.",
+        "source_file": "TVET CDACC ICT Level 6 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Assess security needs",
+                "duration_hours": 50,
+                "content": [
+                    "Documentation of ICT security assets: software, hardware, firmware, data, network, physical, policy, people",
+                    "Principles of information security: Confidentiality, Integrity, Availability (CIA triad)",
+                    "ICT security regulations, standards, and policies: Computer Misuse and Cybercrimes Act 2018, Data Protection Act 2019, ISO/IEC 27001:2022",
+                    "ICT security threats: malware, virus, phishing, hacking, Denial of Service (DoS)",
+                    "Vulnerabilities assessment, risk assessment, risk prioritization, risk mitigation report"
+                ],
+                "assessment_methods": ["Practical", "Projects", "Third Party Reports", "Portfolio of evidence", "Written tests"]
+            },
+            {
+                "title": "2. Install security control measures",
+                "duration_hours": 70,
+                "content": [
+                    "Physical control measures: grills, security guards, firewalls, locks, burglar proofing, security alarms, CCTV cameras, DVR/NVR",
+                    "Logical security control measures: software firewalls, encryption (AES, RSA), authentication (MFA, biometrics), authorization, accounting, remote storage, anti-malware, patch management",
+                    "Testing implemented security controls and testing tools"
+                ],
+                "assessment_methods": ["Practical", "Projects", "Third Party Reports", "Portfolio of evidence", "Written tests"]
+            },
+            {
+                "title": "3. Maintain ICT system security",
+                "duration_hours": 30,
+                "content": [
+                    "ICT security monitoring tools, intrusion detection systems (IDS/IPS)",
+                    "Security monitoring reports and audit logs",
+                    "Updating security controls and incident response procedures"
+                ],
+                "assessment_methods": ["Practical", "Projects", "Third Party Reports", "Portfolio of evidence", "Written tests"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Assess security needs",
+                "performance_criteria": [
+                    "1.1 ICT security assets are documented based on organization's policy.",
+                    "1.2 ICT security threats are identified as per organization policy.",
+                    "1.3 ICT security risk impact assessment is performed as per industry standards.",
+                    "1.4 ICT security risk assessment report is compiled as per risk impact assessment performed."
+                ]
+            },
+            {
+                "element_title": "2. Install security control measures",
+                "performance_criteria": [
+                    "2.1 Physical control measures are implemented according to the organisation ICT security policy.",
+                    "2.2 Logical security control measures are implemented according to the organisation ICT security policy.",
+                    "2.3 ICT security control measures implemented are tested according to the organization ICT security policy."
+                ]
+            },
+            {
+                "element_title": "3. Maintain ICT system security",
+                "performance_criteria": [
+                    "3.1 ICT system security regular monitoring is carried out as per organization policy.",
+                    "3.2 ICT system security monitoring report is prepared as per the organisation policy.",
+                    "3.3 ICT system security is updated as per the monitoring report."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "INFORMATION SECURITY FUNDAMENTALS & CIA TRIAD", "outcomes": ["Audit institutional ICT assets, evaluate Confidentiality, Integrity, Availability"], "resources": ["Asset inventory sheets", "ISO 27001 guidelines"], "safety": "Confidential asset disclosure precautions."},
+            {"week": 2, "title": "CYBERCRIMES ACT 2018 & DATA PROTECTION ACT 2019 COMPLIANCE", "outcomes": ["Review legal penalties, implement data privacy safeguards, consent policies"], "resources": ["Kenya Gazette Acts 2018/2019", "Policy templates"], "safety": "Legal compliance standards."},
+            {"week": 3, "title": "THREAT MODELING: MALWARE, PHISHING & DOS/DDOS", "outcomes": ["Simulate phishing email detection, analyze ransomware indicators, DoS mitigation"], "resources": ["Sandbox VM", "Wireshark", "Threat intelligence feeds"], "safety": "Isolated lab network to prevent infection."},
+            {"week": 4, "title": "PHYSICAL SECURITY & CCTV/DVR INFRASTRUCTURE", "outcomes": ["Install CCTV cameras, configure NVR/DVR motion detection, biometric locks"], "resources": ["CCTV cameras", "DVR unit", "Biometric locks"], "safety": "Low-voltage DC camera cabling safety."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (RISK AUDIT & PHYSICAL CONTROLS)", "outcomes": ["Practical security assessment of server room and physical defense layers"], "resources": ["Security checklist", "Audit rubric"], "safety": "Assessment compliance rules."},
+            {"week": 6, "title": "FIREWALL CONFIGURATION & ACCESS CONTROL POLICIES", "outcomes": ["Configure stateful packet filtering, block unauthorized ports, create DMZ zones"], "resources": ["Hardware/Software firewalls (pfSense/iptables)"], "safety": "Ensure management interface remains accessible."},
+            {"week": 7, "title": "CRYPTOGRAPHY, HASHING & PKI (SSL/TLS CERTIFICATES)", "outcomes": ["Generate RSA keypairs, encrypt confidential files, inspect digital certificates"], "resources": ["GnuPG", "OpenSSL CLI"], "safety": "Secure private key storage and passphrases."},
+            {"week": 8, "title": "AUTHENTICATION (MFA), PRIVILEGE ESCALATION & PATCHING", "outcomes": ["Configure 2FA with authenticator apps, enforce password complexity, patch OS"], "resources": ["RADIUS / Active Directory", "Auth apps"], "safety": "Account lockout threshold management."},
+            {"week": 9, "title": "SECURITY MONITORING, SIEM LOG AUDITING & INCIDENT RESPONSE", "outcomes": ["Analyze security event logs, configure alert thresholds, draft incident report"], "resources": ["SIEM tools (Wazuh / Splunk / Syslog)"], "safety": "Incident handling confidentiality."},
+            {"week": 10, "title": "FINAL SECURITY AUDIT DEFENSE & CDACC EXAMINATION", "outcomes": ["Conduct complete organizational vulnerability assessment and penetration test defense"], "resources": ["Vulnerability scanner (OpenVAS)", "Final exam"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Computers (1:1)", "Password management software (1:1)", "25-seat license monitoring tools (1:1)", "CCTV cameras (5:1)", "DVR/NVR machine (25:1)", "External DVR hard disk (25:1)", "25-seat license antivirus (1:1)"],
+        "safety_protocols": "Use of isolated sandbox networks for malware analysis, ethical hacking guidelines, legal compliance with Computer Misuse Act 2018."
+    },
+
+    # ─── LEVEL 6 / MODULE 6 ────────────────────────────────────────────────────────
+    {
+        "id": "IT-CU-ICTA-CR-03-6-MA",
+        "unit_code": "IT/CU/ICTA/CR/03/6/MA",
+        "isced_code": "0613 551 05A",
+        "cdacc_code": "IT/CU/ICTA/CR/03/6/MA",
+        "os_code": "IT/OS/ICTA/CR/03/6/MA",
+        "unit_title": "Develop Desktop Application",
+        "department": "Computing and Informatics",
+        "course": "Information and Communication Technology (ICT)",
+        "level": 6,
+        "module": "Module 6",
+        "credit_factor": 28,
+        "duration_hours": 280,
+        "description": "This unit covers the competencies required to develop desktop applications. It involves assessing desktop application requirements, designing desktop applications, creating desktop applications, deploying desktop applications, and maintaining desktop applications.",
+        "source_file": "TVET CDACC ICT Level 6 Curriculum & OS (2025)",
+        "learning_outcomes": [
+            {
+                "title": "1. Assess desktop application requirements",
+                "duration_hours": 50,
+                "content": [
+                    "Key concepts and terminologies, importance of desktop applications",
+                    "User requirements collection techniques (interviews, questionnaires, observations)",
+                    "User requirements analysis and SRS documentation, requirements validation"
+                ],
+                "assessment_methods": ["Practical test", "Projects", "Learner portfolio of evidence", "Oral questioning", "Written tests", "Case study"]
+            },
+            {
+                "title": "2. Design desktop application",
+                "duration_hours": 70,
+                "content": [
+                    "Design tools, selection criteria, User-Centred Design, visual design, interaction design, wireframing and prototyping",
+                    "Visual hierarchy: Graphical user interface, typography, colour, spacing, layout"
+                ],
+                "assessment_methods": ["Practical test", "Projects", "Learner portfolio of evidence", "Case study"]
+            },
+            {
+                "title": "3. Create desktop application",
+                "duration_hours": 80,
+                "content": [
+                    "Development environments setup (Visual Studio, JetBrains, Eclipse, PyCharm)",
+                    "Programming fundamentals: C++, Python, or Java",
+                    "Syntax, variables, data types, operators, control structures (sequential, selection, switch, iteration)",
+                    "Data structures: arrays, pointers, queues, stack, classes; file handling",
+                    "GUI development: creating interface as per design, design patterns (MVC)",
+                    "Database integration: integrating databases with applications using APIs and ORM tools",
+                    "Testing and optimization of desktop applications"
+                ],
+                "assessment_methods": ["Practical test", "Projects", "Learner portfolio of evidence", "Written tests"]
+            },
+            {
+                "title": "4. Deploy desktop application",
+                "duration_hours": 50,
+                "content": [
+                    "Desktop application packaging, installer creation (Inno Setup, MSI, PyInstaller)",
+                    "Distribution methods, deployment strategies (phased, big bang)",
+                    "Installation of desktop applications, user training and post-training support"
+                ],
+                "assessment_methods": ["Practical test", "Projects", "Learner portfolio of evidence", "Case study"]
+            },
+            {
+                "title": "5. Maintain desktop application",
+                "duration_hours": 30,
+                "content": [
+                    "Maintenance scheduling, types of maintenance, back-up and recovery procedures",
+                    "Desktop application troubleshooting and bug fixing",
+                    "Preparation of maintenance reports"
+                ],
+                "assessment_methods": ["Practical test", "Projects", "Learner portfolio of evidence", "Case study"]
+            }
+        ],
+        "elements": [
+            {
+                "element_title": "1. Assess desktop application requirements",
+                "performance_criteria": [
+                    "1.1 Desktop application requirements are identified as per user needs.",
+                    "1.2 Desktop application requirements specifications process is documented as per user needs.",
+                    "1.3 Desktop application requirements specifications are reviewed as per user need report."
+                ]
+            },
+            {
+                "element_title": "2. Design desktop application",
+                "performance_criteria": [
+                    "2.1 Desktop application design requirements are identified as per user needs.",
+                    "2.2 Desktop application design methods are implemented as per requirements specifications document.",
+                    "2.3 Desktop application visual hierarchy is developed as per the design method."
+                ]
+            },
+            {
+                "element_title": "3. Create desktop application",
+                "performance_criteria": [
+                    "3.1 Desktop application development environment is set up as per user manual.",
+                    "3.2 Desktop application programming fundamentals are applied as per workplace procedures.",
+                    "3.3 Desktop application is developed as per design methods.",
+                    "3.4 Desktop application is tested as per workplace procedures.",
+                    "3.5 Desktop application is optimized as per workplace procedures."
+                ]
+            },
+            {
+                "element_title": "4. Deploy desktop application",
+                "performance_criteria": [
+                    "4.1 Desktop application is packaged as per user workplace procedures.",
+                    "4.2 Desktop application deployment plan is developed as per user requirements.",
+                    "4.3 Desktop application is installed per workplace procedures.",
+                    "4.4 Desktop application user training is conducted as per workplace procedures."
+                ]
+            },
+            {
+                "element_title": "5. Maintain desktop application",
+                "performance_criteria": [
+                    "5.1 Desktop application maintenance schedule is prepared as per workplace procedure.",
+                    "5.2 Desktop application maintenance is performed as per application maintenance schedule.",
+                    "5.3 Desktop application maintenance report is developed as per work procedure."
+                ]
+            }
+        ],
+        "weeks_breakdown": [
+            {"week": 1, "title": "DESKTOP APPLICATION REQUIREMENTS & ARCHITECTURAL PATTERNS", "outcomes": ["Document functional requirements, choose MVC / MVVM architecture"], "resources": ["SRS templates", "UML modeling tools"], "safety": "Software engineering documentation standards."},
+            {"week": 2, "title": "GUI WIREFRAMING & INTERACTION PROTOTYPING", "outcomes": ["Design responsive desktop layout, form controls, visual hierarchy in Figma"], "resources": ["Figma / Balsamiq"], "safety": "Accessibility and user ergonomics."},
+            {"week": 3, "title": "IDE ENVIRONMENT SETUP & DESKTOP GUI FRAMEWORKS", "outcomes": ["Setup PyQt6 / WPF / JavaFX in IDE, build main application window"], "resources": ["Python / C++ / C# IDEs", "Qt Designer"], "safety": "Development workstation configuration."},
+            {"week": 4, "title": "EVENT-DRIVEN PROGRAMMING & WIDGET INTERACTION", "outcomes": ["Signal-slot architecture, button clicks, text validation, menu bars, status bars"], "resources": ["IDE", "GUI codebase"], "safety": "Input validation and error handling."},
+            {"week": 5, "title": "CONTINUOUS ASSESSMENT TEST 1 (DESKTOP GUI PROTOTYPE)", "outcomes": ["Timed practical: Build functional interactive GUI form with input validation"], "resources": ["Exam environment", "Rubric"], "safety": "Assessment compliance rules."},
+            {"week": 6, "title": "LOCAL DATABASE INTEGRATION (SQLITE / MYSQL VIA ORM)", "outcomes": ["Connect GUI to database, execute CRUD operations, populate data grids"], "resources": ["SQLite / SQLAlchemy / Entity Framework"], "safety": "Database connection pooling and security."},
+            {"week": 7, "title": "DATA VISUALIZATION, REPORTING & EXPORT ENGINE", "outcomes": ["Generate charts, export records to Excel / PDF, print receipt summaries"], "resources": ["Reporting libraries", "Printers"], "safety": "Exported file storage safety."},
+            {"week": 8, "title": "APPLICATION PACKAGING & INSTALLER COMPILATION", "outcomes": ["Bundle dependencies using PyInstaller / Inno Setup, generate setup.exe installer"], "resources": ["Inno Setup", "Packaging tools"], "safety": "Antivirus false-positive signing."},
+            {"week": 9, "title": "DEPLOYMENT TESTING, ERROR LOGGING & AUTO-UPDATES", "outcomes": ["Install on clean target OS, test crash handling, verify logging output"], "resources": ["Clean test VMs"], "safety": "Operating system registry integrity."},
+            {"week": 10, "title": "FINAL DESKTOP APPLICATION DEFENSE & CDACC EXAM", "outcomes": ["Live demonstration of production-ready desktop software, final examination"], "resources": ["Evaluation workstations", "Grading rubric"], "safety": "Institutional compliance standards."}
+        ],
+        "suggested_resources": ["Computers (1:1)", "IDEs (Visual Studio, JetBrains, Eclipse, PyCharm) (1:1)", "Textbooks (1:5)", "Projectors (25:1)", "Printers (6:1)", "Flash drives (5:1)"],
+        "safety_protocols": "Clean code standards, software error handling, secure database queries, installer validation."
+    }
+]
+
+def update_database(file_path):
+    print(f"Reading existing database from: {file_path}")
+    existing = []
+    if os.path.exists(file_path):
+        with open(file_path, "r", encoding="utf-8") as f:
+            try:
+                existing = json.load(f)
+            except Exception as e:
+                print(f"Error reading {file_path}: {e}")
+                existing = []
+
+    # Map of units by unique ID
+    merged_map = {}
+    
+    # 1. Keep non-ICT units as is
+    non_ict_count = 0
+    for u in existing:
+        uid = u.get("id") or u.get("unit_code", "")
+        dept = u.get("department", "")
+        code = u.get("unit_code", "")
+        # If it's not Computing/ICT, preserve it
+        if "computing" not in dept.lower() and "ict" not in code.lower():
+            merged_map[uid] = u
+            non_ict_count += 1
+
+    print(f"Preserved {non_ict_count} non-ICT units.")
+
+    # 2. Add all 17 official TVET CDACC ICT units
+    for ict_u in ICT_OFFICIAL_UNITS:
+        merged_map[ict_u["id"]] = ict_u
+
+    final_list = list(merged_map.values())
+    print(f"Total units after update: {len(final_list)} (including {len(ICT_OFFICIAL_UNITS)} official ICT units)")
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(final_list, f, indent=2, ensure_ascii=False)
+    print(f"Successfully saved {file_path}!")
+
+if __name__ == "__main__":
+    update_database(CLIENT_DB_PATH)
+    update_database(BACKEND_DB_PATH)
+    print("All curriculum databases updated with ALL 17 official TVET CDACC 2025 ICT Units!")
