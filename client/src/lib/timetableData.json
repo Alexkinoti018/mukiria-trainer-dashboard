@@ -8581,16 +8581,16 @@
       "department": "Computing & Informatics",
       "classes": [
         "FBS5/6/J/26",
-        "ICT SKILLS ADMIN5/6/J/26 MOD 3",
-        "ICT SKILS 1 ADMIN4/5/6/S/ 26 MOD 1",
-        "ICT4/ITECH6/S/ 26 MOD 1",
+        "ADMIN5/6/J/26 MOD 3",
+        "ADMIN4/5/6/S/26 MOD 1",
+        "ICT4/ITECH6/S/26 MOD 1",
         "LS5/6/S/26"
       ],
       "units": [
         "COMPUTER ESSENTIALS",
         "DIGITAL LITERACY",
         "ICT SKILLS",
-        "ICT SKILS 1"
+        "ICT SKILLS 1"
       ],
       "schedule": {
         "Monday": [
@@ -8637,7 +8637,7 @@
             "timeRange": "8:00 - 10:00",
             "startTime": "08:00",
             "endTime": "10:00",
-            "classCode": "ICT4/ITECH6/S/ 26 MOD 1",
+            "classCode": "ICT4/ITECH6/S/26 MOD 1",
             "unitTitle": "COMPUTER ESSENTIALS",
             "venue": "LAB1B",
             "trainer": "MR ALEXANDER KINOTI"
@@ -8648,7 +8648,7 @@
             "timeRange": "10:30 - 12:30",
             "startTime": "10:30",
             "endTime": "12:30",
-            "classCode": "ICT4/ITECH6/S/ 26 MOD 1",
+            "classCode": "ICT4/ITECH6/S/26 MOD 1",
             "unitTitle": "COMPUTER ESSENTIALS",
             "venue": "H5",
             "trainer": "MR ALEXANDER KINOTI"
@@ -8670,7 +8670,7 @@
             "timeRange": "15:35 - 17:35",
             "startTime": "15:35",
             "endTime": "17:35",
-            "classCode": "ICT SKILLS ADMIN5/6/J/26 MOD 3",
+            "classCode": "ADMIN5/6/J/26 MOD 3",
             "unitTitle": "ICT SKILLS",
             "venue": "LAB1B",
             "trainer": "MR ALEXANDER KINOTI"
@@ -8683,7 +8683,7 @@
             "timeRange": "8:00 - 10:00",
             "startTime": "08:00",
             "endTime": "10:00",
-            "classCode": "ICT SKILLS ADMIN5/6/J/26 MOD 3",
+            "classCode": "ADMIN5/6/J/26 MOD 3",
             "unitTitle": "ICT SKILLS",
             "venue": "LAB3",
             "trainer": "MR ALEXANDER KINOTI"
@@ -8694,7 +8694,7 @@
             "timeRange": "10:30 - 12:30",
             "startTime": "10:30",
             "endTime": "12:30",
-            "classCode": "ICT SKILLS ADMIN5/6/J/26 MOD 3",
+            "classCode": "ADMIN5/6/J/26 MOD 3",
             "unitTitle": "ICT SKILLS",
             "venue": "D5",
             "trainer": "MR ALEXANDER KINOTI"
@@ -8705,7 +8705,7 @@
             "timeRange": "13:30 - 15:30",
             "startTime": "13:30",
             "endTime": "15:30",
-            "classCode": "ICT SKILLS ADMIN5/6/J/26 MOD 3",
+            "classCode": "ADMIN5/6/J/26 MOD 3",
             "unitTitle": "ICT SKILLS",
             "venue": "LAB3",
             "trainer": "MR ALEXANDER KINOTI"
@@ -8716,7 +8716,7 @@
             "timeRange": "15:35 - 17:35",
             "startTime": "15:35",
             "endTime": "17:35",
-            "classCode": "ICT SKILLS ADMIN5/6/J/26 MOD 3",
+            "classCode": "ADMIN5/6/J/26 MOD 3",
             "unitTitle": "ICT SKILLS",
             "venue": "LAB3",
             "trainer": "MR ALEXANDER KINOTI"
@@ -8729,8 +8729,8 @@
             "timeRange": "10:30 - 12:30",
             "startTime": "10:30",
             "endTime": "12:30",
-            "classCode": "ICT SKILS 1 ADMIN4/5/6/S/ 26 MOD 1",
-            "unitTitle": "ICT SKILS 1",
+            "classCode": "ADMIN4/5/6/S/26 MOD 1",
+            "unitTitle": "ICT SKILLS 1",
             "venue": "LAB3",
             "trainer": "MR ALEXANDER KINOTI"
           },
@@ -8740,7 +8740,7 @@
             "timeRange": "13:30 - 15:30",
             "startTime": "13:30",
             "endTime": "15:30",
-            "classCode": "ICT SKILLS ADMIN5/6/J/26 MOD 3",
+            "classCode": "ADMIN5/6/J/26 MOD 3",
             "unitTitle": "ICT SKILLS",
             "venue": "LAB1A",
             "trainer": "MR ALEXANDER KINOTI"
@@ -17754,8 +17754,8 @@
     }
   ],
   "classes": [
-    "ADMIN4/5/6/S/ 26 MOD 1",
     "ADMIN4/5/6/S/ 26 MOD 1/ ADMIN5/6/M/26 MOD 2",
+    "ADMIN4/5/6/S/26 MOD 1",
     "ADMIN5/6/J/26 MOD 3",
     "ADMIN5/6/M/26 MOD 2",
     "ADMIN5/6/M/26 MOD 2/ADMIN4/ 5/6/S/26 MOD 1",
@@ -17867,9 +17867,7 @@
     "FDM6/M/25 MOD V",
     "IAR5/6/J/S/25",
     "IAR5/6/M/26",
-    "ICT SKILLS ADMIN5/6/J/26 MOD 3",
-    "ICT SKILS 1 ADMIN4/5/6/S/ 26 MOD 1",
-    "ICT4/ITECH6/S/ 26 MOD 1",
+    "ICT4/ITECH6/S/26 MOD 1",
     "ITECH5/6/M/26/ ICT4/M/26",
     "ITECH5/J/26 MOD 3",
     "ITECH5/S/25 MOD 4",
@@ -18072,7 +18070,7 @@
     "HYDROGRAPHIC SURVEY",
     "Horticulture Crops",
     "ICT SKILLS",
-    "ICT SKILS 1",
+    "ICT SKILLS 1",
     "INSSUANCE & D OF GOODS",
     "INTERMEDIATE CDP",
     "IOM",

@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { syncPedagogicalDocumentsWithServer } from "@/lib/mockSessionPlans";
 import {
   getCurrentTrainerProfile,
   saveTrainerProfile,
@@ -207,6 +208,7 @@ export default function TrainerLayout({
     setEditName(current.name);
     setEditEmail(current.email);
     setEditPhone(current.phone);
+    syncPedagogicalDocumentsWithServer().catch(() => {});
   }, [user]);
 
   const handleSyncTimetable = () => {

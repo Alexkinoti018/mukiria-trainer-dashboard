@@ -187,6 +187,9 @@ export function canonicalizeCohortCode(rawCohort: string): string {
   cleaned = cleaned.replace(/\bMOD\s*III\b/gi, "MOD 3");
   cleaned = cleaned.replace(/\bMOD\s*IV\b/gi, "MOD 4");
   cleaned = cleaned.replace(/\bMOD(\d+)\b/gi, "MOD $1");
+
+  // Strip redundant subject prefixes e.g. "ICT SKILLS ADMIN...", "ICT SKILS 1 ADMIN..."
+  cleaned = cleaned.replace(/^(ICT\s*SKILLS\s*1|ICT\s*SKILLS|ICT\s*SKILS\s*1|COMPUTER\s*ESSENTIALS|DIGITAL\s*LITERACY)\s+/i, "");
   
   // Normalize year representation: '/2026' -> '/26' or keep uniform
   // Known alias mappings to official canonical keys:
@@ -199,6 +202,10 @@ export function canonicalizeCohortCode(rawCohort: string): string {
     "ADMIN5/6/J/26 MOD 3": "ADMIN5/6/J/26 MOD 3",
     "ICT SKILLS ADMIN5/6/J/26 MOD 3": "ADMIN5/6/J/26 MOD 3",
     "ICT SKILS 1 ADMIN4/5/6/S/ 26 MOD 1": "ADMIN4/5/6/S/26 MOD 1",
+    "ICT SKILS 1 ADMIN4/5/6/S/26 MOD 1": "ADMIN4/5/6/S/26 MOD 1",
+    "ICT SKILLS 1 ADMIN4/5/6/S/ 26 MOD 1": "ADMIN4/5/6/S/26 MOD 1",
+    "ICT SKILLS 1 ADMIN4/5/6/S/26 MOD 1": "ADMIN4/5/6/S/26 MOD 1",
+    "ADMIN4/5/6/S/ 26 MOD 1": "ADMIN4/5/6/S/26 MOD 1",
     "ADMIN4/5/6/S/26 MOD 1": "ADMIN4/5/6/S/26 MOD 1",
     "FBS5/6/J/26": "FBS5/6/J/26",
     "FBS 5 MOD/J/2026": "FBS 5 MOD/J/2026",

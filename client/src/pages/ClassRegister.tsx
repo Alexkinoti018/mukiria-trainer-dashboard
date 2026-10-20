@@ -32,6 +32,7 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { getAttendanceScansFromOffline, enqueueSyncItem } from "@/lib/offlineStore";
 import { syncEngine } from "@/lib/syncEngine";
 import { getAcademicContext } from "@/lib/academicCalendar";
+import { canonicalizeCohortCode } from "@/lib/curriculumDatabase";
 import {
   AttendanceStatus,
   StudentAttendanceRecord,
@@ -242,6 +243,23 @@ export default function ClassRegister() {
       wHod[0] = savedComments.hodComment;
     }
     setWeeklyHodComments(wHod);
+
+    // Asynchronously synchronize with centralized physical database / API
+    fetch(`/api/documents/class-registers/${encodeURIComponent(selectedClassCode)}`)
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.metadata) {
+          const m = json.metadata;
+          setMetadata(prev => ({
+            ...prev,
+            lecturerComment: m.lecturerComment || prev.lecturerComment,
+            hodComment: m.hodComment || prev.hodComment,
+          }));
+          if (m.weeklyLecturerComments) setWeeklyLecturerComments(m.weeklyLecturerComments);
+          if (m.weeklyHodComments) setWeeklyHodComments(m.weeklyHodComments);
+        }
+      })
+      .catch(() => {});
   }, [activeClassConfig, selectedClassCode]);
 
   const handleWeeklyCommentChange = (type: "lecturer" | "hod", weekIndex: number, val: string) => {
@@ -841,6 +859,23 @@ export default function ClassRegister() {
         });
         const json = await apiRes.json();
         if (json.success) apiSaved = true;
+
+        // Persist register comments and institutional metadata centrally to physical DB
+        fetch(`/api/documents/class-registers/${encodeURIComponent(selectedClassCode)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lecturer: metadata.lecturer,
+            subject: metadata.subject,
+            department: metadata.department,
+            duration: metadata.duration,
+            level: metadata.level,
+            lecturerComment: metadata.lecturerComment,
+            hodComment: metadata.hodComment,
+            weeklyLecturerComments,
+            weeklyHodComments,
+          }),
+        }).catch(() => {});
       } catch (apiErr) {
         console.warn("Backend API /api/attendance/bulk error:", apiErr);
       }
@@ -1210,7 +1245,7 @@ export default function ClassRegister() {
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="font-bold whitespace-nowrap w-36">CLASS:</span>
-                  <span className="font-bold border-b border-black flex-1 px-1">{selectedClassCode}</span>
+                  <span className="font-bold border-b border-black flex-1 px-1">{canonicalizeCohortCode(selectedClassCode)}</span>
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="font-bold whitespace-nowrap w-24">LEVEL:</span>
@@ -1225,12 +1260,12 @@ export default function ClassRegister() {
 
             <div className="text-center my-2">
               <h2 className="text-sm font-bold uppercase tracking-wide">GENERAL CLASS REGISTER</h2>
-              <p className="text-[11px] font-bold text-black mt-0.5">FILTERED BY: &#123;Class: {selectedClassCode}&#125;</p>
+              <p className="text-[11px] font-bold text-black mt-0.5">FILTERED BY: &#123;Class: {canonicalizeCohortCode(selectedClassCode)}&#125;</p>
             </div>
 
             {/* 10-Week Attendance Table (Every week has 3 sessions = 30 total sessions) */}
-            <div className="overflow-x-auto print:overflow-visible">
-              <table className="w-full border-collapse border-2 border-black text-[11px]">
+            <div className="overflow-x-auto overflow-y-hidden print:overflow-visible">
+              <table className="w-full min-w-[1050px] border-collapse border-2 border-black text-[11px]">
                 <thead>
                   {/* Header Row 1: Top-left colSpan=3 blank merged cell + WK_1..WK_10 (colSpan=3) + Summary (rowSpan=2) */}
                   <tr className="bg-white font-bold border-b border-black">
@@ -1303,9 +1338,9 @@ export default function ClassRegister() {
                                 title={`W${w + 1} S${s + 1}: ${status === 'X' ? 'Present' : status === '0' ? 'Absent' : 'Unmarked'} (Click to cycle)`}
                               >
                                 {status === "X" ? (
-                                  <span className="text-red-600 print:text-black font-bold">X</span>
+                                  <span className="text-slate-900 font-bold print:text-black">X</span>
                                 ) : status === "0" ? (
-                                  <span className="text-red-600 print:text-black font-mono font-bold">0</span>
+                                  <span className="text-rose-600 font-mono font-bold print:text-black">0</span>
                                 ) : (
                                   <span className="text-gray-300 print:invisible font-light">-</span>
                                 )}
@@ -1447,7 +1482,7 @@ export default function ClassRegister() {
               </div>
               <div className="flex items-baseline gap-2">
                 <span className="whitespace-nowrap">CLASS:</span>
-                <span className="border-b border-dotted border-black flex-1 px-1">{selectedClassCode}</span>
+                <span className="border-b border-dotted border-black flex-1 px-1">{canonicalizeCohortCode(selectedClassCode)}</span>
               </div>
               <div className="flex items-baseline gap-2">
                 <span className="whitespace-nowrap">UNIT OF COMPETENCY:</span>

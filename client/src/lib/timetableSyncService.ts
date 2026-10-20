@@ -13,6 +13,12 @@
 
 import masterTimetable from "./timetableData.json";
 import { findTrainer } from "./academicCalendar";
+import { canonicalizeCohortCode } from "./curriculumDatabase";
+import {
+  saveStoredSessionPlans,
+  saveStoredLearningPlans,
+  saveStoredRecordsOfWork,
+} from "./mockSessionPlans";
 
 export interface TrainerProfile {
   id: string;
@@ -141,25 +147,37 @@ export function buildClassConfigsForTrainer(profile: TrainerProfile): DynamicCla
   const schedule = profile.schedule || {};
   const allSessions: any[] = Object.values(schedule).flat();
 
-  return classes.map((rawCode, index) => {
-    const code = rawCode.trim();
+  const seenCodes = new Set<string>();
+  const configs: DynamicClassConfig[] = [];
+
+  for (let index = 0; index < classes.length; index++) {
+    const rawCode = classes[index];
+    const canonicalCode = canonicalizeCohortCode(rawCode.trim());
+    if (seenCodes.has(canonicalCode)) continue;
+    seenCodes.add(canonicalCode);
+
     // Locate session matching this class to extract accurate unit title
     const session = allSessions.find(
       (s) =>
         s.classCode &&
-        (s.classCode.toLowerCase().replace(/\s+/g, "") === code.toLowerCase().replace(/\s+/g, "") ||
-          s.classCode.toLowerCase().includes(code.toLowerCase()) ||
-          code.toLowerCase().includes(s.classCode.toLowerCase()))
+        (canonicalizeCohortCode(s.classCode) === canonicalCode ||
+          s.classCode.toLowerCase().replace(/\s+/g, "") === rawCode.toLowerCase().replace(/\s+/g, "") ||
+          s.classCode.toLowerCase().includes(canonicalCode.toLowerCase()) ||
+          canonicalCode.toLowerCase().includes(s.classCode.toLowerCase()))
     );
 
-    const unitTitle =
+    let unitTitle =
       session?.unitTitle ||
       (profile.units && profile.units[index % profile.units.length]) ||
       (profile.units && profile.units[0]) ||
       "General Competency";
 
+    if (unitTitle.toUpperCase() === "ICT SKILS 1") {
+      unitTitle = "ICT SKILLS 1";
+    }
+
     let department = profile.department || "Computing & Informatics";
-    const uCode = code.toUpperCase();
+    const uCode = canonicalCode.toUpperCase();
     if (uCode.includes("EE")) department = "Electrical & Electronics Engineering";
     else if (uCode.includes("AGRE") || uCode.includes("AGR")) department = "Agriculture";
     else if (uCode.includes("ADMIN") || uCode.includes("BUS")) department = "Business Studies";
@@ -172,17 +190,19 @@ export function buildClassConfigsForTrainer(profile: TrainerProfile): DynamicCla
     else if (uCode.includes("MOD IV") || uCode.includes("MOD 4") || uCode.includes("MOD 3") || uCode.includes("MOD III") || uCode.includes("6")) level = "Level 6";
     else if (uCode.includes("5")) level = "Level 5";
 
-    return {
-      code,
-      name: code,
+    configs.push({
+      code: canonicalCode,
+      name: canonicalCode,
       subject: unitTitle,
       department,
       level,
       duration: "Term 3 2026",
       assessmentType: "General Class Register",
       docCode: "MTTI/REG/CUR/02" as const,
-    };
-  });
+    });
+  }
+
+  return configs;
 }
 
 /**
@@ -444,7 +464,7 @@ export function syncTrainerToProfessionalDocuments(profile: TrainerProfile): Syn
           }
         }
       });
-      localStorage.setItem("mtti_session_plans", JSON.stringify(plans));
+      saveStoredSessionPlans(plans);
     } catch (e) {
       console.warn("Session plans sync notice:", e);
     }
@@ -498,7 +518,7 @@ export function syncTrainerToProfessionalDocuments(profile: TrainerProfile): Syn
           }
         }
       });
-      localStorage.setItem("mtti_learning_plans", JSON.stringify(lpWeeks));
+      saveStoredLearningPlans(lpWeeks);
     } catch (e) {
       console.warn("Learning plans sync notice:", e);
     }
@@ -631,7 +651,7 @@ export function syncTrainerToProfessionalDocuments(profile: TrainerProfile): Syn
           }
         }
       });
-      localStorage.setItem("mtti_records_of_work", JSON.stringify(rows));
+      saveStoredRecordsOfWork(rows);
     } catch (e) {
       console.warn("Records of work sync notice:", e);
     }
@@ -639,8 +659,9 @@ export function syncTrainerToProfessionalDocuments(profile: TrainerProfile): Syn
     // 6. Synchronize Class Registers metadata (comments, lecturer name)
     try {
       trainerClasses.forEach((clsCode: string) => {
-        const commentsKey = `mtti_class_register_comments_${clsCode}`;
-        const rawComments = localStorage.getItem(commentsKey);
+        const canonicalCode = canonicalizeCohortCode(clsCode);
+        const commentsKey = `mtti_class_register_comments_${canonicalCode}`;
+        const rawComments = localStorage.getItem(commentsKey) || localStorage.getItem(`mtti_class_register_comments_${clsCode}`);
         let curComments: any = {};
         if (rawComments) {
           try {
@@ -651,6 +672,16 @@ export function syncTrainerToProfessionalDocuments(profile: TrainerProfile): Syn
         curComments.lecturerEmail = canonicalProfile.email;
         curComments.lecturerPhone = canonicalProfile.phone;
         localStorage.setItem(commentsKey, JSON.stringify(curComments));
+
+        // Push to centralized database
+        try {
+          fetch(`/api/documents/class-registers/${encodeURIComponent(canonicalCode)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(curComments),
+          }).catch(() => {});
+        } catch {}
+
         registersSynced++;
       });
     } catch (e) {

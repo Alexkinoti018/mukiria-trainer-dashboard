@@ -1,0 +1,71 @@
+[
+  {
+    "id": "sp-001",
+    "unit_offering_id": "uo-1",
+    "trainer_id": "trainer-001",
+    "department_id": "dept-ci",
+    "date": "2026-09-10",
+    "session_title": "PC Hardware Diagnostics",
+    "approval_status": "pending",
+    "hod_reviewed_by": null,
+    "hod_reviewer_name": null,
+    "hod_review_date": null,
+    "hod_remarks": null
+  },
+  {
+    "id": "sp-002",
+    "unit_offering_id": "uo-3",
+    "trainer_id": "trainer-002",
+    "department_id": "dept-ci",
+    "date": "2026-09-12",
+    "session_title": "Network Cabling & Crimping",
+    "approval_status": "approved",
+    "hod_reviewed_by": "hod-001",
+    "hod_reviewer_name": "Prof. S. Njoroge",
+    "hod_review_date": "2026-09-13T10:00:00Z",
+    "hod_remarks": "Approved for lab practicals."
+  },
+  {
+    "id": "sp-ee-001",
+    "unit_offering_id": "uo-ee-1",
+    "trainer_id": "trainer-ee-001",
+    "department_id": "dept-ee",
+    "date": "2026-09-14",
+    "session_title": "Power Systems Analysis",
+    "approval_status": "pending",
+    "hod_reviewed_by": null,
+    "hod_reviewer_name": null,
+    "hod_review_date": null,
+    "hod_remarks": null
+  },
+  {
+    "id": "sp-api-1792531332503",
+    "unit_offering_id": "uo-api",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "trainer_id": "trainer-001",
+    "session_title": "Central API Sync Test",
+    "approval_status": "pending",
+    "created_at": "2026-10-20T21:22:12.668Z",
+    "updated_at": "2026-10-20T21:22:12.668Z"
+  },
+  {
+    "id": "sp-api-1792531453504",
+    "unit_offering_id": "uo-api",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "trainer_id": "trainer-001",
+    "session_title": "Central API Sync Test",
+    "approval_status": "pending",
+    "created_at": "2026-10-20T21:24:13.612Z",
+    "updated_at": "2026-10-20T21:24:13.612Z"
+  },
+  {
+    "id": "sp-api-1792531530343",
+    "unit_offering_id": "uo-api",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "trainer_id": "trainer-001",
+    "session_title": "Central API Sync Test",
+    "approval_status": "pending",
+    "created_at": "2026-10-20T21:25:30.731Z",
+    "updated_at": "2026-10-20T21:25:30.731Z"
+  }
+]

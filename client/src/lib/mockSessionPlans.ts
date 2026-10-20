@@ -343,6 +343,14 @@ export const saveStoredSessionPlans = (plans: SessionPlan[]) => {
   if (typeof window !== "undefined") {
     const filtered = plans.filter(p => isTerm3CompliantUnit(p.unit_code, p.unit_name, p.class_code));
     localStorage.setItem("mtti_session_plans", JSON.stringify(filtered));
+
+    try {
+      fetch("/api/documents/session-plans/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_plans: filtered }),
+      }).catch(() => {});
+    } catch {}
   }
 };
 
@@ -370,6 +378,14 @@ export const saveStoredLearningPlans = (plans: LearningPlanWeek[]) => {
   if (typeof window !== "undefined") {
     const filtered = plans.filter(p => isTerm3CompliantUnit(p.unit_code, p.unit_name, p.class_code));
     localStorage.setItem("mtti_learning_plans", JSON.stringify(filtered));
+
+    try {
+      fetch("/api/documents/learning-plans/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ learning_plans: filtered }),
+      }).catch(() => {});
+    } catch {}
   }
 };
 
@@ -397,6 +413,76 @@ export const saveStoredRecordsOfWork = (records: RecordOfWork[]) => {
   if (typeof window !== "undefined") {
     const filtered = records.filter(r => isTerm3CompliantUnit(r.unit_code, r.work_actually_covered, r.class_code));
     localStorage.setItem("mtti_records_of_work", JSON.stringify(filtered));
+
+    try {
+      fetch("/api/documents/records-of-work/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ records_of_work: filtered }),
+      }).catch(() => {});
+    } catch {}
   }
 };
+
+/**
+ * Synchronize all pedagogical documents from centralized backend physical database / API
+ */
+export async function syncPedagogicalDocumentsWithServer(): Promise<{
+  sessionPlans: SessionPlan[];
+  learningPlans: LearningPlanWeek[];
+  recordsOfWork: RecordOfWork[];
+}> {
+  let sessionPlans = getStoredSessionPlans();
+  let learningPlans = getStoredLearningPlans();
+  let recordsOfWork = getStoredRecordsOfWork();
+
+  if (typeof window === "undefined") {
+    return { sessionPlans, learningPlans, recordsOfWork };
+  }
+
+  try {
+    const [spRes, lpRes, rowRes] = await Promise.allSettled([
+      fetch("/api/documents/session-plans"),
+      fetch("/api/documents/learning-plans"),
+      fetch("/api/documents/records-of-work"),
+    ]);
+
+    if (spRes.status === "fulfilled" && spRes.value.ok) {
+      const data = await spRes.value.json();
+      if (Array.isArray(data.session_plans) && data.session_plans.length > 0) {
+        const map = new Map<string, SessionPlan>();
+        sessionPlans.forEach((p) => map.set(p.id, p));
+        data.session_plans.forEach((sp: SessionPlan) => map.set(sp.id, { ...map.get(sp.id), ...sp }));
+        sessionPlans = Array.from(map.values()).filter((p) => isTerm3CompliantUnit(p.unit_code, p.unit_name, p.class_code));
+        localStorage.setItem("mtti_session_plans", JSON.stringify(sessionPlans));
+      }
+    }
+
+    if (lpRes.status === "fulfilled" && lpRes.value.ok) {
+      const data = await lpRes.value.json();
+      if (Array.isArray(data.learning_plans) && data.learning_plans.length > 0) {
+        const map = new Map<string, LearningPlanWeek>();
+        learningPlans.forEach((p) => map.set(p.id, p));
+        data.learning_plans.forEach((lp: LearningPlanWeek) => map.set(lp.id, { ...map.get(lp.id), ...lp }));
+        learningPlans = Array.from(map.values()).filter((p) => isTerm3CompliantUnit(p.unit_code, p.unit_name, p.class_code));
+        localStorage.setItem("mtti_learning_plans", JSON.stringify(learningPlans));
+      }
+    }
+
+    if (rowRes.status === "fulfilled" && rowRes.value.ok) {
+      const data = await rowRes.value.json();
+      if (Array.isArray(data.records_of_work) && data.records_of_work.length > 0) {
+        const map = new Map<string, RecordOfWork>();
+        recordsOfWork.forEach((r) => map.set(r.id, r));
+        data.records_of_work.forEach((row: RecordOfWork) => map.set(row.id, { ...map.get(row.id), ...row }));
+        recordsOfWork = Array.from(map.values()).filter((r) => isTerm3CompliantUnit(r.unit_code, r.work_actually_covered, r.class_code));
+        localStorage.setItem("mtti_records_of_work", JSON.stringify(recordsOfWork));
+      }
+    }
+  } catch (err) {
+    console.warn("Server sync error (continuing with offline-first data):", err);
+  }
+
+  return { sessionPlans, learningPlans, recordsOfWork };
+}
 

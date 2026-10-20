@@ -7,6 +7,16 @@ import {
   savePersistentAttendance,
   loadPersistentTrainees,
   savePersistentTrainees,
+  loadPersistentSessionPlans,
+  savePersistentSessionPlans,
+  loadPersistentLearningPlans,
+  savePersistentLearningPlans,
+  loadPersistentRecordsOfWork,
+  savePersistentRecordsOfWork,
+  loadPersistentClassRegisters,
+  savePersistentClassRegisters,
+  loadPersistentAssessmentMarks,
+  savePersistentAssessmentMarks,
   AttendanceRecord,
   TraineeRecord,
 } from "./db.ts";
@@ -275,32 +285,36 @@ export const DB = {
       created_at: "2026-09-01T10:05:00Z"
     }
   ],
-  assessment_marks: [
-    {
-      id: "mark-01",
-      unit_offering_id: "uo-1",
-      trainee_id: "trainee-001",
-      ct_avg: 78,
-      cp_avg: 84,
-      cp_scores: [84],
-      ct_scores: [78],
-      project_score: 80,
-      weighted_mark: 81,
-      is_locked: true // Published
-    },
-    {
-      id: "mark-02",
-      unit_offering_id: "uo-1",
-      trainee_id: "trainee-002",
-      ct_avg: 65,
-      cp_avg: 70,
-      cp_scores: [70],
-      ct_scores: [65],
-      project_score: 75,
-      weighted_mark: 68,
-      is_locked: false // DRAFT (Unpublished - Trainees must NOT see this!)
-    }
-  ],
+  assessment_marks: (() => {
+    const persisted = loadPersistentAssessmentMarks();
+    if (persisted && persisted.length > 0) return persisted;
+    return [
+      {
+        id: "mark-01",
+        unit_offering_id: "uo-1",
+        trainee_id: "trainee-001",
+        ct_avg: 78,
+        cp_avg: 84,
+        cp_scores: [84],
+        ct_scores: [78],
+        project_score: 80,
+        weighted_mark: 81,
+        is_locked: true // Published
+      },
+      {
+        id: "mark-02",
+        unit_offering_id: "uo-1",
+        trainee_id: "trainee-002",
+        ct_avg: 65,
+        cp_avg: 70,
+        cp_scores: [70],
+        ct_scores: [65],
+        project_score: 75,
+        weighted_mark: 68,
+        is_locked: false // DRAFT (Unpublished - Trainees must NOT see this!)
+      }
+    ];
+  })(),
   assessment_evidence: [
     {
       id: "ev-001",
@@ -357,91 +371,101 @@ export const DB = {
       submitted_at: "2026-09-15T11:00:00Z"
     }
   ],
-  session_plans: [
-    {
-      id: "sp-001",
-      unit_offering_id: "uo-1",
-      trainer_id: "trainer-001",
-      department_id: "dept-ci",
-      date: "2026-09-10",
-      session_title: "PC Hardware Diagnostics",
-      approval_status: "pending",
-      hod_reviewed_by: null,
-      hod_reviewer_name: null,
-      hod_review_date: null,
-      hod_remarks: null,
-    },
-    {
-      id: "sp-002",
-      unit_offering_id: "uo-3",
-      trainer_id: "trainer-002",
-      department_id: "dept-ci",
-      date: "2026-09-12",
-      session_title: "Network Cabling & Crimping",
-      approval_status: "approved",
-      hod_reviewed_by: "hod-001",
-      hod_reviewer_name: "Prof. S. Njoroge",
-      hod_review_date: "2026-09-13T10:00:00Z",
-      hod_remarks: "Approved for lab practicals.",
-    },
-    {
-      id: "sp-ee-001",
-      unit_offering_id: "uo-ee-1",
-      trainer_id: "trainer-ee-001",
-      department_id: "dept-ee",
-      date: "2026-09-14",
-      session_title: "Power Systems Analysis",
-      approval_status: "pending",
-      hod_reviewed_by: null,
-      hod_reviewer_name: null,
-      hod_review_date: null,
-      hod_remarks: null,
-    }
-  ],
-  record_of_work: [
-    {
-      id: "row-001",
-      session_plan_id: "sp-001",
-      unit_offering_id: "uo-1",
-      trainer_id: "trainer-001",
-      department_id: "dept-ci",
-      work_covered: "Disassembly and testing of power supply units",
-      date_covered: "2026-09-10",
-      approval_status: "pending",
-      hod_reviewed_by: null,
-      hod_reviewer_name: null,
-      hod_review_date: null,
-      hod_remarks: null,
-    },
-    {
-      id: "row-002",
-      session_plan_id: "sp-002",
-      unit_offering_id: "uo-3",
-      trainer_id: "trainer-002",
-      department_id: "dept-ci",
-      work_covered: "Ethernet standard 568B termination lab",
-      date_covered: "2026-09-12",
-      approval_status: "approved",
-      hod_reviewed_by: "hod-001",
-      hod_reviewer_name: "Prof. S. Njoroge",
-      hod_review_date: "2026-09-13T10:00:00Z",
-      hod_remarks: "Verified against syllabus.",
-    },
-    {
-      id: "row-ee-001",
-      session_plan_id: "sp-ee-001",
-      unit_offering_id: "uo-ee-1",
-      trainer_id: "trainer-ee-001",
-      department_id: "dept-ee",
-      work_covered: "Transformer loading tests",
-      date_covered: "2026-09-14",
-      approval_status: "pending",
-      hod_reviewed_by: null,
-      hod_reviewer_name: null,
-      hod_review_date: null,
-      hod_remarks: null,
-    }
-  ]
+  session_plans: (() => {
+    const persisted = loadPersistentSessionPlans();
+    if (persisted && persisted.length > 0) return persisted;
+    return [
+      {
+        id: "sp-001",
+        unit_offering_id: "uo-1",
+        trainer_id: "trainer-001",
+        department_id: "dept-ci",
+        date: "2026-09-10",
+        session_title: "PC Hardware Diagnostics",
+        approval_status: "pending",
+        hod_reviewed_by: null,
+        hod_reviewer_name: null,
+        hod_review_date: null,
+        hod_remarks: null,
+      },
+      {
+        id: "sp-002",
+        unit_offering_id: "uo-3",
+        trainer_id: "trainer-002",
+        department_id: "dept-ci",
+        date: "2026-09-12",
+        session_title: "Network Cabling & Crimping",
+        approval_status: "approved",
+        hod_reviewed_by: "hod-001",
+        hod_reviewer_name: "Prof. S. Njoroge",
+        hod_review_date: "2026-09-13T10:00:00Z",
+        hod_remarks: "Approved for lab practicals.",
+      },
+      {
+        id: "sp-ee-001",
+        unit_offering_id: "uo-ee-1",
+        trainer_id: "trainer-ee-001",
+        department_id: "dept-ee",
+        date: "2026-09-14",
+        session_title: "Power Systems Analysis",
+        approval_status: "pending",
+        hod_reviewed_by: null,
+        hod_reviewer_name: null,
+        hod_review_date: null,
+        hod_remarks: null,
+      }
+    ];
+  })(),
+  learning_plans: loadPersistentLearningPlans(),
+  record_of_work: (() => {
+    const persisted = loadPersistentRecordsOfWork();
+    if (persisted && persisted.length > 0) return persisted;
+    return [
+      {
+        id: "row-001",
+        session_plan_id: "sp-001",
+        unit_offering_id: "uo-1",
+        trainer_id: "trainer-001",
+        department_id: "dept-ci",
+        work_covered: "Disassembly and testing of power supply units",
+        date_covered: "2026-09-10",
+        approval_status: "pending",
+        hod_reviewed_by: null,
+        hod_reviewer_name: null,
+        hod_review_date: null,
+        hod_remarks: null,
+      },
+      {
+        id: "row-002",
+        session_plan_id: "sp-002",
+        unit_offering_id: "uo-3",
+        trainer_id: "trainer-002",
+        department_id: "dept-ci",
+        work_covered: "Ethernet standard 568B termination lab",
+        date_covered: "2026-09-12",
+        approval_status: "approved",
+        hod_reviewed_by: "hod-001",
+        hod_reviewer_name: "Prof. S. Njoroge",
+        hod_review_date: "2026-09-13T10:00:00Z",
+        hod_remarks: "Verified against syllabus.",
+      },
+      {
+        id: "row-ee-001",
+        session_plan_id: "sp-ee-001",
+        unit_offering_id: "uo-ee-1",
+        trainer_id: "trainer-ee-001",
+        department_id: "dept-ee",
+        work_covered: "Transformer loading tests",
+        date_covered: "2026-09-14",
+        approval_status: "pending",
+        hod_reviewed_by: null,
+        hod_reviewer_name: null,
+        hod_review_date: null,
+        hod_remarks: null,
+      }
+    ];
+  })(),
+  class_registers: loadPersistentClassRegisters(),
 };
 
 // ─── AUTHENTICATION & CONTEXT EXTRACTION MIDDLEWARE ──────────────────────────
@@ -1934,6 +1958,24 @@ const handlePedagogicalSignOff = (req: AuthenticatedRequest, res: Response) => {
   record.hod_review_date = new Date().toISOString();
   record.hod_remarks = remarks || "";
 
+  if (entityType === "session_plan") {
+    savePersistentSessionPlans(DB.session_plans);
+    if (pool) {
+      pool.query(
+        `UPDATE session_plans SET approval_status = $1, hod_reviewed_by = $2, hod_reviewer_name = $3, hod_review_date = $4, hod_remarks = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6`,
+        [status, user.id, user.name, record.hod_review_date, record.hod_remarks, targetId]
+      ).catch(() => {});
+    }
+  } else {
+    savePersistentRecordsOfWork(DB.record_of_work);
+    if (pool) {
+      pool.query(
+        `UPDATE records_of_work SET approval_status = $1, hod_reviewed_by = $2, hod_reviewer_name = $3, hod_review_date = $4, hod_remarks = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6`,
+        [status, user.id, user.name, record.hod_review_date, record.hod_remarks, targetId]
+      ).catch(() => {});
+    }
+  }
+
   res.json({
     success: true,
     message: `Pedagogical record ${targetId} marked as ${status}`,
@@ -1961,8 +2003,220 @@ apiRouter.put("/pedagogy/record-of-work/:id", (req: AuthenticatedRequest, res: R
     return;
   }
   Object.assign(record, req.body);
+  savePersistentRecordsOfWork(DB.record_of_work);
   res.json({ success: true, record });
 });
+
+// ─── CENTRALIZED PHYSICAL DATABASE & PERSISTENCE DOCUMENT ENDPOINTS ─────────
+
+// 1. Session Plans (MTTI/F/CUR/05)
+apiRouter.get("/documents/session-plans", (req: AuthenticatedRequest, res: Response) => {
+  const { class_code, unit_code, trainer_id } = req.query as Record<string, string>;
+  let list = DB.session_plans;
+  if (class_code) {
+    const cc = class_code.toLowerCase().replace(/\s+/g, "");
+    list = list.filter((p: any) => (p.class_code || "").toLowerCase().replace(/\s+/g, "").includes(cc) || cc.includes((p.class_code || "").toLowerCase().replace(/\s+/g, "")));
+  }
+  if (unit_code) {
+    list = list.filter((p: any) => p.unit_code === unit_code || p.unit_offering_id === unit_code);
+  }
+  if (trainer_id) {
+    list = list.filter((p: any) => p.trainer_id === trainer_id);
+  }
+  res.json({ success: true, count: list.length, session_plans: list });
+});
+
+apiRouter.post("/documents/session-plans/batch", requireRoles("trainer", "hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
+  const { session_plans = [] } = req.body;
+  if (!Array.isArray(session_plans)) {
+    res.status(400).json({ error: "session_plans array required" });
+    return;
+  }
+
+  for (const item of session_plans) {
+    if (!item.id) continue;
+    const idx = DB.session_plans.findIndex((p: any) => p.id === item.id);
+    if (idx >= 0) {
+      if (DB.session_plans[idx].approval_status === "approved" && req.user?.role !== "admin") {
+        continue;
+      }
+      DB.session_plans[idx] = { ...DB.session_plans[idx], ...item, updated_at: new Date().toISOString() };
+    } else {
+      DB.session_plans.push({ ...item, created_at: new Date().toISOString(), updated_at: new Date().toISOString() });
+    }
+  }
+
+  savePersistentSessionPlans(DB.session_plans);
+
+  if (pool) {
+    for (const item of session_plans) {
+      if (!item.id) continue;
+      pool.query(
+        `INSERT INTO session_plans (id, unit_offering_id, class_code, trainer_id, department_id, date, session_title, approval_status, payload, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)
+         ON CONFLICT (id) DO UPDATE SET
+           class_code = EXCLUDED.class_code,
+           session_title = EXCLUDED.session_title,
+           payload = EXCLUDED.payload,
+           updated_at = CURRENT_TIMESTAMP`,
+        [item.id, item.unit_offering_id || "uo-1", item.class_code || "", item.trainer_id || req.user?.id || "", item.department_id || "", item.date || "", item.session_title || item.title || "", item.approval_status || "pending", JSON.stringify(item)]
+      ).catch(() => {});
+    }
+  }
+
+  res.json({ success: true, message: `Successfully synchronized ${session_plans.length} session plans to central database`, total: DB.session_plans.length });
+});
+
+// 2. Learning Plans (MTTI/F/CUR/02)
+apiRouter.get("/documents/learning-plans", (req: AuthenticatedRequest, res: Response) => {
+  const { class_code, unit_code } = req.query as Record<string, string>;
+  let list = DB.learning_plans;
+  if (class_code) {
+    const cc = class_code.toLowerCase().replace(/\s+/g, "");
+    list = list.filter((p: any) => (p.class_code || "").toLowerCase().replace(/\s+/g, "").includes(cc) || cc.includes((p.class_code || "").toLowerCase().replace(/\s+/g, "")));
+  }
+  if (unit_code) {
+    list = list.filter((p: any) => p.unit_code === unit_code);
+  }
+  res.json({ success: true, count: list.length, learning_plans: list });
+});
+
+apiRouter.post("/documents/learning-plans/batch", requireRoles("trainer", "hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
+  const { learning_plans = [] } = req.body;
+  if (!Array.isArray(learning_plans)) {
+    res.status(400).json({ error: "learning_plans array required" });
+    return;
+  }
+
+  for (const item of learning_plans) {
+    const key = item.id || `${item.unit_code || "unit"}_${item.week_number || item.week || 0}`;
+    const idx = DB.learning_plans.findIndex((p: any) => p.id === key || (p.unit_code === item.unit_code && (p.week_number === item.week_number || p.week === item.week)));
+    if (idx >= 0) {
+      DB.learning_plans[idx] = { ...DB.learning_plans[idx], ...item, id: key, updated_at: new Date().toISOString() };
+    } else {
+      DB.learning_plans.push({ ...item, id: key, created_at: new Date().toISOString(), updated_at: new Date().toISOString() });
+    }
+  }
+
+  savePersistentLearningPlans(DB.learning_plans);
+
+  if (pool) {
+    for (const item of learning_plans) {
+      const key = item.id || `${item.unit_code || "unit"}_${item.week_number || item.week || 0}`;
+      pool.query(
+        `INSERT INTO learning_plans (id, unit_code, class_code, week_number, topic, payload, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
+         ON CONFLICT (id) DO UPDATE SET
+           topic = EXCLUDED.topic,
+           payload = EXCLUDED.payload,
+           updated_at = CURRENT_TIMESTAMP`,
+        [key, item.unit_code || "", item.class_code || "", item.week_number || item.week || 1, item.topic || item.sub_unit_topic || "", JSON.stringify(item)]
+      ).catch(() => {});
+    }
+  }
+
+  res.json({ success: true, message: `Successfully synchronized ${learning_plans.length} learning plans to central database`, total: DB.learning_plans.length });
+});
+
+// 3. Records of Work (MTTI/F/CUR/03)
+apiRouter.get("/documents/records-of-work", (req: AuthenticatedRequest, res: Response) => {
+  const { class_code, unit_code } = req.query as Record<string, string>;
+  let list = DB.record_of_work;
+  if (class_code) {
+    const cc = class_code.toLowerCase().replace(/\s+/g, "");
+    list = list.filter((r: any) => (r.class_code || "").toLowerCase().replace(/\s+/g, "").includes(cc) || cc.includes((r.class_code || "").toLowerCase().replace(/\s+/g, "")));
+  }
+  if (unit_code) {
+    list = list.filter((r: any) => r.unit_code === unit_code);
+  }
+  res.json({ success: true, count: list.length, records_of_work: list });
+});
+
+apiRouter.post("/documents/records-of-work/batch", requireRoles("trainer", "hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
+  const { records_of_work = [] } = req.body;
+  if (!Array.isArray(records_of_work)) {
+    res.status(400).json({ error: "records_of_work array required" });
+    return;
+  }
+
+  for (const item of records_of_work) {
+    if (!item.id) continue;
+    const idx = DB.record_of_work.findIndex((r: any) => r.id === item.id);
+    if (idx >= 0) {
+      if (DB.record_of_work[idx].approval_status === "approved" && req.user?.role !== "admin") {
+        continue;
+      }
+      DB.record_of_work[idx] = { ...DB.record_of_work[idx], ...item, updated_at: new Date().toISOString() };
+    } else {
+      DB.record_of_work.push({ ...item, created_at: new Date().toISOString(), updated_at: new Date().toISOString() });
+    }
+  }
+
+  savePersistentRecordsOfWork(DB.record_of_work);
+
+  if (pool) {
+    for (const item of records_of_work) {
+      if (!item.id) continue;
+      pool.query(
+        `INSERT INTO records_of_work (id, session_plan_id, unit_offering_id, class_code, trainer_id, department_id, work_covered, date_covered, approval_status, payload, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
+         ON CONFLICT (id) DO UPDATE SET
+           work_covered = EXCLUDED.work_covered,
+           date_covered = EXCLUDED.date_covered,
+           payload = EXCLUDED.payload,
+           updated_at = CURRENT_TIMESTAMP`,
+        [item.id, item.session_plan_id || null, item.unit_offering_id || "uo-1", item.class_code || "", item.trainer_id || req.user?.id || "", item.department_id || "", item.work_covered || item.work_actually_covered || "", item.date_covered || "", item.approval_status || "pending", JSON.stringify(item)]
+      ).catch(() => {});
+    }
+  }
+
+  res.json({ success: true, message: `Successfully synchronized ${records_of_work.length} records of work to central database`, total: DB.record_of_work.length });
+});
+
+// 4. Class Registers Comments & Metadata
+function handleGetClassRegister(req: AuthenticatedRequest, res: Response) {
+  const code = (req.query.class_code as string) || (req.params as any)[0] || req.params.classCode || "";
+  const data = DB.class_registers[code] || null;
+  res.json({ success: true, class_code: code, metadata: data, registers: DB.class_registers });
+}
+
+function handlePostClassRegister(req: AuthenticatedRequest, res: Response) {
+  const code = req.body.class_code || (req.query.class_code as string) || (req.params as any)[0] || req.params.classCode || "";
+  if (!code) {
+    res.status(400).json({ error: "class_code is required" });
+    return;
+  }
+  const payload = req.body;
+  DB.class_registers[code] = {
+    ...DB.class_registers[code],
+    ...payload,
+    class_code: code,
+    updated_at: new Date().toISOString(),
+  };
+
+  savePersistentClassRegisters(DB.class_registers);
+
+  if (pool) {
+    pool.query(
+      `INSERT INTO class_registers (class_code, lecturer_name, subject, department, duration, level, lecturer_comment, hod_comment, weekly_lecturer_comments, weekly_hod_comments, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
+       ON CONFLICT (class_code) DO UPDATE SET
+         lecturer_comment = EXCLUDED.lecturer_comment,
+         hod_comment = EXCLUDED.hod_comment,
+         weekly_lecturer_comments = EXCLUDED.weekly_lecturer_comments,
+         weekly_hod_comments = EXCLUDED.weekly_hod_comments,
+         updated_at = CURRENT_TIMESTAMP`,
+      [code, payload.lecturer || payload.lecturer_name || "", payload.subject || "", payload.department || "", payload.duration || "", payload.level || "", payload.lecturerComment || "", payload.hodComment || "", JSON.stringify(payload.weeklyLecturerComments || {}), JSON.stringify(payload.weeklyHodComments || {})]
+    ).catch(() => {});
+  }
+
+  res.json({ success: true, message: `Saved class register metadata for ${code}`, data: DB.class_registers[code] });
+}
+
+apiRouter.get("/documents/class-registers", handleGetClassRegister);
+apiRouter.get("/documents/class-registers/*", handleGetClassRegister);
+apiRouter.post("/documents/class-registers", requireRoles("trainer", "hod", "admin"), handlePostClassRegister);
+apiRouter.post("/documents/class-registers/*", requireRoles("trainer", "hod", "admin"), handlePostClassRegister);
 
 // ─── RBAC GUARD: /api/admin/* (Reject Non-Admin Users with HTTP 403) ─────────
 apiRouter.use("/admin", requireRoles("admin"));
