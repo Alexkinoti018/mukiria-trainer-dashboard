@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Plus, Save, Printer, Download, Lock, Unlock, Users, PenTool, RefreshCw, Search, X, CheckCircle2, AlertCircle, Award, Scale } from "lucide-react";
 import { supabase, isSupabaseConfigured, normalizeAssessmentTaskSlot } from "@/lib/supabase";
 import { toast } from "sonner";
-import { useTrainees, findMatchingTrainee, syncScoreToContinuousMarksheet } from "@/contexts/TraineeContext";
+import { useTrainees, findMatchingTrainee, syncScoreToContinuousMarksheet, getTraineesForClass } from "@/contexts/TraineeContext";
 import { useExam } from "@/contexts/ExamContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentTrainerProfile } from "@/lib/timetableSyncService";
@@ -186,20 +186,7 @@ export function AssessmentMarksSheet() {
 
   // Auto-populate and synchronize based on selected class, trainees, graded submissions, graded uploads, and saved marks
   useEffect(() => {
-    const classTrainees = selectedClass === "all" 
-      ? trainees.filter(t => t.classCode !== "FBS6 MOD/12026" && !t.classCode?.includes("12026"))
-      : trainees.filter(t => {
-          if (t.classCode === "FBS6 MOD/12026" || t.classCode?.includes("12026")) return false;
-          if (t.classCode === selectedClass) return true;
-          if (
-            (selectedClass.includes("ICT4") || selectedClass.includes("ITECH6")) &&
-            (t.classCode.includes("ITECH") || t.classCode.includes("ICT4") || t.classCode.includes("MOD 1"))
-          ) return true;
-          if (selectedClass.includes("ADMIN") && t.classCode.includes("ADMIN")) return true;
-          if (selectedClass.includes("FBS") && t.classCode.includes("FBS")) return true;
-          if (selectedClass.includes("LS") && t.classCode.includes("LS")) return true;
-          return false;
-        });
+    const classTrainees = getTraineesForClass(trainees, selectedClass);
 
     let targetLevel = 4;
     if (selectedClass.includes("FBS")) {
@@ -226,10 +213,26 @@ export function AssessmentMarksSheet() {
       setUnitCode("0611 551 01A");
       setUnitTitle("APPLY DIGITAL LITERACY");
       setTermDates("From 31 AUG 2026 to 20 NOV 2026");
-    } else if (selectedClass.includes("ICT4") || selectedClass.includes("ITECH6")) {
+    } else if (selectedClass.includes("ITECH6") || selectedClass.includes("ITECH 6")) {
+      targetLevel = 6;
+      setLevel(6);
+      setCourseTitle("Diploma in Information Communication Technology (Level 6)");
+      setCourseCode("061006T4ICT");
+      setUnitCode("IT/CU/ICTA/CR/01/6/MA");
+      setUnitTitle("PERFORM COMPUTER ESSENTIALS");
+      setTermDates("From 31 AUG 2026 to 20 NOV 2026");
+    } else if (selectedClass.includes("ITECH5") || selectedClass.includes("ITECH 5")) {
+      targetLevel = 5;
+      setLevel(5);
+      setCourseTitle("Craftsperson in Information Communication Technology (Level 5)");
+      setCourseCode("061005T4ICT");
+      setUnitCode("IT/CU/ICTA/CC/01/5/MA");
+      setUnitTitle("APPLY BASIC ELECTRONICS");
+      setTermDates("From 31 AUG 2026 to 20 NOV 2026");
+    } else if (selectedClass.includes("ICT4") || selectedClass.includes("ICT 4")) {
       targetLevel = 4;
       setLevel(4);
-      setCourseTitle("ICT 4 / ICT Technician Level 5 & 6");
+      setCourseTitle("Certificate in Information Communication Technology (Level 4)");
       setCourseCode("061004T4ICT");
       setUnitCode("IT/CU/ICTA/CR/01/4/MA");
       setUnitTitle("PERFORM COMPUTER ESSENTIALS");
@@ -755,10 +758,9 @@ export function AssessmentMarksSheet() {
               }}
               className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs font-bold text-foreground focus:ring-1 focus:ring-primary outline-none cursor-pointer"
             >
-              <option value="all">All Registered Trainees ({trainees.length})</option>
               {availableClasses.map((cls) => (
                 <option key={cls} value={cls}>
-                  {cls} ({trainees.filter((t) => t.classCode === cls).length} trainees)
+                  {cls} ({getTraineesForClass(trainees, cls).length} trainees)
                 </option>
               ))}
             </select>

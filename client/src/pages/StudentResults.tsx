@@ -31,6 +31,7 @@ import {
 import { useExam } from "@/contexts/ExamContext";
 import { useAuth, findRosterTraineeByIdentifier } from "@/contexts/AuthContext";
 import { useTrainees } from "@/contexts/TraineeContext";
+import { getCurrentTrainerProfile } from "@/lib/timetableSyncService";
 import TraineeLayout from "@/components/TraineeLayout";
 import MarkedExamScriptModal from "@/components/MarkedExamScriptModal";
 import ObservationChecklistMarkingModal from "@/components/ObservationChecklistMarkingModal";
@@ -87,18 +88,34 @@ export default function StudentResults() {
   const [lookupInput, setLookupInput] = useState("");
   const [candidateFilter, setCandidateFilter] = useState("");
 
-  // Build unique candidate roster from submissions + trainees (used ONLY by Staff viewers)
+  // Build unique candidate roster from submissions + trainees (used ONLY by Staff viewers, scoped by trainer role)
   const availableCandidates = useMemo(() => {
     if (isTraineeViewer) return [];
 
+    const isPrivileged = user?.role === "admin" || user?.role === "hod";
+    const profile = getCurrentTrainerProfile(user);
+    const trainerClasses = new Set((profile?.classes || []).map((c) => c.toUpperCase().trim()));
+
+    // Filter trainees scoped strictly to trainer's assigned classes (unless privileged admin/hod)
+    const scopedTrainees = isPrivileged
+      ? trainees
+      : trainees.filter((t) => {
+          if (!t.classCode) return false;
+          const tc = t.classCode.toUpperCase().trim();
+          return (
+            trainerClasses.has(tc) ||
+            Array.from(trainerClasses).some((cls) => tc.includes(cls) || cls.includes(tc))
+          );
+        });
+
     const map = new Map<string, StudentSession & { submissionCount: number }>();
 
-    for (const t of trainees) {
+    for (const t of scopedTrainees) {
       const reg = (t.regCode || t.admNo || "").trim();
       if (!reg) continue;
-      const digits = reg.match(/\b(\d{4,6})\b/)?.[1] || reg.toUpperCase();
-      if (!map.has(digits)) {
-        map.set(digits, {
+      const key = t.id || reg.toUpperCase();
+      if (!map.has(key)) {
+        map.set(key, {
           reg_number: reg,
           name: t.name,
           cohort_code: t.classCode,
@@ -108,15 +125,31 @@ export default function StudentResults() {
       }
     }
 
-    for (const sub of allSubmissions) {
+    // Filter submissions scoped to trainer's teaching cohorts (unless privileged admin/hod)
+    const scopedSubmissions = isPrivileged
+      ? allSubmissions
+      : allSubmissions.filter((sub) => {
+          return scopedTrainees.some((t) => {
+            const subReg = (sub.reg_number || "").toUpperCase().trim();
+            const subName = (sub.student_name || "").toLowerCase().trim();
+            return (
+              (t.admNo && subReg.includes(t.admNo.toUpperCase())) ||
+              (t.regCode && subReg === t.regCode.toUpperCase()) ||
+              (t.name && subName === t.name.toLowerCase())
+            );
+          });
+        });
+
+    for (const sub of scopedSubmissions) {
       const reg = (sub.reg_number || "").trim();
       if (!reg) continue;
-      const digits = reg.match(/\b(\d{4,6})\b/)?.[1] || reg.toUpperCase();
-      const existing = map.get(digits);
-      if (existing) {
-        existing.submissionCount += 1;
-      } else {
-        map.set(digits, {
+      const matchedEntry = Array.from(map.values()).find(
+        (entry) => doesRegistrationMatch(entry.reg_number, reg)
+      );
+      if (matchedEntry) {
+        matchedEntry.submissionCount += 1;
+      } else if (isPrivileged) {
+        map.set(reg.toUpperCase(), {
           reg_number: reg,
           name: sub.student_name || "Candidate",
           submissionCount: 1,
@@ -125,7 +158,7 @@ export default function StudentResults() {
     }
 
     return Array.from(map.values()).sort((a, b) => b.submissionCount - a.submissionCount);
-  }, [allSubmissions, trainees, isTraineeViewer]);
+  }, [allSubmissions, trainees, isTraineeViewer, user]);
 
   useEffect(() => {
     // 1. STRICT TRAINEE ISOLATION: Always bind to the authenticated trainee's own identity

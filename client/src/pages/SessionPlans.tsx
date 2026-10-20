@@ -256,9 +256,17 @@ export default function SessionPlans() {
     const levelMatch = week.unit_code.match(/\/(\d)\//) || week.class_code.match(/L(\d)/);
     setFormLevel(levelMatch ? levelMatch[1] : "6");
     
-    // Set trainees default
+    // Set trainees default based on official class roster
     const matchingPlan = plans.find(p => p.unit_code === week.unit_code && p.class_code === week.class_code);
-    setFormTraineesCount(matchingPlan ? matchingPlan.trainees_count : 15);
+    const clsUpper = (week.class_code || '').toUpperCase();
+    let defaultCount = 15;
+    if (clsUpper.includes('ICT4') && !clsUpper.includes('ITECH')) defaultCount = 8;
+    else if (clsUpper.includes('ITECH 6') || clsUpper.includes('ITECH6')) defaultCount = 11;
+    else if (clsUpper.includes('ADMIN')) defaultCount = 11;
+    else if (clsUpper.includes('FBS')) defaultCount = 23;
+    else if (clsUpper.includes('LS')) defaultCount = 20;
+    else if (clsUpper.includes('ICT4') && clsUpper.includes('ITECH')) defaultCount = 19;
+    setFormTraineesCount(matchingPlan ? matchingPlan.trainees_count : defaultCount);
     
     // Generate date based on Week 1 and offset
     const w1Plan = plans.find(p => p.unit_code === week.unit_code && p.week_number === 1);

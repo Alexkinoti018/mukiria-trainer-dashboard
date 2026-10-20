@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTrainees, OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
+import { useTrainees, OFFICIAL_MTTI_TRAINEES, getTraineesForClass } from "@/contexts/TraineeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { getStoredRecordsOfWork, saveStoredRecordsOfWork } from "@/lib/mockSessionPlans";
 import WorkshopDoorQRModal from "@/components/WorkshopDoorQRModal";
@@ -298,50 +298,34 @@ export default function ClassRegister() {
     });
   };
 
-  // Filter trainees by selected class
+  // Strictly resolved trainees by selected class (un-mixed, cohort-isolated)
   const classTrainees = useMemo(() => {
-    const cleanSel = selectedClassCode.replace(/[\s/]/g, "").toUpperCase();
-    const list = trainees.filter(t => {
-      if (t.classCode === selectedClassCode) return true;
-      const cleanT = (t.classCode || "").replace(/[\s/]/g, "").toUpperCase();
-      if (cleanSel.length > 3 && cleanT.includes(cleanSel)) return true;
-      if (cleanT.length > 3 && cleanSel.includes(cleanT)) return true;
-      if (
-        (selectedClassCode.includes("ICT4") || selectedClassCode.includes("ITECH6")) &&
-        (t.classCode.includes("ITECH") || t.classCode.includes("ICT4") || t.classCode.includes("MOD 1"))
-      ) return true;
-      if (selectedClassCode.includes("ADMIN") && selectedClassCode.includes("MOD 3") && t.classCode.includes("MOD 3")) return true;
-      if (selectedClassCode.includes("ADMIN") && selectedClassCode.includes("MOD 1") && t.classCode.includes("MOD 1")) return true;
-      if (selectedClassCode.includes("ADMIN") && t.classCode.includes("ADMIN")) return true;
-      if (selectedClassCode.includes("FBS") && t.classCode.includes("FBS")) return true;
-      if (selectedClassCode.includes("LS") && t.classCode.includes("LS")) return true;
-      if (selectedClassCode.includes("EE") && (t.classCode.includes("EE") || t.department?.includes("Electrical"))) return true;
-      if (selectedClassCode.includes("AGRE") && (t.classCode.includes("AGRE") || t.department?.includes("Agriculture"))) return true;
-      return false;
+    return getTraineesForClass(trainees, selectedClassCode);
+  }, [trainees, selectedClassCode]);
+
+  // Confidential Trainee Access View: Trainee viewers strictly see ONLY their own record
+  const displayedTrainees = useMemo(() => {
+    if (!isTraineeViewer) return classTrainees;
+    const mine = classTrainees.filter((t) => {
+      const matchAdm = Boolean(t.admNo && user?.reg_number && t.admNo.trim().toUpperCase() === user.reg_number.trim().toUpperCase());
+      const matchReg = Boolean(t.regCode && user?.reg_number && t.regCode.trim().toUpperCase() === user.reg_number.trim().toUpperCase());
+      const matchName = Boolean(t.name && user?.name && t.name.trim().toLowerCase() === user.name.trim().toLowerCase());
+      const matchId = Boolean(t.id && user?.id && t.id === user.id);
+      return matchAdm || matchReg || matchName || matchId;
     });
-
-    if (list.length > 0) return list;
-
-    // Standardized cohort generation for classes that do not yet have transcribed entries
-    const prefix = selectedClassCode.split(" ")[0].replace(/[^a-zA-Z0-9]/g, "");
+    if (mine.length > 0) return mine;
     return [
-      { id: `tr_${prefix}_01`, admNo: `${prefix}/14012/S2026`, regCode: `${prefix}/14012/S2026`, name: "Mercy Mwende Mutua", classCode: selectedClassCode, department: activeClassConfig.department, gender: "F" as const },
-      { id: `tr_${prefix}_02`, admNo: `${prefix}/14035/S2026`, regCode: `${prefix}/14035/S2026`, name: "Brian Kiprono Koech", classCode: selectedClassCode, department: activeClassConfig.department, gender: "M" as const },
-      { id: `tr_${prefix}_03`, admNo: `${prefix}/14044/S2026`, regCode: `${prefix}/14044/S2026`, name: "Doris Kananu Murithi", classCode: selectedClassCode, department: activeClassConfig.department, gender: "F" as const },
-      { id: `tr_${prefix}_04`, admNo: `${prefix}/14068/S2026`, regCode: `${prefix}/14068/S2026`, name: "Kelvin Mutugi Njagi", classCode: selectedClassCode, department: activeClassConfig.department, gender: "M" as const },
-      { id: `tr_${prefix}_05`, admNo: `${prefix}/14081/S2026`, regCode: `${prefix}/14081/S2026`, name: "Brenda Nkatha Gitonga", classCode: selectedClassCode, department: activeClassConfig.department, gender: "F" as const },
-      { id: `tr_${prefix}_06`, admNo: `${prefix}/14103/S2026`, regCode: `${prefix}/14103/S2026`, name: "Dennis Muriuki Mbaabu", classCode: selectedClassCode, department: activeClassConfig.department, gender: "M" as const },
-      { id: `tr_${prefix}_07`, admNo: `${prefix}/14125/S2026`, regCode: `${prefix}/14125/S2026`, name: "Faith Kathure Mwika", classCode: selectedClassCode, department: activeClassConfig.department, gender: "F" as const },
-      { id: `tr_${prefix}_08`, admNo: `${prefix}/14147/S2026`, regCode: `${prefix}/14147/S2026`, name: "Eric Mwenda Kirimi", classCode: selectedClassCode, department: activeClassConfig.department, gender: "M" as const },
-      { id: `tr_${prefix}_09`, admNo: `${prefix}/14169/S2026`, regCode: `${prefix}/14169/S2026`, name: "Sharon Makena Njoroge", classCode: selectedClassCode, department: activeClassConfig.department, gender: "F" as const },
-      { id: `tr_${prefix}_10`, admNo: `${prefix}/14190/S2026`, regCode: `${prefix}/14190/S2026`, name: "Victor Omondi Otieno", classCode: selectedClassCode, department: activeClassConfig.department, gender: "M" as const },
-      { id: `tr_${prefix}_11`, admNo: `${prefix}/14212/S2026`, regCode: `${prefix}/14212/S2026`, name: "Lydia Kagwiria Mutwiri", classCode: selectedClassCode, department: activeClassConfig.department, gender: "F" as const },
-      { id: `tr_${prefix}_12`, admNo: `${prefix}/14234/S2026`, regCode: `${prefix}/14234/S2026`, name: "Samuel Kimathi Muriungi", classCode: selectedClassCode, department: activeClassConfig.department, gender: "M" as const },
-      { id: `tr_${prefix}_13`, admNo: `${prefix}/14256/S2026`, regCode: `${prefix}/14256/S2026`, name: "Joy Karimi Ndereba", classCode: selectedClassCode, department: activeClassConfig.department, gender: "F" as const },
-      { id: `tr_${prefix}_14`, admNo: `${prefix}/14278/S2026`, regCode: `${prefix}/14278/S2026`, name: "Collins Kipkorir Rutto", classCode: selectedClassCode, department: activeClassConfig.department, gender: "M" as const },
-      { id: `tr_${prefix}_15`, admNo: `${prefix}/14301/S2026`, regCode: `${prefix}/14301/S2026`, name: "Caroline Gakii Muthomi", classCode: selectedClassCode, department: activeClassConfig.department, gender: "F" as const },
+      {
+        id: user?.id || "my_trainee_record",
+        name: user?.name || "Candidate",
+        admNo: user?.reg_number || "FBS 5 MOD/13254/J2026",
+        regCode: user?.reg_number || "FBS 5 MOD/13254/J2026",
+        classCode: selectedClassCode,
+        department: activeClassConfig.department,
+        gender: "M" as const,
+      }
     ];
-  }, [trainees, selectedClassCode, activeClassConfig]);
+  }, [isTraineeViewer, classTrainees, user, selectedClassCode, activeClassConfig]);
 
   // Student CRUD Handlers
   const handleOpenAddStudent = () => {
@@ -1070,18 +1054,18 @@ export default function ClassRegister() {
           </div>
         </div>
 
-        {/* Trainee Guidance Banner */}
+        {/* Trainee Confidentiality & Guidance Banner */}
         {isTraineeViewer && (
-          <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 flex items-center justify-between gap-3 text-xs">
+          <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>
                 Assessment Attendance Register (CUR/03) for <strong>{activeClassConfig.name}</strong>.
-                Click your signature cell in the table below to confirm your attendance as <strong>'attended'</strong>.
+                <strong> Confidentiality Protected:</strong> Viewing strictly your own attendance records. Click your signature cell to confirm attendance as <strong>'attended'</strong>.
               </span>
             </div>
-            <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-blue-100 font-bold shrink-0">
-              {user?.reg_number || user?.name}
+            <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-blue-100 font-bold shrink-0 self-start md:self-auto">
+              Candidate: {user?.reg_number || user?.name}
             </span>
           </div>
         )}
@@ -1291,7 +1275,7 @@ export default function ClassRegister() {
                   </tr>
                 </thead>
                 <tbody>
-                  {classTrainees.map((trainee, idx) => {
+                  {displayedTrainees.map((trainee, idx) => {
                     const record = attendanceData[trainee.id]?.attendance || {};
                     const stats = calculateStats(record);
 
@@ -1490,7 +1474,7 @@ export default function ClassRegister() {
                   </tr>
                 </thead>
                 <tbody>
-                  {classTrainees.map((trainee, idx) => {
+                  {displayedTrainees.map((trainee, idx) => {
                     const isSigned = attendanceData[trainee.id]?.signed ?? false;
                     const isOwnRecord =
                       user?.role === "trainee" &&

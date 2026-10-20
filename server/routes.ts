@@ -609,6 +609,23 @@ export const OFFICIAL_INSTITUTIONAL_ROSTER: RosterEntry[] = [
   { id: "tr_it4_07", regCode: "ICT4 MOD/14248/S2026", admissionNumber: "14248/S2026", fullName: "Mbaabu Sarah Nkatha", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
   { id: "tr_it4_08", regCode: "ICT4 MOD/14341/S2026", admissionNumber: "14341/S2026", fullName: "Mutiria Hesborn Muriuki", cohortCode: "ICT4 MOD/S/2026", enrolled_units: ["IT/CU/ICTA/CR/01/4/MA", "0611-651-21A"] },
 
+  // Level 5: ICT Craftsperson / Technician (15 Trainees)
+  { id: "tr_it5_01", regCode: "ITECH 5 MOD/14105/S2026", admissionNumber: "14105/S2026", fullName: "Brian Mwiti Murithi", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_02", regCode: "ITECH 5 MOD/14115/S2026", admissionNumber: "14115/S2026", fullName: "Joyline Kawira", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_03", regCode: "ITECH 5 MOD/14126/S2026", admissionNumber: "14126/S2026", fullName: "Martin Kinyua", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_04", regCode: "ITECH 5 MOD/14138/S2026", admissionNumber: "14138/S2026", fullName: "Dorcas Kathure", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_05", regCode: "ITECH 5 MOD/14152/S2026", admissionNumber: "14152/S2026", fullName: "Evans Kipkemoi", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_06", regCode: "ITECH 5 MOD/14164/S2026", admissionNumber: "14164/S2026", fullName: "Fridah Gacheri", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_07", regCode: "ITECH 5 MOD/14178/S2026", admissionNumber: "14178/S2026", fullName: "Kelvin Muthomi", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_08", regCode: "ITECH 5 MOD/14189/S2026", admissionNumber: "14189/S2026", fullName: "Sharon Kagendo", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_09", regCode: "ITECH 5 MOD/14201/S2026", admissionNumber: "14201/S2026", fullName: "James Mwenda", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_10", regCode: "ITECH 5 MOD/14215/S2026", admissionNumber: "14215/S2026", fullName: "Purity Gatwiri", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_11", regCode: "ITECH 5 MOD/14227/S2026", admissionNumber: "14227/S2026", fullName: "Samuel Gitonga", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_12", regCode: "ITECH 5 MOD/14239/S2026", admissionNumber: "14239/S2026", fullName: "Mercy Makena", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_13", regCode: "ITECH 5 MOD/14251/S2026", admissionNumber: "14251/S2026", fullName: "Victor Mutuma", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_14", regCode: "ITECH 5 MOD/14263/S2026", admissionNumber: "14263/S2026", fullName: "Caroline Mukami", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+  { id: "tr_it5_15", regCode: "ITECH 5 MOD/14275/S2026", admissionNumber: "14275/S2026", fullName: "Kennedy Koome", cohortCode: "ITECH 5 MODULAR/S/2026", enrolled_units: ["IT/CU/ICTA/CC/01/5/MA", "IT/CU/ICTA/CR/01/5/MA", "IT/CU/ICTA/CC/02/5/MA"] },
+
   // 2. ADMIN5/6/J/26 MOD 3 (Apply ICT Skills - Business Department, 11 Trainees)
   { id: "tr_adm_01", regCode: "13410", admissionNumber: "13410", fullName: "RISPER MWENDE", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A", "061155101A"] },
   { id: "tr_adm_02", regCode: "13527", admissionNumber: "13527", fullName: "Banta Micheni", cohortCode: "ADMIN5/6/J/26 MOD 3", enrolled_units: ["0415-451-21A", "061155101A"] },
@@ -841,7 +858,21 @@ apiRouter.get("/trainees", async (req: AuthenticatedRequest, res: Response) => {
 
     let result = Array.from(combinedMap.values());
     if (classCode) {
-      result = result.filter(t => t.class_code === classCode || t.class_id === classCode);
+      const normClass = classCode.toUpperCase().replace(/\s+/g, " ");
+      if ((normClass.includes("ICT4") || normClass.includes("ICT 4")) && !normClass.includes("ITECH")) {
+        result = result.filter(t => (t.class_code || "").toUpperCase().includes("ICT4") && !(t.class_code || "").toUpperCase().includes("ITECH"));
+      } else if ((normClass.includes("ITECH6") || normClass.includes("ITECH 6")) && !normClass.includes("ICT4") && !normClass.includes("ITECH5")) {
+        result = result.filter(t => (t.class_code || "").toUpperCase().includes("ITECH 6") || (t.class_code || "").toUpperCase().includes("ITECH6"));
+      } else if (normClass.includes("ITECH5") || normClass.includes("ITECH 5")) {
+        result = result.filter(t => (t.class_code || "").toUpperCase().includes("ITECH 5") || (t.class_code || "").toUpperCase().includes("ITECH5"));
+      } else if (normClass.includes("ICT4") && (normClass.includes("ITECH6") || normClass.includes("ITECH 6"))) {
+        result = result.filter(t => {
+          const tc = (t.class_code || "").toUpperCase();
+          return (tc.includes("ICT4") || tc.includes("ITECH")) && !tc.includes("ADMIN") && !tc.includes("FBS") && !tc.includes("LS");
+        });
+      } else {
+        result = result.filter(t => t.class_code === classCode || t.class_id === classCode || (t.class_code || "").toUpperCase() === normClass);
+      }
     }
 
     res.json({

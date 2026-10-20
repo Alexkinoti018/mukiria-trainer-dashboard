@@ -150,6 +150,42 @@ const generateInitialPlans = (): LearningPlanDocument[] => {
     const unitTitle = cleanUnitTitle(u.unit_title);
     const unitLevel = extractUnitLevel(u.unit_code, u.level);
 
+    let classCode = "ICT4 MOD/S/2026";
+    let traineesCount = 8;
+    const deptUpper = (u.department || "").toUpperCase();
+
+    if (deptUpper.includes("BUSINESS") || deptUpper.includes("ADMIN")) {
+      classCode = "ADMIN5/6/J/26 MOD 3";
+      traineesCount = 11;
+    } else if (deptUpper.includes("SURVEY") || deptUpper.includes("GEOMATICS")) {
+      classCode = "LS5/6/S/26";
+      traineesCount = 20;
+    } else if (deptUpper.includes("HOSPITALITY") || deptUpper.includes("FOOD")) {
+      classCode = "FBS5/6/J/26";
+      traineesCount = 23;
+    } else if (deptUpper.includes("AGRICULTURE")) {
+      classCode = "AGRE 5/6/J/26";
+      traineesCount = 15;
+    } else if (deptUpper.includes("ELECTRICAL")) {
+      classCode = "EE5/6/J/26";
+      traineesCount = 15;
+    } else {
+      // Computing and Informatics / ICT
+      if (unitLevel === 4) {
+        classCode = "ICT4 MOD/S/2026";
+        traineesCount = 8;
+      } else if (unitLevel === 5) {
+        classCode = "ITECH 5 MODULAR/S/2026";
+        traineesCount = 15;
+      } else if (unitLevel === 6) {
+        classCode = "ITECH 6 MODULAR/S/2026";
+        traineesCount = 11;
+      } else {
+        classCode = "ICT4/ITECH6/S/26 MOD 1";
+        traineesCount = 19;
+      }
+    }
+
     return {
       id: `lp-${u.unit_code.replace(/[^a-zA-Z0-9]/g, "-")}-${idx}`,
       unitCode: u.unit_code,
@@ -158,8 +194,8 @@ const generateInitialPlans = (): LearningPlanDocument[] => {
       department: u.department || "Computing and Informatics",
       duration: "07 SEP – 13 NOV 2026",
       level: unitLevel,
-      traineesCount: 19,
-      classCode: u.department?.includes("Business") ? "ADMIN5/6/J/26 MOD 3" : u.department?.includes("Survey") ? "LS5/6/S/26" : u.department?.includes("Hospitality") ? "FBS5/6/J/26" : "ICT4/ITECH6/S/26 MOD 1",
+      traineesCount: traineesCount,
+      classCode: classCode,
       datePrepared: "07/09/2026",
       skillOrJobTask: u.description || `Operate computer hardware and software, manage data systems, and utilize productivity applications according to CDACC occupational guidelines.`,
       elements: elements.length > 0 ? elements : [

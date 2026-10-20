@@ -163,7 +163,7 @@ export default function RecordsOfWork() {
           class_code: plan.class_code,
           week_number: plan.week_number,
           date_delivered: plan.date || new Date().toLocaleDateString("en-GB"),
-          trainees_present: plan.trainees_count ? plan.trainees_count - 2 : 28,
+          trainees_present: plan.trainees_count ? Math.max(1, plan.trainees_count - 1) : 15,
           hours_covered: 2,
           work_actually_covered: `Delivered ${plan.session_title}. Covered learning outcomes: ${plan.learning_outcomes.slice(0, 2).join("; ")}.`,
           reflection: plan.reflection || "Class demonstrated full understanding of practical demonstrations.",

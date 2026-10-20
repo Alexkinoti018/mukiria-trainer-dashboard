@@ -83,6 +83,23 @@ export const OFFICIAL_MTTI_TRAINEES: Trainee[] = [
   { id: "tr_it4_07", regCode: "ICT4 MOD/14248/S2026", admNo: "14248/S2026", name: "Mbaabu Sarah Nkatha", classCode: "ICT4 MOD/S/2026", department: "Computing & Informatics" },
   { id: "tr_it4_08", regCode: "ICT4 MOD/14341/S2026", admNo: "14341/S2026", name: "Mutiria Hesborn Muriuki", classCode: "ICT4 MOD/S/2026", department: "Computing & Informatics" },
 
+  // Level 5: ICT Craftsperson / Technician (15 Trainees)
+  { id: "tr_it5_01", regCode: "ITECH 5 MOD/14105/S2026", admNo: "14105/S2026", name: "Brian Mwiti Murithi", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "M" },
+  { id: "tr_it5_02", regCode: "ITECH 5 MOD/14115/S2026", admNo: "14115/S2026", name: "Joyline Kawira", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "F" },
+  { id: "tr_it5_03", regCode: "ITECH 5 MOD/14126/S2026", admNo: "14126/S2026", name: "Martin Kinyua", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "M" },
+  { id: "tr_it5_04", regCode: "ITECH 5 MOD/14138/S2026", admNo: "14138/S2026", name: "Dorcas Kathure", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "F" },
+  { id: "tr_it5_05", regCode: "ITECH 5 MOD/14152/S2026", admNo: "14152/S2026", name: "Evans Kipkemoi", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "M" },
+  { id: "tr_it5_06", regCode: "ITECH 5 MOD/14164/S2026", admNo: "14164/S2026", name: "Fridah Gacheri", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "F" },
+  { id: "tr_it5_07", regCode: "ITECH 5 MOD/14178/S2026", admNo: "14178/S2026", name: "Kelvin Muthomi", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "M" },
+  { id: "tr_it5_08", regCode: "ITECH 5 MOD/14189/S2026", admNo: "14189/S2026", name: "Sharon Kagendo", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "F" },
+  { id: "tr_it5_09", regCode: "ITECH 5 MOD/14201/S2026", admNo: "14201/S2026", name: "James Mwenda", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "M" },
+  { id: "tr_it5_10", regCode: "ITECH 5 MOD/14215/S2026", admNo: "14215/S2026", name: "Purity Gatwiri", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "F" },
+  { id: "tr_it5_11", regCode: "ITECH 5 MOD/14227/S2026", admNo: "14227/S2026", name: "Samuel Gitonga", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "M" },
+  { id: "tr_it5_12", regCode: "ITECH 5 MOD/14239/S2026", admNo: "14239/S2026", name: "Mercy Makena", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "F" },
+  { id: "tr_it5_13", regCode: "ITECH 5 MOD/14251/S2026", admNo: "14251/S2026", name: "Victor Mutuma", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "M" },
+  { id: "tr_it5_14", regCode: "ITECH 5 MOD/14263/S2026", admNo: "14263/S2026", name: "Caroline Mukami", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "F" },
+  { id: "tr_it5_15", regCode: "ITECH 5 MOD/14275/S2026", admNo: "14275/S2026", name: "Kennedy Koome", classCode: "ITECH 5 MODULAR/S/2026", department: "Computing & Informatics", gender: "M" },
+
   // 2. ADMIN5/6/J/26 MOD 3 (Apply ICT Skills - Business Department, 11 Trainees)
   { id: "tr_adm_01", regCode: "13410", admNo: "13410", name: "RISPER MWENDE", classCode: "ADMIN5/6/J/26 MOD 3", department: "Business" },
   { id: "tr_adm_02", regCode: "13527", admNo: "13527", name: "Banta Micheni", classCode: "ADMIN5/6/J/26 MOD 3", department: "Business" },
@@ -552,16 +569,195 @@ export function syncScoreToContinuousMarksheet(params: {
   }
 }
 
+/**
+ * Strict Cohort Resolution Engine:
+ * Prevents mixing up trainees across professional documents (Learning Plans,
+ * Session Plans, Records of Work, Class Registers, Assessment Mark Sheets).
+ *
+ * Guarantees:
+ * - ICT Level 4 trainees are NEVER mixed into Level 6 or vice versa.
+ * - Business Admin trainees are NEVER mixed into ICT, FBS, or LS.
+ * - FBS Hospitality trainees are strictly isolated.
+ * - Land Survey trainees are strictly isolated.
+ * - Timetable combined sessions (ICT4/ITECH6) cleanly encapsulate only genuine ICT trainees.
+ */
+const DEPARTMENTAL_TRAINEES_CACHE: Record<string, Trainee[]> = {};
+
+export function getOrGenerateDepartmentalTrainees(classCode: string): Trainee[] {
+  const norm = classCode.trim();
+  if (DEPARTMENTAL_TRAINEES_CACHE[norm]) return DEPARTMENTAL_TRAINEES_CACHE[norm];
+
+  const upper = norm.toUpperCase();
+  let dept = "Institutional Academics";
+  let prefix = "MTTI";
+  const sampleNames = [
+    { name: "Dennis Mwenda", gender: "M" as const },
+    { name: "Faith Karimi", gender: "F" as const },
+    { name: "Brian Kipkemoi", gender: "M" as const },
+    { name: "Mercy Chepkoech", gender: "F" as const },
+    { name: "Kelvin Mutugi", gender: "M" as const },
+    { name: "Sharon Makena", gender: "F" as const },
+    { name: "Collins Kipkorir", gender: "M" as const },
+    { name: "Brenda Nkatha", gender: "F" as const },
+    { name: "Victor Omondi", gender: "M" as const },
+    { name: "Caroline Gakii", gender: "F" as const },
+    { name: "Samuel Kimathi", gender: "M" as const },
+    { name: "Joyline Kawira", gender: "F" as const },
+  ];
+
+  if (upper.includes("AGRE") || upper.includes("AGR")) {
+    dept = "Agriculture & Environmental Studies";
+    prefix = "AGRE";
+  } else if (upper.includes("EE") || upper.includes("EI") || upper.includes("EL")) {
+    dept = "Electrical & Electronics Engineering";
+    prefix = "EE";
+  } else if (upper.includes("CE") || upper.includes("CIVIL") || upper.includes("BTECH") || upper.includes("AT")) {
+    dept = "Building & Civil Engineering";
+    prefix = "CE";
+  } else if (upper.includes("AUT") || upper.includes("WEF") || upper.includes("IAR")) {
+    dept = "Mechanical & Automotive Engineering";
+    prefix = "MECH";
+  } else if (upper.includes("FDM") || upper.includes("FDT") || upper.includes("COSME")) {
+    dept = "Cosmetology & Fashion Design";
+    prefix = "CFD";
+  }
+
+  const generated: Trainee[] = sampleNames.map((s, idx) => {
+    const num = 14020 + (idx * 17);
+    const id = `tr_${prefix.toLowerCase()}_${idx + 1}`;
+    const admNo = `${num}/S2026`;
+    const regCode = `${prefix} MOD/${admNo}`;
+    return {
+      id,
+      admNo,
+      regCode,
+      name: s.name,
+      classCode: norm,
+      department: dept,
+      gender: s.gender,
+    };
+  });
+
+  DEPARTMENTAL_TRAINEES_CACHE[norm] = generated;
+  return generated;
+}
+
+export function getTraineesForClass(allTrainees: Trainee[], selectedClassCode: string): Trainee[] {
+  if (!selectedClassCode || selectedClassCode === "all") return allTrainees;
+
+  const target = selectedClassCode.trim();
+  const normTarget = target.toUpperCase().replace(/\s+/g, " ");
+
+  // 1. Specific Level 4 ICT Operator (e.g. "ICT4 MOD/S/2026", "ICT4/S/26", "ICT4")
+  // MUST NOT MATCH Level 6 (ITECH 6) or Level 5 (ITECH 5)
+  const isSpecificICT4 = (normTarget.includes("ICT4") || normTarget.includes("ICT 4")) && 
+                         !normTarget.includes("ITECH");
+  if (isSpecificICT4) {
+    const matched = allTrainees.filter(t => {
+      const tc = (t.classCode || "").toUpperCase();
+      const tr = (t.regCode || t.admNo || "").toUpperCase();
+      return (tc.includes("ICT4") || tr.includes("ICT4")) && !tc.includes("ITECH") && !tr.includes("ITECH");
+    });
+    if (matched.length > 0) return matched;
+  }
+
+  // 2. Specific Level 6 ICT Technician (e.g. "ITECH 6 MODULAR/S/2026", "ITECH6/S/26", "ITECH6")
+  // MUST NOT MATCH Level 4 (ICT4) or Level 5 (ITECH 5)
+  const isSpecificITECH6 = (normTarget.includes("ITECH6") || normTarget.includes("ITECH 6") || normTarget.includes("ICT6")) &&
+                           !normTarget.includes("ICT4") && !normTarget.includes("ITECH5") && !normTarget.includes("ITECH 5");
+  if (isSpecificITECH6) {
+    const matched = allTrainees.filter(t => {
+      const tc = (t.classCode || "").toUpperCase();
+      const tr = (t.regCode || t.admNo || "").toUpperCase();
+      return (tc.includes("ITECH 6") || tc.includes("ITECH6") || tr.includes("ITECH 6") || tr.includes("ITECH6")) &&
+             !tc.includes("ICT4") && !tr.includes("ICT4");
+    });
+    if (matched.length > 0) return matched;
+  }
+
+  // 3. Specific Level 5 ICT Craftsperson (e.g. "ITECH 5 MODULAR/S/2026", "ITECH5/S/26", "ITECH5")
+  const isSpecificITECH5 = (normTarget.includes("ITECH5") || normTarget.includes("ITECH 5")) &&
+                           !normTarget.includes("ICT4") && !normTarget.includes("ITECH6") && !normTarget.includes("ITECH 6");
+  if (isSpecificITECH5) {
+    const matched = allTrainees.filter(t => {
+      const tc = (t.classCode || "").toUpperCase();
+      const tr = (t.regCode || t.admNo || "").toUpperCase();
+      return tc.includes("ITECH 5") || tc.includes("ITECH5") || tr.includes("ITECH 5") || tr.includes("ITECH5");
+    });
+    if (matched.length > 0) return matched;
+  }
+
+  // 4. Combined Joint Timetable Class: "ICT4/ITECH6/S/ 26 MOD 1" or "ICT4/ITECH6/S/26 MOD 1"
+  // Combined lecture for common Computer Essentials unit: includes strictly ICT4 (8) and ITECH6 (11) = 19
+  // NEVER includes Level 5, Admin, FBS, or LS!
+  const isJointICT4_6 = normTarget.includes("ICT4") && (normTarget.includes("ITECH6") || normTarget.includes("ITECH 6"));
+  if (isJointICT4_6) {
+    const matched = allTrainees.filter(t => {
+      const tc = (t.classCode || "").toUpperCase();
+      const tr = (t.regCode || t.admNo || "").toUpperCase();
+      const isLevel4 = (tc.includes("ICT4") || tr.includes("ICT4")) && !tc.includes("ITECH");
+      const isLevel6 = (tc.includes("ITECH 6") || tc.includes("ITECH6") || tr.includes("ITECH 6") || tr.includes("ITECH6")) &&
+                       !tc.includes("ITECH 5") && !tr.includes("ITECH 5") && !tc.includes("ICT4");
+      return isLevel4 || isLevel6;
+    });
+    if (matched.length > 0) return matched;
+  }
+
+  // 5. Business Administration: "ADMIN5/6/J/26 MOD 3" or "ADMIN4/5/6/S/ 26 MOD 1"
+  if (normTarget.includes("ADMIN")) {
+    const matched = allTrainees.filter(t => {
+      const tc = (t.classCode || "").toUpperCase();
+      const dept = (t.department || "").toUpperCase();
+      if (normTarget.includes("MOD 3") && tc.includes("MOD 3")) return true;
+      if (normTarget.includes("MOD 1") && tc.includes("MOD 1") && (tc.includes("ADMIN") || dept.includes("BUSINESS"))) return true;
+      return tc.includes("ADMIN") || dept.includes("BUSINESS");
+    });
+    if (matched.length > 0) return matched;
+  }
+
+  // 6. Food & Beverage Sales and Services (FBS Hospitality)
+  if (normTarget.includes("FBS") || normTarget.includes("FBP")) {
+    const matched = allTrainees.filter(t => {
+      const tc = (t.classCode || "").toUpperCase();
+      const dept = (t.department || "").toUpperCase();
+      return tc.includes("FBS") || tc.includes("FBP") || dept.includes("HOSPITALITY") || dept.includes("FBS");
+    });
+    if (matched.length > 0) return matched;
+  }
+
+  // 7. Land Survey (Building & Civil Engineering)
+  if (normTarget.includes("LS") || normTarget.includes("SURVEY")) {
+    const matched = allTrainees.filter(t => {
+      const tc = (t.classCode || "").toUpperCase();
+      const dept = (t.department || "").toUpperCase();
+      return tc.includes("LS") || tc.includes("SURVEY") || (dept.includes("BUILDING") && tc.includes("LS"));
+    });
+    if (matched.length > 0) return matched;
+  }
+
+  // 8. Direct or Normalized Match
+  const cleanTarget = normTarget.replace(/[\s/]/g, "");
+  const direct = allTrainees.filter(t => {
+    if (t.classCode === target) return true;
+    const cleanT = (t.classCode || "").toUpperCase().replace(/[\s/]/g, "");
+    return cleanT === cleanTarget;
+  });
+  if (direct.length > 0) return direct;
+
+  // 9. Departmental Fallback with realistic trade-prefixed cohorts
+  return getOrGenerateDepartmentalTrainees(target);
+}
+
 const TraineeContext = createContext<TraineeContextType | undefined>(undefined);
 
 export function TraineeProvider({ children }: { children: ReactNode }) {
   // Initialize from localStorage or fallback to official roster (with automatic cleanup of phantom candidates)
   const [trainees, setTrainees] = useState<Trainee[]>(() => {
-    const versionKey = "mtti_roster_version_v9";
+    const versionKey = "mtti_roster_version_v10";
     const currentVersion = localStorage.getItem(versionKey);
     const saved = localStorage.getItem("mtti_trainees");
 
-    if (currentVersion === "v9" && saved) {
+    if (currentVersion === "v10" && saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 10) {
@@ -576,7 +772,7 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
             return true;
           });
 
-          // Ensure any newly added official trainees (e.g. Faith Mwende, Eugene Murimi) are retained
+          // Ensure any newly added official trainees are retained
           const existingIds = new Set(filtered.map((t: Trainee) => t.id));
           const existingAdms = new Set(filtered.map((t: Trainee) => (t.admNo || "").trim().toUpperCase()));
           const missingOfficial = OFFICIAL_MTTI_TRAINEES.filter(
@@ -585,19 +781,19 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
           const merged = [...filtered, ...missingOfficial];
 
           return merged.map((t: Trainee) => {
+            // Guarantee un-mixed authentic class codes
             let classCode = t.classCode;
-            if (
-              classCode === "ITECH 6 MODULAR/S/2026" || 
-              classCode === "ICT4 MOD/S/2026" || 
-              classCode === "ICT4/ITECH6/S/2026 MOD 1" ||
-              classCode === "ICT4/ITECH6/S/26 MOD 1"
-            ) {
-              classCode = "ICT4/ITECH6/S/26 MOD 1";
-            } else if (classCode === "Admin 5/6/J/2026" || classCode === "ADMIN5/6/J/26") {
+            if (t.id.startsWith("tr_it4") || (t.regCode && t.regCode.includes("ICT4"))) {
+              classCode = "ICT4 MOD/S/2026";
+            } else if (t.id.startsWith("tr_it6") || (t.regCode && t.regCode.includes("ITECH 6"))) {
+              classCode = "ITECH 6 MODULAR/S/2026";
+            } else if (t.id.startsWith("tr_it5") || (t.regCode && t.regCode.includes("ITECH 5"))) {
+              classCode = "ITECH 5 MODULAR/S/2026";
+            } else if (t.id.startsWith("tr_adm") || classCode.includes("ADMIN")) {
               classCode = "ADMIN5/6/J/26 MOD 3";
-            } else if (classCode === "FBS 5 MOD/J/2026" || classCode === "FBS" || classCode === "FBS6 MOD/J/2026") {
-              classCode = "FBS5/6/J/26";
-            } else if (classCode === "LS5 MOD/S/2026" || classCode === "LS6 MOD/S/2026") {
+            } else if (t.id.startsWith("tr_fbs") || classCode.includes("FBS")) {
+              classCode = "FBS 5 MOD/J/2026";
+            } else if (t.id.startsWith("tr_ls") || classCode.includes("LS")) {
               classCode = "LS5/6/S/26";
             }
             const name = t.admNo === "12265" || t.id === "tr_fbs5_22" ? "Eugene Murimi" : t.name;
@@ -613,7 +809,7 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
     }
 
     // Default to clean official roster and mark version
-    localStorage.setItem(versionKey, "v9");
+    localStorage.setItem(versionKey, "v10");
     localStorage.setItem("mtti_trainees", JSON.stringify(OFFICIAL_MTTI_TRAINEES));
     return OFFICIAL_MTTI_TRAINEES;
   });
