@@ -1,0 +1,38 @@
+[
+  {
+    "id": "ev-001",
+    "unit_offering_id": "uo-1",
+    "trainee_id": "trainee-001",
+    "task_code": "CP1",
+    "title": "Computer Hardware Diagnostics & Disassembly",
+    "filename": "Computer_Essentials_Practical_1.pdf",
+    "file_url": "/api/evidence/ev-001/file",
+    "mime_type": "application/pdf",
+    "file_size": 145020,
+    "file_data": "JVBERi0xLjQKJSDi48cKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL1BhcmVudCAyIDAgUi9NZWRpYUJveFswIDAgNjEyIDc5Ml0+PmVuZG9iagp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTUgMDAwMDAgbiAKMDAwMDAwMDA2MCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCnRyYWlsZXIKPDwvU2l6ZSA0L1Jvb3QgMSAwIFI+PgpzdGFydHhyZWYKMTc0CiUlRU9G",
+    "verified_by_trainer": true,
+    "verified_at": "2026-09-16T10:00:00Z",
+    "verified_by": "Dr. J. Muriithi",
+    "grade": 88,
+    "feedback": "Exemplary hardware inspection and BIOS configuration.",
+    "submitted_at": "2026-09-15T09:30:00Z"
+  },
+  {
+    "id": "ev-002",
+    "unit_offering_id": "uo-1",
+    "trainee_id": "trainee-002",
+    "task_code": "CP2",
+    "title": "Motherboard Diagnostics Observation Photo",
+    "filename": "Hardware_Setup_Evidence.png",
+    "file_url": "/api/evidence/ev-002/file",
+    "mime_type": "image/png",
+    "file_size": 42100,
+    "file_data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "verified_by_trainer": true,
+    "verified_at": "2026-10-20T21:56:00.652Z",
+    "verified_by": "Dr. J. Muriithi",
+    "grade": 85,
+    "feedback": "Great work on motherboard diagnostic check.",
+    "submitted_at": "2026-09-15T10:00:00Z"
+  }
+]

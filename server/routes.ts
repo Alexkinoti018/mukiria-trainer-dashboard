@@ -17,6 +17,13 @@ import {
   savePersistentClassRegisters,
   loadPersistentAssessmentMarks,
   savePersistentAssessmentMarks,
+  loadPersistentSubmissions,
+  savePersistentSubmissions,
+  loadPersistentAssessmentEvidence,
+  savePersistentAssessmentEvidence,
+  saveAssessmentMarksBatch,
+  saveExamSubmission,
+  saveAssessmentEvidence,
   AttendanceRecord,
   TraineeRecord,
 } from "./db.ts";
@@ -204,8 +211,9 @@ export const DB = {
       }
     }
   ],
-  submissions: [
-    ...FBS_COHORT_SUBMISSIONS,
+  submissions: (() => {
+    const defaultSubs = [
+      ...FBS_COHORT_SUBMISSIONS,
     {
       id: "sub-005",
       unit_code: "061155101A",
@@ -284,7 +292,16 @@ export const DB = {
       section_b: [{ question_id: "q2", answer: "Check cooling fans", marks_awarded: 6 }],
       created_at: "2026-09-01T10:05:00Z"
     }
-  ],
+    ];
+    const persisted = loadPersistentSubmissions();
+    if (persisted && persisted.length > 0) {
+      const mergedMap = new Map();
+      defaultSubs.forEach(s => mergedMap.set(s.id, s));
+      persisted.forEach(s => mergedMap.set(s.id, s));
+      return Array.from(mergedMap.values());
+    }
+    return defaultSubs;
+  })(),
   assessment_marks: (() => {
     const persisted = loadPersistentAssessmentMarks();
     if (persisted && persisted.length > 0) return persisted;
@@ -315,7 +332,8 @@ export const DB = {
       }
     ];
   })(),
-  assessment_evidence: [
+  assessment_evidence: (() => {
+    const defaultEvidence = [
     {
       id: "ev-001",
       unit_offering_id: "uo-1",
@@ -370,7 +388,16 @@ export const DB = {
       feedback: "",
       submitted_at: "2026-09-15T11:00:00Z"
     }
-  ],
+    ];
+    const persisted = loadPersistentAssessmentEvidence();
+    if (persisted && persisted.length > 0) {
+      const mergedMap = new Map();
+      defaultEvidence.forEach(e => mergedMap.set(e.id, e));
+      persisted.forEach(e => mergedMap.set(e.id, e));
+      return Array.from(mergedMap.values());
+    }
+    return defaultEvidence;
+  })(),
   session_plans: (() => {
     const persisted = loadPersistentSessionPlans();
     if (persisted && persisted.length > 0) return persisted;
@@ -1522,6 +1549,7 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), (req: Authentic
     existingSub.section_b = section_b || existingSub.section_b || [];
     existingSub.total_score = objectiveScore;
     (existingSub as any).updated_at = new Date().toISOString();
+    saveExamSubmission(existingSub, DB.submissions).catch(() => {});
     res.status(200).json({ success: true, submission_id: existingSub.id, score: objectiveScore });
     return;
   }
@@ -1544,6 +1572,7 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), (req: Authentic
   };
 
   DB.submissions.push(newSub as any);
+  saveExamSubmission(newSub, DB.submissions).catch(() => {});
   res.status(201).json({ success: true, submission_id: newSub.id, score: objectiveScore });
 });
 
@@ -1614,6 +1643,7 @@ export function atomicSubmitSubmission(
     sub.total_score = objectiveScore;
   }
 
+  saveExamSubmission(sub, DB.submissions).catch(() => {});
   return { success: true, id: sub.id, status_code: 200 };
 }
 
@@ -1659,6 +1689,7 @@ apiRouter.post("/submissions/:id/grade", requireRoles("trainer", "admin"), (req:
   const { marks_awarded, comments } = req.body;
   sub.total_score = marks_awarded ?? sub.total_score;
   sub.status = "graded";
+  saveExamSubmission(sub, DB.submissions).catch(() => {});
   res.json({ success: true, updated: sub });
 });
 
@@ -1677,6 +1708,7 @@ apiRouter.post("/submissions/:id/reopen", requireRoles("trainer", "admin"), (req
   (sub as any).reopened_by = trainer_name || req.user?.name || "Alexander Kinoti";
   (sub as any).reopen_reason = reason || "Trainer-authorized retake / second attempt";
   (sub as any).updated_at = new Date().toISOString();
+  saveExamSubmission(sub, DB.submissions).catch(() => {});
   res.json({ success: true, submission: sub });
 });
 
@@ -1751,7 +1783,7 @@ export function calculateCDACCBatchWeightedScore(
 }
 
 // ─── ENDPOINT: POST /api/marks/batch (Keyboard-driven Batch Grading Persistence) ──
-const handleBatchMarks = (req: AuthenticatedRequest, res: Response) => {
+const handleBatchMarks = async (req: AuthenticatedRequest, res: Response) => {
   const user = req.user;
   if (!user) {
     res.status(401).json({ error: "Authentication required" });
@@ -1843,6 +1875,9 @@ const handleBatchMarks = (req: AuthenticatedRequest, res: Response) => {
     markEntry.weighted_mark = calculateCDACCBatchWeightedScore(cp, ct, project);
     updatedMarks.push(markEntry);
   }
+
+  // Atomically persist marks to PostgreSQL and JSON fallback
+  await saveAssessmentMarksBatch(DB.assessment_marks);
 
   res.json({
     success: true,
@@ -2628,6 +2663,7 @@ apiRouter.post("/evidence", requireRoles("trainee", "admin"), (req: Authenticate
   };
 
   DB.assessment_evidence.push(newEvidence);
+  saveAssessmentEvidence(newEvidence, DB.assessment_evidence).catch(() => {});
   res.status(201).json({ success: true, evidence: newEvidence });
 });
 
@@ -2649,6 +2685,7 @@ apiRouter.put("/evidence/:id/verify", requireRoles("trainer", "hod", "admin"), (
   item.verified_by_trainer = true;
   item.verified_at = new Date().toISOString();
   item.verified_by = user.name;
+  saveAssessmentEvidence(item, DB.assessment_evidence).catch(() => {});
 
   res.json({ success: true, evidence: item });
 });
@@ -2738,6 +2775,9 @@ apiRouter.put("/evidence/:id/grade", requireRoles("trainer", "hod", "admin"), (r
 
   markEntry.weighted_mark = calculateServerWeightedMark(markEntry.ct_avg, markEntry.cp_avg, 6);
 
+  saveAssessmentEvidence(item, DB.assessment_evidence).catch(() => {});
+  saveAssessmentMarksBatch(DB.assessment_marks).catch(() => {});
+
   res.json({ success: true, evidence: item, marks: markEntry });
 });
 
@@ -2772,6 +2812,10 @@ apiRouter.delete("/evidence/:id", (req: AuthenticatedRequest, res: Response) => 
   const idx = DB.assessment_evidence.findIndex(e => e.id === req.params.id);
   if (idx !== -1) {
     DB.assessment_evidence.splice(idx, 1);
+    savePersistentAssessmentEvidence(DB.assessment_evidence);
+    if (pool) {
+      pool.query("DELETE FROM assessment_evidence WHERE id = $1", [req.params.id]).catch(() => {});
+    }
   }
 
   res.json({ success: true, deleted_id: req.params.id });

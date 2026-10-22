@@ -575,6 +575,26 @@ export function AssessmentMarksSheet() {
         } catch (supabaseErr: any) {
           console.warn("Supabase save failed, falling back to local storage:", supabaseErr);
         }
+
+        // Synchronize with Centralized Backend Database Persistence Layer
+        try {
+          const batchMarks = payload.map((p: any) => ({
+            traineeId: p.trainee_id,
+            cpScore: typeof p.cp_avg === "number" ? p.cp_avg : undefined,
+            ctScore: typeof p.ct_avg === "number" ? p.ct_avg : undefined,
+            projectScore: typeof p.project_score === "number" ? p.project_score : undefined,
+          }));
+          await fetch('/api/marks/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              unitOfferingId,
+              marks: batchMarks
+            })
+          });
+        } catch (apiErr) {
+          console.warn("Backend API marks batch save warning:", apiErr);
+        }
       } 
       
       const clsKey = getClassStorageKey(selectedClass);

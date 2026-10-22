@@ -1,0 +1,52 @@
+[
+  {
+    "id": "mark-01",
+    "unit_offering_id": "uo-1",
+    "trainee_id": "trainee-001",
+    "ct_avg": 78,
+    "cp_avg": 84,
+    "cp_scores": [
+      84
+    ],
+    "ct_scores": [
+      78
+    ],
+    "project_score": 80,
+    "weighted_mark": 81,
+    "is_locked": true
+  },
+  {
+    "id": "mark-02",
+    "unit_offering_id": "uo-1",
+    "trainee_id": "trainee-002",
+    "ct_avg": 65,
+    "cp_avg": 80,
+    "cp_scores": [
+      70,
+      90
+    ],
+    "ct_scores": [
+      65
+    ],
+    "project_score": 75,
+    "weighted_mark": 73,
+    "is_locked": false,
+    "computed_average_practical": 80
+  },
+  {
+    "id": "mark-1792533357539-vnf4m",
+    "unit_offering_id": "uo-3",
+    "trainee_id": "trainee-001",
+    "ct_avg": 75,
+    "cp_avg": 85,
+    "cp_scores": [
+      85
+    ],
+    "ct_scores": [
+      75
+    ],
+    "project_score": 80,
+    "weighted_mark": 81,
+    "is_locked": false
+  }
+]

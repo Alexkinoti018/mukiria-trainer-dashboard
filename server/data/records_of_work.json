@@ -10,7 +10,7 @@
     "approval_status": "approved",
     "hod_reviewed_by": "hod-001",
     "hod_reviewer_name": "Prof. S. Njoroge",
-    "hod_review_date": "2026-10-20T21:25:23.270Z",
+    "hod_review_date": "2026-10-20T21:55:57.655Z",
     "hod_remarks": "Verified syllabus delivery and practical log."
   },
   {
@@ -70,5 +70,25 @@
     "approval_status": "pending",
     "created_at": "2026-10-20T21:25:30.930Z",
     "updated_at": "2026-10-20T21:25:30.930Z"
+  },
+  {
+    "id": "row-api-1792532815086",
+    "unit_offering_id": "uo-api",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "work_covered": "Completed database integration practical",
+    "date_covered": "2026-10-21",
+    "approval_status": "pending",
+    "created_at": "2026-10-20T21:46:55.105Z",
+    "updated_at": "2026-10-20T21:46:55.105Z"
+  },
+  {
+    "id": "row-api-1792533364990",
+    "unit_offering_id": "uo-api",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "work_covered": "Completed database integration practical",
+    "date_covered": "2026-10-21",
+    "approval_status": "pending",
+    "created_at": "2026-10-20T21:56:04.997Z",
+    "updated_at": "2026-10-20T21:56:04.997Z"
   }
 ]

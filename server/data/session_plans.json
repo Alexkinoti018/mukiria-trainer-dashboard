@@ -67,5 +67,25 @@
     "approval_status": "pending",
     "created_at": "2026-10-20T21:25:30.731Z",
     "updated_at": "2026-10-20T21:25:30.731Z"
+  },
+  {
+    "id": "sp-api-1792532814782",
+    "unit_offering_id": "uo-api",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "trainer_id": "trainer-001",
+    "session_title": "Central API Sync Test",
+    "approval_status": "pending",
+    "created_at": "2026-10-20T21:46:54.975Z",
+    "updated_at": "2026-10-20T21:46:54.976Z"
+  },
+  {
+    "id": "sp-api-1792533364573",
+    "unit_offering_id": "uo-api",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "trainer_id": "trainer-001",
+    "session_title": "Central API Sync Test",
+    "approval_status": "pending",
+    "created_at": "2026-10-20T21:56:04.776Z",
+    "updated_at": "2026-10-20T21:56:04.776Z"
   }
 ]
