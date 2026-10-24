@@ -147,7 +147,11 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/admin/maintenance/ping-db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer token-admin",
+          "x-user-role": "admin",
+        },
       });
       const data: PingResult = await res.json();
       setPingResult(data);
@@ -173,7 +177,23 @@ export default function AdminDashboard() {
   const handlePurgeCache = async () => {
     setIsPurgingCache(true);
     try {
-      // 1. Wipe client-side storage for the 7 MTTI cache prefixes
+      // 1. Dispatch backend acknowledgement first while session credentials are intact
+      let serverAck = true;
+      try {
+        const res = await fetch("/api/admin/maintenance/purge-cache", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer token-admin",
+            "x-user-role": "admin",
+          },
+        });
+        if (!res.ok) serverAck = false;
+      } catch (e) {
+        serverAck = false;
+      }
+
+      // 2. Wipe client-side storage for the 7 MTTI cache prefixes
       let purgedClientCount = 0;
       if (typeof localStorage !== "undefined") {
         const keysToRemove: string[] = [];
@@ -192,18 +212,11 @@ export default function AdminDashboard() {
       // Also invoke standard session cache purge
       purgeMTTISessionCache();
 
-      // 2. Dispatch backend acknowledgement
-      const res = await fetch("/api/admin/maintenance/purge-cache", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = await res.json();
-
       setLastPurgedCount(purgedClientCount);
       setLastPurgedTime(new Date().toLocaleTimeString());
 
       toast.success("Cache Successfully Purged", {
-        description: `Wiped all 7 MTTI storage prefixes (${purgedClientCount} client items cleared).`,
+        description: `Wiped all 7 MTTI storage prefixes (${purgedClientCount} items cleared)${serverAck ? " & synchronized with backend" : ""}.`,
       });
     } catch (err: any) {
       toast.error("Cache Purge Error", {
@@ -226,9 +239,19 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/admin/maintenance/run-audit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer token-admin",
+          "x-user-role": "admin",
+        },
       });
-      const data: AuditResult = await res.json();
+      const data: AuditResult = await res.json().catch(() => ({
+        success: false,
+        action: "run-audit",
+        exitCode: 1,
+        output: "Failed to parse test runner output.",
+        timestamp: new Date().toISOString(),
+      }));
       setAuditResult(data);
 
       if (data.success && data.exitCode === 0) {
@@ -237,7 +260,7 @@ export default function AdminDashboard() {
         });
       } else {
         toast.warning("Audit Completed with Warnings", {
-          description: `Process finished with exit code ${data.exitCode}. Check output below.`,
+          description: `Process finished with exit code ${data.exitCode ?? 1}. Check output below.`,
         });
       }
     } catch (err: any) {
