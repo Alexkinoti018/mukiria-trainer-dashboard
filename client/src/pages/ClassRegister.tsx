@@ -708,44 +708,6 @@ export default function ClassRegister() {
       .finally(() => setIsAutoSaving(false));
   }, [canEditRegister, selectedClassCode, hoursPerSession, user]);
 
-  // Quick Action: Mark all trainees present in a specific session column
-  const markAllPresentForSession = useCallback((week: number, session: number) => {
-    if (!canEditRegister) {
-      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can mark attendance.");
-      return;
-    }
-    const key = `W${week}_S${session}`;
-
-    setAttendanceData(prev => {
-      const updatedData: Record<string, StudentAttendanceRecord> = { ...prev };
-      classTrainees.forEach(t => {
-        const studentRecord = updatedData[t.id] || { attendance: {} };
-        updatedData[t.id] = {
-          ...studentRecord,
-          attendance: { ...studentRecord.attendance, [key]: "X" }
-        };
-      });
-      persistLocally(updatedData);
-      return updatedData;
-    });
-
-    setIsAutoSaving(true);
-    fetch("/api/attendance/bulk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        unit_offering_id: "uo-1",
-        class_code: selectedClassCode,
-        attendanceData: {},
-      }),
-    })
-      .then(() => setLastSavedTime(Date.now()))
-      .catch(err => console.warn("Background bulk attendance save notice:", err))
-      .finally(() => setIsAutoSaving(false));
-
-    toast.success(`Marked all ${classTrainees.length} trainees present for Week ${week}, Session ${session}.`);
-  }, [canEditRegister, classTrainees, selectedClassCode]);
-
   // Mark entire session column present or toggle
   const markWholeSessionColumn = (week: number, session: number) => {
     if (!canEditRegister) {
@@ -1429,32 +1391,13 @@ export default function ClassRegister() {
                       Array.from({ length: SESSIONS_PER_WEEK }).map((_, s) => (
                         <th 
                           key={`w${w}_s${s}`} 
-                          className={`border border-black p-0.5 text-center w-6 min-w-[20px] text-[9px] font-mono text-gray-700 select-none ${
+                          onClick={() => markWholeSessionColumn(w + 1, s + 1)}
+                          className={`border border-black p-0.5 text-center w-6 min-w-[20px] text-[9px] font-mono text-gray-700 select-none cursor-pointer hover:bg-gray-200 transition ${
                             s === SESSIONS_PER_WEEK - 1 ? "border-r-2 border-r-black" : ""
                           }`}
+                          title={`Week ${w + 1}, Session ${s + 1} (Click to toggle column attendance)`}
                         >
-                          <div className="flex flex-col items-center justify-between h-full gap-0.5">
-                            <span 
-                              onClick={() => markWholeSessionColumn(w + 1, s + 1)}
-                              className="hover:text-primary cursor-pointer font-bold leading-tight"
-                              title={`Week ${w + 1}, Session ${s + 1} (Click to toggle entire column)`}
-                            >
-                              {s + 1}
-                            </span>
-                            {canEditRegister && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  markAllPresentForSession(w + 1, s + 1);
-                                }}
-                                className="print:hidden text-[7.5px] px-1 py-0 leading-none bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded font-sans font-bold transition border border-emerald-300"
-                                title={`Mark all trainees Present in Week ${w + 1}, Session ${s + 1}`}
-                              >
-                                [All]
-                              </button>
-                            )}
-                          </div>
+                          {s + 1}
                         </th>
                       ))
                     ))}
