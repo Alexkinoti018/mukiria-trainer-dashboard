@@ -272,15 +272,60 @@ export default function AdminDashboard() {
       return;
     }
 
-    // Check if first line is header
-    const firstLine = lines[0].toLowerCase();
-    const hasHeader =
-      firstLine.includes("adm") ||
-      firstLine.includes("name") ||
-      firstLine.includes("cohort") ||
-      firstLine.includes("registration");
+    // Helper: Identify common header tokens or generic spreadsheet column placeholders
+    const isHeaderWord = (val: string) => {
+      const v = val.trim().toLowerCase();
+      return (
+        /^column\d*$/i.test(v) ||
+        /^col\d*$/i.test(v) ||
+        /^field\d*$/i.test(v) ||
+        v === "adm" ||
+        v === "adm_no" ||
+        v === "adm no" ||
+        v === "adm." ||
+        v === "admission" ||
+        v === "admission no" ||
+        v === "admission number" ||
+        v === "reg" ||
+        v === "reg_no" ||
+        v === "reg no" ||
+        v === "reg." ||
+        v === "registration" ||
+        v === "name" ||
+        v === "full name" ||
+        v === "student" ||
+        v === "student name" ||
+        v === "trainee" ||
+        v === "trainee name" ||
+        v === "candidate" ||
+        v === "cohort" ||
+        v === "cohort code" ||
+        v === "class" ||
+        v === "class code" ||
+        v === "email" ||
+        v === "phone" ||
+        v === "gender"
+      );
+    };
 
-    const dataLines = hasHeader ? lines.slice(1) : lines;
+    const isHeaderLine = (lineStr: string) => {
+      const lower = lineStr.toLowerCase().trim();
+      return (
+        lower.includes("adm") ||
+        lower.includes("name") ||
+        lower.includes("cohort") ||
+        lower.includes("registration") ||
+        lower.includes("column") ||
+        lower.includes("student") ||
+        lower.includes("trainee") ||
+        lower.includes("candidate") ||
+        /^(col|field|s\/n|no\.?|#|id)\b/i.test(lower)
+      );
+    };
+
+    // Check if first line is a header
+    const firstLineIsHeader = isHeaderLine(lines[0]);
+    const dataLines = firstLineIsHeader ? lines.slice(1) : lines;
 
     const parsed: ParsedTraineeRow[] = [];
     let validCount = 0;
@@ -330,7 +375,16 @@ export default function AdminDashboard() {
         }
       }
 
-      const isValid = admNo.length > 0 && name.length > 0;
+      // Filter out duplicate or misplaced header lines
+      if (isHeaderWord(admNo) || isHeaderWord(name)) {
+        return;
+      }
+
+      // In TVET CDACC, a valid admission number must contain digits/code and a name must contain letters
+      const hasValidAdm = admNo.length >= 2 && /\d/.test(admNo) && !isHeaderWord(admNo);
+      const hasValidName = name.length >= 2 && /[a-zA-Z]/.test(name) && !isHeaderWord(name);
+      const isValid = hasValidAdm && hasValidName;
+
       if (isValid) validCount++;
 
       parsed.push({
@@ -340,7 +394,7 @@ export default function AdminDashboard() {
         phone,
         cohortCode: cohort || defaultCohort,
         isValid,
-        validationError: !isValid ? "Missing admission number or full name" : undefined,
+        validationError: !isValid ? "Invalid admission number or full name format" : undefined,
       });
     });
 
