@@ -22,6 +22,7 @@ import {
   loadPersistentAssessmentEvidence,
   savePersistentAssessmentEvidence,
   saveAssessmentMarksBatch,
+  saveTraineeBatch,
   saveExamSubmission,
   saveAssessmentEvidence,
   AttendanceRecord,
@@ -2539,8 +2540,10 @@ apiRouter.post("/admin/maintenance/:action", requireRoles("admin"), async (req: 
 // ─── ENDPOINT: POST /api/trainees/batch (CSV Batch Roster Upload - Zero Email Invariant) ─
 apiRouter.post("/trainees/batch", async (req: Request, res: Response) => {
   try {
-    const { trainees, cohortCode: defaultCohort } = req.body;
-    if (!Array.isArray(trainees) || trainees.length === 0) {
+    const rawTrainees = Array.isArray(req.body) ? req.body : req.body?.trainees;
+    const defaultCohort = req.body?.cohortCode || "ICT4/ITECH6/S/26 MOD 1";
+
+    if (!Array.isArray(rawTrainees) || rawTrainees.length === 0) {
       res.status(400).json({ error: "A non-empty list of trainees is required." });
       return;
     }
@@ -2549,7 +2552,7 @@ apiRouter.post("/trainees/batch", async (req: Request, res: Response) => {
     const persistent = loadPersistentTrainees();
     const now = new Date().toISOString();
 
-    for (const item of trainees) {
+    for (const item of rawTrainees) {
       const admNo = (item.admissionNumber || item.admNo || item.reg_number || "").trim();
       const fullName = (item.fullName || item.name || "").trim();
       const cohort = (item.cohortCode || item.classCode || defaultCohort || "ICT4/ITECH6/S/26 MOD 1").trim();
@@ -2573,25 +2576,7 @@ apiRouter.post("/trainees/batch", async (req: Request, res: Response) => {
         updated_at: now,
       };
 
-      // 1. PostgreSQL Upsert if pool available
-      if (pool) {
-        try {
-          const sql = `
-            INSERT INTO trainees (id, name, adm_no, reg_number, reg_code, created_at)
-            VALUES ($1, $2, $3, $4, $5, NOW())
-            ON CONFLICT (id) DO UPDATE SET
-              name = EXCLUDED.name,
-              adm_no = EXCLUDED.adm_no,
-              reg_number = EXCLUDED.reg_number
-            RETURNING *;
-          `;
-          await query(sql, [id, record.name, admNo, admNo, record.reg_code]);
-        } catch (e: any) {
-          console.warn("Batch PG insert warning:", e.message);
-        }
-      }
-
-      // 2. Persistent JSON Storage
+      // Persistent JSON Storage (in-memory & file mirror)
       const existIdx = persistent.findIndex(t => t.id === id || t.adm_no === admNo);
       if (existIdx >= 0) {
         persistent[existIdx] = { ...persistent[existIdx], ...record };
@@ -2599,7 +2584,7 @@ apiRouter.post("/trainees/batch", async (req: Request, res: Response) => {
         persistent.push(record);
       }
 
-      // 3. Mirror into OFFICIAL_INSTITUTIONAL_ROSTER runtime
+      // Mirror into OFFICIAL_INSTITUTIONAL_ROSTER runtime
       const rosterIdx = OFFICIAL_INSTITUTIONAL_ROSTER.findIndex(r => r.admissionNumber === admNo);
       const rosterEntry: RosterEntry = {
         id,
@@ -2618,6 +2603,16 @@ apiRouter.post("/trainees/batch", async (req: Request, res: Response) => {
       inserted.push(record);
     }
 
+    // 1. Transactional PostgreSQL Batch Upsert (if pool available)
+    if (pool && inserted.length > 0) {
+      try {
+        await saveTraineeBatch(inserted);
+      } catch (e: any) {
+        console.warn("Batch PG insert warning:", e.message);
+      }
+    }
+
+    // 2. Persistent JSON Storage write
     savePersistentTrainees(persistent);
 
     res.status(201).json({
