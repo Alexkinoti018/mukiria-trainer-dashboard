@@ -80,6 +80,13 @@ export function calculateAcademicWeek(currentDate: Date = new Date(2026, 9, 7)):
 }
 
 /**
+ * Returns the currently active instructional/teaching week (1-10) for attendance registers and sync
+ */
+export function getActiveTeachingWeek(currentDate?: Date): number {
+  return calculateAcademicWeek(currentDate);
+}
+
+/**
  * Parse time string "HH:MM" to minutes from midnight
  */
 export function timeToMinutes(timeStr: string): number {

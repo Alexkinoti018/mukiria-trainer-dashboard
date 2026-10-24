@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
 import TrainerLayout from "@/components/TrainerLayout";
 import TraineeLayout from "@/components/TraineeLayout";
@@ -31,7 +31,7 @@ import AttendanceQuickMarkModal from "@/components/AttendanceQuickMarkModal";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { getAttendanceScansFromOffline, enqueueSyncItem } from "@/lib/offlineStore";
 import { syncEngine } from "@/lib/syncEngine";
-import { getAcademicContext } from "@/lib/academicCalendar";
+import { getAcademicContext, getActiveTeachingWeek } from "@/lib/academicCalendar";
 import { canonicalizeCohortCode } from "@/lib/curriculumDatabase";
 import {
   AttendanceStatus,
@@ -113,6 +113,111 @@ const MTTI_CLASSES: ClassConfig[] = [
   }
 ];
 
+function calculateStats(attendance: Record<string, AttendanceStatus>, hoursPerSession = 2) {
+  let presentCount = 0;
+  let absentCount = 0;
+
+  Object.values(attendance).forEach(status => {
+    if (status === "X") presentCount++;
+    if (status === "0") absentCount++;
+  });
+
+  const totalMarkedSessions = presentCount + absentCount;
+  const actualHrs = presentCount * hoursPerSession;
+  const possibleHrs = totalMarkedSessions * hoursPerSession;
+  
+  const percentage = totalMarkedSessions === 0 
+    ? 0 
+    : Math.round((presentCount / totalMarkedSessions) * 100);
+
+  return { actualHrs, possibleHrs, percentage, totalMarkedSessions };
+}
+
+interface AttendanceRowProps {
+  trainee: any;
+  index: number;
+  record: Record<string, AttendanceStatus>;
+  canEditRegister: boolean;
+  onToggleAttendance: (studentId: string, week: number, session: number) => void;
+  onEditStudent: (trainee: any) => void;
+  onDeleteStudent: (id: string, name: string) => void;
+}
+
+const AttendanceRow = React.memo(function AttendanceRow({
+  trainee,
+  index,
+  record,
+  canEditRegister,
+  onToggleAttendance,
+  onEditStudent,
+  onDeleteStudent,
+}: AttendanceRowProps) {
+  const stats = calculateStats(record);
+
+  return (
+    <tr className="border-b border-black hover:bg-gray-50 transition">
+      <td className="border border-black p-1 text-center font-bold text-xs">{index + 1}</td>
+      <td className="border border-black p-1 font-mono font-medium whitespace-nowrap text-xs">{trainee.admNo}</td>
+      <td className="border border-black p-1 font-bold uppercase truncate max-w-[180px] text-xs" title={trainee.name}>
+        {trainee.name}
+      </td>
+      
+      {/* 10 Weeks, each with SESSIONS_PER_WEEK Sessions */}
+      {Array.from({ length: WEEKS }).map((_, w) => (
+        Array.from({ length: SESSIONS_PER_WEEK }).map((_, s) => {
+          const key = `W${w + 1}_S${s + 1}`;
+          const status = record[key] || "";
+          const isEndOfWeek = s === SESSIONS_PER_WEEK - 1;
+          return (
+            <td 
+              key={key} 
+              onClick={() => onToggleAttendance(trainee.id, w + 1, s + 1)}
+              className={`border border-black p-0.5 text-center font-bold cursor-pointer select-none text-[11px] ${
+                isEndOfWeek ? "border-r-2 border-r-black" : ""
+              } hover:bg-black/10`}
+              title={`W${w + 1} S${s + 1}: ${status === 'X' ? 'Present' : status === '0' ? 'Absent' : 'Unmarked'} (Click to cycle)`}
+            >
+              {status === "X" ? (
+                <span className="text-slate-900 font-bold print:text-black">X</span>
+              ) : status === "0" ? (
+                <span className="text-rose-600 font-mono font-bold print:text-black">0</span>
+              ) : (
+                <span className="text-gray-300 print:invisible font-light">-</span>
+              )}
+            </td>
+          );
+        })
+      ))}
+
+      <td className="border border-black p-1 text-center font-mono text-xs">{stats.possibleHrs}</td>
+      <td className="border border-black p-1 text-center font-mono font-bold text-xs">{stats.actualHrs}</td>
+      <td className="border border-black p-1 text-center font-mono font-bold text-xs">
+        {stats.totalMarkedSessions > 0 ? `${stats.percentage}%` : ""}
+      </td>
+      {canEditRegister && (
+        <td className="border border-black p-1 text-center print:hidden bg-white">
+          <div className="flex items-center justify-center gap-1">
+            <button
+              onClick={() => onEditStudent(trainee)}
+              className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+              title="Edit Student Details"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => onDeleteStudent(trainee.id, trainee.name)}
+              className="p-1 text-red-600 hover:bg-red-100 rounded"
+              title="Remove Student"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </td>
+      )}
+    </tr>
+  );
+});
+
 export default function ClassRegister() {
   const { trainees, addTrainee, updateTrainee, deleteTrainee, resetToOfficialRoster } = useTrainees();
   const { user } = useAuth();
@@ -174,6 +279,9 @@ export default function ClassRegister() {
   const [attendanceData, setAttendanceData] = useState<Record<string, StudentAttendanceRecord>>({});
   const [hoursPerSession, setHoursPerSession] = useState<number>(2);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [lastSavedTime, setLastSavedTime] = useState<number | null>(Date.now());
+  const activeTeachingWeek = useMemo(() => getActiveTeachingWeek(), []);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   const [isRollCallOpen, setIsRollCallOpen] = useState(false);
 
@@ -418,7 +526,7 @@ export default function ClassRegister() {
     toast.success(`Student ${created.name} added to roster & database.`);
   };
 
-  const handleOpenEditStudent = (trainee: any) => {
+  const handleOpenEditStudent = useCallback((trainee: any) => {
     if (!canEditRegister) {
       toast.error("Forbidden: Only assigned trainers, HODs, and administrators can modify class registers.");
       return;
@@ -432,7 +540,7 @@ export default function ClassRegister() {
       phone: trainee.phone || "",
       remarks: trainee.remarks || "",
     });
-  };
+  }, [canEditRegister]);
 
   const handleSaveEditStudent = (e: React.FormEvent) => {
     e.preventDefault();
@@ -458,7 +566,7 @@ export default function ClassRegister() {
     toast.success(`Student ${studentForm.name} updated successfully.`);
   };
 
-  const handleDeleteStudent = (id: string, name: string) => {
+  const handleDeleteStudent = useCallback((id: string, name: string) => {
     if (!canEditRegister) {
       toast.error("Forbidden: Only assigned trainers, HODs, and administrators can modify class registers.");
       return;
@@ -472,7 +580,7 @@ export default function ClassRegister() {
       });
       toast.info(`Trainee "${name}" removed.`);
     }
-  };
+  }, [canEditRegister, deleteTrainee]);
 
   // Local persistence helper leveraging canonical storage keys
   const persistLocally = (data: Record<string, StudentAttendanceRecord>) => {
@@ -568,33 +676,36 @@ export default function ClassRegister() {
     return () => window.removeEventListener("mtti-attendance-updated", handleAttendanceUpdated);
   }, [selectedClassCode]);
 
-  // Toggle Attendance Cell in CUR/02
-  const toggleAttendance = (studentId: string, week: number, session: number) => {
+  // Toggle Attendance Cell in CUR/02 (Optimized with useCallback)
+  const toggleAttendance = useCallback((studentId: string, week: number, session: number) => {
     if (!canEditRegister) {
       toast.error("Forbidden: Only assigned trainers, HODs, and administrators can mark attendance.");
       return;
     }
     const key = `W${week}_S${session}`;
-    const studentRecord = attendanceData[studentId] || { attendance: {} };
-    const current = studentRecord.attendance[key];
-    
-    // Cycle: "" -> "X" -> "0" -> ""
-    let nextStatus: AttendanceStatus = "";
-    if (!current) nextStatus = "X";
-    else if (current === "X") nextStatus = "0";
-    else nextStatus = "";
+    let nextStatus: AttendanceStatus = "X";
 
-    const updatedData: Record<string, StudentAttendanceRecord> = {
-      ...attendanceData,
-      [studentId]: {
-        ...studentRecord,
-        attendance: { ...studentRecord.attendance, [key]: nextStatus }
-      }
-    };
+    setAttendanceData(prev => {
+      const studentRecord = prev[studentId] || { attendance: {} };
+      const current = studentRecord.attendance[key];
+      
+      // Cycle: "" -> "X" -> "0" -> ""
+      if (!current) nextStatus = "X";
+      else if (current === "X") nextStatus = "0";
+      else nextStatus = "";
 
-    setAttendanceData(updatedData);
-    persistLocally(updatedData);
+      const updatedData: Record<string, StudentAttendanceRecord> = {
+        ...prev,
+        [studentId]: {
+          ...studentRecord,
+          attendance: { ...studentRecord.attendance, [key]: nextStatus }
+        }
+      };
+      persistLocally(updatedData);
+      return updatedData;
+    });
 
+    setIsAutoSaving(true);
     // Instant asynchronous mark persistence
     fetch("/api/attendance/mark", {
       method: "POST",
@@ -609,8 +720,49 @@ export default function ClassRegister() {
         hours_attended: hoursPerSession,
         marked_by: user?.name || "ALEXANDER KINOTI",
       }),
-    }).catch(err => console.warn("Background mark persist warning:", err));
-  };
+    })
+      .then(() => setLastSavedTime(Date.now()))
+      .catch(err => console.warn("Background mark persist warning:", err))
+      .finally(() => setIsAutoSaving(false));
+  }, [canEditRegister, selectedClassCode, hoursPerSession, user]);
+
+  // Quick Action: Mark all trainees present in a specific session column
+  const markAllPresentForSession = useCallback((week: number, session: number) => {
+    if (!canEditRegister) {
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can mark attendance.");
+      return;
+    }
+    const key = `W${week}_S${session}`;
+
+    setAttendanceData(prev => {
+      const updatedData: Record<string, StudentAttendanceRecord> = { ...prev };
+      classTrainees.forEach(t => {
+        const studentRecord = updatedData[t.id] || { attendance: {} };
+        updatedData[t.id] = {
+          ...studentRecord,
+          attendance: { ...studentRecord.attendance, [key]: "X" }
+        };
+      });
+      persistLocally(updatedData);
+      return updatedData;
+    });
+
+    setIsAutoSaving(true);
+    fetch("/api/attendance/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        unit_offering_id: "uo-1",
+        class_code: selectedClassCode,
+        attendanceData: {},
+      }),
+    })
+      .then(() => setLastSavedTime(Date.now()))
+      .catch(err => console.warn("Background bulk attendance save notice:", err))
+      .finally(() => setIsAutoSaving(false));
+
+    toast.success(`Marked all ${classTrainees.length} trainees present for Week ${week}, Session ${session}.`);
+  }, [canEditRegister, classTrainees, selectedClassCode]);
 
   // Mark entire session column present or toggle
   const markWholeSessionColumn = (week: number, session: number) => {
@@ -741,27 +893,6 @@ export default function ClassRegister() {
     }
   };
 
-  // Calculations for CUR/02
-  const calculateStats = (attendance: Record<string, AttendanceStatus>) => {
-    let presentCount = 0;
-    let absentCount = 0;
-
-    Object.values(attendance).forEach(status => {
-      if (status === "X") presentCount++;
-      if (status === "0") absentCount++;
-    });
-
-    const totalMarkedSessions = presentCount + absentCount;
-    const actualHrs = presentCount * hoursPerSession;
-    const possibleHrs = totalMarkedSessions * hoursPerSession;
-    
-    const percentage = totalMarkedSessions === 0 
-      ? 0 
-      : Math.round((presentCount / totalMarkedSessions) * 100);
-
-    return { actualHrs, possibleHrs, percentage, totalMarkedSessions };
-  };
-
   // Sync QR door scans from StudentSessionView & IndexedDB into current session
   const handleSyncQRCheckIns = async () => {
     let totalSynced = 0;
@@ -796,8 +927,10 @@ export default function ClassRegister() {
     const scannedAdms = new Set(allScans.map(s => (s.adm || "").trim().toUpperCase()));
     const scannedNames = new Set(allScans.map(s => (s.name || "").trim().toLowerCase()));
 
-    // Target current active session (e.g. Week 1 Session 1)
-    const targetKey = "W1_S1";
+    // Target dynamic teaching week from academic calendar (Session 1)
+    const targetWeek = Math.min(Math.max(1, activeTeachingWeek), WEEKS);
+    const targetKey = `W${targetWeek}_S1`;
+
     setAttendanceData(prev => {
       const updated = { ...prev };
       classTrainees.forEach(t => {
@@ -828,8 +961,8 @@ export default function ClassRegister() {
     });
 
     if (totalSynced > 0) {
-      toast.success(`Synced ${totalSynced} trainee door check-ins into Session 1!`, {
-        description: "Verified presence from mobile workshop door QR scans."
+      toast.success(`Synced ${totalSynced} trainee door check-ins into Week ${targetWeek} Session 1!`, {
+        description: `Verified presence from mobile workshop door QR scans for Week ${targetWeek}.`
       });
     } else {
       toast.info(`Found ${allScans.length} scan records, but none matched trainees enrolled in ${selectedClassCode}.`);
@@ -1029,6 +1162,20 @@ export default function ClassRegister() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Real-time Auto-Save Status Indicator */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all shadow-sm bg-muted/40 border-border mr-1">
+              {isSaving || isAutoSaving ? (
+                <>
+                  <RefreshCw className="w-3 h-3 text-amber-500 animate-spin shrink-0" />
+                  <span className="text-amber-600 dark:text-amber-400">Saving...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                  <span className="text-emerald-700 dark:text-emerald-400">All changes saved</span>
+                </>
+              )}
+            </div>
             {canEditRegister && (
               <>
                 <button
@@ -1297,86 +1444,50 @@ export default function ClassRegister() {
                       Array.from({ length: SESSIONS_PER_WEEK }).map((_, s) => (
                         <th 
                           key={`w${w}_s${s}`} 
-                          onClick={() => markWholeSessionColumn(w + 1, s + 1)}
-                          className={`border border-black p-0.5 text-center w-5 min-w-[18px] text-[9px] font-mono text-gray-700 hover:bg-black/10 cursor-pointer select-none ${
+                          className={`border border-black p-0.5 text-center w-6 min-w-[20px] text-[9px] font-mono text-gray-700 select-none ${
                             s === SESSIONS_PER_WEEK - 1 ? "border-r-2 border-r-black" : ""
                           }`}
-                          title={`Week ${w + 1}, Session ${s + 1} (Click to toggle entire column)`}
                         >
-                          <span className="print:hidden">{s + 1}</span>
+                          <div className="flex flex-col items-center justify-between h-full gap-0.5">
+                            <span 
+                              onClick={() => markWholeSessionColumn(w + 1, s + 1)}
+                              className="hover:text-primary cursor-pointer font-bold leading-tight"
+                              title={`Week ${w + 1}, Session ${s + 1} (Click to toggle entire column)`}
+                            >
+                              {s + 1}
+                            </span>
+                            {canEditRegister && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  markAllPresentForSession(w + 1, s + 1);
+                                }}
+                                className="print:hidden text-[7.5px] px-1 py-0 leading-none bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded font-sans font-bold transition border border-emerald-300"
+                                title={`Mark all trainees Present in Week ${w + 1}, Session ${s + 1}`}
+                              >
+                                [All]
+                              </button>
+                            )}
+                          </div>
                         </th>
                       ))
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {displayedTrainees.map((trainee, idx) => {
-                    const record = attendanceData[trainee.id]?.attendance || {};
-                    const stats = calculateStats(record);
-
-                    return (
-                      <tr key={trainee.id} className="border-b border-black hover:bg-gray-50 transition">
-                        <td className="border border-black p-1 text-center font-bold text-xs">{idx + 1}</td>
-                        <td className="border border-black p-1 font-mono font-medium whitespace-nowrap text-xs">{trainee.admNo}</td>
-                        <td className="border border-black p-1 font-bold uppercase truncate max-w-[180px] text-xs" title={trainee.name}>
-                          {trainee.name}
-                        </td>
-                        
-                        {/* 10 Weeks, each with 3 Sessions */}
-                        {Array.from({ length: WEEKS }).map((_, w) => (
-                          Array.from({ length: SESSIONS_PER_WEEK }).map((_, s) => {
-                            const key = `W${w + 1}_S${s + 1}`;
-                            const status = record[key] || "";
-                            const isEndOfWeek = s === SESSIONS_PER_WEEK - 1;
-                            return (
-                              <td 
-                                key={key} 
-                                onClick={() => toggleAttendance(trainee.id, w + 1, s + 1)}
-                                className={`border border-black p-0.5 text-center font-bold cursor-pointer select-none text-[11px] ${
-                                  isEndOfWeek ? "border-r-2 border-r-black" : ""
-                                } hover:bg-black/10`}
-                                title={`W${w + 1} S${s + 1}: ${status === 'X' ? 'Present' : status === '0' ? 'Absent' : 'Unmarked'} (Click to cycle)`}
-                              >
-                                {status === "X" ? (
-                                  <span className="text-slate-900 font-bold print:text-black">X</span>
-                                ) : status === "0" ? (
-                                  <span className="text-rose-600 font-mono font-bold print:text-black">0</span>
-                                ) : (
-                                  <span className="text-gray-300 print:invisible font-light">-</span>
-                                )}
-                              </td>
-                            );
-                          })
-                        ))}
-
-                        <td className="border border-black p-1 text-center font-mono text-xs">{stats.possibleHrs}</td>
-                        <td className="border border-black p-1 text-center font-mono font-bold text-xs">{stats.actualHrs}</td>
-                        <td className="border border-black p-1 text-center font-mono font-bold text-xs">
-                          {stats.totalMarkedSessions > 0 ? `${stats.percentage}%` : ""}
-                        </td>
-                        {canEditRegister && (
-                          <td className="border border-black p-1 text-center print:hidden bg-white">
-                            <div className="flex items-center justify-center gap-1">
-                              <button
-                                onClick={() => handleOpenEditStudent(trainee)}
-                                className="p-1 text-blue-600 hover:bg-blue-100 rounded"
-                                title="Edit Student Details"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteStudent(trainee.id, trainee.name)}
-                                className="p-1 text-red-600 hover:bg-red-100 rounded"
-                                title="Remove Student"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })}
+                  {displayedTrainees.map((trainee, idx) => (
+                    <AttendanceRow
+                      key={trainee.id}
+                      trainee={trainee}
+                      index={idx}
+                      record={attendanceData[trainee.id]?.attendance || {}}
+                      canEditRegister={canEditRegister}
+                      onToggleAttendance={toggleAttendance}
+                      onEditStudent={handleOpenEditStudent}
+                      onDeleteStudent={handleDeleteStudent}
+                    />
+                  ))}
 
                   {/* Official Merged Footer Rows: Lecturer's Comment & HOD's Comment across the 10 Weekly Columns */}
                   <tr className="border-t-2 border-black bg-white">
