@@ -3,11 +3,24 @@ import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import { apiRouter } from "./routes.ts";
+import { validateServerEnv } from "../shared/envValidator.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
+  const envValidation = validateServerEnv();
+  if (!envValidation.valid) {
+    if (process.env.NODE_ENV === "production") {
+      console.error("❌ [MTTI Fatal Server Environment Failure]:\n" + envValidation.errors.join("\n"));
+      process.exit(1);
+    } else {
+      console.warn("⚠️ [MTTI Server Environment Warning]:\n" + envValidation.errors.join("\n"));
+    }
+  } else if (envValidation.warnings.length > 0) {
+    envValidation.warnings.forEach((w) => console.warn(w));
+  }
+
   const app = express();
   const server = createServer(app);
 

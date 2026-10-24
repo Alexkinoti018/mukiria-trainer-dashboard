@@ -11,6 +11,15 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { validateClientEnv } from "../../../shared/envValidator";
+
+// ─── Environment Validation & Boot Guard ──────────────────────────────────────
+export const clientEnvValidation = validateClientEnv();
+if (!clientEnvValidation.valid && typeof import.meta !== "undefined" && (import.meta as any).env?.PROD) {
+  console.error("❌ [MTTI Client Environment Failure]:\n" + clientEnvValidation.errors.join("\n"));
+} else if (clientEnvValidation.warnings.length > 0) {
+  clientEnvValidation.warnings.forEach((w) => console.warn(w));
+}
 
 // ─── Environment Variables ───────────────────────────────────────────────────
 // Try to load from import.meta.env first, then fall back to window.__SUPABASE_CONFIG__

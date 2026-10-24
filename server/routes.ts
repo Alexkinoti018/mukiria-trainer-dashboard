@@ -622,11 +622,33 @@ export function verifyHODDepartmentScope(hodDepartmentId: string | undefined, ex
 
 // ─── API ROUTES ──────────────────────────────────────────────────────────────
 
-apiRouter.use(authenticateUser);
+// ─── HEALTH & MONITORING ENDPOINTS (Public, Unauthenticated) ──────────────────
+apiRouter.get("/health", async (_req: Request, res: Response) => {
+  let dbStatus = "connected";
+  if (pool) {
+    try {
+      await pool.query("SELECT 1");
+      dbStatus = "connected";
+    } catch {
+      dbStatus = "disconnected";
+    }
+  }
 
-apiRouter.get("/health", (_req, res) => {
-  res.json({ status: "ok", service: "mukiria-rbac-gateway" });
+  const memoryUsage = process.memoryUsage();
+  res.json({
+    status: dbStatus === "disconnected" ? "degraded" : "healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: dbStatus,
+    service: "mukiria-rbac-gateway",
+    memory: {
+      rss: `${Math.round(memoryUsage.rss / 1024 / 1024)}MB`,
+      heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`,
+    },
+  });
 });
+
+apiRouter.use(authenticateUser);
 
 // ─── INSTITUTIONAL ROSTER & TRAINEE LOOKUP (ZERO-EMAIL CDACC WORKFLOW) ─────────
 export interface RosterEntry {
