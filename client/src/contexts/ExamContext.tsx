@@ -3,6 +3,7 @@ import { Exam, Submission, isSupabaseConfigured, normalizeAssessmentTaskSlot, do
 import { MOCK_EXAMS, MOCK_SUBMISSIONS } from "@/lib/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { syncScoreToContinuousMarksheet } from "@/contexts/TraineeContext";
+import { syncExamSubmissionToAssessmentRegister } from "@/lib/attendanceStorage";
 import { nanoid } from "nanoid";
 
 interface ExamContextType {
@@ -356,6 +357,23 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     setAllSubmissions(updated);
     localStorage.setItem("mukiria_submissions", JSON.stringify(updated));
     syncSubmissionWithMarksheet(targetSub, exams);
+
+    // Link exam submission with CUR/03 Assessment Attendance Register
+    try {
+      const matchingExam = exams.find((e) => e.id === targetSub.exam_id || e.unit_code === targetSub.unit_code);
+      const cleanTitle = (matchingExam?.payload as any)?.title || matchingExam?.course_name || "Written Assessment 1";
+      syncExamSubmissionToAssessmentRegister({
+        studentName: targetSub.student_name,
+        regNumber: targetSub.reg_number,
+        unitCode: targetSub.unit_code,
+        examId: targetSub.exam_id,
+        examTitle: cleanTitle,
+        assessmentType: cleanTitle,
+        submittedAt: targetSub.submitted_at || nowIso,
+      });
+    } catch (err) {
+      console.warn("Failed to sync exam submission to assessment register:", err);
+    }
   };
 
   const reopenSubmissionForRetake = (id: string, reason?: string, trainerName?: string) => {

@@ -1724,6 +1724,20 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), (req: Authentic
     existingSub.section_b = section_b || existingSub.section_b || [];
     existingSub.total_score = objectiveScore;
     (existingSub as any).updated_at = new Date().toISOString();
+    
+    // Auto-enroll candidate if missing from database and link with assessment register
+    const studentRegExisting = user.reg_number || existingSub.reg_number;
+    const studentNameExisting = user.name || existingSub.student_name || "Enrolled Trainee";
+    if (studentRegExisting && !DB.trainees.some(t => t.reg_number === studentRegExisting)) {
+      DB.trainees.push({
+        id: user.id || `trainee-${studentRegExisting}`,
+        name: studentNameExisting,
+        reg_number: studentRegExisting,
+        class_id: (user as any).cohort_code || "class-itech-6",
+        enrolled_units: [exam.unit_code],
+      });
+    }
+
     saveExamSubmission(existingSub, DB.submissions).catch(() => {});
     res.status(200).json({ success: true, submission_id: existingSub.id, score: objectiveScore });
     return;
@@ -1745,6 +1759,19 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), (req: Authentic
     section_b: section_b || [],
     created_at: new Date().toISOString()
   };
+
+  // Auto-enroll candidate if missing from database and link with assessment register
+  const studentRegNew = user.reg_number || newSub.reg_number;
+  const studentNameNew = user.name || newSub.student_name || "Enrolled Trainee";
+  if (studentRegNew && !DB.trainees.some(t => t.reg_number === studentRegNew)) {
+    DB.trainees.push({
+      id: user.id || `trainee-${studentRegNew}`,
+      name: studentNameNew,
+      reg_number: studentRegNew,
+      class_id: (user as any).cohort_code || "class-itech-6",
+      enrolled_units: [exam.unit_code],
+    });
+  }
 
   DB.submissions.push(newSub as any);
   saveExamSubmission(newSub, DB.submissions).catch(() => {});

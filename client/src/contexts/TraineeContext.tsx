@@ -879,6 +879,24 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
     refreshRoster();
   }, []);
 
+  // Listen for dynamically auto-enrolled trainees (e.g. from online exam submissions)
+  useEffect(() => {
+    const handleTraineeUpdated = (e: any) => {
+      const newTrainee = e?.detail;
+      if (newTrainee && newTrainee.id) {
+        setTrainees(prev => {
+          const normAdm = (newTrainee.admNo || newTrainee.regCode || "").trim().toUpperCase();
+          if (prev.some(t => t.id === newTrainee.id || (normAdm && (t.admNo || t.regCode || "").trim().toUpperCase() === normAdm))) {
+            return prev;
+          }
+          return [...prev, newTrainee];
+        });
+      }
+    };
+    window.addEventListener("mtti-trainees-updated", handleTraineeUpdated);
+    return () => window.removeEventListener("mtti-trainees-updated", handleTraineeUpdated);
+  }, []);
+
   useEffect(() => {
     localStorage.setItem("mtti_uploads", JSON.stringify(uploads));
   }, [uploads]);

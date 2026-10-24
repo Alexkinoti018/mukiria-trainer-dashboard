@@ -31,6 +31,7 @@ import {
 import { useExam, sanitizeExamForStudent, generateSubmissionHash } from "@/contexts/ExamContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
+import { syncExamSubmissionToAssessmentRegister } from "@/lib/attendanceStorage";
 import { MOCK_EXAMS } from "@/lib/mockData";
 import { evaluateExamPortalAvailability, type Exam, type Submission } from "@/lib/supabase";
 import { getCanonicalAssessmentTitle } from "@/lib/assessmentTaxonomy";
@@ -682,6 +683,23 @@ export default function CandidatePortal() {
         submitExam(payload);
 
         const nowIso = new Date().toISOString();
+
+        // 0. Automatically link online exam submission with Assessment Attendance Register (CUR/03)
+        // Marks register as 'attended' and automatically enrolls candidate if missing from institutional roster
+        const cleanExamTitle = (exam.payload as any)?.title || exam.course_name || "Written Assessment 1";
+        const cohortToSync = verifiedCohort || student.cohortCode || user?.cohort_code || "ICT4/ITECH6/S/26 MOD 1";
+
+        syncExamSubmissionToAssessmentRegister({
+          studentName: student.name.trim(),
+          regNumber: regNo,
+          classCode: cohortToSync,
+          cohortCode: cohortToSync,
+          unitCode: exam.unit_code,
+          examId: exam.id,
+          examTitle: cleanExamTitle,
+          assessmentType: cleanExamTitle,
+          submittedAt: nowIso,
+        });
         const seal = generateSubmissionHash(regNo, exam.unit_code, nowIso, sectionAPayload.length + sectionBPayload.length);
         setLockedSubmission({
           ...payload,

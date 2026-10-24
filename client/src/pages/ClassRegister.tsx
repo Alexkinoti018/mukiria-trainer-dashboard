@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTrainees, OFFICIAL_MTTI_TRAINEES, getTraineesForClass } from "@/contexts/TraineeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useExam } from "@/contexts/ExamContext";
 import { getStoredRecordsOfWork, saveStoredRecordsOfWork } from "@/lib/mockSessionPlans";
 import WorkshopDoorQRModal from "@/components/WorkshopDoorQRModal";
 import AttendanceQuickMarkModal from "@/components/AttendanceQuickMarkModal";
@@ -221,6 +222,8 @@ const AttendanceRow = React.memo(function AttendanceRow({
 export default function ClassRegister() {
   const { trainees, addTrainee, updateTrainee, deleteTrainee, refreshRoster } = useTrainees();
   const { user } = useAuth();
+  const { exams, submissions } = useExam();
+  const [selectedAssessmentType, setSelectedAssessmentType] = useState<string>("Written Assessment 1");
   const [location] = useLocation();
   const canEditRegister = user?.role === "trainer" || user?.role === "admin" || user?.role === "hod";
   const isTraineeViewer = user?.role === "trainee";
@@ -298,6 +301,16 @@ export default function ClassRegister() {
   });
 
   // Form Metadata
+  // Synchronize active assessment type with metadata when in CUR/03 mode
+  useEffect(() => {
+    if (formMode === "CUR/03") {
+      setMetadata(prev => ({
+        ...prev,
+        assessmentType: selectedAssessmentType,
+      }));
+    }
+  }, [selectedAssessmentType, formMode]);
+
   const activeClassConfig = useMemo(() => {
     return dynamicClasses.find(c => c.code === selectedClassCode) || dynamicClasses[0] || MTTI_CLASSES[0];
   }, [dynamicClasses, selectedClassCode]);
@@ -429,10 +442,71 @@ export default function ClassRegister() {
     return getTraineesForClass(trainees, selectedClassCode);
   }, [trainees, selectedClassCode]);
 
+  // Augment class trainees with any candidates who submitted online exams or are logged in assessment attendance
+  const augmentedClassTrainees = useMemo(() => {
+    const list = [...classTrainees];
+    const existingAdmNos = new Set(list.map(t => (t.admNo || t.regCode || "").trim().toUpperCase()));
+    const existingNames = new Set(list.map(t => (t.name || "").trim().toLowerCase()));
+
+    // 1. Check allSubmissions for candidates who submitted an exam for this unit/cohort or assessment
+    submissions.forEach((sub: any) => {
+      const subAdm = (sub.reg_number || "").trim().toUpperCase();
+      const subName = (sub.student_name || "").trim();
+      if (!subAdm && !subName) return;
+
+      if (!existingAdmNos.has(subAdm) && !existingNames.has(subName.toLowerCase())) {
+        existingAdmNos.add(subAdm);
+        existingNames.add(subName.toLowerCase());
+        list.push({
+          id: sub.trainee_id || `tr_sub_${subAdm.replace(/[^A-Z0-9]/g, "_") || Date.now()}`,
+          name: subName || `Candidate (${subAdm})`,
+          admNo: subAdm,
+          regCode: subAdm,
+          classCode: selectedClassCode,
+          department: activeClassConfig.department,
+          gender: "M",
+          remarks: "Auto-enrolled via online exam submission",
+        });
+      }
+    });
+
+    // 2. Also check dedicated exam attendance register log in localStorage
+    if (typeof localStorage !== "undefined") {
+      try {
+        const canonical = canonicalizeCohortCode(selectedClassCode);
+        const examLogKey = `mtti_exam_attendance_${canonical}_${selectedAssessmentType.replace(/[^a-zA-Z0-9]/g, "_")}`;
+        const raw = localStorage.getItem(examLogKey);
+        if (raw) {
+          const log = JSON.parse(raw);
+          Object.values(log).forEach((entry: any) => {
+            const entryAdm = (entry.admNo || "").trim().toUpperCase();
+            const entryName = (entry.name || "").trim();
+            if (entryAdm && !existingAdmNos.has(entryAdm) && !existingNames.has(entryName.toLowerCase())) {
+              existingAdmNos.add(entryAdm);
+              existingNames.add(entryName.toLowerCase());
+              list.push({
+                id: `tr_log_${entryAdm.replace(/[^A-Z0-9]/g, "_")}`,
+                name: entryName || `Candidate (${entryAdm})`,
+                admNo: entryAdm,
+                regCode: entryAdm,
+                classCode: selectedClassCode,
+                department: activeClassConfig.department,
+                gender: "M",
+                remarks: "Auto-enrolled from assessment submission log",
+              });
+            }
+          });
+        }
+      } catch (e) {}
+    }
+
+    return list;
+  }, [classTrainees, submissions, selectedClassCode, activeClassConfig, selectedAssessmentType]);
+
   // Confidential Trainee Access View: Trainee viewers strictly see ONLY their own record
   const displayedTrainees = useMemo(() => {
-    if (!isTraineeViewer) return classTrainees;
-    const mine = classTrainees.filter((t) => {
+    if (!isTraineeViewer) return augmentedClassTrainees;
+    const mine = augmentedClassTrainees.filter((t) => {
       const matchAdm = Boolean(t.admNo && user?.reg_number && t.admNo.trim().toUpperCase() === user.reg_number.trim().toUpperCase());
       const matchReg = Boolean(t.regCode && user?.reg_number && t.regCode.trim().toUpperCase() === user.reg_number.trim().toUpperCase());
       const matchName = Boolean(t.name && user?.name && t.name.trim().toLowerCase() === user.name.trim().toLowerCase());
@@ -451,7 +525,7 @@ export default function ClassRegister() {
         gender: "M" as const,
       }
     ];
-  }, [isTraineeViewer, classTrainees, user, selectedClassCode, activeClassConfig]);
+  }, [isTraineeViewer, augmentedClassTrainees, user, selectedClassCode, activeClassConfig]);
 
   // Student CRUD Handlers
   const handleOpenAddStudent = () => {
@@ -1105,6 +1179,23 @@ export default function ClassRegister() {
             >
               CUR/03: Assessment Attendance
             </button>
+            {formMode === "CUR/03" && (
+              <div className="flex items-center gap-1.5 ml-2">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase">Exam:</span>
+                <select
+                  value={selectedAssessmentType}
+                  onChange={(e) => setSelectedAssessmentType(e.target.value)}
+                  className="text-xs font-bold bg-background border border-border rounded-md px-2 py-1 focus:ring-1 focus:ring-ring text-foreground shadow-sm"
+                >
+                  <option value="Written Assessment 1">Written Assessment 1</option>
+                  <option value="Written Assessment 2">Written Assessment 2</option>
+                  <option value="Written Assessment 3">Written Assessment 3</option>
+                  <option value="Continuous Assessment Test 1 (CAT 1)">CAT 1 - Manage Devices</option>
+                  <option value="Continuous Assessment Test 2 (CAT 2)">CAT 2 - Desktop Settings</option>
+                  <option value="Continuous Assessment Test 3 (CAT 3)">CAT 3 - File Management</option>
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -1528,8 +1619,25 @@ export default function ClassRegister() {
                 <span className="border-b border-dotted border-black flex-1 px-1 uppercase">{metadata.subject}</span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="whitespace-nowrap">TYPE OF ASSESSMENT:</span>
-                <span className="border-b border-dotted border-black flex-1 px-1 uppercase">{metadata.assessmentType}</span>
+                <span className="whitespace-nowrap font-bold">TYPE OF ASSESSMENT:</span>
+                <div className="border-b border-dotted border-black flex-1 px-1 uppercase font-bold flex items-center justify-between">
+                  <span>{selectedAssessmentType || metadata.assessmentType}</span>
+                  {canEditRegister && (
+                    <select
+                      value={selectedAssessmentType}
+                      onChange={(e) => setSelectedAssessmentType(e.target.value)}
+                      className="text-[11px] font-semibold bg-transparent border-none focus:outline-none print:hidden cursor-pointer text-muted-foreground hover:text-black ml-2"
+                      title="Switch active assessment"
+                    >
+                      <option value="Written Assessment 1">Written Assessment 1</option>
+                      <option value="Written Assessment 2">Written Assessment 2</option>
+                      <option value="Written Assessment 3">Written Assessment 3</option>
+                      <option value="Continuous Assessment Test 1 (CAT 1)">CAT 1 (Manage Devices)</option>
+                      <option value="Continuous Assessment Test 2 (CAT 2)">CAT 2 (Desktop Settings)</option>
+                      <option value="Continuous Assessment Test 3 (CAT 3)">CAT 3 (File Management)</option>
+                    </select>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1549,7 +1657,56 @@ export default function ClassRegister() {
                 </thead>
                 <tbody>
                   {displayedTrainees.map((trainee, idx) => {
-                    const isSigned = attendanceData[trainee.id]?.signed ?? false;
+                    const tAdm = (trainee.admNo || trainee.regCode || "").trim().toUpperCase();
+                    const tName = (trainee.name || "").trim().toLowerCase();
+
+                    // Check if trainee has an online submission for this assessment
+                    const hasOnlineExamSubmission = submissions.some((sub: any) => {
+                      const subAdm = (sub.reg_number || "").trim().toUpperCase();
+                      const subName = (sub.student_name || "").trim().toLowerCase();
+                      const matchesCandidate = (tAdm && subAdm === tAdm) || (tName && subName === tName);
+                      if (!matchesCandidate) return false;
+
+                      const subExam = exams.find(e => e.id === sub.exam_id);
+                      const subExamTitle = ((subExam?.payload as any)?.title || subExam?.course_name || "").toLowerCase();
+                      const currentAssessmentLower = selectedAssessmentType.toLowerCase();
+
+                      if (currentAssessmentLower.includes("written assessment 1")) {
+                        return subExamTitle.includes("assessment 1") || subExamTitle.includes("written 1") || !sub.exam_id;
+                      }
+                      if (currentAssessmentLower.includes("written assessment 2")) {
+                        return subExamTitle.includes("assessment 2") || subExamTitle.includes("written 2");
+                      }
+                      if (currentAssessmentLower.includes("written assessment 3")) {
+                        return subExamTitle.includes("assessment 3") || subExamTitle.includes("written 3");
+                      }
+                      if (currentAssessmentLower.includes("cat 1")) {
+                        return subExamTitle.includes("cat 1") || subExamTitle.includes("devices");
+                      }
+                      if (currentAssessmentLower.includes("cat 2")) {
+                        return subExamTitle.includes("cat 2") || subExamTitle.includes("desktop");
+                      }
+                      if (currentAssessmentLower.includes("cat 3")) {
+                        return subExamTitle.includes("cat 3") || subExamTitle.includes("file");
+                      }
+                      return true;
+                    });
+
+                    // Check dedicated assessment attendance log
+                    let isAttendedInExamLog = false;
+                    if (typeof localStorage !== "undefined") {
+                      try {
+                        const canonical = canonicalizeCohortCode(selectedClassCode);
+                        const examLogKey = `mtti_exam_attendance_${canonical}_${selectedAssessmentType.replace(/[^a-zA-Z0-9]/g, "_")}`;
+                        const raw = localStorage.getItem(examLogKey);
+                        if (raw) {
+                          const log = JSON.parse(raw);
+                          if (log[tAdm] && log[tAdm].signed) isAttendedInExamLog = true;
+                        }
+                      } catch (e) {}
+                    }
+
+                    const isSigned = attendanceData[trainee.id]?.signed || hasOnlineExamSubmission || isAttendedInExamLog;
                     const isOwnRecord =
                       user?.role === "trainee" &&
                       (trainee.id === user.id ||

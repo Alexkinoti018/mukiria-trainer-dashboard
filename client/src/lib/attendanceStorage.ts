@@ -9,6 +9,8 @@ export type AttendanceStatus = "X" | "0" | "E" | "";
 export interface StudentAttendanceRecord {
   attendance: Record<string, AttendanceStatus>; // key: "W{week}_S{session}"
   signed?: boolean;
+  assessmentType?: string;
+  assessmentDate?: string;
 }
 
 /**
@@ -89,6 +91,8 @@ export function loadClassAttendanceRegister(classCode: string): Record<string, S
               merged[studentId] = {
                 attendance: {},
                 signed: rec?.signed ?? false,
+                assessmentType: rec?.assessmentType,
+                assessmentDate: rec?.assessmentDate,
               };
             }
             if (rec?.attendance && typeof rec.attendance === "object") {
@@ -110,6 +114,12 @@ export function loadClassAttendanceRegister(classCode: string): Record<string, S
             }
             if (rec?.signed !== undefined) {
               merged[studentId].signed = merged[studentId].signed || rec.signed;
+            }
+            if (rec?.assessmentType) {
+              merged[studentId].assessmentType = rec.assessmentType;
+            }
+            if (rec?.assessmentDate) {
+              merged[studentId].assessmentDate = rec.assessmentDate;
             }
           }
         }
@@ -184,4 +194,180 @@ export function applyRollCallToRegister(
   }
 
   return currentRegister;
+}
+
+export interface ExamAttendanceSyncParams {
+  studentName: string;
+  regNumber: string;
+  classCode?: string;
+  cohortCode?: string;
+  unitCode?: string;
+  examId?: string;
+  examTitle?: string;
+  assessmentType?: string;
+  submittedAt?: string;
+}
+
+export interface ExamAttendanceSyncResult {
+  marked: boolean;
+  traineeAdded: boolean;
+  traineeId: string;
+  assessmentType: string;
+  classCode: string;
+}
+
+/**
+ * Links online exam submissions directly with the Assessment Attendance Register (CUR/03).
+ * When a trainee submits an online exam:
+ * 1. Automatically marks their signature cell as 'attended' (signed = true).
+ * 2. Checks if the candidate is missing from the institutional roster and adds them.
+ * 3. Records the specific type of assessment (e.g., Written Assessment 1, Written Assessment 2, etc.).
+ * 4. Persists the update and dispatches global event listeners.
+ */
+export function syncExamSubmissionToAssessmentRegister(params: ExamAttendanceSyncParams): ExamAttendanceSyncResult {
+  const normAdm = (params.regNumber || "").trim().toUpperCase();
+  const cleanName = (params.studentName || "").trim();
+  const rawCohort = (params.classCode || params.cohortCode || "").trim();
+
+  // 1. Resolve canonical cohort
+  let canonicalCohort = rawCohort;
+  if (!canonicalCohort || canonicalCohort === "all") {
+    const unitUpper = (params.unitCode || "").toUpperCase();
+    if (unitUpper.includes("061155101A") || unitUpper.includes("ICT")) {
+      canonicalCohort = "ICT4/ITECH6/S/26 MOD 1";
+    } else if (unitUpper.includes("ADMIN")) {
+      canonicalCohort = "ADMIN5/6/J/26 MOD 3";
+    } else {
+      canonicalCohort = "FBS 5 MOD/J/2026";
+    }
+  }
+
+  // 2. Resolve clean Assessment Type (e.g., "Written Assessment 1", "Written Assessment 2", etc.)
+  let assessmentType = params.assessmentType || params.examTitle || "Written Assessment 1";
+  const lowerTitle = assessmentType.toLowerCase();
+  if (lowerTitle.includes("written assessment 1")) {
+    assessmentType = "Written Assessment 1";
+  } else if (lowerTitle.includes("written assessment 2")) {
+    assessmentType = "Written Assessment 2";
+  } else if (lowerTitle.includes("written assessment 3")) {
+    assessmentType = "Written Assessment 3";
+  } else if (lowerTitle.includes("cat 1")) {
+    assessmentType = "Continuous Assessment Test 1 (CAT 1)";
+  } else if (lowerTitle.includes("cat 2")) {
+    assessmentType = "Continuous Assessment Test 2 (CAT 2)";
+  } else if (lowerTitle.includes("cat 3")) {
+    assessmentType = "Continuous Assessment Test 3 (CAT 3)";
+  }
+
+  // 3. Ensure candidate is present in active trainee roster (mtti_trainees)
+  let traineeId = `tr_${normAdm.replace(/[^A-Z0-9]/g, "_") || Date.now()}`;
+  let traineeAdded = false;
+
+  if (typeof localStorage !== "undefined") {
+    try {
+      const storedTraineesRaw = localStorage.getItem("mtti_trainees");
+      let traineesList: any[] = storedTraineesRaw ? JSON.parse(storedTraineesRaw) : [];
+      if (!Array.isArray(traineesList)) traineesList = [];
+
+      const existingIdx = traineesList.findIndex((t: any) => {
+        const tAdm = (t.admNo || t.regCode || t.reg_number || "").trim().toUpperCase();
+        const tName = (t.name || "").trim().toLowerCase();
+        return (
+          tAdm === normAdm ||
+          (normAdm.length >= 4 && tAdm.includes(normAdm)) ||
+          (cleanName.length >= 4 && tName === cleanName.toLowerCase())
+        );
+      });
+
+      if (existingIdx >= 0) {
+        traineeId = traineesList[existingIdx].id || traineeId;
+        if (!traineesList[existingIdx].classCode && canonicalCohort) {
+          traineesList[existingIdx].classCode = canonicalCohort;
+          localStorage.setItem("mtti_trainees", JSON.stringify(traineesList));
+        }
+      } else if (normAdm && cleanName) {
+        // Candidate is missing from roster -> automatically enroll candidate
+        const newCandidate = {
+          id: traineeId,
+          admNo: normAdm,
+          regCode: normAdm,
+          reg_number: normAdm,
+          name: cleanName,
+          classCode: canonicalCohort,
+          department: canonicalCohort.includes("FBS") ? "Hospitality & Institutional Management" : "Computing & Informatics",
+          gender: "M",
+          remarks: `Auto-enrolled via online ${assessmentType} submission`,
+          created_at: new Date().toISOString(),
+        };
+        traineesList.push(newCandidate);
+        localStorage.setItem("mtti_trainees", JSON.stringify(traineesList));
+        traineeAdded = true;
+
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("mtti-trainees-updated", { detail: newCandidate }));
+        }
+
+        fetch("/api/trainees", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newCandidate),
+        }).catch(() => {});
+      }
+    } catch (e) {
+      console.warn("syncExamSubmissionToAssessmentRegister trainee error:", e);
+    }
+  }
+
+  // 4. Update CUR/03 Assessment Attendance Register
+  const register = loadClassAttendanceRegister(canonicalCohort);
+  const currentRecord = register[traineeId] || { attendance: {} };
+
+  register[traineeId] = {
+    ...currentRecord,
+    signed: true, // Marked 'attended'!
+    assessmentType,
+    assessmentDate: new Date(params.submittedAt || Date.now()).toLocaleDateString("en-GB"),
+  };
+
+  saveClassAttendanceRegister(canonicalCohort, register);
+
+  // 5. Also persist dedicated assessment attendance map
+  if (typeof localStorage !== "undefined") {
+    try {
+      const examLogKey = `mtti_exam_attendance_${canonicalCohort}_${assessmentType.replace(/[^a-zA-Z0-9]/g, "_")}`;
+      const existingExamAttRaw = localStorage.getItem(examLogKey);
+      const existingExamAtt: Record<string, { signed: boolean; name: string; admNo: string; date: string }> =
+        existingExamAttRaw ? JSON.parse(existingExamAttRaw) : {};
+
+      existingExamAtt[normAdm] = {
+        signed: true,
+        name: cleanName,
+        admNo: normAdm,
+        date: new Date(params.submittedAt || Date.now()).toISOString(),
+      };
+      localStorage.setItem(examLogKey, JSON.stringify(existingExamAtt));
+    } catch (e) {}
+  }
+
+  // 6. Broadcast reactive event to re-render open class registers
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("mtti-attendance-updated", {
+        detail: {
+          classCode: canonicalCohort,
+          traineeId,
+          assessmentType,
+          signed: true,
+        },
+      })
+    );
+  }
+
+  return {
+    marked: true,
+    traineeAdded,
+    traineeId,
+    assessmentType,
+    classCode: canonicalCohort,
+  };
 }
