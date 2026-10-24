@@ -433,81 +433,79 @@ describe("MTTI Institutional Class Register (CUR/02 & CUR/03) Suite", () => {
     });
   });
 
-  // ─── 5. RESET ROSTER [↺] BUTTON VERIFICATION ─────────────────────────────────
-  describe("5. Reset Roster [↺] (handleReset & resetToOfficialRoster) Verification", () => {
-    it("should reset corrupted/modified trainee roster back to OFFICIAL_MTTI_TRAINEES in localStorage", () => {
-      // 1. Inject a corrupted/mock student into localStorage
-      const mockTrainee: Trainee = {
-        id: "tr_mock_phantom_99",
-        name: "Phantom Mock Student",
-        regCode: "MOCK/9999/2026",
-        admNo: "9999",
+  // ─── 5. ZERO-DATA-LOSS ROSTER SYNCHRONIZATION VERIFICATION ─────────────────
+  describe("5. Zero-Data-Loss Roster Synchronization (handleSyncCloudRoster & refreshRoster) Verification", () => {
+    it("should preserve newly added candidate records alongside official trainees without destructive local reset truncation", () => {
+      // 1. Inject a newly registered candidate into localStorage / active roster
+      const newTrainee: Trainee = {
+        id: "tr_new_candidate_2026",
+        name: "Faith Mwende New Candidate",
+        regCode: "FBS/13299/2026",
+        admNo: "13299",
         classCode: "FBS 5 MOD/J/2026",
         department: "FBS Hospitality",
       };
 
-      const contaminatedRoster = [...OFFICIAL_MTTI_TRAINEES, mockTrainee];
-      localStorage.setItem("mtti_trainees", JSON.stringify(contaminatedRoster));
+      const rosterWithNewCandidate = [...OFFICIAL_MTTI_TRAINEES, newTrainee];
+      localStorage.setItem("mtti_trainees", JSON.stringify(rosterWithNewCandidate));
 
-      // Verify contamination is present in storage
+      // Verify new candidate is present in storage
       const savedBefore = JSON.parse(localStorage.getItem("mtti_trainees") || "[]");
-      expect(savedBefore.some((t: Trainee) => t.id === "tr_mock_phantom_99")).toBe(true);
+      expect(savedBefore.some((t: Trainee) => t.id === "tr_new_candidate_2026")).toBe(true);
       expect(savedBefore.length).toBe(OFFICIAL_MTTI_TRAINEES.length + 1);
 
-      // 2. Execute resetToOfficialRoster logic (exactly as invoked by the [↺] button)
-      localStorage.setItem("mtti_trainees", JSON.stringify(OFFICIAL_MTTI_TRAINEES));
+      // 2. Execute non-destructive synchronization logic (never wipes newly added candidates)
+      const map = new Map<string, Trainee>();
+      OFFICIAL_MTTI_TRAINEES.forEach(ot => map.set(ot.id, ot));
+      savedBefore.forEach((t: Trainee) => map.set(t.id, t));
+      const synchronizedRoster = Array.from(map.values());
+      localStorage.setItem("mtti_trainees", JSON.stringify(synchronizedRoster));
 
-      // 3. Verify that mock student is completely purged and exact official roster is restored
+      // 3. Verify that new candidate is strictly retained and zero data loss occurs
       const savedAfter = JSON.parse(localStorage.getItem("mtti_trainees") || "[]");
-      expect(savedAfter.some((t: Trainee) => t.id === "tr_mock_phantom_99")).toBe(false);
-      expect(savedAfter.length).toBe(OFFICIAL_MTTI_TRAINEES.length);
+      expect(savedAfter.some((t: Trainee) => t.id === "tr_new_candidate_2026")).toBe(true);
+      expect(savedAfter.length).toBe(OFFICIAL_MTTI_TRAINEES.length + 1);
 
-      // Verify key institutional cohorts retain exact official trainee counts
+      // Verify key institutional cohorts retain official trainee counts plus the new candidate
       const fbsAfter = savedAfter.filter((t: Trainee) => t.classCode === "FBS 5 MOD/J/2026");
-      expect(fbsAfter.length).toBeGreaterThanOrEqual(20);
+      expect(fbsAfter.length).toBeGreaterThanOrEqual(21);
       expect(fbsAfter.some((t: Trainee) => t.admNo === "13258")).toBe(true); // Faith Mwende
+      expect(fbsAfter.some((t: Trainee) => t.admNo === "13299")).toBe(true); // New Candidate
     });
 
-    it("should reject reset action when caller does not possess canEditRegister permissions", () => {
-      let resetExecuted = false;
+    it("should reject roster synchronization action when caller does not possess canEditRegister permissions", () => {
+      let syncExecuted = false;
       const canEditRegister = false; // Trainee / unauthorized viewer
 
-      const handleReset = (allowed: boolean) => {
+      const handleSyncCloudRoster = (allowed: boolean) => {
         if (!allowed) {
-          return { success: false, error: "Forbidden: Only assigned trainers, HODs, and administrators can reset roster." };
+          return { success: false, error: "Forbidden: Only assigned trainers, HODs, and administrators can synchronize roster." };
         }
-        resetExecuted = true;
+        syncExecuted = true;
         return { success: true };
       };
 
-      const result = handleReset(canEditRegister);
+      const result = handleSyncCloudRoster(canEditRegister);
       expect(result.success).toBe(false);
       expect(result.error).toContain("Forbidden");
-      expect(resetExecuted).toBe(false);
+      expect(syncExecuted).toBe(false);
     });
 
-    it("should abort reset when user declines/cancels confirmation dialog", () => {
-      let resetExecuted = false;
+    it("should allow roster synchronization when caller possesses canEditRegister permissions", () => {
+      let syncExecuted = false;
       const canEditRegister = true;
 
-      const handleResetWithConfirm = (userConfirmed: boolean) => {
-        if (!canEditRegister) return false;
-        if (userConfirmed) {
-          resetExecuted = true;
-          return true;
+      const handleSyncCloudRoster = (allowed: boolean) => {
+        if (!allowed) {
+          return { success: false, error: "Forbidden" };
         }
-        return false;
+        syncExecuted = true;
+        return { success: true };
       };
 
-      // User clicks Cancel on confirm dialog
-      const cancelled = handleResetWithConfirm(false);
-      expect(cancelled).toBe(false);
-      expect(resetExecuted).toBe(false);
-
-      // User clicks OK on confirm dialog
-      const confirmed = handleResetWithConfirm(true);
-      expect(confirmed).toBe(true);
-      expect(resetExecuted).toBe(true);
+      const result = handleSyncCloudRoster(canEditRegister);
+      expect(result.success).toBe(true);
+      expect(syncExecuted).toBe(true);
     });
   });
 });

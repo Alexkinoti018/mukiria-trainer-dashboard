@@ -52,12 +52,13 @@ interface TraineeContextType {
   addTrainee: (trainee: Omit<Trainee, "id">) => Trainee;
   updateTrainee: (id: string, updates: Partial<Trainee>) => void;
   deleteTrainee: (id: string) => void;
+  refreshRoster: () => Promise<void>;
+  resetToOfficialRoster: () => void;
   recordUpload: (upload: Partial<Upload> & Pick<Upload, "traineeId" | "student_name" | "filename" | "uploadType">) => void;
   updateUploadGrade: (uploadId: string, grade: number, comments: string) => void;
   verifyUpload: (uploadId: string, trainerName?: string) => void;
   awardUploadMark: (uploadId: string, params: { grade: number; comments: string; taskCode: string; unitOfferingId?: string; trainerName?: string }) => void;
   deleteUpload: (uploadId: string, callerRole?: string) => boolean;
-  resetToOfficialRoster: () => void;
 }
 
 // Official Trainees Transcribed from MTTI Institutional Registers (MTTI/REG/CUR/02 & CUR/03)
@@ -751,66 +752,29 @@ export function getTraineesForClass(allTrainees: Trainee[], selectedClassCode: s
 const TraineeContext = createContext<TraineeContextType | undefined>(undefined);
 
 export function TraineeProvider({ children }: { children: ReactNode }) {
-  // Initialize from localStorage or fallback to official roster (with automatic cleanup of phantom candidates)
+  // Initialize from localStorage or fallback to official roster (guaranteeing zero data loss)
   const [trainees, setTrainees] = useState<Trainee[]>(() => {
-    const versionKey = "mtti_roster_version_v10";
-    const currentVersion = localStorage.getItem(versionKey);
-    const saved = localStorage.getItem("mtti_trainees");
+    const saved = typeof localStorage !== "undefined" ? localStorage.getItem("mtti_trainees") : null;
 
-    if (currentVersion === "v10" && saved) {
+    if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 10) {
-          // Strictly filter out phantom candidates and pulled down cohort FBS6 MOD/12026
-          const filtered = parsed.filter((t: Trainee) => {
-            if (t.id === "tr_it6_12" || t.id === "tr_it6_13") return false;
-            if (t.name === "LUCKYSUSAN KIANJIRU MUGO") return false;
-            if (t.admNo === "10525" && t.classCode === "ICT4/ITECH6/S/26 MOD 1") return false;
-            if (t.name === "Harriet Mwendwa" && t.classCode === "ICT4/ITECH6/S/26 MOD 1") return false;
-            // Pull down cohort FBS6 MOD/12026
-            if (t.classCode === "FBS6 MOD/12026" || t.classCode?.includes("12026") || t.id?.startsWith("tr_fbs6")) return false;
-            return true;
-          });
-
-          // Ensure any newly added official trainees are retained
-          const existingIds = new Set(filtered.map((t: Trainee) => t.id));
-          const existingAdms = new Set(filtered.map((t: Trainee) => (t.admNo || "").trim().toUpperCase()));
-          const missingOfficial = OFFICIAL_MTTI_TRAINEES.filter(
-            (ot) => !existingIds.has(ot.id) && !existingAdms.has((ot.admNo || "").trim().toUpperCase())
-          );
-          const merged = [...filtered, ...missingOfficial];
-
-          return merged.map((t: Trainee) => {
-            // Guarantee un-mixed authentic class codes
-            let classCode = t.classCode;
-            if (t.id.startsWith("tr_it4") || (t.regCode && t.regCode.includes("ICT4"))) {
-              classCode = "ICT4 MOD/S/2026";
-            } else if (t.id.startsWith("tr_it6") || (t.regCode && t.regCode.includes("ITECH 6"))) {
-              classCode = "ITECH 6 MODULAR/S/2026";
-            } else if (t.id.startsWith("tr_it5") || (t.regCode && t.regCode.includes("ITECH 5"))) {
-              classCode = "ITECH 5 MODULAR/S/2026";
-            } else if (t.id.startsWith("tr_adm") || classCode.includes("ADMIN")) {
-              classCode = "ADMIN5/6/J/26 MOD 3";
-            } else if (t.id.startsWith("tr_fbs") || classCode.includes("FBS")) {
-              classCode = "FBS 5 MOD/J/2026";
-            } else if (t.id.startsWith("tr_ls") || classCode.includes("LS")) {
-              classCode = "LS5/6/S/26";
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Strictly preserve every candidate in parsed, while ensuring official baselines are present
+          const map = new Map<string, Trainee>();
+          OFFICIAL_MTTI_TRAINEES.forEach((ot) => map.set(ot.id, ot));
+          parsed.forEach((t: Trainee) => {
+            if (t && t.id) {
+              map.set(t.id, t);
             }
-            const name = t.admNo === "12265" || t.id === "tr_fbs5_22" ? "Eugene Murimi" : t.name;
-            return {
-              ...t,
-              name,
-              classCode,
-              admNo: t.admNo?.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD)\//i, "") || t.admNo
-            };
           });
+          return Array.from(map.values());
         }
-      } catch {}
+      } catch (e) {
+        console.warn("Could not parse cached mtti_trainees:", e);
+      }
     }
 
-    // Default to clean official roster and mark version
-    localStorage.setItem(versionKey, "v10");
-    localStorage.setItem("mtti_trainees", JSON.stringify(OFFICIAL_MTTI_TRAINEES));
     return OFFICIAL_MTTI_TRAINEES;
   });
 
@@ -849,65 +813,85 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("mtti_trainees", JSON.stringify(trainees));
   }, [trainees]);
 
-  // Rehydrate from backend API / PostgreSQL on mount
-  useEffect(() => {
-    fetch("/api/trainees")
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          setTrainees(prev => {
-            const existingMap = new Map<string, Trainee>();
-            prev.forEach(t => existingMap.set(t.id, t));
-            data.data.forEach((incoming: any) => {
-              const mapped: Trainee = {
-                id: incoming.id,
-                name: incoming.name,
-                regCode: incoming.reg_code || incoming.adm_no || incoming.reg_number,
-                admNo: incoming.adm_no || incoming.reg_number,
-                classCode: incoming.class_code || incoming.class_id || "ICT4/ITECH6/S/26 MOD 1",
-                department: incoming.department,
-                gender: incoming.gender,
-                phone: incoming.phone,
-                remarks: incoming.remarks,
-              };
-              existingMap.set(mapped.id, mapped);
-            });
-            const merged = Array.from(existingMap.values());
-            localStorage.setItem("mtti_trainees", JSON.stringify(merged));
-            return merged;
-          });
+  // Synchronize with live Supabase cloud database & API
+  const refreshRoster = async () => {
+    try {
+      let remoteTrainees: any[] = [];
+
+      // 1. Direct Supabase Cloud Database Query
+      if (isSupabaseConfigured()) {
+        try {
+          const { data, error } = await (supabase as any).from("trainees").select("*");
+          if (!error && Array.isArray(data) && data.length > 0) {
+            remoteTrainees = data;
+          }
+        } catch (e) {
+          console.warn("Supabase direct query notice:", e);
         }
-      })
-      .catch(e => console.warn("Could not fetch remote trainees:", e));
+      }
+
+      // 2. Centralized REST Fallback
+      if (remoteTrainees.length === 0) {
+        try {
+          const res = await fetch("/api/trainees");
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            remoteTrainees = json.data;
+          }
+        } catch (e) {
+          console.warn("API trainees query notice:", e);
+        }
+      }
+
+      if (remoteTrainees.length > 0) {
+        setTrainees(prev => {
+          const map = new Map<string, Trainee>();
+          // Preserve all existing candidates in memory
+          prev.forEach(t => map.set(t.id, t));
+          // Overlay remote authoritative database state
+          remoteTrainees.forEach((incoming: any) => {
+            const mapped: Trainee = {
+              id: incoming.id,
+              name: incoming.name,
+              regCode: incoming.reg_code || incoming.adm_no || incoming.reg_number,
+              admNo: incoming.adm_no || incoming.reg_number,
+              classCode: incoming.class_code || incoming.class_id || "ICT4/ITECH6/S/26 MOD 1",
+              department: incoming.department || "Computing & Informatics",
+              gender: incoming.gender || "M",
+              phone: incoming.phone || "",
+              email: incoming.email,
+              remarks: incoming.remarks || "",
+            };
+            map.set(mapped.id, mapped);
+          });
+          const merged = Array.from(map.values());
+          localStorage.setItem("mtti_trainees", JSON.stringify(merged));
+          return merged;
+        });
+      }
+    } catch (e) {
+      console.warn("Could not refresh remote trainees:", e);
+    }
+  };
+
+  // Rehydrate from cloud database / API on mount
+  useEffect(() => {
+    refreshRoster();
   }, []);
 
   useEffect(() => {
     localStorage.setItem("mtti_uploads", JSON.stringify(uploads));
   }, [uploads]);
 
+  // Non-destructive synchronization: Refreshes from live cloud database instead of wiping newly added candidates
   const resetToOfficialRoster = () => {
-    setTrainees(OFFICIAL_MTTI_TRAINEES);
-    localStorage.setItem("mtti_trainees", JSON.stringify(OFFICIAL_MTTI_TRAINEES));
+    refreshRoster();
   };
 
   const registerTrainee = (newTrainee: Omit<Trainee, "id">) => {
     const existing = trainees.find(t => t.regCode === newTrainee.regCode);
     if (existing) return existing;
-
-    const trainee: Trainee = {
-      ...newTrainee,
-      id: `tr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    };
-    setTrainees(prev => [...prev, trainee]);
-
-    // Persist to backend API & PostgreSQL
-    fetch("/api/trainees", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(trainee),
-    }).catch(err => console.warn("Backend trainee persist warning:", err));
-
-    return trainee;
+    return addTrainee(newTrainee);
   };
 
   const addTrainee = (newTrainee: Omit<Trainee, "id">) => {
@@ -917,7 +901,25 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
     };
     setTrainees(prev => [trainee, ...prev]);
 
-    // Persist to backend API & PostgreSQL
+    // 1. Direct Supabase Cloud Database Upsert
+    if (isSupabaseConfigured()) {
+      (supabase as any).from("trainees").upsert({
+        id: trainee.id,
+        name: trainee.name,
+        adm_no: trainee.admNo,
+        reg_number: trainee.admNo,
+        reg_code: trainee.regCode,
+        class_code: trainee.classCode,
+        department: trainee.department,
+        gender: trainee.gender,
+        phone: trainee.phone,
+        remarks: trainee.remarks,
+      }).then(({ error }: any) => {
+        if (error) console.warn("Supabase trainee upsert notice:", error.message);
+      });
+    }
+
+    // 2. Persist to backend API & PostgreSQL
     fetch("/api/trainees", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -931,10 +933,46 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
     setTrainees(prev =>
       prev.map(t => (t.id === id ? { ...t, ...updates } : t))
     );
+
+    // 1. Direct Supabase Cloud Database Update
+    if (isSupabaseConfigured()) {
+      (supabase as any).from("trainees").update({
+        name: updates.name,
+        adm_no: updates.admNo,
+        reg_number: updates.admNo,
+        reg_code: updates.regCode,
+        class_code: updates.classCode,
+        department: updates.department,
+        gender: updates.gender,
+        phone: updates.phone,
+        remarks: updates.remarks,
+      }).eq("id", id).then(({ error }: any) => {
+        if (error) console.warn("Supabase trainee update notice:", error.message);
+      });
+    }
+
+    // 2. Backend API / PostgreSQL Update
+    fetch(`/api/trainees/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    }).catch(err => console.warn("Backend trainee update notice:", err));
   };
 
   const deleteTrainee = (id: string) => {
     setTrainees(prev => prev.filter(t => t.id !== id));
+
+    // 1. Direct Supabase Cloud Database Delete
+    if (isSupabaseConfigured()) {
+      (supabase as any).from("trainees").delete().eq("id", id).then(({ error }: any) => {
+        if (error) console.warn("Supabase trainee delete notice:", error.message);
+      });
+    }
+
+    // 2. Backend API / PostgreSQL Delete
+    fetch(`/api/trainees/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }).catch(err => console.warn("Backend trainee delete notice:", err));
   };
 
   const recordUpload = (
@@ -1046,6 +1084,7 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
       addTrainee, 
       updateTrainee, 
       deleteTrainee, 
+      refreshRoster,
       recordUpload, 
       updateUploadGrade, 
       verifyUpload,

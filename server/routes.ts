@@ -929,6 +929,31 @@ apiRouter.get("/trainees", async (req: AuthenticatedRequest, res: Response) => {
     });
     persistentTrainees.forEach(t => combinedMap.set(t.id, t));
 
+    // Supabase PostgreSQL live records take precedence
+    if (pool) {
+      try {
+        const pgResult = await query("SELECT * FROM trainees;");
+        pgResult.rows.forEach((r: any) => {
+          combinedMap.set(r.id, {
+            id: r.id,
+            name: r.name,
+            reg_number: r.reg_number || r.adm_no,
+            adm_no: r.adm_no || r.reg_number,
+            reg_code: r.reg_code || r.adm_no || r.reg_number,
+            class_code: r.class_code || r.class_id,
+            department: r.department,
+            gender: r.gender,
+            phone: r.phone,
+            remarks: r.remarks,
+            created_at: r.created_at,
+            updated_at: r.updated_at,
+          });
+        });
+      } catch (err: any) {
+        console.warn("PostgreSQL read trainees notice:", err.message);
+      }
+    }
+
     let result = Array.from(combinedMap.values());
     if (classCode) {
       const normClass = classCode.toUpperCase().replace(/\s+/g, " ");
@@ -1002,15 +1027,33 @@ apiRouter.post("/trainees", async (req: AuthenticatedRequest, res: Response) => 
     if (pool) {
       try {
         const sql = `
-          INSERT INTO trainees (id, name, adm_no, reg_number, reg_code, created_at)
-          VALUES ($1, $2, $3, $4, $5, NOW())
+          INSERT INTO trainees (id, name, adm_no, reg_number, reg_code, class_code, department, gender, phone, remarks, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
           ON CONFLICT (id) DO UPDATE SET
             name = EXCLUDED.name,
             adm_no = EXCLUDED.adm_no,
-            reg_number = EXCLUDED.reg_number
+            reg_number = EXCLUDED.reg_number,
+            reg_code = EXCLUDED.reg_code,
+            class_code = EXCLUDED.class_code,
+            department = EXCLUDED.department,
+            gender = EXCLUDED.gender,
+            phone = EXCLUDED.phone,
+            remarks = EXCLUDED.remarks,
+            updated_at = NOW()
           RETURNING *;
         `;
-        const result = await query(sql, [id, traineeRecord.name, adm_no, adm_no, reg_code]);
+        const result = await query(sql, [
+          id,
+          traineeRecord.name,
+          adm_no,
+          adm_no,
+          reg_code,
+          classCode,
+          department,
+          gender,
+          phone,
+          remarks,
+        ]);
         if (result.rowCount > 0) {
           pgPersisted = true;
         }
@@ -1051,6 +1094,115 @@ apiRouter.post("/trainees", async (req: AuthenticatedRequest, res: Response) => 
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message || "Failed to persist trainee" });
+  }
+});
+
+// ─── ENDPOINT: PUT /api/trainees/:id (Update Trainee) ─────────────────────────
+apiRouter.put("/trainees/:id", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const now = new Date().toISOString();
+
+    let pgPersisted = false;
+    if (pool) {
+      try {
+        const sql = `
+          UPDATE trainees
+          SET
+            name = COALESCE($2, name),
+            adm_no = COALESCE($3, adm_no),
+            reg_number = COALESCE($3, reg_number),
+            reg_code = COALESCE($4, reg_code),
+            class_code = COALESCE($5, class_code),
+            department = COALESCE($6, department),
+            gender = COALESCE($7, gender),
+            phone = COALESCE($8, phone),
+            remarks = COALESCE($9, remarks),
+            updated_at = NOW()
+          WHERE id = $1
+          RETURNING *;
+        `;
+        const result = await query(sql, [
+          id,
+          updates.name || null,
+          updates.admNo || updates.reg_number || null,
+          updates.regCode || updates.reg_code || null,
+          updates.classCode || updates.class_code || null,
+          updates.department || null,
+          updates.gender || null,
+          updates.phone || null,
+          updates.remarks || null,
+        ]);
+        if (result.rowCount > 0) {
+          pgPersisted = true;
+        }
+      } catch (err: any) {
+        console.warn("PostgreSQL update trainee warning:", err.message);
+      }
+    }
+
+    const persistent = loadPersistentTrainees();
+    const existIdx = persistent.findIndex(t => t.id === id);
+    if (existIdx >= 0) {
+      persistent[existIdx] = {
+        ...persistent[existIdx],
+        ...updates,
+        adm_no: updates.admNo || updates.adm_no || persistent[existIdx].adm_no,
+        reg_number: updates.admNo || updates.reg_number || persistent[existIdx].reg_number,
+        class_code: updates.classCode || updates.class_code || persistent[existIdx].class_code,
+        updated_at: now,
+      };
+      savePersistentTrainees(persistent);
+    }
+
+    const memIdx = DB.trainees.findIndex(t => t.id === id);
+    if (memIdx >= 0) {
+      DB.trainees[memIdx] = {
+        ...DB.trainees[memIdx],
+        name: updates.name || DB.trainees[memIdx].name,
+        reg_number: updates.admNo || DB.trainees[memIdx].reg_number,
+        class_id: updates.classCode || DB.trainees[memIdx].class_id,
+      };
+    }
+
+    res.json({ success: true, id, postgres_persisted: pgPersisted });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to update trainee" });
+  }
+});
+
+// ─── ENDPOINT: DELETE /api/trainees/:id (Delete Trainee) ──────────────────────
+apiRouter.delete("/trainees/:id", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    let pgDeleted = false;
+    if (pool) {
+      try {
+        const result = await query("DELETE FROM trainees WHERE id = $1 RETURNING id;", [id]);
+        if (result.rowCount > 0) {
+          pgDeleted = true;
+        }
+      } catch (err: any) {
+        console.warn("PostgreSQL delete trainee warning:", err.message);
+      }
+    }
+
+    const persistent = loadPersistentTrainees();
+    const filtered = persistent.filter(t => t.id !== id);
+    if (filtered.length !== persistent.length) {
+      savePersistentTrainees(filtered);
+    }
+
+    const memIdx = DB.trainees.findIndex(t => t.id === id);
+    if (memIdx >= 0) {
+      DB.trainees.splice(memIdx, 1);
+    }
+
+    res.json({ success: true, id, postgres_deleted: pgDeleted });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to delete trainee" });
   }
 });
 

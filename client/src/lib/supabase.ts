@@ -506,6 +506,65 @@ export interface ScoreAuditEntry {
 export interface Database {
   public: {
     Tables: {
+      trainees: {
+        Row: {
+          id: string;
+          name: string;
+          adm_no: string;
+          reg_number: string;
+          reg_code?: string | null;
+          class_code?: string | null;
+          department?: string | null;
+          gender?: string | null;
+          phone?: string | null;
+          remarks?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          adm_no: string;
+          reg_number?: string;
+          reg_code?: string | null;
+          class_code?: string | null;
+          department?: string | null;
+          gender?: string | null;
+          phone?: string | null;
+          remarks?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          adm_no?: string;
+          reg_number?: string;
+          reg_code?: string | null;
+          class_code?: string | null;
+          department?: string | null;
+          gender?: string | null;
+          phone?: string | null;
+          remarks?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      trainers: {
+        Row: {
+          id: string;
+          name: string;
+          tsc_number?: string | null;
+          id_number?: string | null;
+          phone_number?: string | null;
+          department?: string | null;
+          role?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Insert: any;
+        Update: any;
+      };
       exams: {
         Row: Exam;
         Insert: Omit<Exam, "id" | "created_at">;

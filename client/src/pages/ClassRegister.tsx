@@ -219,7 +219,7 @@ const AttendanceRow = React.memo(function AttendanceRow({
 });
 
 export default function ClassRegister() {
-  const { trainees, addTrainee, updateTrainee, deleteTrainee, resetToOfficialRoster } = useTrainees();
+  const { trainees, addTrainee, updateTrainee, deleteTrainee, refreshRoster } = useTrainees();
   const { user } = useAuth();
   const [location] = useLocation();
   const canEditRegister = user?.role === "trainer" || user?.role === "admin" || user?.role === "hod";
@@ -492,24 +492,6 @@ export default function ClassRegister() {
       phone: studentForm.phone.trim(),
       remarks: studentForm.remarks.trim(),
     });
-
-    // Persist new trainee to backend API & PostgreSQL
-    fetch("/api/trainees", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: created.id,
-        name: created.name,
-        admNo: created.admNo,
-        regCode: created.regCode,
-        classCode: selectedClassCode,
-        department: activeClassConfig.department,
-        gender: studentForm.gender,
-        email: studentForm.email.trim() || undefined,
-        phone: studentForm.phone.trim(),
-        remarks: studentForm.remarks.trim(),
-      }),
-    }).catch(err => console.warn("Backend trainee save notice:", err));
 
     // Populate initial attendance across all 10 instructional weeks
     const initAttendance: Record<string, AttendanceStatus> = {};
@@ -1115,14 +1097,17 @@ export default function ClassRegister() {
     }, 800);
   };
 
-  const handleReset = () => {
+  const handleSyncCloudRoster = async () => {
     if (!canEditRegister) {
-      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can reset roster.");
+      toast.error("Forbidden: Only assigned trainers, HODs, and administrators can synchronize roster.");
       return;
     }
-    if (confirm("Reset roster to the official MTTI transcribed students?")) {
-      resetToOfficialRoster();
-      toast.info("Roster reset to official MTTI scanned registers.");
+    toast.loading("Synchronizing roster with Supabase cloud database...", { id: "roster-sync" });
+    try {
+      await refreshRoster();
+      toast.success("Roster synchronized with live cloud database.", { id: "roster-sync" });
+    } catch (err: any) {
+      toast.error("Cloud roster sync failed: " + (err?.message || "Unknown error"), { id: "roster-sync" });
     }
   };
 
@@ -1179,11 +1164,11 @@ export default function ClassRegister() {
             {canEditRegister && (
               <>
                 <button
-                  onClick={handleReset}
-                  className="p-2 border border-border rounded-lg text-muted-foreground hover:text-foreground"
-                  title="Reset to official MTTI 58 trainees"
+                  onClick={handleSyncCloudRoster}
+                  className="p-2 border border-border rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                  title="Synchronize roster from Supabase cloud database"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RefreshCw className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={() => setIsRollCallOpen(true)}
