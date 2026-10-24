@@ -1227,9 +1227,9 @@ apiRouter.get("/attendance", async (req: AuthenticatedRequest, res: Response) =>
     return;
   }
   try {
-    const unitOfferingId = (req.query.unit_offering_id as string) || "uo-1";
+    const unitOfferingId = (req.query.unit_offering_id as string) || "";
     const weekNumber = req.query.week_number ? parseInt(req.query.week_number as string) : undefined;
-    const classCode = req.query.class_code as string;
+    const classCode = (req.query.class_code as string) || "";
 
     let records: AttendanceRecord[] = [];
 
@@ -1241,6 +1241,10 @@ apiRouter.get("/attendance", async (req: AuthenticatedRequest, res: Response) =>
         if (unitOfferingId) {
           params.push(unitOfferingId);
           sql += ` AND unit_offering_id = $${params.length}`;
+        }
+        if (classCode) {
+          params.push(`%${classCode}%`);
+          sql += ` AND trainee_id IN (SELECT id FROM trainees WHERE class_code ILIKE $${params.length} OR class_id ILIKE $${params.length})`;
         }
         if (weekNumber !== undefined) {
           params.push(weekNumber);
@@ -2185,10 +2189,22 @@ const handleBatchMarks = async (req: AuthenticatedRequest, res: Response) => {
     return;
   }
 
-  const offering = DB.unit_offerings.find(uo => uo.id === unitOfferingId);
+  let offering = DB.unit_offerings.find(
+    uo => uo.id === unitOfferingId ||
+          uo.id.replace(/_/g, "-") === unitOfferingId.replace(/_/g, "-") ||
+          uo.id.replace(/-/g, "_") === unitOfferingId.replace(/-/g, "_")
+  );
   if (!offering) {
-    res.status(404).json({ error: "Unit offering not found" });
-    return;
+    offering = {
+      id: unitOfferingId,
+      term_id: "term-2026",
+      class_id: unitOfferingId.replace(/^uo-/, "").replace(/^uo_/, ""),
+      unit_code: "DYNAMIC",
+      unit_id: `unit-${unitOfferingId}`,
+      trainer_id: user.id || "trainer-001",
+      department_id: user.department_id || "dept-ci",
+    };
+    DB.unit_offerings.push(offering);
   }
 
   // Trainee role is forbidden from batch mark persistence

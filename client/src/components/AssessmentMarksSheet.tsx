@@ -79,7 +79,16 @@ export function AssessmentMarksSheet() {
     }
     return "LS5/6/S/26";
   });
-  const [unitOfferingId] = useState("uo_1");
+  const unitOfferingId = useMemo(() => {
+    if (selectedClass.includes("MOD 3") || selectedClass.includes("ADMIN5/6/J/26 MOD 3")) return "uo-admin-1";
+    if (selectedClass.includes("ADMIN")) return "uo-admin-2";
+    if (selectedClass.includes("ICT4/ITECH6")) return "uo-mod1-1";
+    if (selectedClass.includes("ICT4")) return "uo-it4-1";
+    if (selectedClass.includes("LS")) return "uo-ls-1";
+    if (selectedClass.includes("FBS")) return "uo-fbs-1";
+    const cleanClass = selectedClass.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
+    return `uo-${cleanClass}`;
+  }, [selectedClass]);
   const [isLocked, setIsLocked] = useState(false); // Internal Assessor Sign-off
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [syncVersion, setSyncVersion] = useState(0);
@@ -278,8 +287,22 @@ export function AssessmentMarksSheet() {
           });
           if (!matched) return;
 
-          const subUnitNorm = (sub.unit_code || "").replace(/[^a-zA-Z0-9]/g, "");
-          const exam = exams.find((e) => (e.unit_code || "").replace(/[^a-zA-Z0-9]/g, "") === subUnitNorm || e.id === sub.exam_id);
+          // Strict Unit Isolation: Ensure submission matches this marksheet's unit or exam
+          const targetUnitNorm = (unitCode || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+          const subUnitNorm = (sub.unit_code || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+          const exam = exams.find((e) => (e.unit_code || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase() === subUnitNorm || e.id === sub.exam_id);
+          const examUnitNorm = (exam?.unit_code || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
+          const matchesUnit =
+            !targetUnitNorm ||
+            !subUnitNorm ||
+            subUnitNorm === targetUnitNorm ||
+            examUnitNorm === targetUnitNorm ||
+            targetUnitNorm.includes(subUnitNorm) ||
+            subUnitNorm.includes(targetUnitNorm);
+
+          if (!matchesUnit) return;
+
           const maxMarks = exam?.payload?.total_marks ?? 100;
           const pct =
             maxMarks !== 100 && maxMarks > 0 && sub.total_score <= maxMarks
@@ -309,6 +332,13 @@ export function AssessmentMarksSheet() {
             studentName: up.student_name,
           });
           if (!matched) return;
+
+          // Strict Unit Isolation for Uploads
+          const targetUnitNorm = (unitCode || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+          const upUnitNorm = (up.unit_code || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+          if (targetUnitNorm && upUnitNorm && upUnitNorm !== targetUnitNorm && !targetUnitNorm.includes(upUnitNorm) && !upUnitNorm.includes(targetUnitNorm)) {
+            return;
+          }
 
           const slot = normalizeAssessmentTaskSlot(
             up.task_code || up.uploadType,

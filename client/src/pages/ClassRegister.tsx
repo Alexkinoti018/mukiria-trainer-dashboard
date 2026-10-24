@@ -448,11 +448,38 @@ export default function ClassRegister() {
     const existingAdmNos = new Set(list.map(t => (t.admNo || t.regCode || "").trim().toUpperCase()));
     const existingNames = new Set(list.map(t => (t.name || "").trim().toLowerCase()));
 
-    // 1. Check allSubmissions for candidates who submitted an exam for this unit/cohort or assessment
+    // 1. Check allSubmissions for candidates who submitted an exam strictly for this unit/cohort or assessment
     submissions.forEach((sub: any) => {
       const subAdm = (sub.reg_number || "").trim().toUpperCase();
       const subName = (sub.student_name || "").trim();
       if (!subAdm && !subName) return;
+
+      // Strict Cohort Isolation Guard:
+      // Verify candidate belongs to selectedClassCode before auto-enrolling
+      const cand = trainees.find(
+        (t) =>
+          (subAdm && t.admNo && t.admNo.trim().toUpperCase() === subAdm) ||
+          (subAdm && t.regCode && t.regCode.trim().toUpperCase() === subAdm) ||
+          (subName && t.name && t.name.trim().toLowerCase() === subName.toLowerCase())
+      );
+      if (cand) {
+        const belongsToActive = getTraineesForClass([cand], selectedClassCode).length > 0;
+        if (!belongsToActive) return;
+      } else {
+        // Candidate unlisted: verify exam was allocated to this cohort
+        const exam = exams.find((e) => e.id === sub.exam_id || e.unit_code === sub.unit_code);
+        if (exam) {
+          const examClasses: string[] = (exam.payload as any)?.classes || [];
+          const matchesExamCohort =
+            examClasses.length === 0 ||
+            examClasses.some(
+              (ec) =>
+                ec.toUpperCase().includes(selectedClassCode.toUpperCase()) ||
+                selectedClassCode.toUpperCase().includes(ec.toUpperCase())
+            );
+          if (!matchesExamCohort) return;
+        }
+      }
 
       if (!existingAdmNos.has(subAdm) && !existingNames.has(subName.toLowerCase())) {
         existingAdmNos.add(subAdm);

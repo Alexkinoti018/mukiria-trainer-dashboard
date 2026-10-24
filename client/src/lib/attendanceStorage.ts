@@ -22,7 +22,7 @@ export function getCanonicalAttendanceClassKey(code: string): string {
   if (norm.includes("ICT") || norm.includes("ITECH")) return "ICT4_ITECH6";
   if (norm.includes("ADMIN") && norm.includes("MOD 3")) return "ADMIN5_6_MOD3";
   if (norm.includes("ADMIN") && norm.includes("MOD 1")) return "ADMIN4_5_6_MOD1";
-  if (norm.includes("ADMIN")) return "ADMIN5_6";
+  if (norm.includes("ADMIN")) return "ADMIN5_6_MOD3";
   if (norm.includes("FBS")) return "FBS5_6";
   if (norm.includes("LS") || norm.includes("SURVEY")) return "LS5_6";
   if (norm.includes("CE") || norm.includes("CIVIL")) return "CE6";
@@ -50,15 +50,13 @@ export function getStorageKeysForClass(classCode: string): string[] {
     keys.add("mtti_class_register_ICT4/ITECH6/S/26 MOD 1");
     keys.add("mtti_class_register_ITECH 6 MODULAR/S/2026");
     keys.add("mtti_class_register_ICT4 MOD/S/2026");
+    keys.add("mtti_class_register_ICT4_ITECH6");
   } else if (canonical === "ADMIN5_6_MOD3") {
     keys.add("mtti_class_register_ADMIN5/6/J/26 MOD 3");
     keys.add("mtti_class_register_ADMIN5_6_MOD3");
   } else if (canonical === "ADMIN4_5_6_MOD1") {
     keys.add("mtti_class_register_ADMIN4/5/6/S/26 MOD 1");
     keys.add("mtti_class_register_ADMIN4_5_6_MOD1");
-  } else if (canonical === "ADMIN5_6") {
-    keys.add("mtti_class_register_ADMIN5/6/J/26 MOD 3");
-    keys.add("mtti_class_register_ADMIN4/5/6/S/26 MOD 1");
   } else if (canonical === "LS5_6") {
     keys.add("mtti_class_register_LS5/6/S/26");
   } else if (canonical === "CE6") {
