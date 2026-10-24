@@ -30,6 +30,8 @@ import type { Exam, Submission } from "@/lib/supabase";
 import { format } from "date-fns";
 import { getTrainerLiveStatus } from "@/lib/academicCalendar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTrainees } from "@/contexts/TraineeContext";
+import { getCurrentTrainerProfile } from "@/lib/timetableSyncService";
 
 interface StatCard {
   label: string;
@@ -47,8 +49,14 @@ export default function Dashboard() {
   const [, navigate] = useLocation();
   const { user } = useAuth();
   const { exams, submissions } = useExam();
+  const { trainees } = useTrainees();
   const [loading, setLoading] = useState(false);
   const [now, setNow] = useState(new Date());
+
+  // Scope mode: Trainers default to their assigned classes, Admins/HODs see all
+  const [scopeMode, setScopeMode] = useState<"my_classes" | "institutional">(() => {
+    return user?.role === "admin" || user?.role === "hod" ? "institutional" : "my_classes";
+  });
 
   useEffect(() => {
     verifyDatabaseState();
@@ -56,28 +64,143 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const trainerName = user?.name || "Alexander Kinoti";
+  const trainerProfile = useMemo(() => getCurrentTrainerProfile(user), [user]);
+  const trainerName = trainerProfile.name || user?.name || "Alexander Kinoti";
   const liveStatus = useMemo(() => getTrainerLiveStatus(trainerName, now), [trainerName, now]);
   const { context } = liveStatus;
 
-  const totalSubs = submissions.length;
-  const gradedSubs = submissions.filter((s) => s.status === "graded").length;
-  const pendingSubs = submissions.filter((s) => s.status === "pending").length;
+  // Normalized assigned classes and units for the active trainer
+  const trainerClasses = useMemo(() => {
+    return (trainerProfile.classes || []).map((c) => c.trim().toUpperCase());
+  }, [trainerProfile]);
+
+  const trainerUnits = useMemo(() => {
+    const raw = [...(trainerProfile.units || []), ...(user?.assigned_units || [])];
+    return Array.from(new Set(raw.map((u) => u.trim().toUpperCase()))).filter(Boolean);
+  }, [trainerProfile, user]);
+
+  // Scoped exams matching the trainer's assigned classes or units
+  const scopedExams = useMemo(() => {
+    if (scopeMode === "institutional" || user?.role === "admin" || user?.role === "hod") {
+      return exams;
+    }
+    if (trainerClasses.length === 0 && trainerUnits.length === 0) return exams;
+
+    const filtered = exams.filter((exam) => {
+      const codeUpper = (exam.unit_code || "").toUpperCase();
+      const titleUpper = ((exam.payload as any)?.title || exam.course_name || "").toUpperCase();
+      const courseUpper = (exam.course_name || "").toUpperCase();
+      const examClasses: string[] = (exam.payload as any)?.classes || [];
+
+      // 1. Direct unit match
+      const matchesUnit = trainerUnits.some(
+        (tu) =>
+          (tu.length >= 3 && codeUpper.includes(tu)) ||
+          (codeUpper.length >= 3 && tu.includes(codeUpper)) ||
+          titleUpper.includes(tu) ||
+          courseUpper.includes(tu)
+      );
+      if (matchesUnit) return true;
+
+      // 2. Class match
+      const matchesClass = trainerClasses.some(
+        (tc) =>
+          examClasses.some((ec) => ec.toUpperCase().includes(tc) || tc.includes(ec.toUpperCase())) ||
+          titleUpper.includes(tc) ||
+          courseUpper.includes(tc)
+      );
+      if (matchesClass) return true;
+
+      // 3. Subject-area keyword matching (Digital Literacy / Computer Operation / Discrete Math)
+      if (trainerUnits.some((tu) => tu.includes("DIGITAL LITERACY")) && (codeUpper.includes("061155101A") || titleUpper.includes("DIGITAL LITERACY"))) {
+        // Exclude foreign department-specific tags if trainer does not teach that department
+        if (titleUpper.includes("FBS") && !trainerClasses.some((tc) => tc.includes("FBS"))) return false;
+        return true;
+      }
+      if (trainerUnits.some((tu) => tu.includes("COMPUTER OPERATION") || tu.includes("ESSENTIALS")) && (codeUpper.includes("ICT") || titleUpper.includes("COMPUTER"))) {
+        return true;
+      }
+      if (trainerUnits.some((tu) => tu.includes("DISCRETE")) && titleUpper.includes("DISCRETE")) {
+        return true;
+      }
+
+      return false;
+    });
+
+    return filtered.length > 0 ? filtered : exams.slice(0, 5);
+  }, [exams, scopeMode, user, trainerClasses, trainerUnits]);
+
+  // Scoped submissions matching the trainer's assigned trainees and exams
+  const scopedSubmissions = useMemo(() => {
+    if (scopeMode === "institutional" || user?.role === "admin" || user?.role === "hod") {
+      return submissions;
+    }
+    if (trainerClasses.length === 0 && trainerUnits.length === 0) return submissions;
+
+    const scopedExamIds = new Set(scopedExams.map((e) => e.id));
+    const scopedUnitCodes = new Set(scopedExams.map((e) => (e.unit_code || "").toUpperCase()));
+
+    // Trainees belonging to this trainer's cohorts
+    const myTrainees = trainees.filter((t) => {
+      const tc = (t.classCode || "").toUpperCase();
+      return trainerClasses.some((cls) => tc.includes(cls) || cls.includes(tc));
+    });
+    const allowedRegNos = new Set(myTrainees.map((t) => (t.admNo || t.regCode || "").trim().toUpperCase()).filter(Boolean));
+    const allowedNames = new Set(myTrainees.map((t) => (t.name || "").trim().toLowerCase()).filter(Boolean));
+
+    const filtered = submissions.filter((sub) => {
+      const subAdm = (sub.reg_number || "").trim().toUpperCase();
+      const subName = (sub.student_name || "").trim().toLowerCase();
+      const subUnit = (sub.unit_code || "").trim().toUpperCase();
+
+      // 1. Direct candidate match in trainer's assigned classes
+      if (allowedRegNos.has(subAdm) || allowedNames.has(subName)) {
+        return true;
+      }
+
+      // 2. Cross-check against known trainees roster
+      const candidate = trainees.find((t) => {
+        const tAdm = (t.admNo || t.regCode || "").trim().toUpperCase();
+        return tAdm && tAdm === subAdm;
+      });
+      if (candidate) {
+        const candClass = (candidate.classCode || "").toUpperCase();
+        return trainerClasses.some((cls) => candClass.includes(cls) || cls.includes(candClass));
+      }
+
+      // 3. Fallback for subUnit matching scoped exams:
+      // If candidate is in FBS (starts with 13 or FBS) and trainer does NOT teach FBS, exclude!
+      if (scopedUnitCodes.has(subUnit) || (Boolean(sub.exam_id) && scopedExamIds.has(sub.exam_id!))) {
+        if (subAdm.startsWith("13") && !trainerClasses.some((c) => c.includes("FBS"))) {
+          return false;
+        }
+        return true;
+      }
+
+      return false;
+    });
+
+    return filtered;
+  }, [submissions, scopeMode, user, trainerClasses, trainerUnits, scopedExams, trainees]);
+
+  const totalSubs = scopedSubmissions.length;
+  const gradedSubs = scopedSubmissions.filter((s) => s.status === "graded").length;
+  const pendingSubs = scopedSubmissions.filter((s) => s.status === "pending").length;
   const avgScore =
-    submissions.filter((s) => s.total_score !== null).length > 0
+    scopedSubmissions.filter((s) => s.total_score !== null).length > 0
       ? Math.round(
-          submissions
+          scopedSubmissions
             .filter((s) => s.total_score !== null)
             .reduce((sum, s) => sum + (s.total_score ?? 0), 0) /
-            submissions.filter((s) => s.total_score !== null).length
+            scopedSubmissions.filter((s) => s.total_score !== null).length
         )
       : 0;
 
   const passRate =
-    submissions.filter((s) => s.total_score !== null).length > 0
+    scopedSubmissions.filter((s) => s.total_score !== null).length > 0
       ? Math.round(
-          (submissions.filter((s) => (s.total_score ?? 0) >= 50).length /
-            submissions.filter((s) => s.total_score !== null).length) *
+          (scopedSubmissions.filter((s) => (s.total_score ?? 0) >= 50).length /
+            scopedSubmissions.filter((s) => s.total_score !== null).length) *
             100
         )
       : 0;
@@ -85,7 +208,7 @@ export default function Dashboard() {
   const stats: StatCard[] = [
     {
       label: "Total Exams",
-      value: exams.length,
+      value: scopedExams.length,
       icon: FileText,
       color: "#000953",
       bg: "rgba(0, 9, 83, 0.08)",
@@ -122,7 +245,7 @@ export default function Dashboard() {
     },
   ];
 
-  const recentSubs = [...submissions]
+  const recentSubs = [...scopedSubmissions]
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 6);
 
@@ -156,6 +279,31 @@ export default function Dashboard() {
               <span className="text-xs font-mono font-semibold text-slate-700 px-2.5 py-1 rounded bg-slate-100 border border-slate-300">
                 {context.formattedDate} · {context.timeFormatted}
               </span>
+              {/* Scope Switcher: My Classes vs Institutional */}
+              <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-300 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setScopeMode("my_classes")}
+                  className={`px-2.5 py-0.5 rounded-md transition-all ${
+                    scopeMode === "my_classes"
+                      ? "bg-[#000953] text-white shadow-sm"
+                      : "text-slate-600 hover:text-[#000953]"
+                  }`}
+                >
+                  My Classes ({trainerClasses.length || 4})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setScopeMode("institutional")}
+                  className={`px-2.5 py-0.5 rounded-md transition-all ${
+                    scopeMode === "institutional"
+                      ? "bg-[#000953] text-white shadow-sm"
+                      : "text-slate-600 hover:text-[#000953]"
+                  }`}
+                >
+                  All Institute
+                </button>
+              </div>
             </div>
             <h2 className="text-2xl font-bold mb-1 text-[#000953]">
               Grade with Confidence.
@@ -402,8 +550,8 @@ export default function Dashboard() {
                 No exams created yet
               </div>
             ) : (
-              exams.slice(0, 5).map((exam) => {
-                const examSubs = submissions.filter((s) => s.unit_code === exam.unit_code);
+              scopedExams.slice(0, 5).map((exam) => {
+                const examSubs = scopedSubmissions.filter((s) => s.unit_code === exam.unit_code);
                 return (
                   <div
                     key={exam.id}
