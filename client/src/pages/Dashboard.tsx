@@ -22,6 +22,7 @@ import {
   Calendar,
   MapPin,
   Radio,
+  RefreshCw,
 } from "lucide-react";
 import TrainerLayout from "@/components/TrainerLayout";
 import { supabase, isSupabaseConfigured, verifyDatabaseState } from "@/lib/supabase";
@@ -32,6 +33,7 @@ import { getTrainerLiveStatus } from "@/lib/academicCalendar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTrainees } from "@/contexts/TraineeContext";
 import { getCurrentTrainerProfile } from "@/lib/timetableSyncService";
+import { toast } from "sonner";
 
 interface StatCard {
   label: string;
@@ -48,9 +50,10 @@ interface StatCard {
 export default function Dashboard() {
   const [, navigate] = useLocation();
   const { user } = useAuth();
-  const { exams, submissions } = useExam();
-  const { trainees } = useTrainees();
+  const { exams, submissions, refreshExamsAndSubmissions } = useExam();
+  const { trainees, refreshRoster } = useTrainees();
   const [loading, setLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [now, setNow] = useState(new Date());
 
   // Scope mode: Trainers default to their assigned classes, Admins/HODs see all
@@ -60,9 +63,29 @@ export default function Dashboard() {
 
   useEffect(() => {
     verifyDatabaseState();
+    refreshExamsAndSubmissions().catch(() => {});
+    refreshRoster().catch(() => {});
     const interval = setInterval(() => setNow(new Date()), 10000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleSyncLive = async () => {
+    setIsSyncing(true);
+    try {
+      await Promise.all([
+        refreshExamsAndSubmissions(),
+        refreshRoster(),
+        verifyDatabaseState(),
+      ]);
+      toast.success("Live Database Synchronized", {
+        description: "Exam submissions, active papers, and trainee rosters updated from Supabase.",
+      });
+    } catch (err) {
+      toast.error("Synchronization Notice", { description: "Retrying local connection..." });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const trainerProfile = useMemo(() => getCurrentTrainerProfile(user), [user]);
   const trainerName = trainerProfile.name || user?.name || "Alexander Kinoti";
@@ -313,6 +336,15 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleSyncLive}
+              disabled={isSyncing}
+              title="Synchronize live submissions and exams from Supabase"
+              className="px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-white border border-slate-300 text-[#000953] hover:bg-slate-50 transition shadow-sm disabled:opacity-60"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-[#000953] ${isSyncing ? "animate-spin" : ""}`} />
+              <span>{isSyncing ? "Syncing..." : "Live Sync"}</span>
+            </button>
             <button
               onClick={() => navigate("/trainer/timetable")}
               className="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 bg-white border border-slate-300 text-[#000953] hover:bg-slate-50 transition shadow-sm"

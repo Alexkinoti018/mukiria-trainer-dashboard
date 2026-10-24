@@ -1549,6 +1549,164 @@ apiRouter.post("/attendance/bulk", async (req: AuthenticatedRequest, res: Respon
   }
 });
 
+// ─── ENDPOINT: GET /api/exams (Live Database Query with RBAC) ─────────────────
+apiRouter.get("/exams", async (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user;
+  let liveExams: any[] = [];
+
+  // 1. Transactional PostgreSQL Query if connected
+  if (pool) {
+    try {
+      const { rows } = await pool.query("SELECT * FROM exams ORDER BY created_at DESC");
+      if (rows && rows.length > 0) {
+        liveExams = rows.map((r: any) => ({
+          ...r,
+          payload: typeof r.payload === "string" ? JSON.parse(r.payload) : r.payload,
+        }));
+      }
+    } catch (e) {
+      console.warn("PostgreSQL exams query notice:", e);
+    }
+  }
+
+  // 2. Fallback to live in-memory store
+  if (liveExams.length === 0) {
+    liveExams = DB.exams;
+  }
+
+  // Column Shielding: If user is a trainee, sanitize answer keys
+  if (user && user.role === "trainee") {
+    const userExams = liveExams
+      .filter((e) => user.enrolled_units?.includes(e.unit_code))
+      .map((e) => sanitizeExamForStudent(e));
+    res.json(userExams);
+    return;
+  }
+
+  res.json(liveExams);
+});
+
+// ─── ENDPOINT: POST /api/exams (Create / Update Exam with DB Upsert) ───────────
+apiRouter.post("/exams", requireRoles("trainer", "hod", "admin"), async (req: AuthenticatedRequest, res: Response) => {
+  const examPayload = req.body;
+  if (!examPayload.unit_code) {
+    res.status(400).json({ error: "Bad Request: Missing unit_code in exam payload" });
+    return;
+  }
+
+  const existingIdx = DB.exams.findIndex(
+    (e: any) => (examPayload.id && e.id === examPayload.id) || e.unit_code === examPayload.unit_code
+  );
+
+  let targetExam: any;
+  if (existingIdx >= 0) {
+    targetExam = {
+      ...DB.exams[existingIdx],
+      ...examPayload,
+      updated_at: new Date().toISOString(),
+    };
+    DB.exams[existingIdx] = targetExam;
+  } else {
+    targetExam = {
+      id: examPayload.id || `exam-${Date.now()}`,
+      created_at: new Date().toISOString(),
+      ...examPayload,
+    };
+    DB.exams.push(targetExam);
+  }
+
+  // Persist directly to PostgreSQL database if connected
+  if (pool) {
+    try {
+      await pool.query(
+        `INSERT INTO exams (id, unit_code, course_name, payload, created_at)
+         VALUES ($1, $2, $3, $4, NOW())
+         ON CONFLICT (id) DO UPDATE SET
+           course_name = EXCLUDED.course_name,
+           payload = EXCLUDED.payload;`,
+        [targetExam.id, targetExam.unit_code, targetExam.course_name || "", JSON.stringify(targetExam.payload || {})]
+      );
+    } catch (e) {
+      console.warn("PostgreSQL exam upsert notice:", e);
+    }
+  }
+
+  res.status(200).json({ success: true, exam: targetExam });
+});
+
+// ─── ENDPOINT: GET /api/departments (Live PostgreSQL & In-Memory Store) ───────
+apiRouter.get("/departments", async (_req: Request, res: Response) => {
+  let liveDepts: any[] = [];
+  if (pool) {
+    try {
+      const { rows } = await pool.query("SELECT * FROM departments ORDER BY name ASC;");
+      if (rows && rows.length > 0) {
+        liveDepts = rows;
+      }
+    } catch (e) {
+      console.warn("PostgreSQL departments query notice:", e);
+    }
+  }
+  if (liveDepts.length === 0) {
+    liveDepts = DB.departments;
+  }
+  res.json(liveDepts);
+});
+
+// ─── ENDPOINT: POST /api/departments (Add/Update Institutional Department) ────
+apiRouter.post("/departments", requireRoles("trainer", "hod", "admin"), async (req: AuthenticatedRequest, res: Response) => {
+  const { id, name, code, hod_name, trainers, active_units } = req.body;
+  if (!name || !code) {
+    res.status(400).json({ error: "Missing required fields: name and code" });
+    return;
+  }
+
+  const existingIdx = DB.departments.findIndex(
+    (d: any) => (id && d.id === id) || d.code.toUpperCase() === code.toUpperCase()
+  );
+
+  let targetDept: any;
+  if (existingIdx >= 0) {
+    const existing = DB.departments[existingIdx] as any;
+    targetDept = {
+      ...existing,
+      name,
+      code: code.toUpperCase(),
+      hod_name: hod_name || existing.hod_name || existing.hod_id,
+      trainers: trainers ?? existing.trainers ?? 1,
+      active_units: active_units ?? existing.active_units ?? 1,
+      updated_at: new Date().toISOString(),
+    };
+    DB.departments[existingIdx] = targetDept;
+  } else {
+    targetDept = {
+      id: id || `dept-${Date.now()}`,
+      name,
+      code: code.toUpperCase(),
+      hod_name: hod_name || "Unassigned",
+      trainers: trainers ?? 1,
+      active_units: active_units ?? 1,
+      created_at: new Date().toISOString(),
+    };
+    DB.departments.push(targetDept);
+  }
+
+  if (pool) {
+    try {
+      await pool.query(
+        `INSERT INTO departments (id, name, code, created_at)
+         VALUES ($1, $2, $3, NOW())
+         ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name;`,
+        [targetDept.id, targetDept.name, targetDept.code]
+      );
+    } catch (e) {
+      console.warn("PostgreSQL department upsert notice:", e);
+    }
+  }
+
+  res.status(200).json({ success: true, department: targetDept });
+});
+
 // ─── ENDPOINT: GET /api/exams/:id ────────────────────────────────────────────
 apiRouter.get("/exams/:id", (req: AuthenticatedRequest, res: Response) => {
   const user = req.user;
@@ -1601,25 +1759,50 @@ apiRouter.get("/exams/:id", (req: AuthenticatedRequest, res: Response) => {
   res.json(exam);
 });
 
-// ─── ENDPOINT: GET /api/submissions (List Submissions with RBAC) ────────────
-apiRouter.get("/submissions", (req: AuthenticatedRequest, res: Response) => {
+// ─── ENDPOINT: GET /api/submissions (List Submissions with RBAC & Live DB) ───
+apiRouter.get("/submissions", async (req: AuthenticatedRequest, res: Response) => {
   const user = req.user;
+  let allSubs: any[] = DB.submissions;
+
+  if (pool) {
+    try {
+      const { rows } = await pool.query("SELECT * FROM submissions ORDER BY created_at DESC;");
+      if (rows && rows.length > 0) {
+        const pgSubs = rows.map((r: any) => ({
+          ...r,
+          section_a: typeof r.section_a === "string" ? JSON.parse(r.section_a) : r.section_a,
+          section_b: typeof r.section_b === "string" ? JSON.parse(r.section_b) : r.section_b,
+        }));
+        // Merge with DB.submissions
+        const subMap = new Map();
+        allSubs.forEach((s) => subMap.set(s.id, s));
+        pgSubs.forEach((s: any) => subMap.set(s.id, s));
+        allSubs = Array.from(subMap.values());
+      }
+    } catch (e) {
+      // Graceful fallback to in-memory store
+    }
+  }
+
   if (!user) {
-    res.json(DB.submissions);
+    res.json(allSubs);
     return;
   }
 
   // Trainee Scope (BOLA Protection): Trainee can ONLY view their own submissions
   if (user.role === "trainee") {
-    const userSubs = DB.submissions.filter(
-      s => (user.id && s.trainee_id === user.id) || (user.reg_number && s.reg_number === user.reg_number)
+    const userSubs = allSubs.filter(
+      (s) =>
+        (user.id && s.trainee_id === user.id) ||
+        (user.reg_number && s.reg_number === user.reg_number) ||
+        (user.name && s.student_name && s.student_name.trim().toLowerCase() === user.name.trim().toLowerCase())
     );
     res.json(userSubs);
     return;
   }
 
   // Trainer / HOD / Admin: full access
-  res.json(DB.submissions);
+  res.json(allSubs);
 });
 
 // ─── ENDPOINT: GET /api/submissions/:id (BOLA / IDOR Protection) ─────────────

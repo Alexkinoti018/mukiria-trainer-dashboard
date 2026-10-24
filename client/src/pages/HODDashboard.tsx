@@ -4,9 +4,9 @@
  * Features: Live departmental metrics, exam audit feed, regulatory compliance trackers
  */
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
   Award,
@@ -23,12 +23,28 @@ import {
   Calendar,
   Building,
   GraduationCap,
+  Plus,
+  X,
+  RefreshCw,
 } from "lucide-react";
 import HODLayout from "@/components/HODLayout";
 import { useExam } from "@/contexts/ExamContext";
 import { format } from "date-fns";
+import { toast } from "sonner";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
-const DEPARTMENTS = [
+export interface DepartmentRecord {
+  name: string;
+  code: string;
+  hod: string;
+  trainers: number;
+  activeUnits: number;
+  complianceRate: number;
+  passRate: number;
+  status: "Exemplary" | "Compliant" | "Review Due";
+}
+
+const DEFAULT_DEPARTMENTS: DepartmentRecord[] = [
   {
     name: "Computing & Informatics",
     code: "CI",
@@ -95,16 +111,184 @@ export default function HODDashboard() {
   const [, navigate] = useLocation();
   const { exams, submissions } = useExam();
   const [selectedTerm, setSelectedTerm] = useState("Term 3, 2026");
+  const [departments, setDepartments] = useState<DepartmentRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem("mtti_departments");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return DEFAULT_DEPARTMENTS;
+  });
 
-  // Dynamic calculations
+  // Modal State for Adding/Editing Institutional Departments
+  const [showAddDeptModal, setShowAddDeptModal] = useState(false);
+  const [editingDept, setEditingDept] = useState<DepartmentRecord | null>(null);
+  const [deptForm, setDeptForm] = useState({
+    name: "",
+    code: "",
+    hod: "",
+    trainers: 5,
+    activeUnits: 8,
+    complianceRate: 90,
+    status: "Compliant" as "Exemplary" | "Compliant" | "Review Due",
+  });
+
+  // Dynamic live Supabase/REST synchronization
+  useEffect(() => {
+    const fetchLiveDepts = async () => {
+      try {
+        if (isSupabaseConfigured()) {
+          const { data, error } = await (supabase as any).from("departments").select("*");
+          if (!error && Array.isArray(data) && data.length > 0) {
+            const mapped: DepartmentRecord[] = data.map((d: any) => ({
+              name: d.name,
+              code: d.code,
+              hod: d.hod || d.hod_name || "Head of Department",
+              trainers: d.trainers || 6,
+              activeUnits: d.active_units || 10,
+              complianceRate: d.compliance_rate || 92,
+              passRate: d.pass_rate || 80,
+              status: (d.status as any) || "Compliant",
+            }));
+            setDepartments(mapped);
+            localStorage.setItem("mtti_departments", JSON.stringify(mapped));
+            return;
+          }
+        }
+        const res = await fetch("/api/departments").catch(() => null);
+        if (res && res.ok) {
+          const live = await res.json();
+          if (Array.isArray(live) && live.length > 0) {
+            const mapped: DepartmentRecord[] = live.map((d: any) => ({
+              name: d.name,
+              code: d.code,
+              hod: d.hod || d.hod_name || "Head of Department",
+              trainers: d.trainers || 6,
+              activeUnits: d.active_units || 10,
+              complianceRate: d.compliance_rate || 92,
+              passRate: d.pass_rate || 80,
+              status: (d.status as any) || "Compliant",
+            }));
+            setDepartments(mapped);
+            localStorage.setItem("mtti_departments", JSON.stringify(mapped));
+          }
+        }
+      } catch (err) {
+        console.warn("Could not sync live departments:", err);
+      }
+    };
+    fetchLiveDepts();
+  }, []);
+
+  // Dynamic calculations across live submissions
   const totalSubmissions = submissions.length;
   const gradedSubmissions = submissions.filter((s) => s.status !== "pending");
-  const pendingReviews = submissions.filter((s) => s.status === "pending" || s.section_a.some(a => a.flagged_for_review) || s.section_b.some(b => b.flagged_for_review));
-  
+  const pendingReviews = submissions.filter(
+    (s) =>
+      s.status === "pending" ||
+      s.section_a.some((a) => a.flagged_for_review) ||
+      s.section_b.some((b) => b.flagged_for_review)
+  );
+
   const totalScores = gradedSubmissions.map((s) => s.total_score ?? 0);
-  const avgScore = totalScores.length > 0 ? Math.round(totalScores.reduce((a, b) => a + b, 0) / totalScores.length) : 76;
+  const avgScore =
+    totalScores.length > 0 ? Math.round(totalScores.reduce((a, b) => a + b, 0) / totalScores.length) : 0;
   const passCount = gradedSubmissions.filter((s) => (s.total_score ?? 0) >= 35).length; // >= 50%
-  const passRate = gradedSubmissions.length > 0 ? Math.round((passCount / gradedSubmissions.length) * 100) : 82;
+  const passRate =
+    gradedSubmissions.length > 0 ? Math.round((passCount / gradedSubmissions.length) * 100) : 0;
+
+  // Dynamically compute Department Statistics
+  const dynamicDepartments = useMemo(() => {
+    return departments.map((dept) => {
+      const codeUpper = dept.code.toUpperCase();
+      // Match exams belonging to this department
+      const deptExams = exams.filter((e) => {
+        const u = (e.unit_code || "").toUpperCase();
+        const c = (e.course_name || "").toUpperCase();
+        return u.includes(codeUpper) || c.includes(codeUpper) || (codeUpper === "CI" && (u.includes("ICT") || u.includes("061155101A")));
+      });
+
+      const deptSubs = submissions.filter((s) => {
+        const u = (s.unit_code || "").toUpperCase();
+        return u.includes(codeUpper) || (codeUpper === "CI" && (u.includes("ICT") || u.includes("061155101A")));
+      });
+
+      const gradedDeptSubs = deptSubs.filter((s) => s.total_score !== null);
+      const deptPassCount = gradedDeptSubs.filter((s) => (s.total_score ?? 0) >= 35).length;
+      const calculatedPassRate =
+        gradedDeptSubs.length > 0 ? Math.round((deptPassCount / gradedDeptSubs.length) * 100) : dept.passRate;
+
+      return {
+        ...dept,
+        activeUnits: deptExams.length > 0 ? deptExams.length : dept.activeUnits,
+        passRate: calculatedPassRate,
+      };
+    });
+  }, [departments, exams, submissions]);
+
+  const overallCompliance = useMemo(() => {
+    if (dynamicDepartments.length === 0) return "0.0";
+    const sum = dynamicDepartments.reduce((acc, d) => acc + (d.complianceRate || 0), 0);
+    return (sum / dynamicDepartments.length).toFixed(1);
+  }, [dynamicDepartments]);
+
+  const handleSaveDepartment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deptForm.name || !deptForm.code) {
+      toast.error("Please fill in department name and code");
+      return;
+    }
+
+    const newRecord: DepartmentRecord = {
+      name: deptForm.name,
+      code: deptForm.code.toUpperCase(),
+      hod: deptForm.hod || "Head of Department",
+      trainers: Number(deptForm.trainers) || 1,
+      activeUnits: Number(deptForm.activeUnits) || 1,
+      complianceRate: Number(deptForm.complianceRate) || 90,
+      passRate: 80,
+      status: deptForm.status,
+    };
+
+    let updated: DepartmentRecord[];
+    if (editingDept) {
+      updated = departments.map((d) => (d.code === editingDept.code ? newRecord : d));
+      toast.success(`Department ${newRecord.name} updated`);
+    } else {
+      updated = [...departments, newRecord];
+      toast.success(`Department ${newRecord.name} created`);
+    }
+
+    setDepartments(updated);
+    localStorage.setItem("mtti_departments", JSON.stringify(updated));
+
+    // Dynamic database persistence
+    if (isSupabaseConfigured()) {
+      (supabase as any)
+        .from("departments")
+        .upsert({
+          name: newRecord.name,
+          code: newRecord.code,
+          hod_name: newRecord.hod,
+          trainers: newRecord.trainers,
+          active_units: newRecord.activeUnits,
+          compliance_rate: newRecord.complianceRate,
+          status: newRecord.status,
+        })
+        .catch(() => {});
+    }
+
+    fetch("/api/departments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newRecord),
+    }).catch(() => {});
+
+    setShowAddDeptModal(false);
+    setEditingDept(null);
+  };
 
   return (
     <HODLayout
@@ -157,10 +341,10 @@ export default function HODDashboard() {
                 <ShieldCheck className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-foreground tracking-tight font-mono">94.6%</div>
+            <div className="text-3xl font-extrabold text-foreground tracking-tight font-mono">{overallCompliance}%</div>
             <p className="text-xs text-emerald-500 font-medium mt-1 flex items-center gap-1">
               <TrendingUp className="w-3 h-3" />
-              +2.4% over previous assessment cycle
+              Dynamic Institutional QA Index
             </p>
           </motion.div>
 
@@ -285,12 +469,33 @@ export default function HODDashboard() {
               <h2 className="text-base font-bold text-foreground">Departmental Quality & Compliance Matrix</h2>
               <p className="text-xs text-muted-foreground">Term 3 internal verification status across all academic faculties</p>
             </div>
-            <button
-              onClick={() => navigate("/hod/compliance")}
-              className="text-xs text-primary font-semibold hover:underline flex items-center gap-1"
-            >
-              View Full Compliance Ledger <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setEditingDept(null);
+                  setDeptForm({
+                    name: "",
+                    code: "",
+                    hod: "",
+                    trainers: 5,
+                    activeUnits: 8,
+                    complianceRate: 90,
+                    status: "Compliant",
+                  });
+                  setShowAddDeptModal(true);
+                }}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5 transition-all shadow-sm"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add Department
+              </button>
+              <button
+                onClick={() => navigate("/hod/compliance")}
+                className="text-xs text-primary font-semibold hover:underline flex items-center gap-1"
+              >
+                View Full Compliance Ledger <ArrowUpRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -307,8 +512,24 @@ export default function HODDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {DEPARTMENTS.map((dept, idx) => (
-                  <tr key={idx} className="hover:bg-muted/20 transition-colors">
+                {dynamicDepartments.map((dept, idx) => (
+                  <tr
+                    key={idx}
+                    className="hover:bg-muted/20 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setEditingDept(dept);
+                      setDeptForm({
+                        name: dept.name,
+                        code: dept.code,
+                        hod: dept.hod,
+                        trainers: dept.trainers,
+                        activeUnits: dept.activeUnits,
+                        complianceRate: dept.complianceRate,
+                        status: dept.status,
+                      });
+                      setShowAddDeptModal(true);
+                    }}
+                  >
                     <td className="px-5 py-3.5 font-bold text-foreground">
                       <div className="flex items-center gap-2">
                         <span className="w-6 h-6 rounded font-mono text-[10px] bg-primary/10 text-primary flex items-center justify-center font-bold">
@@ -474,6 +695,137 @@ export default function HODDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Dynamic Add / Edit Department Modal */}
+      <AnimatePresence>
+        {showAddDeptModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-border">
+                <div className="flex items-center gap-2">
+                  <Building className="w-5 h-5 text-primary" />
+                  <h3 className="font-bold text-base text-foreground">
+                    {editingDept ? "Edit Institutional Department" : "Add New Department"}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddDeptModal(false)}
+                  className="p-1 rounded-lg text-muted-foreground hover:bg-muted"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveDepartment} className="space-y-3 text-xs">
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">Department Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={deptForm.name}
+                    onChange={(e) => setDeptForm({ ...deptForm, name: e.target.value })}
+                    placeholder="e.g. Surveying & Geomatics"
+                    className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-medium outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-foreground mb-1">Dept Code</label>
+                    <input
+                      type="text"
+                      required
+                      value={deptForm.code}
+                      onChange={(e) => setDeptForm({ ...deptForm, code: e.target.value.toUpperCase() })}
+                      placeholder="e.g. SURV"
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-mono font-bold outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-foreground mb-1">Status</label>
+                    <select
+                      value={deptForm.status}
+                      onChange={(e) => setDeptForm({ ...deptForm, status: e.target.value as any })}
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-medium outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="Exemplary">Exemplary</option>
+                      <option value="Compliant">Compliant</option>
+                      <option value="Review Due">Review Due</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">Lead / HOD Name</label>
+                  <input
+                    type="text"
+                    value={deptForm.hod}
+                    onChange={(e) => setDeptForm({ ...deptForm, hod: e.target.value })}
+                    placeholder="e.g. Eng. K. Mwiti"
+                    className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-medium outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block font-semibold text-foreground mb-1">Faculty Count</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={deptForm.trainers}
+                      onChange={(e) => setDeptForm({ ...deptForm, trainers: Number(e.target.value) })}
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-mono outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-foreground mb-1">Active Units</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={deptForm.activeUnits}
+                      onChange={(e) => setDeptForm({ ...deptForm, activeUnits: Number(e.target.value) })}
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-mono outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-foreground mb-1">Target QA %</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={deptForm.complianceRate}
+                      onChange={(e) => setDeptForm({ ...deptForm, complianceRate: Number(e.target.value) })}
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-mono outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t border-border">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddDeptModal(false)}
+                    className="px-4 py-2 rounded-lg border border-border text-muted-foreground font-semibold hover:bg-muted"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-bold shadow-sm hover:opacity-90 transition-opacity"
+                  >
+                    {editingDept ? "Save Changes" : "Create Department"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </HODLayout>
   );
 }

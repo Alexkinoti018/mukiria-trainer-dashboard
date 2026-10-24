@@ -4,9 +4,9 @@
  * Features: Faculty preparation ledger, RoW sign-off workflow, curriculum coverage tracking
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText,
   CheckCircle2,
@@ -23,6 +23,8 @@ import {
   ArrowRight,
   ShieldCheck,
   UserCheck,
+  Plus,
+  X,
 } from "lucide-react";
 import HODLayout from "@/components/HODLayout";
 import { toast } from "sonner";
@@ -145,31 +147,95 @@ const INITIAL_TRAINERS: TrainerComplianceRecord[] = [
 
 export default function HODCompliance() {
   const [, navigate] = useLocation();
-  const [trainers, setTrainers] = useState<TrainerComplianceRecord[]>(INITIAL_TRAINERS);
+  const [trainers, setTrainers] = useState<TrainerComplianceRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem("mtti_hod_compliance_trainers");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_TRAINERS;
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [deptFilter, setDeptFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Dynamic Add / Edit Trainer Modal State
+  const [showAddTrainerModal, setShowAddTrainerModal] = useState(false);
+  const [trainerForm, setTrainerForm] = useState({
+    name: "",
+    staffId: "",
+    department: "Computing & Informatics",
+    unitCode: "",
+    unitTitle: "",
+    learningPlanStatus: "Approved" as "Approved" | "Under Review" | "Overdue",
+    sessionPlansCount: 12,
+    sessionPlansTotal: 12,
+    qrCodesActive: true,
+    classRegisterUpdated: true,
+    rowStatus: "Ready for Sign-off" as "Signed & Verified" | "Ready for Sign-off" | "Incomplete",
+    assessmentGradedRate: 100,
+    overallScore: 95,
+  });
+
+  const saveTrainersToStorage = (updated: TrainerComplianceRecord[]) => {
+    setTrainers(updated);
+    try {
+      localStorage.setItem("mtti_hod_compliance_trainers", JSON.stringify(updated));
+    } catch (e) {}
+  };
+
   const handleSignOff = (id: string, name: string) => {
-    setTrainers((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, rowStatus: "Signed & Verified", overallScore: Math.min(100, t.overallScore + 2) } : t))
+    const updated = trainers.map((t) =>
+      t.id === id ? { ...t, rowStatus: "Signed & Verified" as const, overallScore: Math.min(100, t.overallScore + 2) } : t
     );
+    saveTrainersToStorage(updated);
     toast.success("Record of Work Approved", {
       description: `Digitally endorsed and stamped RoW for ${name}.`,
     });
   };
 
   const handleSignOffAll = () => {
-    setTrainers((prev) =>
-      prev.map((t) =>
-        t.rowStatus === "Ready for Sign-off"
-          ? { ...t, rowStatus: "Signed & Verified", overallScore: Math.min(100, t.overallScore + 2) }
-          : t
-      )
+    const updated = trainers.map((t) =>
+      t.rowStatus === "Ready for Sign-off"
+        ? { ...t, rowStatus: "Signed & Verified" as const, overallScore: Math.min(100, t.overallScore + 2) }
+        : t
     );
+    saveTrainersToStorage(updated);
     toast.success("Batch Sign-off Complete", {
       description: "All pending Records of Work have been endorsed with the HOD digital seal.",
     });
+  };
+
+  const handleAddTrainer = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!trainerForm.name || !trainerForm.unitCode) {
+      toast.error("Please enter trainer name and unit code");
+      return;
+    }
+    const newRecord: TrainerComplianceRecord = {
+      id: `tr-${Date.now()}`,
+      name: trainerForm.name,
+      staffId: trainerForm.staffId || `MTTI/EMP/0${Math.floor(Math.random() * 80) + 10}`,
+      department: trainerForm.department,
+      unitCode: trainerForm.unitCode.toUpperCase(),
+      unitTitle: trainerForm.unitTitle || trainerForm.unitCode,
+      learningPlanStatus: trainerForm.learningPlanStatus,
+      sessionPlansCount: Number(trainerForm.sessionPlansCount) || 12,
+      sessionPlansTotal: Number(trainerForm.sessionPlansTotal) || 12,
+      qrCodesActive: Boolean(trainerForm.qrCodesActive),
+      classRegisterUpdated: Boolean(trainerForm.classRegisterUpdated),
+      rowStatus: trainerForm.rowStatus,
+      assessmentGradedRate: Number(trainerForm.assessmentGradedRate) || 100,
+      overallScore: Number(trainerForm.overallScore) || 90,
+    };
+    const updated = [newRecord, ...trainers];
+    saveTrainersToStorage(updated);
+    toast.success("Faculty Compliance Profile Added", {
+      description: `Ingested ${newRecord.name} for unit ${newRecord.unitCode}`,
+    });
+    setShowAddTrainerModal(false);
   };
 
   const handleSendReminder = (name: string) => {
@@ -278,10 +344,18 @@ export default function HODCompliance() {
               <option value="attention">Incomplete / Review</option>
             </select>
 
+            <button
+              onClick={() => setShowAddTrainerModal(true)}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 transition-all flex items-center gap-1.5 shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Faculty Record
+            </button>
+
             {readyForSignoffCount > 0 && (
               <button
                 onClick={handleSignOffAll}
-                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 transition-all flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-muted hover:bg-muted/80 text-foreground transition-all flex items-center gap-1.5 border border-border shadow-sm"
               >
                 <CheckSquare className="w-3.5 h-3.5" />
                 Sign-off All ({readyForSignoffCount})
@@ -434,6 +508,143 @@ export default function HODCompliance() {
           </div>
         </div>
       </div>
+
+      {/* Dynamic Add Faculty Compliance Record Modal */}
+      <AnimatePresence>
+        {showAddTrainerModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-border">
+                <div className="flex items-center gap-2">
+                  <UserCheck className="w-5 h-5 text-primary" />
+                  <h3 className="font-bold text-base text-foreground">Add Faculty Compliance Profile</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddTrainerModal(false)}
+                  className="p-1 rounded-lg text-muted-foreground hover:bg-muted"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddTrainer} className="space-y-3 text-xs">
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">Trainer Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={trainerForm.name}
+                    onChange={(e) => setTrainerForm({ ...trainerForm, name: e.target.value })}
+                    placeholder="e.g. Alexander Kinoti"
+                    className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-medium outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-foreground mb-1">Staff ID</label>
+                    <input
+                      type="text"
+                      value={trainerForm.staffId}
+                      onChange={(e) => setTrainerForm({ ...trainerForm, staffId: e.target.value })}
+                      placeholder="e.g. MTTI/EMP/042"
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-mono outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-foreground mb-1">Department</label>
+                    <select
+                      value={trainerForm.department}
+                      onChange={(e) => setTrainerForm({ ...trainerForm, department: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-medium outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="Computing & Informatics">Computing & Informatics</option>
+                      <option value="Electrical & Electronics">Electrical & Electronics</option>
+                      <option value="Business & Management">Business & Management</option>
+                      <option value="Mechanical & Automotive">Mechanical & Automotive</option>
+                      <option value="Building & Civil Engineering">Building & Civil Engineering</option>
+                      <option value="Hospitality Management">Hospitality Management</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-foreground mb-1">Unit Code</label>
+                    <input
+                      type="text"
+                      required
+                      value={trainerForm.unitCode}
+                      onChange={(e) => setTrainerForm({ ...trainerForm, unitCode: e.target.value.toUpperCase() })}
+                      placeholder="e.g. 061155101A"
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-mono font-bold outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-foreground mb-1">Unit Title</label>
+                    <input
+                      type="text"
+                      value={trainerForm.unitTitle}
+                      onChange={(e) => setTrainerForm({ ...trainerForm, unitTitle: e.target.value })}
+                      placeholder="e.g. Digital Literacy"
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-medium outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-foreground mb-1">Learning Plan</label>
+                    <select
+                      value={trainerForm.learningPlanStatus}
+                      onChange={(e) => setTrainerForm({ ...trainerForm, learningPlanStatus: e.target.value as any })}
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-medium outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="Approved">Approved</option>
+                      <option value="Under Review">Under Review</option>
+                      <option value="Overdue">Overdue</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-foreground mb-1">RoW Status</label>
+                    <select
+                      value={trainerForm.rowStatus}
+                      onChange={(e) => setTrainerForm({ ...trainerForm, rowStatus: e.target.value as any })}
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-medium outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="Ready for Sign-off">Ready for Sign-off</option>
+                      <option value="Signed & Verified">Signed & Verified</option>
+                      <option value="Incomplete">Incomplete</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t border-border">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddTrainerModal(false)}
+                    className="px-4 py-2 rounded-lg border border-border text-muted-foreground font-semibold hover:bg-muted"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-bold shadow-sm hover:opacity-90 transition-opacity"
+                  >
+                    Save Profile
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </HODLayout>
   );
 }

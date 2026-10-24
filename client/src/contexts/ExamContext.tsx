@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
-import { Exam, Submission, isSupabaseConfigured, normalizeAssessmentTaskSlot, doesExamMatchTraineeCohort } from "@/lib/supabase";
+import { Exam, Submission, supabase, isSupabaseConfigured, normalizeAssessmentTaskSlot, doesExamMatchTraineeCohort } from "@/lib/supabase";
 import { MOCK_EXAMS, MOCK_SUBMISSIONS } from "@/lib/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { syncScoreToContinuousMarksheet } from "@/contexts/TraineeContext";
@@ -14,6 +14,7 @@ interface ExamContextType {
   submitExam: (submission: Omit<Submission, "id" | "created_at" | "updated_at">) => void;
   gradeSubmission: (id: string, updates: Partial<Submission>) => void;
   reopenSubmissionForRetake: (id: string, reason?: string, trainerName?: string) => void;
+  refreshExamsAndSubmissions: () => Promise<void>;
 }
 
 export function generateSubmissionHash(
@@ -208,6 +209,59 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Dynamic live Supabase & REST database synchronization
+  const refreshExamsAndSubmissions = async () => {
+    try {
+      // 1. Live Supabase Cloud Database Query
+      if (isSupabaseConfigured()) {
+        try {
+          const [examsRes, subsRes] = await Promise.all([
+            (supabase as any).from("exams").select("*"),
+            (supabase as any).from("submissions").select("*"),
+          ]);
+          if (!examsRes.error && Array.isArray(examsRes.data) && examsRes.data.length > 0) {
+            setExams(examsRes.data);
+            localStorage.setItem("mukiria_exams", JSON.stringify(examsRes.data));
+          }
+          if (!subsRes.error && Array.isArray(subsRes.data) && subsRes.data.length > 0) {
+            setAllSubmissions(subsRes.data);
+            localStorage.setItem("mukiria_submissions", JSON.stringify(subsRes.data));
+          }
+        } catch (e) {
+          console.warn("Supabase query notice in ExamContext:", e);
+        }
+      }
+
+      // 2. Centralized Live API Fetch Fallback
+      const [resExams, resSubs] = await Promise.all([
+        fetch("/api/exams").catch(() => null),
+        fetch("/api/submissions").catch(() => null),
+      ]);
+
+      if (resExams && resExams.ok) {
+        const liveExams = await resExams.json();
+        if (Array.isArray(liveExams) && liveExams.length > 0) {
+          setExams(liveExams);
+          localStorage.setItem("mukiria_exams", JSON.stringify(liveExams));
+        }
+      }
+
+      if (resSubs && resSubs.ok) {
+        const liveSubs = await resSubs.json();
+        if (Array.isArray(liveSubs) && liveSubs.length > 0) {
+          setAllSubmissions(liveSubs);
+          localStorage.setItem("mukiria_submissions", JSON.stringify(liveSubs));
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to refresh live exams & submissions:", err);
+    }
+  };
+
+  useEffect(() => {
+    refreshExamsAndSubmissions();
+  }, []);
+
   // Strict Scoping: Trainees only receive their own submissions in memory
   const scopedSubmissions = useMemo(() => {
     if (!user) return [];
@@ -283,6 +337,17 @@ export function ExamProvider({ children }: { children: ReactNode }) {
 
     setExams(updated);
     localStorage.setItem("mukiria_exams", JSON.stringify(updated));
+
+    // Dynamic database persistence
+    const targetPayload = existingIdx >= 0 ? updated[existingIdx] : updated[updated.length - 1];
+    if (isSupabaseConfigured()) {
+      (supabase as any).from("exams").upsert(targetPayload).catch(() => {});
+    }
+    fetch("/api/exams", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(targetPayload),
+    }).catch(() => {});
   };
 
   const updateExamSchedule = (unitCodeOrId: string, scheduleUpdates: Partial<Exam["payload"]>) => {
@@ -300,6 +365,20 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     });
     setExams(updated);
     localStorage.setItem("mukiria_exams", JSON.stringify(updated));
+
+    const targetUpdated = updated.find(
+      (e) => e.id === unitCodeOrId || e.unit_code.trim().toUpperCase() === unitCodeOrId.trim().toUpperCase()
+    );
+    if (targetUpdated) {
+      if (isSupabaseConfigured()) {
+        (supabase as any).from("exams").upsert(targetUpdated).catch(() => {});
+      }
+      fetch("/api/exams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(targetUpdated),
+      }).catch(() => {});
+    }
   };
 
   const submitExam = (submissionPayload: Omit<Submission, "id" | "created_at" | "updated_at">) => {
@@ -415,6 +494,15 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("mukiria_submissions", JSON.stringify(updated));
     if (targetUpdated) {
       syncSubmissionWithMarksheet(targetUpdated, exams);
+
+      if (isSupabaseConfigured()) {
+        (supabase as any).from("submissions").upsert(targetUpdated).catch(() => {});
+      }
+      fetch("/api/submissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(targetUpdated),
+      }).catch(() => {});
     }
   };
 
@@ -428,6 +516,7 @@ export function ExamProvider({ children }: { children: ReactNode }) {
         submitExam,
         gradeSubmission,
         reopenSubmissionForRetake,
+        refreshExamsAndSubmissions,
       }}
     >
       {children}

@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import TrainerLayout from "@/components/TrainerLayout";
 import { toast } from "sonner";
+import { useTrainees } from "@/contexts/TraineeContext";
+import { useExam } from "@/contexts/ExamContext";
 
 interface StudentPerformance {
   id: string;
@@ -38,78 +40,86 @@ interface StudentPerformance {
 }
 
 export default function PerformanceInsights() {
-  const [students, setStudents] = useState<StudentPerformance[]>([
-    {
-      id: "s1",
-      name: "Nthiga Gakii Doris",
-      regNumber: "14179/S2026",
-      avgScore: 94,
-      trend: 6,
-      riskLevel: "low",
-      examsAttempted: 3,
-      strengths: ["Hardware Diagnostics", "T568B Structured Cabling", "OS Configuration"],
-      weaknesses: [],
-      recommendations: ["Assign peer-mentoring role in ICT Lab", "Prepare for CDACC External Assessment"],
-      lastExamScore: 94,
-      predictedScore: 95,
-      improvementPotential: 6,
-    },
-    {
-      id: "s2",
-      name: "Ltumwa Lesoipa",
-      regNumber: "14022/S2026",
-      avgScore: 61,
-      trend: -2,
-      riskLevel: "high",
-      examsAttempted: 3,
-      strengths: ["Workshop Attendance", "Basic RJ-45 Termination"],
-      weaknesses: ["POST Voltage Diagnostics", "Command-line TCP/IP Troubleshooting"],
-      recommendations: [
-        "Schedule remedial practical lab session",
-        "Review multimeter PSU rail verification steps",
-        "Practice structured Section B troubleshooting responses",
-      ],
-      lastExamScore: 61,
-      predictedScore: 65,
-      improvementPotential: 28,
-    },
-    {
-      id: "s3",
-      name: "Kaumbuthu Belinda Mukiri",
-      regNumber: "14255/S2026",
-      avgScore: 72,
-      trend: 3,
-      riskLevel: "medium",
-      examsAttempted: 3,
-      strengths: ["ESD Safety Procedures", "NTFS vs FAT32 File Systems"],
-      weaknesses: ["Class C Subnetting", "Multimeter Rail Diagnostics"],
-      recommendations: [
-        "Review IPv4 subnet mask calculations",
-        "Complete practical power supply diagnostic checklist",
-      ],
-      lastExamScore: 72,
-      predictedScore: 78,
-      improvementPotential: 18,
-    },
-    {
-      id: "s4",
-      name: "Wanjau Alvin Gatere",
-      regNumber: "14076/S2026",
-      avgScore: 89,
-      trend: 5,
-      riskLevel: "low",
-      examsAttempted: 3,
-      strengths: ["Motherboard I/O Identification", "Device Manager Diagnostics", "File Compression & Encryption"],
-      weaknesses: [],
-      recommendations: ["Ready for Level 4 Summative Practical Assessment"],
-      lastExamScore: 89,
-      predictedScore: 91,
-      improvementPotential: 9,
-    },
-  ]);
-
+  const { trainees } = useTrainees();
+  const { submissions } = useExam();
   const [selectedStudent, setSelectedStudent] = useState<StudentPerformance | null>(null);
   const [filterRisk, setFilterRisk] = useState<"all" | "low" | "medium" | "high">("all");
+
+  // Dynamically compute performance for every trainee in live roster & database
+  const students: StudentPerformance[] = useMemo(() => {
+    if (!trainees || trainees.length === 0) return [];
+
+    return trainees.map((t, idx) => {
+      const regNo = (t.admNo || t.regCode || "").trim().toUpperCase();
+      const name = (t.name || "").trim().toLowerCase();
+
+      // Find all submissions for this trainee
+      const traineeSubs = submissions.filter((s) => {
+        const sReg = (s.reg_number || "").trim().toUpperCase();
+        const sName = (s.student_name || "").trim().toLowerCase();
+        return (regNo && sReg === regNo) || (name && sName === name);
+      });
+
+      const gradedSubs = traineeSubs.filter((s) => s.total_score !== null);
+      const scores = gradedSubs.map((s) => {
+        return Math.min(100, Math.round(((s.total_score ?? 0) / 70) * 100));
+      });
+
+      const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+      const lastExamScore = scores.length > 0 ? scores[scores.length - 1] : 0;
+      const firstExamScore = scores.length > 1 ? scores[0] : lastExamScore;
+      const trend = scores.length > 1 ? lastExamScore - firstExamScore : (avgScore >= 60 ? 4 : -2);
+
+      let riskLevel: "low" | "medium" | "high" = "medium";
+      if (avgScore >= 75) riskLevel = "low";
+      else if (avgScore > 0 && avgScore < 50) riskLevel = "high";
+      else if (avgScore === 0 && traineeSubs.length > 0) riskLevel = "medium";
+      else if (avgScore >= 50) riskLevel = "medium";
+
+      const predictedScore = Math.min(100, Math.max(0, avgScore + Math.round(trend * 0.5)));
+      const improvementPotential = Math.max(0, 100 - avgScore);
+
+      const strengths: string[] = [];
+      const weaknesses: string[] = [];
+      const recommendations: string[] = [];
+
+      if (avgScore >= 70) {
+        strengths.push("Summative Theory & Section A Competency");
+        strengths.push("Practical Workshop Problem Solving");
+        recommendations.push("Prepare for CDACC National Assessment verification");
+        recommendations.push("Assign peer-mentoring leadership role");
+      } else if (avgScore >= 50) {
+        strengths.push("Core Unit Curriculum Familiarity");
+        weaknesses.push("Advanced Diagnostic Time Management");
+        recommendations.push("Practice past TVET CDACC assessment papers");
+        recommendations.push("Attend guided afternoon practical workshops");
+      } else if (avgScore > 0) {
+        weaknesses.push("Technical Theory Terminology (Section A)");
+        weaknesses.push("Practical Rubric Execution (Section B)");
+        recommendations.push("Schedule mandatory 1-on-1 remedial instructor review");
+        recommendations.push("Re-attempt formative lab assignments");
+      } else {
+        weaknesses.push("Pending assessment submissions");
+        recommendations.push("Ensure scheduled assessment papers are submitted on candidate portal");
+      }
+
+      return {
+        id: t.id || `s-${idx}`,
+        name: t.name,
+        regNumber: t.admNo || t.regCode || `MTTI-${idx + 1}`,
+        avgScore,
+        trend,
+        riskLevel,
+        examsAttempted: traineeSubs.length,
+        strengths,
+        weaknesses,
+        recommendations,
+        lastExamScore,
+        predictedScore,
+        improvementPotential,
+      };
+    });
+  }, [trainees, submissions]);
 
   const filteredStudents = useMemo(() => {
     return students.filter((s) => (filterRisk === "all" ? true : s.riskLevel === filterRisk));
@@ -119,7 +129,10 @@ export default function PerformanceInsights() {
     const lowRisk = students.filter((s) => s.riskLevel === "low").length;
     const mediumRisk = students.filter((s) => s.riskLevel === "medium").length;
     const highRisk = students.filter((s) => s.riskLevel === "high").length;
-    const avgOverall = (students.reduce((sum, s) => sum + s.avgScore, 0) / students.length).toFixed(1);
+    const avgOverall =
+      students.length > 0
+        ? (students.reduce((sum, s) => sum + s.avgScore, 0) / students.length).toFixed(1)
+        : "0.0";
 
     return { lowRisk, mediumRisk, highRisk, avgOverall };
   }, [students]);

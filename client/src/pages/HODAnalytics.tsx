@@ -78,41 +78,74 @@ export default function HODAnalytics() {
     { grade: "F (Referral)", count: gradeCounts.F, color: GRADE_COLORS.F },
   ];
 
-  // Unit Breakdown Comparison
-  const unitComparisonData = [
-    {
-      unit: "CT1: Office Productivity",
-      candidates: submissions.filter(s => (s as any).task_code === "CT1" || s.exam_id?.includes("wa1") || s.exam_id?.includes("ct1") || s.unit_code.includes("WA1")).length || 18,
-      avgScore: 58,
-      passRate: 88,
-    },
-    {
-      unit: "CT2: Architecture & OS",
-      candidates: submissions.filter(s => (s as any).task_code === "CT2" || s.exam_id?.includes("wa2") || s.exam_id?.includes("ct2") || s.unit_code.includes("WA2")).length || 15,
-      avgScore: 52,
-      passRate: 78,
-    },
-    {
-      unit: "CT3: Networks & Cyber",
-      candidates: submissions.filter(s => (s as any).task_code === "CT3" || s.exam_id?.includes("wa3") || s.exam_id?.includes("ct3") || s.unit_code.includes("WA3")).length || 14,
-      avgScore: 54,
-      passRate: 82,
-    },
-  ];
+  // Unit Breakdown Comparison dynamically derived from live exams and submissions
+  const unitComparisonData = exams.map((exam) => {
+    const examSubs = submissions.filter(
+      (s) =>
+        s.exam_id === exam.id ||
+        s.unit_code === exam.unit_code ||
+        ((s as any).task_code && (exam.payload as any)?.task_code === (s as any).task_code)
+    );
+    const graded = examSubs.filter((s) => s.total_score !== null);
+    const avg =
+      graded.length > 0
+        ? Math.round(graded.reduce((acc, s) => acc + (s.total_score ?? 0), 0) / graded.length)
+        : 0;
+    const passes = graded.filter((s) => (s.total_score ?? 0) >= 35).length;
+    const pass = graded.length > 0 ? Math.round((passes / graded.length) * 100) : 0;
+    return {
+      unit: (exam.payload as any)?.title || exam.course_name || exam.unit_code,
+      candidates: examSubs.length,
+      avgScore: avg,
+      passRate: pass,
+    };
+  });
 
-  // Theory (Section A) vs Practical (Section B) Performance
-  const componentComparisonData = [
-    { name: "CT1 (Productivity)", theory: 24, practical: 34, maxTheory: 30, maxPractical: 40 },
-    { name: "CT2 (Architecture)", theory: 22, practical: 30, maxTheory: 30, maxPractical: 40 },
-    { name: "CT3 (Cyber & Cloud)", theory: 23, practical: 31, maxTheory: 30, maxPractical: 40 },
-  ];
+  // Theory (Section A) vs Practical (Section B) Performance dynamically calculated from live submissions
+  const componentComparisonData = exams.slice(0, 4).map((exam) => {
+    const examSubs = submissions.filter(
+      (s) => s.exam_id === exam.id || s.unit_code === exam.unit_code
+    );
+    const withSecA = examSubs.filter((s) => s.section_a && s.section_a.length > 0);
+    const withSecB = examSubs.filter((s) => s.section_b && s.section_b.length > 0);
+
+    const avgTheory =
+      withSecA.length > 0
+        ? Math.round(
+            withSecA.reduce(
+              (acc, s) =>
+                acc + (s.section_a ? s.section_a.reduce((sm, a) => sm + (a.marks_awarded ?? 0), 0) : 0),
+              0
+            ) / withSecA.length
+          )
+        : 0;
+
+    const avgPractical =
+      withSecB.length > 0
+        ? Math.round(
+            withSecB.reduce(
+              (acc, s) =>
+                acc + (s.section_b ? s.section_b.reduce((sm, b) => sm + (b.marks_awarded ?? 0), 0) : 0),
+              0
+            ) / withSecB.length
+          )
+        : 0;
+
+    return {
+      name: (exam.payload as any)?.task_code || exam.unit_code,
+      theory: avgTheory,
+      practical: avgPractical,
+      maxTheory: 30,
+      maxPractical: 40,
+    };
+  });
 
   const avgMarks = totalGraded > 0
     ? Math.round(gradedSubs.reduce((sum, s) => sum + (s.total_score ?? 0), 0) / totalGraded)
-    : 56;
+    : 0;
   const passRate = totalGraded > 0
     ? Math.round((gradedSubs.filter(s => (s.total_score ?? 0) >= 35).length / totalGraded) * 100)
-    : 84;
+    : 0;
 
   return (
     <HODLayout
@@ -155,7 +188,7 @@ export default function HODAnalytics() {
               <span className="text-xs font-semibold uppercase">Total Evaluated Candidates</span>
               <Users className="w-4 h-4 text-primary" />
             </div>
-            <div className="text-3xl font-extrabold text-foreground font-mono">{totalGraded || 24}</div>
+            <div className="text-3xl font-extrabold text-foreground font-mono">{totalGraded}</div>
             <p className="text-xs text-muted-foreground mt-1">Summative written & practical submissions</p>
           </div>
 
@@ -165,7 +198,9 @@ export default function HODAnalytics() {
               <Award className="w-4 h-4 text-emerald-500" />
             </div>
             <div className="text-3xl font-extrabold text-foreground font-mono">{avgMarks} / 70</div>
-            <p className="text-xs text-emerald-500 font-medium mt-1">80% scaled average achievement</p>
+            <p className="text-xs text-emerald-500 font-medium mt-1">
+              {totalGraded > 0 ? Math.round((avgMarks / 70) * 100) : 0}% scaled average achievement
+            </p>
           </div>
 
           <div className="p-5 rounded-2xl bg-card border border-border shadow-sm">
@@ -183,7 +218,7 @@ export default function HODAnalytics() {
               <TrendingUp className="w-4 h-4 text-primary" />
             </div>
             <div className="text-3xl font-extrabold text-foreground font-mono">
-              {gradeCounts.A || 8}
+              {gradeCounts.A}
             </div>
             <p className="text-xs text-emerald-500 font-medium mt-1">High performers (&gt;80% score)</p>
           </div>
