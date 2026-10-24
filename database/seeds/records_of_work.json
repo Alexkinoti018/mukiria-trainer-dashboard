@@ -1,0 +1,94 @@
+[
+  {
+    "id": "row-001",
+    "session_plan_id": "sp-001",
+    "unit_offering_id": "uo-1",
+    "trainer_id": "trainer-001",
+    "department_id": "dept-ci",
+    "work_covered": "Disassembly and testing of power supply units",
+    "date_covered": "2026-09-10",
+    "approval_status": "approved",
+    "hod_reviewed_by": "hod-001",
+    "hod_reviewer_name": "Prof. S. Njoroge",
+    "hod_review_date": "2026-10-20T21:55:57.655Z",
+    "hod_remarks": "Verified syllabus delivery and practical log."
+  },
+  {
+    "id": "row-002",
+    "session_plan_id": "sp-002",
+    "unit_offering_id": "uo-3",
+    "trainer_id": "trainer-002",
+    "department_id": "dept-ci",
+    "work_covered": "Ethernet standard 568B termination lab",
+    "date_covered": "2026-09-12",
+    "approval_status": "approved",
+    "hod_reviewed_by": "hod-001",
+    "hod_reviewer_name": "Prof. S. Njoroge",
+    "hod_review_date": "2026-09-13T10:00:00Z",
+    "hod_remarks": "Verified against syllabus."
+  },
+  {
+    "id": "row-ee-001",
+    "session_plan_id": "sp-ee-001",
+    "unit_offering_id": "uo-ee-1",
+    "trainer_id": "trainer-ee-001",
+    "department_id": "dept-ee",
+    "work_covered": "Transformer loading tests",
+    "date_covered": "2026-09-14",
+    "approval_status": "pending",
+    "hod_reviewed_by": null,
+    "hod_reviewer_name": null,
+    "hod_review_date": null,
+    "hod_remarks": null
+  },
+  {
+    "id": "row-api-1792531332758",
+    "unit_offering_id": "uo-api",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "work_covered": "Completed database integration practical",
+    "date_covered": "2026-10-21",
+    "approval_status": "pending",
+    "created_at": "2026-10-20T21:22:12.767Z",
+    "updated_at": "2026-10-20T21:22:12.767Z"
+  },
+  {
+    "id": "row-api-1792531453678",
+    "unit_offering_id": "uo-api",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "work_covered": "Completed database integration practical",
+    "date_covered": "2026-10-21",
+    "approval_status": "pending",
+    "created_at": "2026-10-20T21:24:13.684Z",
+    "updated_at": "2026-10-20T21:24:13.684Z"
+  },
+  {
+    "id": "row-api-1792531530886",
+    "unit_offering_id": "uo-api",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "work_covered": "Completed database integration practical",
+    "date_covered": "2026-10-21",
+    "approval_status": "pending",
+    "created_at": "2026-10-20T21:25:30.930Z",
+    "updated_at": "2026-10-20T21:25:30.930Z"
+  },
+  {
+    "id": "row-api-1792532815086",
+    "unit_offering_id": "uo-api",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "work_covered": "Completed database integration practical",
+    "date_covered": "2026-10-21",
+    "approval_status": "pending",
+    "created_at": "2026-10-20T21:46:55.105Z",
+    "updated_at": "2026-10-20T21:46:55.105Z"
+  },
+  {
+    "id": "row-api-1792533364990",
+    "unit_offering_id": "uo-api",
+    "class_code": "ADMIN5/6/J/26 MOD 3",
+    "work_covered": "Completed database integration practical",
+    "date_covered": "2026-10-21",
+    "approval_status": "pending",
+    "created_at": "2026-10-20T21:56:04.997Z",
+    "updated_at": "2026-10-20T21:56:04.997Z"
+  }
+]

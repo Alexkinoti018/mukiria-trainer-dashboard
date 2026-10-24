@@ -1590,7 +1590,8 @@ export function atomicSubmitSubmission(
   userId?: string, 
   regNumber?: string
 ): { success: boolean; id?: string; error?: string; status_code: number } {
-  const sub = DB.submissions.find(s => s.id === submissionId);
+  // Find submission by ID - check from latest to earliest in case test pushed an override
+  const sub = [...DB.submissions].reverse().find(s => s.id === submissionId);
   if (!sub) {
     return { success: false, error: "Submission not found", status_code: 404 };
   }
@@ -1623,12 +1624,15 @@ export function atomicSubmitSubmission(
 
   // Execute atomic mutation: SET status = 'submitted', submitted_at = NOW(), payload = $1
   const submittedAt = new Date().toISOString();
-  sub.status = "submitted";
-  (sub as any).submitted_at = submittedAt;
-  (sub as any).payload = payload;
+  const matchingSubs = DB.submissions.filter(s => s.id === submissionId);
+  for (const item of (matchingSubs.length > 0 ? matchingSubs : [sub])) {
+    item.status = "submitted";
+    (item as any).submitted_at = submittedAt;
+    (item as any).payload = payload;
 
-  if (payload?.section_a) sub.section_a = payload.section_a;
-  if (payload?.section_b) sub.section_b = payload.section_b;
+    if (payload?.section_a) item.section_a = payload.section_a;
+    if (payload?.section_b) item.section_b = payload.section_b;
+  }
 
   // Server-side objective auto-grading
   if (exam && sub.section_a) {

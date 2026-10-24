@@ -15,21 +15,24 @@ const { Pool } = pg;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const SEEDS_DIR = path.resolve(__dirname, "..", "database", "seeds");
 const DATA_DIR = path.resolve(__dirname, "data");
 
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+function getFixturePath(filename: string): string {
+  const seedPath = path.join(SEEDS_DIR, filename);
+  if (fs.existsSync(seedPath)) return seedPath;
+  return path.join(DATA_DIR, filename);
 }
 
-const ATTENDANCE_FILE = path.join(DATA_DIR, "attendance_register.json");
-const TRAINEES_FILE = path.join(DATA_DIR, "trainees.json");
-const SESSION_PLANS_FILE = path.join(DATA_DIR, "session_plans.json");
-const LEARNING_PLANS_FILE = path.join(DATA_DIR, "learning_plans.json");
-const RECORDS_OF_WORK_FILE = path.join(DATA_DIR, "records_of_work.json");
-const CLASS_REGISTERS_FILE = path.join(DATA_DIR, "class_registers.json");
-const ASSESSMENT_MARKS_FILE = path.join(DATA_DIR, "assessment_marks.json");
-const SUBMISSIONS_FILE = path.join(DATA_DIR, "submissions.json");
-const ASSESSMENT_EVIDENCE_FILE = path.join(DATA_DIR, "assessment_evidence.json");
+const ATTENDANCE_FILE = getFixturePath("attendance_register.json");
+const TRAINEES_FILE = getFixturePath("trainees.json");
+const SESSION_PLANS_FILE = getFixturePath("session_plans.json");
+const LEARNING_PLANS_FILE = getFixturePath("learning_plans.json");
+const RECORDS_OF_WORK_FILE = getFixturePath("records_of_work.json");
+const CLASS_REGISTERS_FILE = getFixturePath("class_registers.json");
+const ASSESSMENT_MARKS_FILE = getFixturePath("assessment_marks.json");
+const SUBMISSIONS_FILE = getFixturePath("submissions.json");
+const ASSESSMENT_EVIDENCE_FILE = getFixturePath("assessment_evidence.json");
 
 // Connection parameters
 const PROJECT_REF = process.env.SUPABASE_PROJECT_REF || "bzlnpywjyhhrqapsvczf";
@@ -128,11 +131,28 @@ export interface TraineeRecord {
   updated_at?: string;
 }
 
+// ─── STRICT READ-ONLY SEED FIXTURES & PG/SUPABASE PERSISTENCE ENGINE ────────
+// Local JSON files in database/seeds/ are immutable fixtures used solely for provisioning.
+// Production mutations are persisted directly to Supabase / PostgreSQL tables,
+// retaining an in-memory runtime cache for non-destructive local/offline access.
+
+let memoryAttendance: AttendanceRecord[] | null = null;
+let memoryTrainees: TraineeRecord[] | null = null;
+let memorySessionPlans: any[] | null = null;
+let memoryLearningPlans: any[] | null = null;
+let memoryRecordsOfWork: any[] | null = null;
+let memoryClassRegisters: Record<string, any> | null = null;
+let memoryAssessmentMarks: any[] | null = null;
+let memorySubmissions: any[] | null = null;
+let memoryAssessmentEvidence: any[] | null = null;
+
 export function loadPersistentAttendance(): AttendanceRecord[] {
+  if (memoryAttendance !== null) return memoryAttendance;
   try {
     if (fs.existsSync(ATTENDANCE_FILE)) {
       const data = fs.readFileSync(ATTENDANCE_FILE, "utf-8");
-      return JSON.parse(data);
+      memoryAttendance = JSON.parse(data);
+      return memoryAttendance!;
     }
   } catch (e) {
     console.warn("Could not read attendance JSON file:", e);
@@ -141,18 +161,19 @@ export function loadPersistentAttendance(): AttendanceRecord[] {
 }
 
 export function savePersistentAttendance(records: AttendanceRecord[]): void {
-  try {
-    fs.writeFileSync(ATTENDANCE_FILE, JSON.stringify(records, null, 2), "utf-8");
-  } catch (e) {
-    console.warn("Could not save attendance JSON file:", e);
+  memoryAttendance = [...records];
+  if (pool) {
+    saveAttendanceBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Attendance Persist Warning]:", e.message));
   }
 }
 
 export function loadPersistentTrainees(): TraineeRecord[] {
+  if (memoryTrainees !== null) return memoryTrainees;
   try {
     if (fs.existsSync(TRAINEES_FILE)) {
       const data = fs.readFileSync(TRAINEES_FILE, "utf-8");
-      return JSON.parse(data);
+      memoryTrainees = JSON.parse(data);
+      return memoryTrainees!;
     }
   } catch (e) {
     console.warn("Could not read trainees JSON file:", e);
@@ -161,18 +182,19 @@ export function loadPersistentTrainees(): TraineeRecord[] {
 }
 
 export function savePersistentTrainees(records: TraineeRecord[]): void {
-  try {
-    fs.writeFileSync(TRAINEES_FILE, JSON.stringify(records, null, 2), "utf-8");
-  } catch (e) {
-    console.warn("Could not save trainees JSON file:", e);
+  memoryTrainees = [...records];
+  if (pool) {
+    saveTraineeBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Trainees Persist Warning]:", e.message));
   }
 }
 
 export function loadPersistentSessionPlans(): any[] {
+  if (memorySessionPlans !== null) return memorySessionPlans;
   try {
     if (fs.existsSync(SESSION_PLANS_FILE)) {
       const data = fs.readFileSync(SESSION_PLANS_FILE, "utf-8");
-      return JSON.parse(data);
+      memorySessionPlans = JSON.parse(data);
+      return memorySessionPlans!;
     }
   } catch (e) {
     console.warn("Could not read session plans JSON file:", e);
@@ -181,18 +203,19 @@ export function loadPersistentSessionPlans(): any[] {
 }
 
 export function savePersistentSessionPlans(records: any[]): void {
-  try {
-    fs.writeFileSync(SESSION_PLANS_FILE, JSON.stringify(records, null, 2), "utf-8");
-  } catch (e) {
-    console.warn("Could not save session plans JSON file:", e);
+  memorySessionPlans = [...records];
+  if (pool) {
+    saveSessionPlansBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Session Plans Persist Warning]:", e.message));
   }
 }
 
 export function loadPersistentLearningPlans(): any[] {
+  if (memoryLearningPlans !== null) return memoryLearningPlans;
   try {
     if (fs.existsSync(LEARNING_PLANS_FILE)) {
       const data = fs.readFileSync(LEARNING_PLANS_FILE, "utf-8");
-      return JSON.parse(data);
+      memoryLearningPlans = JSON.parse(data);
+      return memoryLearningPlans!;
     }
   } catch (e) {
     console.warn("Could not read learning plans JSON file:", e);
@@ -201,18 +224,19 @@ export function loadPersistentLearningPlans(): any[] {
 }
 
 export function savePersistentLearningPlans(records: any[]): void {
-  try {
-    fs.writeFileSync(LEARNING_PLANS_FILE, JSON.stringify(records, null, 2), "utf-8");
-  } catch (e) {
-    console.warn("Could not save learning plans JSON file:", e);
+  memoryLearningPlans = [...records];
+  if (pool) {
+    saveLearningPlansBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Learning Plans Persist Warning]:", e.message));
   }
 }
 
 export function loadPersistentRecordsOfWork(): any[] {
+  if (memoryRecordsOfWork !== null) return memoryRecordsOfWork;
   try {
     if (fs.existsSync(RECORDS_OF_WORK_FILE)) {
       const data = fs.readFileSync(RECORDS_OF_WORK_FILE, "utf-8");
-      return JSON.parse(data);
+      memoryRecordsOfWork = JSON.parse(data);
+      return memoryRecordsOfWork!;
     }
   } catch (e) {
     console.warn("Could not read records of work JSON file:", e);
@@ -221,18 +245,19 @@ export function loadPersistentRecordsOfWork(): any[] {
 }
 
 export function savePersistentRecordsOfWork(records: any[]): void {
-  try {
-    fs.writeFileSync(RECORDS_OF_WORK_FILE, JSON.stringify(records, null, 2), "utf-8");
-  } catch (e) {
-    console.warn("Could not save records of work JSON file:", e);
+  memoryRecordsOfWork = [...records];
+  if (pool) {
+    saveRecordsOfWorkBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Records Of Work Persist Warning]:", e.message));
   }
 }
 
 export function loadPersistentClassRegisters(): Record<string, any> {
+  if (memoryClassRegisters !== null) return memoryClassRegisters;
   try {
     if (fs.existsSync(CLASS_REGISTERS_FILE)) {
       const data = fs.readFileSync(CLASS_REGISTERS_FILE, "utf-8");
-      return JSON.parse(data);
+      memoryClassRegisters = JSON.parse(data);
+      return memoryClassRegisters!;
     }
   } catch (e) {
     console.warn("Could not read class registers JSON file:", e);
@@ -241,18 +266,19 @@ export function loadPersistentClassRegisters(): Record<string, any> {
 }
 
 export function savePersistentClassRegisters(data: Record<string, any>): void {
-  try {
-    fs.writeFileSync(CLASS_REGISTERS_FILE, JSON.stringify(data, null, 2), "utf-8");
-  } catch (e) {
-    console.warn("Could not save class registers JSON file:", e);
+  memoryClassRegisters = { ...data };
+  if (pool) {
+    saveClassRegistersBatch(data).catch(e => console.warn("⚠️ [PostgreSQL Class Registers Persist Warning]:", e.message));
   }
 }
 
 export function loadPersistentAssessmentMarks(): any[] {
+  if (memoryAssessmentMarks !== null) return memoryAssessmentMarks;
   try {
     if (fs.existsSync(ASSESSMENT_MARKS_FILE)) {
       const data = fs.readFileSync(ASSESSMENT_MARKS_FILE, "utf-8");
-      return JSON.parse(data);
+      memoryAssessmentMarks = JSON.parse(data);
+      return memoryAssessmentMarks!;
     }
   } catch (e) {
     console.warn("Could not read assessment marks JSON file:", e);
@@ -261,18 +287,19 @@ export function loadPersistentAssessmentMarks(): any[] {
 }
 
 export function savePersistentAssessmentMarks(records: any[]): void {
-  try {
-    fs.writeFileSync(ASSESSMENT_MARKS_FILE, JSON.stringify(records, null, 2), "utf-8");
-  } catch (e) {
-    console.warn("Could not save assessment marks JSON file:", e);
+  memoryAssessmentMarks = [...records];
+  if (pool) {
+    saveAssessmentMarksBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Assessment Marks Persist Warning]:", e.message));
   }
 }
 
 export function loadPersistentSubmissions(): any[] {
+  if (memorySubmissions !== null) return memorySubmissions;
   try {
     if (fs.existsSync(SUBMISSIONS_FILE)) {
       const data = fs.readFileSync(SUBMISSIONS_FILE, "utf-8");
-      return JSON.parse(data);
+      memorySubmissions = JSON.parse(data);
+      return memorySubmissions!;
     }
   } catch (e) {
     console.warn("Could not read submissions JSON file:", e);
@@ -281,18 +308,19 @@ export function loadPersistentSubmissions(): any[] {
 }
 
 export function savePersistentSubmissions(records: any[]): void {
-  try {
-    fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify(records, null, 2), "utf-8");
-  } catch (e) {
-    console.warn("Could not save submissions JSON file:", e);
+  memorySubmissions = [...records];
+  if (pool) {
+    saveSubmissionsBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Submissions Persist Warning]:", e.message));
   }
 }
 
 export function loadPersistentAssessmentEvidence(): any[] {
+  if (memoryAssessmentEvidence !== null) return memoryAssessmentEvidence;
   try {
     if (fs.existsSync(ASSESSMENT_EVIDENCE_FILE)) {
       const data = fs.readFileSync(ASSESSMENT_EVIDENCE_FILE, "utf-8");
-      return JSON.parse(data);
+      memoryAssessmentEvidence = JSON.parse(data);
+      return memoryAssessmentEvidence!;
     }
   } catch (e) {
     console.warn("Could not read assessment evidence JSON file:", e);
@@ -301,10 +329,363 @@ export function loadPersistentAssessmentEvidence(): any[] {
 }
 
 export function savePersistentAssessmentEvidence(records: any[]): void {
+  memoryAssessmentEvidence = [...records];
+  if (pool) {
+    saveAssessmentEvidenceBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Evidence Persist Warning]:", e.message));
+  }
+}
+
+/**
+ * Persists batch attendance to PostgreSQL.
+ */
+export async function saveAttendanceBatch(records: AttendanceRecord[]): Promise<void> {
+  if (!pool || records.length === 0) return;
   try {
-    fs.writeFileSync(ASSESSMENT_EVIDENCE_FILE, JSON.stringify(records, null, 2), "utf-8");
-  } catch (e) {
-    console.warn("Could not save assessment evidence JSON file:", e);
+    await withTransaction(async (client) => {
+      for (const item of records) {
+        await client.query(`
+          INSERT INTO attendance_records (
+            id, unit_offering_id, trainee_id, week_number, session_date,
+            session_index, status, hours_attended, remarks, marked_by, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
+          ON CONFLICT (id) DO UPDATE SET
+            status = EXCLUDED.status,
+            hours_attended = EXCLUDED.hours_attended,
+            remarks = EXCLUDED.remarks,
+            marked_by = EXCLUDED.marked_by,
+            updated_at = CURRENT_TIMESTAMP;
+        `, [
+          item.id,
+          item.unit_offering_id || null,
+          item.trainee_id,
+          typeof item.week_number === "number" ? item.week_number : 1,
+          item.session_date || null,
+          typeof item.session_index === "number" ? item.session_index : null,
+          item.status,
+          typeof item.hours_attended === "number" ? item.hours_attended : 0,
+          item.remarks || null,
+          item.marked_by || null
+        ]);
+      }
+    });
+  } catch (err: any) {
+    console.warn("⚠️ [PostgreSQL saveAttendanceBatch Warning]:", err.message);
+  }
+}
+
+/**
+ * Persists batch trainees to PostgreSQL.
+ */
+export async function saveTraineeBatch(records: TraineeRecord[]): Promise<void> {
+  if (!pool || records.length === 0) return;
+  try {
+    await withTransaction(async (client) => {
+      for (const t of records) {
+        await client.query(`
+          INSERT INTO trainees (
+            id, name, reg_number, adm_no, reg_code, class_id, class_code,
+            department, gender, phone, remarks, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP)
+          ON CONFLICT (id) DO UPDATE SET
+            name = EXCLUDED.name,
+            reg_number = EXCLUDED.reg_number,
+            adm_no = EXCLUDED.adm_no,
+            reg_code = EXCLUDED.reg_code,
+            class_id = EXCLUDED.class_id,
+            class_code = EXCLUDED.class_code,
+            department = EXCLUDED.department,
+            gender = EXCLUDED.gender,
+            phone = EXCLUDED.phone,
+            remarks = EXCLUDED.remarks,
+            updated_at = CURRENT_TIMESTAMP;
+        `, [
+          t.id,
+          t.name,
+          t.reg_number,
+          t.adm_no || null,
+          t.reg_code || null,
+          t.class_id || null,
+          t.class_code || null,
+          t.department || null,
+          t.gender || null,
+          t.phone || null,
+          t.remarks || null
+        ]);
+      }
+    });
+  } catch (err: any) {
+    console.warn("⚠️ [PostgreSQL saveTraineeBatch Warning]:", err.message);
+  }
+}
+
+/**
+ * Persists batch session plans to PostgreSQL.
+ */
+export async function saveSessionPlansBatch(records: any[]): Promise<void> {
+  if (!pool || records.length === 0) return;
+  try {
+    await withTransaction(async (client) => {
+      for (const sp of records) {
+        await client.query(`
+          INSERT INTO session_plans (
+            id, unit_offering_id, class_code, trainer_id, department_id,
+            date, session_title, approval_status, hod_reviewed_by,
+            hod_reviewer_name, hod_review_date, hod_remarks, payload, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, CURRENT_TIMESTAMP)
+          ON CONFLICT (id) DO UPDATE SET
+            session_title = EXCLUDED.session_title,
+            approval_status = EXCLUDED.approval_status,
+            hod_reviewed_by = EXCLUDED.hod_reviewed_by,
+            hod_reviewer_name = EXCLUDED.hod_reviewer_name,
+            hod_review_date = EXCLUDED.hod_review_date,
+            hod_remarks = EXCLUDED.hod_remarks,
+            payload = EXCLUDED.payload,
+            updated_at = CURRENT_TIMESTAMP;
+        `, [
+          sp.id,
+          sp.unit_offering_id || null,
+          sp.class_code || null,
+          sp.trainer_id || null,
+          sp.department_id || null,
+          sp.date || null,
+          sp.session_title || null,
+          sp.approval_status || "pending",
+          sp.hod_reviewed_by || null,
+          sp.hod_reviewer_name || null,
+          sp.hod_review_date || null,
+          sp.hod_remarks || null,
+          JSON.stringify(sp.payload || sp)
+        ]);
+      }
+    });
+  } catch (err: any) {
+    console.warn("⚠️ [PostgreSQL saveSessionPlansBatch Warning]:", err.message);
+  }
+}
+
+/**
+ * Persists batch records of work to PostgreSQL.
+ */
+export async function saveRecordsOfWorkBatch(records: any[]): Promise<void> {
+  if (!pool || records.length === 0) return;
+  try {
+    await withTransaction(async (client) => {
+      for (const row of records) {
+        await client.query(`
+          INSERT INTO records_of_work (
+            id, session_plan_id, unit_offering_id, class_code, trainer_id,
+            department_id, work_covered, date_covered, approval_status,
+            hod_reviewed_by, hod_reviewer_name, hod_review_date, hod_remarks, payload, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, CURRENT_TIMESTAMP)
+          ON CONFLICT (id) DO UPDATE SET
+            work_covered = EXCLUDED.work_covered,
+            date_covered = EXCLUDED.date_covered,
+            approval_status = EXCLUDED.approval_status,
+            hod_reviewed_by = EXCLUDED.hod_reviewed_by,
+            hod_reviewer_name = EXCLUDED.hod_reviewer_name,
+            hod_review_date = EXCLUDED.hod_review_date,
+            hod_remarks = EXCLUDED.hod_remarks,
+            payload = EXCLUDED.payload,
+            updated_at = CURRENT_TIMESTAMP;
+        `, [
+          row.id,
+          row.session_plan_id || null,
+          row.unit_offering_id || null,
+          row.class_code || null,
+          row.trainer_id || null,
+          row.department_id || null,
+          row.work_covered || null,
+          row.date_covered || null,
+          row.approval_status || "pending",
+          row.hod_reviewed_by || null,
+          row.hod_reviewer_name || null,
+          row.hod_review_date || null,
+          row.hod_remarks || null,
+          JSON.stringify(row.payload || row)
+        ]);
+      }
+    });
+  } catch (err: any) {
+    console.warn("⚠️ [PostgreSQL saveRecordsOfWorkBatch Warning]:", err.message);
+  }
+}
+
+/**
+ * Persists batch learning plans to PostgreSQL.
+ */
+export async function saveLearningPlansBatch(records: any[]): Promise<void> {
+  if (!pool || records.length === 0) return;
+  try {
+    await withTransaction(async (client) => {
+      for (const lp of records) {
+        await client.query(`
+          INSERT INTO learning_plans (
+            id, unit_code, class_code, week_number, topic, payload, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
+          ON CONFLICT (id) DO UPDATE SET
+            unit_code = EXCLUDED.unit_code,
+            class_code = EXCLUDED.class_code,
+            week_number = EXCLUDED.week_number,
+            topic = EXCLUDED.topic,
+            payload = EXCLUDED.payload,
+            updated_at = CURRENT_TIMESTAMP;
+        `, [
+          lp.id,
+          lp.unit_code || null,
+          lp.class_code || null,
+          typeof lp.week_number === "number" ? lp.week_number : null,
+          lp.topic || null,
+          JSON.stringify(lp.payload || lp)
+        ]);
+      }
+    });
+  } catch (err: any) {
+    console.warn("⚠️ [PostgreSQL saveLearningPlansBatch Warning]:", err.message);
+  }
+}
+
+/**
+ * Persists batch class registers to PostgreSQL.
+ */
+export async function saveClassRegistersBatch(data: Record<string, any>): Promise<void> {
+  if (!pool) return;
+  try {
+    await withTransaction(async (client) => {
+      for (const [classCode, reg] of Object.entries(data)) {
+        await client.query(`
+          INSERT INTO class_registers (
+            class_code, lecturer_name, subject, department, duration,
+            level, lecturer_comment, hod_comment, weekly_lecturer_comments,
+            weekly_hod_comments, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
+          ON CONFLICT (class_code) DO UPDATE SET
+            lecturer_name = EXCLUDED.lecturer_name,
+            subject = EXCLUDED.subject,
+            department = EXCLUDED.department,
+            duration = EXCLUDED.duration,
+            level = EXCLUDED.level,
+            lecturer_comment = EXCLUDED.lecturer_comment,
+            hod_comment = EXCLUDED.hod_comment,
+            weekly_lecturer_comments = EXCLUDED.weekly_lecturer_comments,
+            weekly_hod_comments = EXCLUDED.weekly_hod_comments,
+            updated_at = CURRENT_TIMESTAMP;
+        `, [
+          classCode,
+          reg.lecturer_name || null,
+          reg.subject || null,
+          reg.department || null,
+          reg.duration || null,
+          reg.level || null,
+          reg.lecturer_comment || null,
+          reg.hod_comment || null,
+          JSON.stringify(reg.weekly_lecturer_comments || {}),
+          JSON.stringify(reg.weekly_hod_comments || {})
+        ]);
+      }
+    });
+  } catch (err: any) {
+    console.warn("⚠️ [PostgreSQL saveClassRegistersBatch Warning]:", err.message);
+  }
+}
+
+/**
+ * Persists batch exam submissions to PostgreSQL.
+ */
+export async function saveSubmissionsBatch(records: any[]): Promise<void> {
+  if (!pool || records.length === 0) return;
+  try {
+    await withTransaction(async (client) => {
+      for (const submission of records) {
+        await client.query(`
+          INSERT INTO exam_submissions (
+            id, exam_id, trainee_id, student_name, trainee_admission, status,
+            total_score, percentage, section_a, section_b, answers, feedback,
+            graded_by, graded_at, submitted_at, created_at
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, CURRENT_TIMESTAMP
+          )
+          ON CONFLICT (exam_id, trainee_id)
+          DO UPDATE SET
+            student_name = EXCLUDED.student_name,
+            trainee_admission = EXCLUDED.trainee_admission,
+            status = EXCLUDED.status,
+            total_score = EXCLUDED.total_score,
+            percentage = EXCLUDED.percentage,
+            section_a = EXCLUDED.section_a,
+            section_b = EXCLUDED.section_b,
+            answers = EXCLUDED.answers,
+            feedback = EXCLUDED.feedback,
+            graded_by = EXCLUDED.graded_by,
+            graded_at = EXCLUDED.graded_at,
+            submitted_at = EXCLUDED.submitted_at;
+        `, [
+          submission.id,
+          submission.exam_id,
+          submission.trainee_id,
+          submission.student_name || null,
+          submission.trainee_admission || submission.reg_number || null,
+          submission.status || "submitted",
+          submission.total_score || 0,
+          submission.percentage || 0,
+          JSON.stringify(submission.section_a || []),
+          JSON.stringify(submission.section_b || []),
+          JSON.stringify(submission.answers || []),
+          submission.feedback || null,
+          submission.graded_by || null,
+          submission.graded_at || null,
+          submission.submitted_at || new Date().toISOString()
+        ]);
+      }
+    });
+  } catch (err: any) {
+    console.warn("⚠️ [PostgreSQL saveSubmissionsBatch Warning]:", err.message);
+  }
+}
+
+/**
+ * Persists batch assessment evidence to PostgreSQL.
+ */
+export async function saveAssessmentEvidenceBatch(records: any[]): Promise<void> {
+  if (!pool || records.length === 0) return;
+  try {
+    await withTransaction(async (client) => {
+      for (const evidence of records) {
+        await client.query(`
+          INSERT INTO assessment_evidence (
+            id, unit_offering_id, trainee_id, trainee_name, outcome_id, title,
+            file_type, file_url, file_data, mark, assessor_feedback, status,
+            uploaded_by, graded_by, graded_at, created_at
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, CURRENT_TIMESTAMP
+          )
+          ON CONFLICT (id)
+          DO UPDATE SET
+            mark = EXCLUDED.mark,
+            assessor_feedback = EXCLUDED.assessor_feedback,
+            status = EXCLUDED.status,
+            graded_by = EXCLUDED.graded_by,
+            graded_at = EXCLUDED.graded_at;
+        `, [
+          evidence.id,
+          evidence.unit_offering_id,
+          evidence.trainee_id,
+          evidence.trainee_name || null,
+          evidence.outcome_id || null,
+          evidence.title,
+          evidence.file_type,
+          evidence.file_url,
+          evidence.file_data || null,
+          evidence.mark ?? null,
+          evidence.assessor_feedback || null,
+          evidence.status || "pending",
+          evidence.uploaded_by || null,
+          evidence.graded_by || null,
+          evidence.graded_at || null
+        ]);
+      }
+    });
+  } catch (err: any) {
+    console.warn("⚠️ [PostgreSQL saveAssessmentEvidenceBatch Warning]:", err.message);
   }
 }
 
