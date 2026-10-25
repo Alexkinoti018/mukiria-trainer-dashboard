@@ -51,6 +51,11 @@ import { useTrainees, type Trainee } from "@/contexts/TraineeContext";
 import { purgeMTTISessionCache } from "@/contexts/AuthContext";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
+  TraineeService,
+  DatabaseUnavailableError,
+} from "@/services/TraineeService";
+import { AdminRosterManagement } from "@/components/AdminRosterManagement";
+import {
   Table,
   TableHeader,
   TableRow,
@@ -145,37 +150,22 @@ export default function AdminDashboard() {
   const [traineeToDelete, setTraineeToDelete] = useState<Trainee | null>(null);
   const [isDeletingTrainee, setIsDeletingTrainee] = useState(false);
 
-  // Fetch roster directly from GET /api/trainees
+  // Fetch roster via TraineeService repository abstraction
   const fetchRoster = async () => {
     setIsLoadingRoster(true);
     setRosterError(null);
     try {
-      const res = await fetch("/api/trainees");
-      if (!res.ok) {
-        if (res.status === 503) {
-          throw new Error("Database Service Unavailable (HTTP 503)");
-        }
-        throw new Error(`Failed to load trainees (HTTP ${res.status})`);
-      }
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        const mapped: Trainee[] = json.data.map((r: any) => ({
-          id: r.id,
-          name: r.name,
-          admNo: r.adm_no || r.reg_number,
-          regCode: r.reg_code || r.adm_no || r.reg_number,
-          classCode: r.class_code || r.class_id || "ICT4/ITECH6/S/26 MOD 1",
-          department: r.department || "Computing & Informatics",
-          gender: r.gender || "M",
-          phone: r.phone || "",
-          email: r.email,
-          remarks: r.remarks || "",
-        }));
-        setRosterData(mapped);
-      }
+      const traineesList = await TraineeService.fetchRoster();
+      setRosterData(traineesList);
     } catch (err: any) {
-      console.warn("Notice: Trainee fetch from /api/trainees:", err.message);
-      setRosterError(err.message || "Failed to load remote roster");
+      console.warn("Notice: Trainee fetch via TraineeService:", err.message);
+      if (err instanceof DatabaseUnavailableError || err.status === 503) {
+        setRosterError(
+          "Database Service Unavailable (HTTP 503): PostgreSQL is offline. Operating in fallback mode with cached roster."
+        );
+      } else {
+        setRosterError(err.message || "Failed to load remote roster");
+      }
     } finally {
       setIsLoadingRoster(false);
     }
@@ -215,16 +205,8 @@ export default function AdminDashboard() {
         remarks: editFormData.remarks.trim() || undefined,
       };
 
-      const res = await fetch(`/api/trainees/${encodeURIComponent(editingTrainee.id)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-      });
-
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || `HTTP ${res.status}`);
-      }
+      // Call TraineeService abstraction layer
+      await TraineeService.updateTrainee(editingTrainee.id, updates);
 
       updateTrainee(editingTrainee.id, updates);
       setRosterData((prev) =>
@@ -237,9 +219,15 @@ export default function AdminDashboard() {
       setIsEditModalOpen(false);
       setEditingTrainee(null);
     } catch (err: any) {
-      toast.error("Update Failed", {
-        description: err.message || "Failed to update trainee record",
-      });
+      if (err instanceof DatabaseUnavailableError || err.status === 503) {
+        toast.error("Database Unavailable (503)", {
+          description: "Cannot sync update to PostgreSQL. Database is currently unreachable.",
+        });
+      } else {
+        toast.error("Update Failed", {
+          description: err.message || "Failed to update trainee record",
+        });
+      }
     } finally {
       setIsSavingEdit(false);
     }
@@ -249,14 +237,8 @@ export default function AdminDashboard() {
     if (!traineeToDelete) return;
     setIsDeletingTrainee(true);
     try {
-      const res = await fetch(`/api/trainees/${encodeURIComponent(traineeToDelete.id)}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || `HTTP ${res.status}`);
-      }
+      // Call TraineeService abstraction layer
+      await TraineeService.deleteTrainee(traineeToDelete.id);
 
       deleteTrainee(traineeToDelete.id);
       setRosterData((prev) => prev.filter((t) => t.id !== traineeToDelete.id));
@@ -266,9 +248,15 @@ export default function AdminDashboard() {
       });
       setTraineeToDelete(null);
     } catch (err: any) {
-      toast.error("Delete Failed", {
-        description: err.message || "Failed to delete trainee record",
-      });
+      if (err instanceof DatabaseUnavailableError || err.status === 503) {
+        toast.error("Database Unavailable (503)", {
+          description: "Cannot remove trainee from PostgreSQL. Database is currently unreachable.",
+        });
+      } else {
+        toast.error("Delete Failed", {
+          description: err.message || "Failed to delete trainee record",
+        });
+      }
     } finally {
       setIsDeletingTrainee(false);
     }
