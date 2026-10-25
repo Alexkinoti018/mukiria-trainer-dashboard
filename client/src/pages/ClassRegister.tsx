@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTrainees, OFFICIAL_MTTI_TRAINEES, getTraineesForClass } from "@/contexts/TraineeContext";
+import { useTrainees, OFFICIAL_MTTI_TRAINEES, getTraineesForClass, normalizeAdmissionNumber, matchAdmissionNumbers } from "@/contexts/TraineeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useExam } from "@/contexts/ExamContext";
 import { getStoredRecordsOfWork, saveStoredRecordsOfWork } from "@/lib/mockSessionPlans";
@@ -261,7 +261,7 @@ export default function ClassRegister() {
     if (isTraineeViewer && user) {
       const myTrainee = trainees.find(
         (t) =>
-          (t.admNo && user.reg_number && t.admNo.trim().toUpperCase() === user.reg_number.trim().toUpperCase()) ||
+          (user.reg_number && (matchAdmissionNumbers(t.admNo, user.reg_number) || matchAdmissionNumbers(t.regCode, user.reg_number))) ||
           (t.name && user.name && t.name.trim().toLowerCase() === user.name.trim().toLowerCase())
       );
       if (myTrainee?.classCode) {
@@ -458,8 +458,7 @@ export default function ClassRegister() {
 
       const cand = trainees.find(
         (t) =>
-          (normAdm && t.admNo && t.admNo.trim().toUpperCase() === normAdm) ||
-          (normAdm && t.regCode && t.regCode.trim().toUpperCase() === normAdm) ||
+          (normAdm && (matchAdmissionNumbers(t.admNo, normAdm) || matchAdmissionNumbers(t.regCode, normAdm))) ||
           (normName && t.name && t.name.trim().toLowerCase() === normName)
       );
       if (cand) {
@@ -1706,7 +1705,9 @@ export default function ClassRegister() {
                     const hasOnlineExamSubmission = submissions.some((sub: any) => {
                       const subAdm = (sub.reg_number || "").trim().toUpperCase();
                       const subName = (sub.student_name || "").trim().toLowerCase();
-                      const matchesCandidate = (tAdm && subAdm === tAdm) || (tName && subName === tName);
+                      const matchesCandidate =
+                        (tAdm && (matchAdmissionNumbers(trainee.admNo, subAdm) || matchAdmissionNumbers(trainee.regCode, subAdm))) ||
+                        (tName && subName === tName);
                       if (!matchesCandidate) return false;
 
                       const subExam = exams.find(e => e.id === sub.exam_id);
@@ -1743,7 +1744,8 @@ export default function ClassRegister() {
                         const raw = localStorage.getItem(examLogKey);
                         if (raw) {
                           const log = JSON.parse(raw);
-                          if (log[tAdm] && log[tAdm].signed) isAttendedInExamLog = true;
+                          const matchedKey = Object.keys(log).find(k => matchAdmissionNumbers(k, trainee.admNo) || matchAdmissionNumbers(k, trainee.regCode));
+                          if (matchedKey && log[matchedKey]?.signed) isAttendedInExamLog = true;
                         }
                       } catch (e) {}
                     }
@@ -1752,9 +1754,8 @@ export default function ClassRegister() {
                     const isOwnRecord =
                       user?.role === "trainee" &&
                       (trainee.id === user.id ||
-                        (trainee.admNo &&
-                          user.reg_number &&
-                          trainee.admNo.trim().toUpperCase() === user.reg_number.trim().toUpperCase()) ||
+                        (user.reg_number &&
+                          (matchAdmissionNumbers(trainee.admNo, user.reg_number) || matchAdmissionNumbers(trainee.regCode, user.reg_number))) ||
                         (trainee.name &&
                           user.name &&
                           trainee.name.trim().toLowerCase() === user.name.trim().toLowerCase()));

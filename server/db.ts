@@ -71,7 +71,8 @@ export async function query(text: string, params?: any[]): Promise<{ rows: any[]
       const res = await pool.query(text, params);
       return { rows: res.rows, rowCount: res.rowCount || 0 };
     } catch (err: any) {
-      console.warn("⚠️ [PostgreSQL Query Warning]:", err.message);
+      console.error("❌ [PostgreSQL Query Error]:", err.message);
+      throw err;
     }
   }
   return { rows: [], rowCount: 0 };
@@ -162,9 +163,6 @@ export function loadPersistentAttendance(): AttendanceRecord[] {
 
 export function savePersistentAttendance(records: AttendanceRecord[]): void {
   memoryAttendance = [...records];
-  if (pool) {
-    saveAttendanceBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Attendance Persist Warning]:", e.message));
-  }
 }
 
 export function loadPersistentTrainees(): TraineeRecord[] {
@@ -183,9 +181,6 @@ export function loadPersistentTrainees(): TraineeRecord[] {
 
 export function savePersistentTrainees(records: TraineeRecord[]): void {
   memoryTrainees = [...records];
-  if (pool) {
-    saveTraineeBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Trainees Persist Warning]:", e.message));
-  }
 }
 
 export function loadPersistentSessionPlans(): any[] {
@@ -204,9 +199,6 @@ export function loadPersistentSessionPlans(): any[] {
 
 export function savePersistentSessionPlans(records: any[]): void {
   memorySessionPlans = [...records];
-  if (pool) {
-    saveSessionPlansBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Session Plans Persist Warning]:", e.message));
-  }
 }
 
 export function loadPersistentLearningPlans(): any[] {
@@ -225,9 +217,6 @@ export function loadPersistentLearningPlans(): any[] {
 
 export function savePersistentLearningPlans(records: any[]): void {
   memoryLearningPlans = [...records];
-  if (pool) {
-    saveLearningPlansBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Learning Plans Persist Warning]:", e.message));
-  }
 }
 
 export function loadPersistentRecordsOfWork(): any[] {
@@ -246,9 +235,6 @@ export function loadPersistentRecordsOfWork(): any[] {
 
 export function savePersistentRecordsOfWork(records: any[]): void {
   memoryRecordsOfWork = [...records];
-  if (pool) {
-    saveRecordsOfWorkBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Records Of Work Persist Warning]:", e.message));
-  }
 }
 
 export function loadPersistentClassRegisters(): Record<string, any> {
@@ -267,9 +253,6 @@ export function loadPersistentClassRegisters(): Record<string, any> {
 
 export function savePersistentClassRegisters(data: Record<string, any>): void {
   memoryClassRegisters = { ...data };
-  if (pool) {
-    saveClassRegistersBatch(data).catch(e => console.warn("⚠️ [PostgreSQL Class Registers Persist Warning]:", e.message));
-  }
 }
 
 export function loadPersistentAssessmentMarks(): any[] {
@@ -288,9 +271,6 @@ export function loadPersistentAssessmentMarks(): any[] {
 
 export function savePersistentAssessmentMarks(records: any[]): void {
   memoryAssessmentMarks = [...records];
-  if (pool) {
-    saveAssessmentMarksBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Assessment Marks Persist Warning]:", e.message));
-  }
 }
 
 export function loadPersistentSubmissions(): any[] {
@@ -309,9 +289,6 @@ export function loadPersistentSubmissions(): any[] {
 
 export function savePersistentSubmissions(records: any[]): void {
   memorySubmissions = [...records];
-  if (pool) {
-    saveSubmissionsBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Submissions Persist Warning]:", e.message));
-  }
 }
 
 export function loadPersistentAssessmentEvidence(): any[] {
@@ -330,9 +307,6 @@ export function loadPersistentAssessmentEvidence(): any[] {
 
 export function savePersistentAssessmentEvidence(records: any[]): void {
   memoryAssessmentEvidence = [...records];
-  if (pool) {
-    saveAssessmentEvidenceBatch(records).catch(e => console.warn("⚠️ [PostgreSQL Evidence Persist Warning]:", e.message));
-  }
 }
 
 /**
@@ -369,7 +343,8 @@ export async function saveAttendanceBatch(records: AttendanceRecord[]): Promise<
       }
     });
   } catch (err: any) {
-    console.warn("⚠️ [PostgreSQL saveAttendanceBatch Warning]:", err.message);
+    console.error("❌ [PostgreSQL saveAttendanceBatch Error]:", err.message);
+    throw err;
   }
 }
 
@@ -414,7 +389,8 @@ export async function saveTraineeBatch(records: TraineeRecord[]): Promise<void> 
       }
     });
   } catch (err: any) {
-    console.warn("⚠️ [PostgreSQL saveTraineeBatch Warning]:", err.message);
+    console.error("❌ [PostgreSQL saveTraineeBatch Error]:", err.message);
+    throw err;
   }
 }
 
@@ -459,7 +435,8 @@ export async function saveSessionPlansBatch(records: any[]): Promise<void> {
       }
     });
   } catch (err: any) {
-    console.warn("⚠️ [PostgreSQL saveSessionPlansBatch Warning]:", err.message);
+    console.error("❌ [PostgreSQL saveSessionPlansBatch Error]:", err.message);
+    throw err;
   }
 }
 
@@ -506,7 +483,8 @@ export async function saveRecordsOfWorkBatch(records: any[]): Promise<void> {
       }
     });
   } catch (err: any) {
-    console.warn("⚠️ [PostgreSQL saveRecordsOfWorkBatch Warning]:", err.message);
+    console.error("❌ [PostgreSQL saveRecordsOfWorkBatch Error]:", err.message);
+    throw err;
   }
 }
 
@@ -540,7 +518,8 @@ export async function saveLearningPlansBatch(records: any[]): Promise<void> {
       }
     });
   } catch (err: any) {
-    console.warn("⚠️ [PostgreSQL saveLearningPlansBatch Warning]:", err.message);
+    console.error("❌ [PostgreSQL saveLearningPlansBatch Error]:", err.message);
+    throw err;
   }
 }
 
@@ -584,7 +563,8 @@ export async function saveClassRegistersBatch(data: Record<string, any>): Promis
       }
     });
   } catch (err: any) {
-    console.warn("⚠️ [PostgreSQL saveClassRegistersBatch Warning]:", err.message);
+    console.error("❌ [PostgreSQL saveClassRegistersBatch Error]:", err.message);
+    throw err;
   }
 }
 
@@ -638,7 +618,8 @@ export async function saveSubmissionsBatch(records: any[]): Promise<void> {
       }
     });
   } catch (err: any) {
-    console.warn("⚠️ [PostgreSQL saveSubmissionsBatch Warning]:", err.message);
+    console.error("❌ [PostgreSQL saveSubmissionsBatch Error]:", err.message);
+    throw err;
   }
 }
 
@@ -685,7 +666,8 @@ export async function saveAssessmentEvidenceBatch(records: any[]): Promise<void>
       }
     });
   } catch (err: any) {
-    console.warn("⚠️ [PostgreSQL saveAssessmentEvidenceBatch Warning]:", err.message);
+    console.error("❌ [PostgreSQL saveAssessmentEvidenceBatch Error]:", err.message);
+    throw err;
   }
 }
 
@@ -731,7 +713,8 @@ export async function saveAssessmentMarksBatch(records: any[]): Promise<void> {
         }
       });
     } catch (err: any) {
-      console.warn("⚠️ [PostgreSQL Batch Marks Warning]:", err.message);
+      console.error("❌ [PostgreSQL Batch Marks Error]:", err.message);
+      throw err;
     }
   }
 }
@@ -785,7 +768,8 @@ export async function saveExamSubmission(submission: any, allSubmissions?: any[]
         submission.submitted_at || new Date().toISOString()
       ]);
     } catch (err: any) {
-      console.warn("⚠️ [PostgreSQL Exam Submission Warning]:", err.message);
+      console.error("❌ [PostgreSQL Exam Submission Error]:", err.message);
+      throw err;
     }
   }
 }
@@ -832,7 +816,8 @@ export async function saveAssessmentEvidence(evidence: any, allEvidence?: any[])
         evidence.graded_at || null
       ]);
     } catch (err: any) {
-      console.warn("⚠️ [PostgreSQL Assessment Evidence Warning]:", err.message);
+      console.error("❌ [PostgreSQL Assessment Evidence Error]:", err.message);
+      throw err;
     }
   }
 }

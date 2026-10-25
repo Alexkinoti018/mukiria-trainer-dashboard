@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Plus, Save, Printer, Download, Lock, Unlock, Users, PenTool, RefreshCw, Search, X, CheckCircle2, AlertCircle, Award, Scale } from "lucide-react";
 import { supabase, isSupabaseConfigured, normalizeAssessmentTaskSlot } from "@/lib/supabase";
 import { toast } from "sonner";
-import { useTrainees, findMatchingTrainee, syncScoreToContinuousMarksheet, getTraineesForClass } from "@/contexts/TraineeContext";
+import { useTrainees, findMatchingTrainee, syncScoreToContinuousMarksheet, getTraineesForClass, normalizeAdmissionNumber, matchAdmissionNumbers } from "@/contexts/TraineeContext";
 import { useExam } from "@/contexts/ExamContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentTrainerProfile } from "@/lib/timetableSyncService";
@@ -136,10 +136,13 @@ export function AssessmentMarksSheet() {
   const displayedRows = useMemo(() => {
     if (!candidateSearch.trim()) return rows;
     const q = candidateSearch.trim().toLowerCase();
+    const normQ = normalizeAdmissionNumber(candidateSearch).toLowerCase();
     return rows.filter((r) =>
       r.name.toLowerCase().includes(q) ||
       r.admNo.toLowerCase().includes(q) ||
-      r.regCode.toLowerCase().includes(q)
+      r.regCode.toLowerCase().includes(q) ||
+      (normQ && normalizeAdmissionNumber(r.admNo).toLowerCase().includes(normQ)) ||
+      (normQ && normalizeAdmissionNumber(r.regCode).toLowerCase().includes(normQ))
     );
   }, [rows, candidateSearch]);
 
@@ -271,7 +274,7 @@ export function AssessmentMarksSheet() {
 
     setRows(
       classTrainees.map((t, idx) => {
-        const cleanAdm = t.admNo?.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD)\//i, "") || t.admNo;
+        const cleanAdm = normalizeAdmissionNumber(t.admNo) || t.admNo;
         const savedEntry = savedMarks.find((m) => m.trainee_id === t.id);
 
         const initCtScores: (number | string)[] = Array(ctCount).fill("");
@@ -375,9 +378,11 @@ export function AssessmentMarksSheet() {
 
         // 4. Protect & auto-seed canonical CT1 marks for Land Survey (LS5/6/S/26) cohort if not yet manually overridden
         if ((t.classCode.includes("LS") || selectedClass.includes("LS")) && initCtScores[0] === "") {
-          const admClean = (cleanAdm || "").trim();
-          if (DEFAULT_LS_CT1_MARKS[admClean] !== undefined) {
-            initCtScores[0] = String(DEFAULT_LS_CT1_MARKS[admClean]);
+          const matchedEntry = Object.entries(DEFAULT_LS_CT1_MARKS).find(([lsAdm]) =>
+            matchAdmissionNumbers(lsAdm, t.admNo) || matchAdmissionNumbers(lsAdm, t.regCode)
+          );
+          if (matchedEntry) {
+            initCtScores[0] = String(matchedEntry[1]);
           }
         }
 
@@ -388,8 +393,8 @@ export function AssessmentMarksSheet() {
         return {
           id: t.id,
           sn: idx + 1,
-          regCode: t.regCode || (t.admNo ? `ITECH 6 MOD/${cleanAdm}` : `MTTI/2026/${String(idx + 1).padStart(3, "0")}`),
-          admNo: cleanAdm,
+          regCode: t.regCode || (cleanAdm ? (cleanAdm.includes("/") ? cleanAdm : `ITECH 6 MOD/${cleanAdm}`) : `MTTI/2026/${String(idx + 1).padStart(3, "0")}`),
+          admNo: t.admNo || cleanAdm,
           name: t.name,
           ctScores: initCtScores,
           cpScores: initCpScores,

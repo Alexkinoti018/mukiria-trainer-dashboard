@@ -5,9 +5,16 @@ import type { AddressInfo } from "net";
 import { 
   apiRouter, 
   findTraineeInRoster,
+  normalizeAdmissionNumber as serverNormalize,
+  matchAdmissionNumbers as serverMatch,
   OFFICIAL_INSTITUTIONAL_ROSTER 
 } from "../server/routes.ts";
-import { OFFICIAL_MTTI_TRAINEES } from "../client/src/contexts/TraineeContext";
+import { 
+  OFFICIAL_MTTI_TRAINEES, 
+  findMatchingTrainee, 
+  normalizeAdmissionNumber as clientNormalize, 
+  matchAdmissionNumbers as clientMatch 
+} from "../client/src/contexts/TraineeContext";
 
 describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", () => {
   let app: express.Express;
@@ -172,6 +179,32 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
 
       const data = await res.json();
       expect(data.error).toBe("Registration number not found in this unit class register.");
+    });
+
+    it("should resolve Land Survey candidate Harriet Mwendwa with complex alphanumeric registration number (D/UPNUT/25042/069)", async () => {
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=${encodeURIComponent("D/UPNUT/25042/069")}&unitCode=061155101A`);
+      expect(res.status).toBe(200);
+
+      const data = await res.json();
+      expect(data.admissionNumber).toBe("D/UPNUT/25042/069");
+      expect(data.fullName).toBe("Harriet Mwendwa");
+      expect(data.cohortCode).toBe("LS5/6/S/26");
+    });
+
+    it("should resolve Harriet Mwendwa with whitespace variations (D / UPNUT / 25042 / 069)", async () => {
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=${encodeURIComponent("D / UPNUT / 25042 / 069")}&unitCode=061155101A`);
+      expect(res.status).toBe(200);
+
+      const data = await res.json();
+      expect(data.fullName).toBe("Harriet Mwendwa");
+    });
+
+    it("should resolve Harriet Mwendwa with lowercase registration string (d/upnut/25042/069)", async () => {
+      const res = await fetch(`${baseUrl}/trainees/lookup?regNo=${encodeURIComponent("d/upnut/25042/069")}&unitCode=061155101A`);
+      expect(res.status).toBe(200);
+
+      const data = await res.json();
+      expect(data.fullName).toBe("Harriet Mwendwa");
     });
   });
 
@@ -364,6 +397,39 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
         expect(entry).not.toHaveProperty("email");
         expect(entry).not.toHaveProperty("student_email");
       }
+    });
+  });
+
+  // ─── TEST 6: ADMISSION NUMBER NORMALIZATION FIX (STEP 1 MANDATE) ────────────
+  describe("Test 6: Admission Number Normalization Fix", () => {
+    it("normalizes client and server admission numbers consistently", () => {
+      expect(clientNormalize("  d / upnut / 25042 / 069  ")).toBe("D/UPNUT/25042/069");
+      expect(serverNormalize("  d / upnut / 25042 / 069  ")).toBe("D/UPNUT/25042/069");
+      expect(clientNormalize("ITECH 6 MOD / 14179 / S2026")).toBe("14179/S2026");
+      expect(serverNormalize("ITECH 6 MOD / 14179 / S2026")).toBe("14179/S2026");
+    });
+
+    it("matches candidates bidirectionally regardless of cohort prefix or spacing", () => {
+      expect(clientMatch("D/UPNUT/25042/069", "d / upnut / 25042 / 069")).toBe(true);
+      expect(serverMatch("D/UPNUT/25042/069", "d / upnut / 25042 / 069")).toBe(true);
+      expect(clientMatch("14179/S2026", "ITECH 6 MOD/14179/S2026")).toBe(true);
+      expect(serverMatch("14179/S2026", "ITECH 6 MOD/14179/S2026")).toBe(true);
+      expect(clientMatch("13254", "FBS 5 MOD/13254/J2026")).toBe(true);
+      expect(serverMatch("13254", "FBS 5 MOD/13254/J2026")).toBe(true);
+    });
+
+    it("ensures findMatchingTrainee resolves complex registration numbers in client context", () => {
+      const matchedHarriet = findMatchingTrainee(OFFICIAL_MTTI_TRAINEES, {
+        regNumber: "D / UPNUT / 25042 / 069"
+      });
+      expect(matchedHarriet).toBeDefined();
+      expect(matchedHarriet?.name).toBe("Harriet Mwendwa");
+
+      const matchedDoris = findMatchingTrainee(OFFICIAL_MTTI_TRAINEES, {
+        regNumber: "14179 / S2026"
+      });
+      expect(matchedDoris).toBeDefined();
+      expect(matchedDoris?.name).toBe("Nthiga Gakii Doris");
     });
   });
 });

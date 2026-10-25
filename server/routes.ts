@@ -761,23 +761,66 @@ export const OFFICIAL_INSTITUTIONAL_ROSTER: RosterEntry[] = [
   { id: "tr_ls_harriet", regCode: "D/UPNUT/25042/069", admissionNumber: "D/UPNUT/25042/069", fullName: "Harriet Mwendwa", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A"] },
 ];
 
+/**
+ * Normalizes an institutional admission number or registration code for robust matching.
+ * - Strips whitespace and transforms to uppercase
+ * - Strips common institutional cohort prefixes (e.g. "ITECH 6 MOD/", "ICT4 MOD/", "FBS 5 MOD/", "LS6 MOD/")
+ * - Preserves full alphanumeric structure (e.g. "D/UPNUT/25042/069", "14179/S2026")
+ */
+export function normalizeAdmissionNumber(adm: string | null | undefined): string {
+  if (!adm) return "";
+  let s = adm.trim().toUpperCase().replace(/\s+/g, "");
+  s = s.replace(/^(ICT4\/ITECH\s*6[^\/]*|ITECH\s*6\s*MOD|ICT4\s*MOD|FBS\s*[56]\s*MOD|FBP\s*6\s*MOD|LS\s*[56]\s*MOD|ADMIN\s*[56]\/?[56]?)\//i, "");
+  return s;
+}
+
+/**
+ * Robust bidirectional matching for admission numbers and candidate registration strings.
+ */
+export function matchAdmissionNumbers(admA: string | null | undefined, admB: string | null | undefined): boolean {
+  if (!admA || !admB) return false;
+  const rawA = admA.trim().toUpperCase();
+  const rawB = admB.trim().toUpperCase();
+  if (rawA === rawB) return true;
+
+  const noSpaceA = rawA.replace(/\s+/g, "");
+  const noSpaceB = rawB.replace(/\s+/g, "");
+  if (noSpaceA === noSpaceB) return true;
+
+  const normA = normalizeAdmissionNumber(admA);
+  const normB = normalizeAdmissionNumber(admB);
+  if (normA && normB && normA === normB) return true;
+
+  // Slash substitution normalization (e.g., 12026 vs J2026, 52026 vs S2026)
+  const slashA = noSpaceA.replace(/\/12026/g, "/J2026").replace(/\/52026/g, "/S2026");
+  const slashB = noSpaceB.replace(/\/12026/g, "/J2026").replace(/\/52026/g, "/S2026");
+  if (slashA === slashB) return true;
+
+  // Check core digit matches if applicable (e.g. "14179" in "14179/S2026")
+  const coreA = (normA.match(/\b\d{4,6}\b/) || noSpaceA.match(/\d{4,6}/))?.[0];
+  const coreB = (normB.match(/\b\d{4,6}\b/) || noSpaceB.match(/\d{4,6}/))?.[0];
+  if (coreA && coreB && coreA === coreB) {
+    const hasAlphaA = /[A-Z]/.test(normA);
+    const hasAlphaB = /[A-Z]/.test(normB);
+    if (!hasAlphaA || !hasAlphaB || normA.includes(normB) || normB.includes(normA)) {
+      return true;
+    }
+  }
+
+  // Substring containment for 4+ char registration numbers (e.g. "14179" in "ITECH 6 MOD/14179/S2026")
+  if (normA.length >= 4 && normB.length >= 4) {
+    if (normA.includes(normB) || normB.includes(normA)) return true;
+  }
+
+  return false;
+}
+
 export function findTraineeInRoster(
   regNo: string,
   unitCode?: string
 ): { id: string; admissionNumber: string; fullName: string; cohortCode: string } | null {
   const rawReg = (regNo || "").trim();
   if (!rawReg) return null;
-
-  const normReg = rawReg.toUpperCase();
-  const noSpaceReg = normReg.replace(/\s+/g, "");
-  
-  // Extract pure 4-6 digit core registration number (e.g., "13254" from "FBS 5 MOD/13254/12026")
-  const coreMatch = normReg.match(/\b\d{4,6}\b/);
-  const coreReg = coreMatch ? coreMatch[0] : "";
-
-  // Suffix/prefix stripped variants
-  const cleanReg = normReg.replace(/^(ICT4\/ITECH\s*6[^\/]*|ITECH\s*6\s*MOD|ICT4\s*MOD|FBS\s*[56]\s*MOD|FBP\s*6\s*MOD|LS\s*[56]\s*MOD|ADMIN\s*[56]\/?[56]?)\//i, "").trim();
-  const cleanNoSpaceReg = cleanReg.replace(/\s+/g, "");
 
   const normUnit = unitCode ? unitCode.trim().toUpperCase() : "";
   const baseUnit = normUnit ? normUnit.replace(/-(WA[1-9]|PRAC|PAPER[1-9]).*$/i, "") : "";
@@ -795,38 +838,12 @@ export function findTraineeInRoster(
     })),
   ];
 
-  // Match candidate by admission number or full registration code (supporting flexible matching)
+  // Match candidate by admission number or full registration code using robust composite matcher
   const candidate = candidatePool.find(c => {
-    const cAdm = (c.admissionNumber || "").trim().toUpperCase();
-    const cReg = (c.regCode || "").trim().toUpperCase();
-    const cAdmNoSpace = cAdm.replace(/\s+/g, "");
-    const cRegNoSpace = cReg.replace(/\s+/g, "");
-
-    const cCleanAdm = cAdm.replace(/^(ICT4\/ITECH\s*6[^\/]*|ITECH\s*6\s*MOD|ICT4\s*MOD|FBS\s*[56]\s*MOD|FBP\s*6\s*MOD|LS\s*[56]\s*MOD|ADMIN\s*[56]\/?[56]?)\//i, "").trim();
-    const cCleanReg = cReg.replace(/^(ICT4\/ITECH\s*6[^\/]*|ITECH\s*6\s*MOD|ICT4\s*MOD|FBS\s*[56]\s*MOD|FBP\s*6\s*MOD|LS\s*[56]\s*MOD|ADMIN\s*[56]\/?[56]?)\//i, "").trim();
-    const cCleanAdmNoSpace = cCleanAdm.replace(/\s+/g, "");
-    const cCleanRegNoSpace = cCleanReg.replace(/\s+/g, "");
-
-    const cCoreMatch = (cAdm + " " + cReg).match(/\b\d{4,6}\b/);
-    const cCore = cCoreMatch ? cCoreMatch[0] : "";
-
-    // Exact string match
-    if (cAdm === normReg || cReg === normReg) return true;
-    // Space-stripped match
-    if (cAdmNoSpace === noSpaceReg || cRegNoSpace === noSpaceReg) return true;
-    // Clean stripped match
-    if (cCleanAdm === cleanReg || cCleanReg === cleanReg) return true;
-    if (cCleanAdmNoSpace === cleanNoSpaceReg || cCleanRegNoSpace === cleanNoSpaceReg) return true;
-    // Core number match
-    if (coreReg && cCore && coreReg === cCore) return true;
-    if (coreReg && (cAdm === coreReg || cReg.includes(coreReg))) return true;
-
-    // Direct substring or slash-normalized match (e.g., 12026 vs J2026, 52026 vs S2026)
-    const normRegSlash = normReg.replace(/\/12026/, "/J2026").replace(/\/52026/, "/S2026");
-    const cRegSlash = cReg.replace(/\/12026/, "/J2026").replace(/\/52026/, "/S2026");
-    if (normRegSlash === cRegSlash) return true;
-
-    return false;
+    return (
+      matchAdmissionNumbers(c.admissionNumber, rawReg) ||
+      matchAdmissionNumbers(c.regCode, rawReg)
+    );
   });
 
   if (!candidate) return null;
@@ -1059,7 +1076,9 @@ apiRouter.post("/trainees", async (req: AuthenticatedRequest, res: Response) => 
           pgPersisted = true;
         }
       } catch (err: any) {
-        console.warn("PostgreSQL insert trainee warning:", err.message);
+        console.error("❌ [PostgreSQL insert trainee error]:", err.message);
+        res.status(500).json({ error: `Supabase database error creating trainee: ${err.message}` });
+        return;
       }
     }
 
@@ -1139,7 +1158,9 @@ apiRouter.put("/trainees/:id", async (req: AuthenticatedRequest, res: Response) 
           pgPersisted = true;
         }
       } catch (err: any) {
-        console.warn("PostgreSQL update trainee warning:", err.message);
+        console.error("❌ [PostgreSQL update trainee error]:", err.message);
+        res.status(500).json({ error: `Supabase database error updating trainee: ${err.message}` });
+        return;
       }
     }
 
@@ -1186,7 +1207,9 @@ apiRouter.delete("/trainees/:id", async (req: AuthenticatedRequest, res: Respons
           pgDeleted = true;
         }
       } catch (err: any) {
-        console.warn("PostgreSQL delete trainee warning:", err.message);
+        console.error("❌ [PostgreSQL delete trainee error]:", err.message);
+        res.status(500).json({ error: `Supabase database error deleting trainee: ${err.message}` });
+        return;
       }
     }
 
@@ -1363,7 +1386,9 @@ apiRouter.post("/attendance/mark", async (req: AuthenticatedRequest, res: Respon
         ]);
         if (result.rowCount > 0) pgPersisted = true;
       } catch (err: any) {
-        console.warn("PostgreSQL attendance mark error:", err.message);
+        console.error("❌ [PostgreSQL attendance mark error]:", err.message);
+        res.status(500).json({ error: `Supabase database error recording attendance: ${err.message}` });
+        return;
       }
     }
 
@@ -1505,7 +1530,9 @@ apiRouter.post("/attendance/bulk", async (req: AuthenticatedRequest, res: Respon
           }
         });
       } catch (err: any) {
-        console.warn("PostgreSQL bulk attendance warning:", err.message);
+        console.error("❌ [PostgreSQL bulk attendance error]:", err.message);
+        res.status(500).json({ error: `Supabase database error during bulk attendance upsert: ${err.message}` });
+        return;
       }
     }
 
@@ -1861,7 +1888,7 @@ apiRouter.get("/submissions/:id", (req: AuthenticatedRequest, res: Response) => 
 });
 
 // ─── ENDPOINT: POST /api/submissions (Submission Locking & Window Guard) ──────
-apiRouter.post("/submissions", requireRoles("trainee", "admin"), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: AuthenticatedRequest, res: Response) => {
   const user = req.user!;
   const { exam_id, section_a, section_b } = req.body;
 
@@ -1925,7 +1952,13 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), (req: Authentic
       });
     }
 
-    saveExamSubmission(existingSub, DB.submissions).catch(() => {});
+    try {
+      await saveExamSubmission(existingSub, DB.submissions);
+    } catch (err: any) {
+      console.error("❌ [PostgreSQL save exam submission error]:", err.message);
+      res.status(500).json({ error: `Supabase database error saving submission: ${err.message}` });
+      return;
+    }
     res.status(200).json({ success: true, submission_id: existingSub.id, score: objectiveScore });
     return;
   }
@@ -1961,7 +1994,13 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), (req: Authentic
   }
 
   DB.submissions.push(newSub as any);
-  saveExamSubmission(newSub, DB.submissions).catch(() => {});
+  try {
+    await saveExamSubmission(newSub, DB.submissions);
+  } catch (err: any) {
+    console.error("❌ [PostgreSQL save new exam submission error]:", err.message);
+    res.status(500).json({ error: `Supabase database error saving submission: ${err.message}` });
+    return;
+  }
   res.status(201).json({ success: true, submission_id: newSub.id, score: objectiveScore });
 });
 
@@ -2061,7 +2100,7 @@ apiRouter.put("/submissions/:id/submit", requireRoles("trainee", "admin"), (req:
 });
 
 // ─── ENDPOINT: POST /api/submissions/:id/grade (Cross-Trainer Escalation) ─────
-apiRouter.post("/submissions/:id/grade", requireRoles("trainer", "admin"), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.post("/submissions/:id/grade", requireRoles("trainer", "admin"), async (req: AuthenticatedRequest, res: Response) => {
   const user = req.user!;
   const sub = DB.submissions.find(s => s.id === req.params.id);
 
@@ -2082,12 +2121,18 @@ apiRouter.post("/submissions/:id/grade", requireRoles("trainer", "admin"), (req:
   const { marks_awarded, comments } = req.body;
   sub.total_score = marks_awarded ?? sub.total_score;
   sub.status = "graded";
-  saveExamSubmission(sub, DB.submissions).catch(() => {});
+  try {
+    await saveExamSubmission(sub, DB.submissions);
+  } catch (err: any) {
+    console.error("❌ [PostgreSQL grade submission error]:", err.message);
+    res.status(500).json({ error: `Supabase database error saving grade: ${err.message}` });
+    return;
+  }
   res.json({ success: true, updated: sub });
 });
 
 // ─── ENDPOINT: POST /api/submissions/:id/reopen (Trainer Retake Authorization) ─
-apiRouter.post("/submissions/:id/reopen", requireRoles("trainer", "admin"), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.post("/submissions/:id/reopen", requireRoles("trainer", "admin"), async (req: AuthenticatedRequest, res: Response) => {
   const sub = DB.submissions.find(s => s.id === req.params.id);
   if (!sub) {
     res.status(404).json({ error: "Submission not found" });
@@ -2101,7 +2146,13 @@ apiRouter.post("/submissions/:id/reopen", requireRoles("trainer", "admin"), (req
   (sub as any).reopened_by = trainer_name || req.user?.name || "Alexander Kinoti";
   (sub as any).reopen_reason = reason || "Trainer-authorized retake / second attempt";
   (sub as any).updated_at = new Date().toISOString();
-  saveExamSubmission(sub, DB.submissions).catch(() => {});
+  try {
+    await saveExamSubmission(sub, DB.submissions);
+  } catch (err: any) {
+    console.error("❌ [PostgreSQL reopen submission error]:", err.message);
+    res.status(500).json({ error: `Supabase database error reopening submission: ${err.message}` });
+    return;
+  }
   res.json({ success: true, submission: sub });
 });
 
@@ -2281,8 +2332,14 @@ const handleBatchMarks = async (req: AuthenticatedRequest, res: Response) => {
     updatedMarks.push(markEntry);
   }
 
-  // Atomically persist marks to PostgreSQL and JSON fallback
-  await saveAssessmentMarksBatch(DB.assessment_marks);
+  // Atomically persist marks to PostgreSQL and runtime state
+  try {
+    await saveAssessmentMarksBatch(DB.assessment_marks);
+  } catch (err: any) {
+    console.error("❌ [PostgreSQL batch marks error]:", err.message);
+    res.status(500).json({ error: `Supabase database error saving assessment marks: ${err.message}` });
+    return;
+  }
 
   res.json({
     success: true,
@@ -2466,7 +2523,7 @@ apiRouter.get("/documents/session-plans", (req: AuthenticatedRequest, res: Respo
   res.json({ success: true, count: list.length, session_plans: list });
 });
 
-apiRouter.post("/documents/session-plans/batch", requireRoles("trainer", "hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.post("/documents/session-plans/batch", requireRoles("trainer", "hod", "admin"), async (req: AuthenticatedRequest, res: Response) => {
   const { session_plans = [] } = req.body;
   if (!Array.isArray(session_plans)) {
     res.status(400).json({ error: "session_plans array required" });
@@ -2489,18 +2546,26 @@ apiRouter.post("/documents/session-plans/batch", requireRoles("trainer", "hod", 
   savePersistentSessionPlans(DB.session_plans);
 
   if (pool) {
-    for (const item of session_plans) {
-      if (!item.id) continue;
-      pool.query(
-        `INSERT INTO session_plans (id, unit_offering_id, class_code, trainer_id, department_id, date, session_title, approval_status, payload, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)
-         ON CONFLICT (id) DO UPDATE SET
-           class_code = EXCLUDED.class_code,
-           session_title = EXCLUDED.session_title,
-           payload = EXCLUDED.payload,
-           updated_at = CURRENT_TIMESTAMP`,
-        [item.id, item.unit_offering_id || "uo-1", item.class_code || "", item.trainer_id || req.user?.id || "", item.department_id || "", item.date || "", item.session_title || item.title || "", item.approval_status || "pending", JSON.stringify(item)]
-      ).catch(() => {});
+    try {
+      await withTransaction(async (client) => {
+        for (const item of session_plans) {
+          if (!item.id) continue;
+          await client.query(
+            `INSERT INTO session_plans (id, unit_offering_id, class_code, trainer_id, department_id, date, session_title, approval_status, payload, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)
+             ON CONFLICT (id) DO UPDATE SET
+               class_code = EXCLUDED.class_code,
+               session_title = EXCLUDED.session_title,
+               payload = EXCLUDED.payload,
+               updated_at = CURRENT_TIMESTAMP`,
+            [item.id, item.unit_offering_id || "uo-1", item.class_code || "", item.trainer_id || req.user?.id || "", item.department_id || "", item.date || "", item.session_title || item.title || "", item.approval_status || "pending", JSON.stringify(item)]
+          );
+        }
+      });
+    } catch (err: any) {
+      console.error("❌ [PostgreSQL session plans sync error]:", err.message);
+      res.status(500).json({ error: `Supabase database error synchronizing session plans: ${err.message}` });
+      return;
     }
   }
 
@@ -2521,7 +2586,7 @@ apiRouter.get("/documents/learning-plans", (req: AuthenticatedRequest, res: Resp
   res.json({ success: true, count: list.length, learning_plans: list });
 });
 
-apiRouter.post("/documents/learning-plans/batch", requireRoles("trainer", "hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.post("/documents/learning-plans/batch", requireRoles("trainer", "hod", "admin"), async (req: AuthenticatedRequest, res: Response) => {
   const { learning_plans = [] } = req.body;
   if (!Array.isArray(learning_plans)) {
     res.status(400).json({ error: "learning_plans array required" });
@@ -2541,17 +2606,25 @@ apiRouter.post("/documents/learning-plans/batch", requireRoles("trainer", "hod",
   savePersistentLearningPlans(DB.learning_plans);
 
   if (pool) {
-    for (const item of learning_plans) {
-      const key = item.id || `${item.unit_code || "unit"}_${item.week_number || item.week || 0}`;
-      pool.query(
-        `INSERT INTO learning_plans (id, unit_code, class_code, week_number, topic, payload, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
-         ON CONFLICT (id) DO UPDATE SET
-           topic = EXCLUDED.topic,
-           payload = EXCLUDED.payload,
-           updated_at = CURRENT_TIMESTAMP`,
-        [key, item.unit_code || "", item.class_code || "", item.week_number || item.week || 1, item.topic || item.sub_unit_topic || "", JSON.stringify(item)]
-      ).catch(() => {});
+    try {
+      await withTransaction(async (client) => {
+        for (const item of learning_plans) {
+          const key = item.id || `${item.unit_code || "unit"}_${item.week_number || item.week || 0}`;
+          await client.query(
+            `INSERT INTO learning_plans (id, unit_code, class_code, week_number, topic, payload, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
+             ON CONFLICT (id) DO UPDATE SET
+               topic = EXCLUDED.topic,
+               payload = EXCLUDED.payload,
+               updated_at = CURRENT_TIMESTAMP`,
+            [key, item.unit_code || "", item.class_code || "", item.week_number || item.week || 1, item.topic || item.sub_unit_topic || "", JSON.stringify(item)]
+          );
+        }
+      });
+    } catch (err: any) {
+      console.error("❌ [PostgreSQL learning plans sync error]:", err.message);
+      res.status(500).json({ error: `Supabase database error synchronizing learning plans: ${err.message}` });
+      return;
     }
   }
 
@@ -2572,7 +2645,7 @@ apiRouter.get("/documents/records-of-work", (req: AuthenticatedRequest, res: Res
   res.json({ success: true, count: list.length, records_of_work: list });
 });
 
-apiRouter.post("/documents/records-of-work/batch", requireRoles("trainer", "hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.post("/documents/records-of-work/batch", requireRoles("trainer", "hod", "admin"), async (req: AuthenticatedRequest, res: Response) => {
   const { records_of_work = [] } = req.body;
   if (!Array.isArray(records_of_work)) {
     res.status(400).json({ error: "records_of_work array required" });
@@ -2595,18 +2668,26 @@ apiRouter.post("/documents/records-of-work/batch", requireRoles("trainer", "hod"
   savePersistentRecordsOfWork(DB.record_of_work);
 
   if (pool) {
-    for (const item of records_of_work) {
-      if (!item.id) continue;
-      pool.query(
-        `INSERT INTO records_of_work (id, session_plan_id, unit_offering_id, class_code, trainer_id, department_id, work_covered, date_covered, approval_status, payload, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
-         ON CONFLICT (id) DO UPDATE SET
-           work_covered = EXCLUDED.work_covered,
-           date_covered = EXCLUDED.date_covered,
-           payload = EXCLUDED.payload,
-           updated_at = CURRENT_TIMESTAMP`,
-        [item.id, item.session_plan_id || null, item.unit_offering_id || "uo-1", item.class_code || "", item.trainer_id || req.user?.id || "", item.department_id || "", item.work_covered || item.work_actually_covered || "", item.date_covered || "", item.approval_status || "pending", JSON.stringify(item)]
-      ).catch(() => {});
+    try {
+      await withTransaction(async (client) => {
+        for (const item of records_of_work) {
+          if (!item.id) continue;
+          await client.query(
+            `INSERT INTO records_of_work (id, session_plan_id, unit_offering_id, class_code, trainer_id, department_id, work_covered, date_covered, approval_status, payload, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
+             ON CONFLICT (id) DO UPDATE SET
+               work_covered = EXCLUDED.work_covered,
+               date_covered = EXCLUDED.date_covered,
+               payload = EXCLUDED.payload,
+               updated_at = CURRENT_TIMESTAMP`,
+            [item.id, item.session_plan_id || null, item.unit_offering_id || "uo-1", item.class_code || "", item.trainer_id || req.user?.id || "", item.department_id || "", item.work_covered || item.work_actually_covered || "", item.date_covered || "", item.approval_status || "pending", JSON.stringify(item)]
+          );
+        }
+      });
+    } catch (err: any) {
+      console.error("❌ [PostgreSQL records of work sync error]:", err.message);
+      res.status(500).json({ error: `Supabase database error synchronizing records of work: ${err.message}` });
+      return;
     }
   }
 
@@ -2620,7 +2701,7 @@ function handleGetClassRegister(req: AuthenticatedRequest, res: Response) {
   res.json({ success: true, class_code: code, metadata: data, registers: DB.class_registers });
 }
 
-function handlePostClassRegister(req: AuthenticatedRequest, res: Response) {
+async function handlePostClassRegister(req: AuthenticatedRequest, res: Response) {
   const code = req.body.class_code || (req.query.class_code as string) || (req.params as any)[0] || req.params.classCode || "";
   if (!code) {
     res.status(400).json({ error: "class_code is required" });
@@ -2637,17 +2718,23 @@ function handlePostClassRegister(req: AuthenticatedRequest, res: Response) {
   savePersistentClassRegisters(DB.class_registers);
 
   if (pool) {
-    pool.query(
-      `INSERT INTO class_registers (class_code, lecturer_name, subject, department, duration, level, lecturer_comment, hod_comment, weekly_lecturer_comments, weekly_hod_comments, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
-       ON CONFLICT (class_code) DO UPDATE SET
-         lecturer_comment = EXCLUDED.lecturer_comment,
-         hod_comment = EXCLUDED.hod_comment,
-         weekly_lecturer_comments = EXCLUDED.weekly_lecturer_comments,
-         weekly_hod_comments = EXCLUDED.weekly_hod_comments,
-         updated_at = CURRENT_TIMESTAMP`,
-      [code, payload.lecturer || payload.lecturer_name || "", payload.subject || "", payload.department || "", payload.duration || "", payload.level || "", payload.lecturerComment || "", payload.hodComment || "", JSON.stringify(payload.weeklyLecturerComments || {}), JSON.stringify(payload.weeklyHodComments || {})]
-    ).catch(() => {});
+    try {
+      await pool.query(
+        `INSERT INTO class_registers (class_code, lecturer_name, subject, department, duration, level, lecturer_comment, hod_comment, weekly_lecturer_comments, weekly_hod_comments, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
+         ON CONFLICT (class_code) DO UPDATE SET
+           lecturer_comment = EXCLUDED.lecturer_comment,
+           hod_comment = EXCLUDED.hod_comment,
+           weekly_lecturer_comments = EXCLUDED.weekly_lecturer_comments,
+           weekly_hod_comments = EXCLUDED.weekly_hod_comments,
+           updated_at = CURRENT_TIMESTAMP`,
+        [code, payload.lecturer || payload.lecturer_name || "", payload.subject || "", payload.department || "", payload.duration || "", payload.level || "", payload.lecturerComment || "", payload.hodComment || "", JSON.stringify(payload.weeklyLecturerComments || {}), JSON.stringify(payload.weeklyHodComments || {})]
+      );
+    } catch (err: any) {
+      console.error("❌ [PostgreSQL class register metadata error]:", err.message);
+      res.status(500).json({ error: `Supabase database error saving class register metadata: ${err.message}` });
+      return;
+    }
   }
 
   res.json({ success: true, message: `Saved class register metadata for ${code}`, data: DB.class_registers[code] });
@@ -3032,7 +3119,7 @@ apiRouter.get("/evidence/:id/download", (req: AuthenticatedRequest, res: Respons
 });
 
 // POST /api/evidence: Upload assessment evidence
-apiRouter.post("/evidence", requireRoles("trainee", "admin"), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.post("/evidence", requireRoles("trainee", "admin"), async (req: AuthenticatedRequest, res: Response) => {
   const user = req.user!;
   const { unit_offering_id, task_code, title, filename, file_data, mime_type, file_size } = req.body;
 
@@ -3062,12 +3149,18 @@ apiRouter.post("/evidence", requireRoles("trainee", "admin"), (req: Authenticate
   };
 
   DB.assessment_evidence.push(newEvidence);
-  saveAssessmentEvidence(newEvidence, DB.assessment_evidence).catch(() => {});
+  try {
+    await saveAssessmentEvidence(newEvidence, DB.assessment_evidence);
+  } catch (err: any) {
+    console.error("❌ [PostgreSQL upload evidence error]:", err.message);
+    res.status(500).json({ error: `Supabase database error saving evidence: ${err.message}` });
+    return;
+  }
   res.status(201).json({ success: true, evidence: newEvidence });
 });
 
 // PUT /api/evidence/:id/verify: Verify evidence
-apiRouter.put("/evidence/:id/verify", requireRoles("trainer", "hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.put("/evidence/:id/verify", requireRoles("trainer", "hod", "admin"), async (req: AuthenticatedRequest, res: Response) => {
   const user = req.user!;
   const item = DB.assessment_evidence.find(e => e.id === req.params.id);
   if (!item) {
@@ -3084,13 +3177,19 @@ apiRouter.put("/evidence/:id/verify", requireRoles("trainer", "hod", "admin"), (
   item.verified_by_trainer = true;
   item.verified_at = new Date().toISOString();
   item.verified_by = user.name;
-  saveAssessmentEvidence(item, DB.assessment_evidence).catch(() => {});
+  try {
+    await saveAssessmentEvidence(item, DB.assessment_evidence);
+  } catch (err: any) {
+    console.error("❌ [PostgreSQL verify evidence error]:", err.message);
+    res.status(500).json({ error: `Supabase database error verifying evidence: ${err.message}` });
+    return;
+  }
 
   res.json({ success: true, evidence: item });
 });
 
 // PUT /api/evidence/:id/grade: Award mark and synchronize with assessment_marks
-apiRouter.put("/evidence/:id/grade", requireRoles("trainer", "hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.put("/evidence/:id/grade", requireRoles("trainer", "hod", "admin"), async (req: AuthenticatedRequest, res: Response) => {
   const user = req.user!;
   const item = DB.assessment_evidence.find(e => e.id === req.params.id);
   if (!item) {
@@ -3174,14 +3273,20 @@ apiRouter.put("/evidence/:id/grade", requireRoles("trainer", "hod", "admin"), (r
 
   markEntry.weighted_mark = calculateServerWeightedMark(markEntry.ct_avg, markEntry.cp_avg, 6);
 
-  saveAssessmentEvidence(item, DB.assessment_evidence).catch(() => {});
-  saveAssessmentMarksBatch(DB.assessment_marks).catch(() => {});
+  try {
+    await saveAssessmentEvidence(item, DB.assessment_evidence);
+    await saveAssessmentMarksBatch(DB.assessment_marks);
+  } catch (err: any) {
+    console.error("❌ [PostgreSQL grade evidence error]:", err.message);
+    res.status(500).json({ error: `Supabase database error grading evidence: ${err.message}` });
+    return;
+  }
 
   res.json({ success: true, evidence: item, marks: markEntry });
 });
 
 // DELETE /api/evidence/:id: Delete evidence (candidate cannot delete if verified or graded)
-apiRouter.delete("/evidence/:id", (req: AuthenticatedRequest, res: Response) => {
+apiRouter.delete("/evidence/:id", async (req: AuthenticatedRequest, res: Response) => {
   const user = req.user;
   if (!user) {
     res.status(401).json({ error: "Authentication required" });
@@ -3213,7 +3318,13 @@ apiRouter.delete("/evidence/:id", (req: AuthenticatedRequest, res: Response) => 
     DB.assessment_evidence.splice(idx, 1);
     savePersistentAssessmentEvidence(DB.assessment_evidence);
     if (pool) {
-      pool.query("DELETE FROM assessment_evidence WHERE id = $1", [req.params.id]).catch(() => {});
+      try {
+        await pool.query("DELETE FROM assessment_evidence WHERE id = $1", [req.params.id]);
+      } catch (err: any) {
+        console.error("❌ [PostgreSQL delete evidence error]:", err.message);
+        res.status(500).json({ error: `Supabase database error deleting evidence: ${err.message}` });
+        return;
+      }
     }
   }
 
