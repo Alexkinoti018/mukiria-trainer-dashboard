@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo, ReactNo
 import { Exam, Submission, supabase, isSupabaseConfigured, normalizeAssessmentTaskSlot, doesExamMatchTraineeCohort } from "@/lib/supabase";
 import { MOCK_EXAMS, MOCK_SUBMISSIONS } from "@/lib/mockData";
 import { useAuth } from "@/contexts/AuthContext";
-import { syncScoreToContinuousMarksheet } from "@/contexts/TraineeContext";
+import { syncScoreToContinuousMarksheet, OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
 import { syncExamSubmissionToAssessmentRegister } from "@/lib/attendanceStorage";
 import { nanoid } from "nanoid";
 
@@ -441,9 +441,32 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     try {
       const matchingExam = exams.find((e) => e.id === targetSub.exam_id || e.unit_code === targetSub.unit_code);
       const cleanTitle = (matchingExam?.payload as any)?.title || matchingExam?.course_name || "Written Assessment 1";
+
+      const subAdm = (targetSub.reg_number || "").trim().toUpperCase();
+      const subName = (targetSub.student_name || "").trim().toLowerCase();
+      let roster = OFFICIAL_MTTI_TRAINEES;
+      if (typeof localStorage !== "undefined") {
+        try {
+          const raw = localStorage.getItem("mtti_trainees");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) roster = parsed;
+          }
+        } catch {}
+      }
+
+      const matchTrainee = roster.find(
+        (t) =>
+          (subAdm && ((t.admNo && t.admNo.trim().toUpperCase() === subAdm) || (t.regCode && t.regCode.trim().toUpperCase() === subAdm))) ||
+          (subName && t.name && t.name.trim().toLowerCase() === subName)
+      );
+      const candidateCohort = matchTrainee?.classCode || (matchingExam?.payload as any)?.class || (matchingExam?.payload as any)?.target_cohorts?.[0];
+
       syncExamSubmissionToAssessmentRegister({
         studentName: targetSub.student_name,
         regNumber: targetSub.reg_number,
+        classCode: candidateCohort,
+        cohortCode: candidateCohort,
         unitCode: targetSub.unit_code,
         examId: targetSub.exam_id,
         examTitle: cleanTitle,

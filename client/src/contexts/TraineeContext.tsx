@@ -657,6 +657,8 @@ export function getTraineesForClass(allTrainees: Trainee[], selectedClassCode: s
     const matched = allTrainees.filter(t => {
       const tc = (t.classCode || "").toUpperCase();
       const tr = (t.regCode || t.admNo || "").toUpperCase();
+      const dept = (t.department || "").toUpperCase();
+      if (tc.includes("FBS") || tc.includes("FBP") || dept.includes("HOSPITALITY") || tc.includes("ADMIN") || tc.includes("LS") || tc.includes("SURVEY")) return false;
       return (tc.includes("ICT4") || tr.includes("ICT4")) && !tc.includes("ITECH") && !tr.includes("ITECH");
     });
     if (matched.length > 0) return matched;
@@ -670,6 +672,8 @@ export function getTraineesForClass(allTrainees: Trainee[], selectedClassCode: s
     const matched = allTrainees.filter(t => {
       const tc = (t.classCode || "").toUpperCase();
       const tr = (t.regCode || t.admNo || "").toUpperCase();
+      const dept = (t.department || "").toUpperCase();
+      if (tc.includes("FBS") || tc.includes("FBP") || dept.includes("HOSPITALITY") || tc.includes("ADMIN") || tc.includes("LS") || tc.includes("SURVEY")) return false;
       return (tc.includes("ITECH 6") || tc.includes("ITECH6") || tr.includes("ITECH 6") || tr.includes("ITECH6")) &&
              !tc.includes("ICT4") && !tr.includes("ICT4");
     });
@@ -683,6 +687,8 @@ export function getTraineesForClass(allTrainees: Trainee[], selectedClassCode: s
     const matched = allTrainees.filter(t => {
       const tc = (t.classCode || "").toUpperCase();
       const tr = (t.regCode || t.admNo || "").toUpperCase();
+      const dept = (t.department || "").toUpperCase();
+      if (tc.includes("FBS") || tc.includes("FBP") || dept.includes("HOSPITALITY") || tc.includes("ADMIN") || tc.includes("LS") || tc.includes("SURVEY")) return false;
       return tc.includes("ITECH 5") || tc.includes("ITECH5") || tr.includes("ITECH 5") || tr.includes("ITECH5");
     });
     if (matched.length > 0) return matched;
@@ -696,6 +702,8 @@ export function getTraineesForClass(allTrainees: Trainee[], selectedClassCode: s
     const matched = allTrainees.filter(t => {
       const tc = (t.classCode || "").toUpperCase();
       const tr = (t.regCode || t.admNo || "").toUpperCase();
+      const dept = (t.department || "").toUpperCase();
+      if (tc.includes("FBS") || tc.includes("FBP") || dept.includes("HOSPITALITY") || tc.includes("ADMIN") || tc.includes("LS") || tc.includes("SURVEY")) return false;
       const isLevel4 = (tc.includes("ICT4") || tr.includes("ICT4")) && !tc.includes("ITECH");
       const isLevel6 = (tc.includes("ITECH 6") || tc.includes("ITECH6") || tr.includes("ITECH 6") || tr.includes("ITECH6")) &&
                        !tc.includes("ITECH 5") && !tr.includes("ITECH 5") && !tc.includes("ICT4");
@@ -709,6 +717,14 @@ export function getTraineesForClass(allTrainees: Trainee[], selectedClassCode: s
     const matched = allTrainees.filter(t => {
       const tc = (t.classCode || "").toUpperCase();
       const dept = (t.department || "").toUpperCase();
+      const tr = (t.regCode || t.admNo || "").toUpperCase();
+      if (
+        tc.includes("FBS") || tc.includes("FBP") || dept.includes("HOSPITALITY") ||
+        tc.includes("ITECH") || tc.includes("ICT") || dept.includes("COMPUTING") ||
+        tc.includes("LS") || tc.includes("SURVEY") || dept.includes("BUILDING")
+      ) {
+        return false;
+      }
       if (normTarget.includes("MOD 3") && tc.includes("MOD 3")) return true;
       if (normTarget.includes("MOD 1") && tc.includes("MOD 1") && (tc.includes("ADMIN") || dept.includes("BUSINESS"))) return true;
       return tc.includes("ADMIN") || dept.includes("BUSINESS");
@@ -721,6 +737,18 @@ export function getTraineesForClass(allTrainees: Trainee[], selectedClassCode: s
     const matched = allTrainees.filter(t => {
       const tc = (t.classCode || "").toUpperCase();
       const dept = (t.department || "").toUpperCase();
+      const tr = (t.regCode || t.admNo || "").toUpperCase();
+
+      // Guard against foreign department/cohort bleed into FBS
+      if (
+        tc.includes("ITECH") || tc.includes("ICT") || tc.includes("LS") || tc.includes("SURVEY") || tc.includes("ADMIN") ||
+        dept.includes("COMPUTING") || dept.includes("BUILDING") || dept.includes("BUSINESS") ||
+        tr.includes("14179") || tr.includes("14022") || tr.includes("14076") || tr.includes("14255") ||
+        tr.includes("14009") || tr.includes("UPNUT") || tr.includes("13410") || tr.includes("13527")
+      ) {
+        return false;
+      }
+
       return tc.includes("FBS") || tc.includes("FBP") || dept.includes("HOSPITALITY") || dept.includes("FBS");
     });
     if (matched.length > 0) return matched;
@@ -731,6 +759,16 @@ export function getTraineesForClass(allTrainees: Trainee[], selectedClassCode: s
     const matched = allTrainees.filter(t => {
       const tc = (t.classCode || "").toUpperCase();
       const dept = (t.department || "").toUpperCase();
+      const tr = (t.regCode || t.admNo || "").toUpperCase();
+
+      if (
+        tc.includes("FBS") || tc.includes("FBP") || dept.includes("HOSPITALITY") ||
+        tc.includes("ITECH") || tc.includes("ICT") || dept.includes("COMPUTING") ||
+        tc.includes("ADMIN") || dept.includes("BUSINESS")
+      ) {
+        return false;
+      }
+
       return tc.includes("LS") || tc.includes("SURVEY") || (dept.includes("BUILDING") && tc.includes("LS"));
     });
     if (matched.length > 0) return matched;
@@ -765,7 +803,22 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
           OFFICIAL_MTTI_TRAINEES.forEach((ot) => map.set(ot.id, ot));
           parsed.forEach((t: Trainee) => {
             if (t && t.id) {
-              map.set(t.id, t);
+              const official = OFFICIAL_MTTI_TRAINEES.find(
+                (o) => o.id === t.id || (t.admNo && o.admNo && o.admNo.trim().toUpperCase() === t.admNo.trim().toUpperCase())
+              );
+              if (official) {
+                // Safeguard official immutable attributes from corruption
+                map.set(official.id, {
+                  ...t,
+                  classCode: official.classCode,
+                  department: official.department,
+                  admNo: official.admNo,
+                  regCode: official.regCode,
+                  name: official.name,
+                });
+              } else {
+                map.set(t.id, t);
+              }
             }
           });
           return Array.from(map.values());

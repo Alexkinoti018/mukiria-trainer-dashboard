@@ -443,43 +443,54 @@ export default function ClassRegister() {
   }, [trainees, selectedClassCode]);
 
   // Augment class trainees with any candidates who submitted online exams or are logged in assessment attendance
+  // Strictly applies to CUR/03 (Assessment Attendance Register) while guarding against cross-cohort contamination
   const augmentedClassTrainees = useMemo(() => {
     const list = [...classTrainees];
     const existingAdmNos = new Set(list.map(t => (t.admNo || t.regCode || "").trim().toUpperCase()));
     const existingNames = new Set(list.map(t => (t.name || "").trim().toLowerCase()));
 
-    // 1. Check allSubmissions for candidates who submitted an exam strictly for this unit/cohort or assessment
+    // Strict Cohort Matching Helper:
+    // Determines if a trainee or admission number belongs to selectedClassCode
+    const isEligibleForCohort = (adm: string, name: string) => {
+      const normAdm = adm.trim().toUpperCase();
+      const normName = name.trim().toLowerCase();
+      const normClass = selectedClassCode.trim().toUpperCase();
+
+      const cand = trainees.find(
+        (t) =>
+          (normAdm && t.admNo && t.admNo.trim().toUpperCase() === normAdm) ||
+          (normAdm && t.regCode && t.regCode.trim().toUpperCase() === normAdm) ||
+          (normName && t.name && t.name.trim().toLowerCase() === normName)
+      );
+      if (cand) {
+        return getTraineesForClass([cand], selectedClassCode).length > 0;
+      }
+
+      const isFbsCohort = normClass.includes("FBS") || normClass.includes("FBP");
+      const isIctCohort = normClass.includes("ICT") || normClass.includes("ITECH");
+      const isSurveyCohort = normClass.includes("LS") || normClass.includes("SURVEY");
+      const isAdminCohort = normClass.includes("ADMIN");
+
+      const isKnownIct = normAdm.includes("14179") || normAdm.includes("14255") || normAdm.includes("14076") || normAdm.includes("14022") || normAdm.includes("ITECH") || normAdm.includes("ICT");
+      const isKnownSurvey = normAdm.includes("UPNUT") || normAdm.includes("14009") || normAdm.includes("LS") || normAdm.includes("SURVEY");
+      const isKnownAdmin = normAdm.includes("13410") || normAdm.includes("13527") || normAdm.includes("ADMIN");
+      const isKnownFbs = normAdm.includes("FBS") || normAdm.includes("FBP");
+
+      if (isFbsCohort && (isKnownIct || isKnownSurvey || isKnownAdmin)) return false;
+      if (isIctCohort && (isKnownFbs || isKnownSurvey || isKnownAdmin)) return false;
+      if (isSurveyCohort && (isKnownFbs || isKnownIct || isKnownAdmin)) return false;
+      if (isAdminCohort && (isKnownFbs || isKnownIct || isKnownSurvey)) return false;
+
+      return false;
+    };
+
+    // 1. Check allSubmissions for candidates who submitted an exam strictly for this cohort
     submissions.forEach((sub: any) => {
       const subAdm = (sub.reg_number || "").trim().toUpperCase();
       const subName = (sub.student_name || "").trim();
       if (!subAdm && !subName) return;
 
-      // Strict Cohort Isolation Guard:
-      // Verify candidate belongs to selectedClassCode before auto-enrolling
-      const cand = trainees.find(
-        (t) =>
-          (subAdm && t.admNo && t.admNo.trim().toUpperCase() === subAdm) ||
-          (subAdm && t.regCode && t.regCode.trim().toUpperCase() === subAdm) ||
-          (subName && t.name && t.name.trim().toLowerCase() === subName.toLowerCase())
-      );
-      if (cand) {
-        const belongsToActive = getTraineesForClass([cand], selectedClassCode).length > 0;
-        if (!belongsToActive) return;
-      } else {
-        // Candidate unlisted: verify exam was allocated to this cohort
-        const exam = exams.find((e) => e.id === sub.exam_id || e.unit_code === sub.unit_code);
-        if (exam) {
-          const examClasses: string[] = (exam.payload as any)?.classes || [];
-          const matchesExamCohort =
-            examClasses.length === 0 ||
-            examClasses.some(
-              (ec) =>
-                ec.toUpperCase().includes(selectedClassCode.toUpperCase()) ||
-                selectedClassCode.toUpperCase().includes(ec.toUpperCase())
-            );
-          if (!matchesExamCohort) return;
-        }
-      }
+      if (!isEligibleForCohort(subAdm, subName)) return;
 
       if (!existingAdmNos.has(subAdm) && !existingNames.has(subName.toLowerCase())) {
         existingAdmNos.add(subAdm);
@@ -508,7 +519,7 @@ export default function ClassRegister() {
           Object.values(log).forEach((entry: any) => {
             const entryAdm = (entry.admNo || "").trim().toUpperCase();
             const entryName = (entry.name || "").trim();
-            if (entryAdm && !existingAdmNos.has(entryAdm) && !existingNames.has(entryName.toLowerCase())) {
+            if (entryAdm && isEligibleForCohort(entryAdm, entryName) && !existingAdmNos.has(entryAdm) && !existingNames.has(entryName.toLowerCase())) {
               existingAdmNos.add(entryAdm);
               existingNames.add(entryName.toLowerCase());
               list.push({
@@ -528,12 +539,16 @@ export default function ClassRegister() {
     }
 
     return list;
-  }, [classTrainees, submissions, selectedClassCode, activeClassConfig, selectedAssessmentType]);
+  }, [classTrainees, submissions, trainees, selectedClassCode, activeClassConfig, selectedAssessmentType]);
 
   // Confidential Trainee Access View: Trainee viewers strictly see ONLY their own record
   const displayedTrainees = useMemo(() => {
-    if (!isTraineeViewer) return augmentedClassTrainees;
-    const mine = augmentedClassTrainees.filter((t) => {
+    // When viewing CUR/02 (General Class Register), strictly display authentic enrolled class trainees
+    // When viewing CUR/03 (Assessment Attendance Register), display class trainees augmented with verified cohort submissions
+    const baseList = formMode === "CUR/03" ? augmentedClassTrainees : classTrainees;
+
+    if (!isTraineeViewer) return baseList;
+    const mine = baseList.filter((t) => {
       const matchAdm = Boolean(t.admNo && user?.reg_number && t.admNo.trim().toUpperCase() === user.reg_number.trim().toUpperCase());
       const matchReg = Boolean(t.regCode && user?.reg_number && t.regCode.trim().toUpperCase() === user.reg_number.trim().toUpperCase());
       const matchName = Boolean(t.name && user?.name && t.name.trim().toLowerCase() === user.name.trim().toLowerCase());
@@ -552,7 +567,7 @@ export default function ClassRegister() {
         gender: "M" as const,
       }
     ];
-  }, [isTraineeViewer, augmentedClassTrainees, user, selectedClassCode, activeClassConfig]);
+  }, [formMode, isTraineeViewer, augmentedClassTrainees, classTrainees, user, selectedClassCode, activeClassConfig]);
 
   // Student CRUD Handlers
   const handleOpenAddStudent = () => {

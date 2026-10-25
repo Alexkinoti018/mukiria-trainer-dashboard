@@ -292,7 +292,7 @@ export function syncExamSubmissionToAssessmentRegister(params: ExamAttendanceSyn
           reg_number: normAdm,
           name: cleanName,
           classCode: canonicalCohort,
-          department: canonicalCohort.includes("FBS") ? "Hospitality & Institutional Management" : "Computing & Informatics",
+          department: canonicalCohort.includes("FBS") ? "FBS Hospitality" : canonicalCohort.includes("ADMIN") ? "Business" : canonicalCohort.includes("LS") ? "Building & Civil Engineering" : "Computing & Informatics",
           gender: "M",
           remarks: `Auto-enrolled via online ${assessmentType} submission`,
           created_at: new Date().toISOString(),

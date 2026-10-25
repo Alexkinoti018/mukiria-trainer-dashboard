@@ -143,9 +143,41 @@ describe("Trainee Data Integrity, Cohort Segregation & Confidentiality Suite", (
       expect(fbsList.some((t) => t.name === "Eugene Murimi")).toBe(true);
       expect(fbsList.some((t) => t.name === "Brendah Mumbi")).toBe(true);
 
-      // Must NOT contain ICT or Survey
+      // Must NOT contain ICT, Survey, or Business Administration
       expect(fbsList.some((t) => t.name === "Wanjau Alvin Gatere")).toBe(false);
       expect(fbsList.some((t) => t.name === "Vick Mutembei")).toBe(false);
+      expect(fbsList.some((t) => t.name === "Harriet Mwendwa")).toBe(false);
+      expect(fbsList.some((t) => t.name === "Nthiga Gakii Doris")).toBe(false);
+      expect(fbsList.some((t) => t.name === "Kaumbuthu Belinda Mukiri")).toBe(false);
+      expect(fbsList.some((t) => t.name === "Ltumwa Lesoipa")).toBe(false);
+      expect(fbsList.some((t) => t.name === "RISPER MWENDE")).toBe(false);
+      expect(fbsList.some((t) => t.name === "Banta Micheni")).toBe(false);
+    });
+
+    it("strictly isolates FBS5/6/J/26 register preventing any foreign student pollution", () => {
+      const fbs6List = getTraineesForClass(allTrainees, "FBS5/6/J/26");
+      expect(fbs6List.length).toBe(23);
+
+      fbs6List.forEach((t) => {
+        expect(t.department).toBe("FBS Hospitality");
+      });
+
+      // Assert none of the 8 foreign trainees from other departments bleed in
+      const foreignAdmNos = [
+        "D/UPNUT/25042/069", // Harriet Mwendwa (LS)
+        "14179/S2026",      // Nthiga Gakii Doris (ITECH 6)
+        "14255/S2026",      // Kaumbuthu Belinda (ITECH 6)
+        "14076/S2026",      // Wanjau Alvin (ITECH 6)
+        "14022/S2026",      // Ltumwa Lesoipa (ITECH 6)
+        "14009",            // Vick Mutembei (LS)
+        "13410",            // Risper Mwende (Business Admin)
+        "13527",            // Banta Micheni (Business Admin)
+      ];
+
+      foreignAdmNos.forEach((adm) => {
+        const found = fbs6List.some((t) => (t.admNo || t.regCode || "").includes(adm));
+        expect(found).toBe(false);
+      });
     });
   });
 
