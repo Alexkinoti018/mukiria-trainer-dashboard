@@ -136,4 +136,26 @@ describe("Assessment Attendance Register (CUR/03) & Online Exam Linkage", () => 
     expect(afterTrainees.some((t: any) => t.admNo === "14254/S2026")).toBe(true);
     expect(afterTrainees.some((t: any) => t.admNo === "14179/S2026")).toBe(true);
   });
+
+  it("5. Robust matching: matches candidate with cohort prefix without duplicating roster entry", () => {
+    const initialTrainees = JSON.parse(localStorage.getItem("mtti_trainees") || "[]");
+    const initialCount = initialTrainees.length;
+
+    const result = syncExamSubmissionToAssessmentRegister({
+      studentName: "Doris Gakii",
+      regNumber: "ITECH 6 MOD/14179/S2026",
+      classCode: cohort,
+      examTitle: "Written Assessment 2",
+    });
+
+    expect(result.traineeAdded).toBe(false);
+    expect(result.traineeId).toBe("tr_it6_01");
+
+    const afterTrainees = JSON.parse(localStorage.getItem("mtti_trainees") || "[]");
+    expect(afterTrainees.length).toBe(initialCount);
+
+    const register = loadClassAttendanceRegister(cohort);
+    expect(register["tr_it6_01"].signed).toBe(true);
+    expect(register["tr_it6_01"].assessmentType).toBe("Written Assessment 2");
+  });
 });

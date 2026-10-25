@@ -4,6 +4,8 @@
  * Resolves cohort key fragmentation, multi-session collision, and data loss once and for all.
  */
 
+import { normalizeAdmissionNumber, matchAdmissionNumbers } from "./utils";
+
 export type AttendanceStatus = "X" | "0" | "E" | "";
 
 export interface StudentAttendanceRecord {
@@ -223,7 +225,7 @@ export interface ExamAttendanceSyncResult {
  * 4. Persists the update and dispatches global event listeners.
  */
 export function syncExamSubmissionToAssessmentRegister(params: ExamAttendanceSyncParams): ExamAttendanceSyncResult {
-  const normAdm = (params.regNumber || "").trim().toUpperCase();
+  const normAdm = normalizeAdmissionNumber(params.regNumber || "") || (params.regNumber || "").trim().toUpperCase();
   const cleanName = (params.studentName || "").trim();
   const rawCohort = (params.classCode || params.cohortCode || "").trim();
 
@@ -268,11 +270,11 @@ export function syncExamSubmissionToAssessmentRegister(params: ExamAttendanceSyn
       if (!Array.isArray(traineesList)) traineesList = [];
 
       const existingIdx = traineesList.findIndex((t: any) => {
-        const tAdm = (t.admNo || t.regCode || t.reg_number || "").trim().toUpperCase();
+        const tAdm = (t.admNo || t.regCode || t.reg_number || "").trim();
         const tName = (t.name || "").trim().toLowerCase();
         return (
-          tAdm === normAdm ||
-          (normAdm.length >= 4 && tAdm.includes(normAdm)) ||
+          matchAdmissionNumbers(tAdm, params.regNumber) ||
+          matchAdmissionNumbers(tAdm, normAdm) ||
           (cleanName.length >= 4 && tName === cleanName.toLowerCase())
         );
       });
