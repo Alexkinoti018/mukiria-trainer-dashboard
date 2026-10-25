@@ -115,5 +115,12 @@ client/public/__manus__/version.json
 
 # Python
 __pycache__/
+**/__pycache__/
+*.py[cod]
+*.class
 *.pyc
 *.pyo
+.pytest_cache/
+.venv/
+venv/
+ENV/
