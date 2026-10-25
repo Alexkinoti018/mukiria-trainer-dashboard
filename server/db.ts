@@ -34,6 +34,15 @@ const ASSESSMENT_MARKS_FILE = getFixturePath("assessment_marks.json");
 const SUBMISSIONS_FILE = getFixturePath("submissions.json");
 const ASSESSMENT_EVIDENCE_FILE = getFixturePath("assessment_evidence.json");
 
+export class DatabaseServiceUnavailableError extends Error {
+  status = 503;
+  statusCode = 503;
+  constructor(message = "Database Service Unavailable: PostgreSQL connection pool is not initialized or connected") {
+    super(message);
+    this.name = "DatabaseServiceUnavailableError";
+  }
+}
+
 // Connection parameters
 const PROJECT_REF = process.env.SUPABASE_PROJECT_REF || "bzlnpywjyhhrqapsvczf";
 const DEFAULT_HOST = `db.${PROJECT_REF}.supabase.co`;
@@ -46,15 +55,28 @@ if (!connectionString && process.env.SUPABASE_DB_PASSWORD) {
   connectionString = `postgresql://${DEFAULT_USER}:${encodeURIComponent(process.env.SUPABASE_DB_PASSWORD)}@${DEFAULT_HOST}:${DEFAULT_PORT}/${DEFAULT_DATABASE}`;
 }
 
+const isProduction = process.env.NODE_ENV === "production";
+const rejectUnauthorized = process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false" && isProduction;
+
 export const pool = connectionString
   ? new Pool({
       connectionString,
-      ssl: { rejectUnauthorized: false },
+      ssl: { rejectUnauthorized },
       connectionTimeoutMillis: 5000,
       idleTimeoutMillis: 30000,
       max: 10,
     })
   : null;
+
+export function isTlsStrict(): boolean {
+  return rejectUnauthorized;
+}
+
+export function ensurePoolAvailable(): void {
+  if (!pool && (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true")) {
+    throw new DatabaseServiceUnavailableError();
+  }
+}
 
 if (pool) {
   pool.on("error", (err) => {
@@ -72,9 +94,26 @@ export async function query(text: string, params?: any[]): Promise<{ rows: any[]
       return { rows: res.rows, rowCount: res.rowCount || 0 };
     } catch (err: any) {
       console.error("❌ [PostgreSQL Query Error]:", err.message);
+      if (
+        err.code === "ECONNREFUSED" ||
+        err.code === "ETIMEDOUT" ||
+        err.code === "57P01" ||
+        err.code === "08006" ||
+        err.code === "08001" ||
+        err.message?.toLowerCase().includes("timeout") ||
+        err.message?.toLowerCase().includes("connection")
+      ) {
+        err.status = 503;
+        err.statusCode = 503;
+      }
       throw err;
     }
   }
+
+  if (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true") {
+    throw new DatabaseServiceUnavailableError();
+  }
+
   return { rows: [], rowCount: 0 };
 }
 
@@ -84,15 +123,35 @@ export async function query(text: string, params?: any[]): Promise<{ rows: any[]
 export async function withTransaction<T>(
   callback: (client: pg.PoolClient) => Promise<T>
 ): Promise<T | null> {
-  if (!pool) return null;
+  if (!pool) {
+    if (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true") {
+      throw new DatabaseServiceUnavailableError(
+        "Database Service Unavailable: Cannot initiate transaction without PostgreSQL pool"
+      );
+    }
+    return null;
+  }
+
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
     const result = await callback(client);
     await client.query("COMMIT");
     return result;
-  } catch (err) {
+  } catch (err: any) {
     await client.query("ROLLBACK").catch(() => {});
+    if (
+      err.code === "ECONNREFUSED" ||
+      err.code === "ETIMEDOUT" ||
+      err.code === "57P01" ||
+      err.code === "08006" ||
+      err.code === "08001" ||
+      err.message?.toLowerCase().includes("timeout") ||
+      err.message?.toLowerCase().includes("connection")
+    ) {
+      err.status = 503;
+      err.statusCode = 503;
+    }
     throw err;
   } finally {
     client.release();
@@ -313,7 +372,9 @@ export function savePersistentAssessmentEvidence(records: any[]): void {
  * Persists batch attendance to PostgreSQL.
  */
 export async function saveAttendanceBatch(records: AttendanceRecord[]): Promise<void> {
-  if (!pool || records.length === 0) return;
+  if (records.length === 0) return;
+  ensurePoolAvailable();
+  if (!pool) return;
   try {
     await withTransaction(async (client) => {
       for (const item of records) {
@@ -352,7 +413,9 @@ export async function saveAttendanceBatch(records: AttendanceRecord[]): Promise<
  * Persists batch trainees to PostgreSQL.
  */
 export async function saveTraineeBatch(records: TraineeRecord[]): Promise<void> {
-  if (!pool || records.length === 0) return;
+  if (records.length === 0) return;
+  ensurePoolAvailable();
+  if (!pool) return;
   try {
     await withTransaction(async (client) => {
       for (const t of records) {
@@ -398,7 +461,9 @@ export async function saveTraineeBatch(records: TraineeRecord[]): Promise<void> 
  * Persists batch session plans to PostgreSQL.
  */
 export async function saveSessionPlansBatch(records: any[]): Promise<void> {
-  if (!pool || records.length === 0) return;
+  if (records.length === 0) return;
+  ensurePoolAvailable();
+  if (!pool) return;
   try {
     await withTransaction(async (client) => {
       for (const sp of records) {
@@ -444,7 +509,9 @@ export async function saveSessionPlansBatch(records: any[]): Promise<void> {
  * Persists batch records of work to PostgreSQL.
  */
 export async function saveRecordsOfWorkBatch(records: any[]): Promise<void> {
-  if (!pool || records.length === 0) return;
+  if (records.length === 0) return;
+  ensurePoolAvailable();
+  if (!pool) return;
   try {
     await withTransaction(async (client) => {
       for (const row of records) {
@@ -492,7 +559,9 @@ export async function saveRecordsOfWorkBatch(records: any[]): Promise<void> {
  * Persists batch learning plans to PostgreSQL.
  */
 export async function saveLearningPlansBatch(records: any[]): Promise<void> {
-  if (!pool || records.length === 0) return;
+  if (records.length === 0) return;
+  ensurePoolAvailable();
+  if (!pool) return;
   try {
     await withTransaction(async (client) => {
       for (const lp of records) {
@@ -527,6 +596,8 @@ export async function saveLearningPlansBatch(records: any[]): Promise<void> {
  * Persists batch class registers to PostgreSQL.
  */
 export async function saveClassRegistersBatch(data: Record<string, any>): Promise<void> {
+  if (Object.keys(data).length === 0) return;
+  ensurePoolAvailable();
   if (!pool) return;
   try {
     await withTransaction(async (client) => {
@@ -572,7 +643,9 @@ export async function saveClassRegistersBatch(data: Record<string, any>): Promis
  * Persists batch exam submissions to PostgreSQL.
  */
 export async function saveSubmissionsBatch(records: any[]): Promise<void> {
-  if (!pool || records.length === 0) return;
+  if (records.length === 0) return;
+  ensurePoolAvailable();
+  if (!pool) return;
   try {
     await withTransaction(async (client) => {
       for (const submission of records) {
@@ -627,7 +700,9 @@ export async function saveSubmissionsBatch(records: any[]): Promise<void> {
  * Persists batch assessment evidence to PostgreSQL.
  */
 export async function saveAssessmentEvidenceBatch(records: any[]): Promise<void> {
-  if (!pool || records.length === 0) return;
+  if (records.length === 0) return;
+  ensurePoolAvailable();
+  if (!pool) return;
   try {
     await withTransaction(async (client) => {
       for (const evidence of records) {
