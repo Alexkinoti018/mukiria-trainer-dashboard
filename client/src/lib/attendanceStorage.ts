@@ -4,7 +4,13 @@
  * Resolves cohort key fragmentation, multi-session collision, and data loss once and for all.
  */
 
-import { normalizeAdmissionNumber, matchAdmissionNumbers } from "./utils";
+import {
+  normalizeAdmissionNumber,
+  matchAdmissionNumbers,
+  resolveCanonicalCohortKey,
+  getDepartmentForCohort,
+  getStorageKeysForCohort,
+} from "./utils";
 
 export type AttendanceStatus = "X" | "0" | "E" | "";
 
@@ -20,15 +26,7 @@ export interface StudentAttendanceRecord {
  * Prevents split records between "FBS5/6/J/26", "FBS 5 MOD/J/2026", and "FBS6 MOD/12026".
  */
 export function getCanonicalAttendanceClassKey(code: string): string {
-  const norm = (code || "").toUpperCase();
-  if (norm.includes("ICT") || norm.includes("ITECH")) return "ICT4_ITECH6";
-  if (norm.includes("ADMIN") && norm.includes("MOD 3")) return "ADMIN5_6_MOD3";
-  if (norm.includes("ADMIN") && norm.includes("MOD 1")) return "ADMIN4_5_6_MOD1";
-  if (norm.includes("ADMIN")) return "ADMIN5_6_MOD3";
-  if (norm.includes("FBS")) return "FBS5_6";
-  if (norm.includes("LS") || norm.includes("SURVEY")) return "LS5_6";
-  if (norm.includes("CE") || norm.includes("CIVIL")) return "CE6";
-  return norm.replace(/[^A-Z0-9_]/g, "_");
+  return resolveCanonicalCohortKey(code);
 }
 
 /**
@@ -36,38 +34,7 @@ export function getCanonicalAttendanceClassKey(code: string): string {
  * (canonical, original, and backup keys).
  */
 export function getStorageKeysForClass(classCode: string): string[] {
-  const canonical = getCanonicalAttendanceClassKey(classCode);
-  const keys = new Set<string>();
-  
-  keys.add(`mtti_class_register_${canonical}`);
-  keys.add(`mtti_class_register_persisted_${canonical}`);
-  keys.add(`mtti_class_register_${classCode}`);
-  keys.add(`mtti_class_register_persisted_${classCode}`);
-
-  if (canonical === "FBS5_6") {
-    keys.add("mtti_class_register_FBS5/6/J/26");
-    keys.add("mtti_class_register_FBS 5 MOD/J/2026");
-    keys.add("mtti_class_register_FBS6 MOD/12026");
-  } else if (canonical === "ICT4_ITECH6") {
-    keys.add("mtti_class_register_ICT4/ITECH6/S/26 MOD 1");
-    keys.add("mtti_class_register_ITECH 6 MODULAR/S/2026");
-    keys.add("mtti_class_register_ICT4 MOD/S/2026");
-    keys.add("mtti_class_register_ICT4_ITECH6");
-  } else if (canonical === "ADMIN5_6_MOD3") {
-    keys.add("mtti_class_register_ADMIN5/6/J/26 MOD 3");
-    keys.add("mtti_class_register_ADMIN5_6_MOD3");
-  } else if (canonical === "ADMIN4_5_6_MOD1") {
-    keys.add("mtti_class_register_ADMIN4/5/6/S/26 MOD 1");
-    keys.add("mtti_class_register_ADMIN4_5_6_MOD1");
-  } else if (canonical === "LS5_6") {
-    keys.add("mtti_class_register_LS5/6/S/26");
-  } else if (canonical === "CE6") {
-    keys.add("mtti_class_register_CE6/S/26");
-    keys.add("mtti_class_register_CE6/M/26");
-    keys.add("mtti_class_register_CE6/J/26");
-  }
-
-  return Array.from(keys);
+  return getStorageKeysForCohort(classCode);
 }
 
 /**
@@ -294,7 +261,7 @@ export function syncExamSubmissionToAssessmentRegister(params: ExamAttendanceSyn
           reg_number: normAdm,
           name: cleanName,
           classCode: canonicalCohort,
-          department: canonicalCohort.includes("FBS") ? "FBS Hospitality" : canonicalCohort.includes("ADMIN") ? "Business" : canonicalCohort.includes("LS") ? "Building & Civil Engineering" : "Computing & Informatics",
+          department: getDepartmentForCohort(canonicalCohort),
           gender: "M",
           remarks: `Auto-enrolled via online ${assessmentType} submission`,
           created_at: new Date().toISOString(),

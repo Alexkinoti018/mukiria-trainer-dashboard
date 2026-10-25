@@ -9,3 +9,11 @@ export {
   normalizeAdmissionNumber,
   matchAdmissionNumbers,
 } from "../../../shared/const.ts";
+
+export {
+  OFFICIAL_INSTITUTIONAL_COHORTS,
+  resolveCanonicalCohortKey,
+  findCohortByCodeOrAlias,
+  getDepartmentForCohort,
+  getStorageKeysForCohort,
+} from "../../../shared/cohortRegistry.ts";

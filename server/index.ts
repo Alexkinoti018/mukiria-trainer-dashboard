@@ -3,7 +3,7 @@ import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import { apiRouter } from "./routes.ts";
-import { validateServerEnv } from "../shared/envValidator.ts";
+import { serverConfig, assertBootEnvironment } from "./config.ts";
 import {
   securityHeaders,
   corsMiddleware,
@@ -14,17 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
-  const envValidation = validateServerEnv();
-  if (!envValidation.valid) {
-    if (process.env.NODE_ENV === "production") {
-      console.error("❌ [MTTI Fatal Server Environment Failure]:\n" + envValidation.errors.join("\n"));
-      process.exit(1);
-    } else {
-      console.warn("⚠️ [MTTI Server Environment Warning]:\n" + envValidation.errors.join("\n"));
-    }
-  } else if (envValidation.warnings.length > 0) {
-    envValidation.warnings.forEach((w) => console.warn(w));
-  }
+  assertBootEnvironment();
 
   const app = express();
   const server = createServer(app);
@@ -40,10 +30,9 @@ async function startServer() {
   app.use("/api", apiRouter);
 
   // Serve static files from dist/public in production
-  const staticPath =
-    process.env.NODE_ENV === "production"
-      ? path.resolve(__dirname, "public")
-      : path.resolve(__dirname, "..", "dist", "public");
+  const staticPath = serverConfig.isProduction
+    ? path.resolve(__dirname, "public")
+    : path.resolve(__dirname, "..", "dist", "public");
 
   app.use(express.static(staticPath));
 
@@ -52,7 +41,7 @@ async function startServer() {
     res.sendFile(path.join(staticPath, "index.html"));
   });
 
-  const port = process.env.PORT || 3000;
+  const port = serverConfig.PORT;
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
