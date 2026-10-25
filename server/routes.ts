@@ -31,6 +31,12 @@ import {
 import { FBS_COHORT_SUBMISSIONS } from "../client/src/lib/fbsCohortSubmissions.ts";
 import { DIGITAL_LITERACY_EXAMS } from "../client/src/lib/digitalLiteracyExams.ts";
 import { CURRICULUM_CATS } from "../client/src/lib/curriculumContinuousAssessments.ts";
+import {
+  validateBody,
+  TraineeCreateSchema,
+  TraineeUpdateSchema,
+  AttendanceMarkSchema,
+} from "./security.ts";
 
 export {
   AuthenticatedUser,
@@ -936,7 +942,7 @@ apiRouter.get("/trainees", async (req: AuthenticatedRequest, res: Response) => {
 });
 
 // ─── ENDPOINT: POST /api/trainees (Transactional Trainee Persistence) ─────────
-apiRouter.post("/trainees", async (req: AuthenticatedRequest, res: Response) => {
+apiRouter.post("/trainees", validateBody(TraineeCreateSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const {
       name,
@@ -1054,7 +1060,7 @@ apiRouter.post("/trainees", async (req: AuthenticatedRequest, res: Response) => 
 });
 
 // ─── ENDPOINT: PUT /api/trainees/:id (Update Trainee) ─────────────────────────
-apiRouter.put("/trainees/:id", async (req: AuthenticatedRequest, res: Response) => {
+apiRouter.put("/trainees/:id", validateBody(TraineeUpdateSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const updates = req.body;
