@@ -32,20 +32,21 @@ import { FBS_COHORT_SUBMISSIONS } from "../client/src/lib/fbsCohortSubmissions.t
 import { DIGITAL_LITERACY_EXAMS } from "../client/src/lib/digitalLiteracyExams.ts";
 import { CURRICULUM_CATS } from "../client/src/lib/curriculumContinuousAssessments.ts";
 
-export interface AuthenticatedUser {
-  id: string;
-  email?: string;
-  name: string;
-  role: "trainee" | "trainer" | "hod" | "admin";
-  reg_number?: string;
-  department_id?: string;
-  assigned_units?: string[];
-  enrolled_units?: string[];
-}
-
-export interface AuthenticatedRequest extends Request {
-  user?: AuthenticatedUser;
-}
+export {
+  AuthenticatedUser,
+  AuthenticatedRequest,
+  authenticateUser,
+  requireRoles,
+  getAuthConfiguration,
+  verifySupabaseToken,
+  createSignedJwt,
+} from "./auth.ts";
+import {
+  AuthenticatedUser,
+  AuthenticatedRequest,
+  authenticateUser,
+  requireRoles,
+} from "./auth.ts";
 
 export const apiRouter = Router();
 
@@ -497,76 +498,8 @@ export const DB = {
 };
 
 // ─── AUTHENTICATION & CONTEXT EXTRACTION MIDDLEWARE ──────────────────────────
-export function authenticateUser(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers["authorization"] || "";
-  const roleHeader = (req.headers["x-user-role"] as string) || "";
-  const idHeader = (req.headers["x-user-id"] as string) || "";
-  const regHeader = (req.headers["x-user-reg"] as string) || "";
-  const deptHeader = (req.headers["x-user-dept"] as string) || "";
-  const unitsHeader = (req.headers["x-user-enrolled-units"] as string) || (req.headers["x-user-units"] as string) || "";
-
-  // Mock / Demo authentication extraction (with JWT simulation)
-  let user: AuthenticatedUser | undefined;
-
-  if (authHeader.startsWith("Bearer ")) {
-    const token = authHeader.replace("Bearer ", "").trim();
-    if (token === "token-trainer-001") {
-      user = { id: "trainer-001", email: "trainer@mtti.ac.ke", name: "Dr. J. Muriithi", role: "trainer", assigned_units: ["ICT/CU/IT/CR/6/6", "061155101A"], department_id: "dept-ci" };
-    } else if (token === "token-trainer-002") {
-      user = { id: "trainer-002", email: "kinoti@mtti.ac.ke", name: "Alexander Kinoti", role: "trainer", assigned_units: ["ICT/OS/IT/CR/1/6"], department_id: "dept-ci" };
-    } else if (token === "token-trainee-001") {
-      user = { id: "trainee-001", name: "Nthiga Gakii Doris", role: "trainee", reg_number: "14179/S2026", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A"] };
-    } else if (token === "token-trainee-002") {
-      user = { id: "trainee-002", name: "Harriet Mwendwa", role: "trainee", reg_number: "10526", enrolled_units: ["ICT/CU/IT/CR/6/6", "061155101A"] };
-    } else if (token === "token-trainee-003") {
-      user = { id: "trainee-003", name: "EE Trainee", role: "trainee", reg_number: "99999", department_id: "dept-ee", enrolled_units: ["EE/CU/PO/CR/1/6"] };
-    } else if (token === "token-hod-ci") {
-      user = { id: "hod-001", email: "hod.ci@mtti.ac.ke", name: "Prof. S. Njoroge", role: "hod", department_id: "dept-ci" };
-    } else if (token === "token-hod-ee") {
-      user = { id: "hod-002", email: "hod.ee@mtti.ac.ke", name: "Eng. D. Karanja", role: "hod", department_id: "dept-ee" };
-    } else if (token === "token-admin") {
-      user = { id: "admin-001", email: "admin@mtti.ac.ke", name: "System Administrator", role: "admin" };
-    }
-  }
-
-  // Header-based resolution fallback for API callers
-  if (!user && roleHeader) {
-    const enrolledUnits = unitsHeader 
-      ? unitsHeader.split(",").map(u => u.trim()) 
-      : (deptHeader === "dept-ee" || idHeader === "trainee-003" ? ["EE/CU/PO/CR/1/6"] : ["ICT/CU/IT/CR/6/6", "061155101A"]);
-
-    user = {
-      id: idHeader || `user-${roleHeader}`,
-      email: roleHeader === "trainee" ? undefined : `${roleHeader}@mtti.ac.ke`,
-      name: `Demo ${roleHeader.toUpperCase()}`,
-      role: roleHeader as any,
-      reg_number: regHeader,
-      department_id: deptHeader,
-      assigned_units: roleHeader === "trainer" ? (idHeader === "trainer-002" ? ["ICT/OS/IT/CR/1/6"] : ["ICT/CU/IT/CR/6/6", "061155101A"]) : undefined,
-      enrolled_units: roleHeader === "trainee" ? enrolledUnits : undefined,
-    };
-  }
-
-  req.user = user;
-  next();
-}
-
-// ─── ROLE REQUIREMENT GUARD ──────────────────────────────────────────────────
-export function requireRoles(...allowedRoles: Array<"trainee" | "trainer" | "hod" | "admin">) {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      res.status(401).json({ error: "Unauthorized: Missing authentication token" });
-      return;
-    }
-    if (!allowedRoles.includes(req.user.role)) {
-      res.status(403).json({ 
-        error: `Forbidden: Access requires [${allowedRoles.join(", ")}], but user holds '${req.user.role}'` 
-      });
-      return;
-    }
-    next();
-  };
-}
+// Modularized in server/auth.ts to support both cryptographic Supabase JWT verification
+// and demo simulation with AUTH_MODE / ALLOW_DEMO_AUTH configuration.
 
 // ─── 1. MANDATORY MODIFICATION 1: COLUMN SHIELDING (trainee_exam_view) ────────
 export function sanitizeExamForStudent(exam: any) {
