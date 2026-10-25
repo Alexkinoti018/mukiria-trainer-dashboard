@@ -439,61 +439,14 @@ function getInitialUploads(): Upload[] {
   ];
 }
 
-/**
- * Normalizes an institutional admission number or registration code for robust matching.
- * - Strips whitespace and transforms to uppercase
- * - Strips common institutional cohort prefixes (e.g. "ITECH 6 MOD/", "ICT4 MOD/", "FBS 5 MOD/", "LS6 MOD/")
- * - Preserves full alphanumeric structure (e.g. "D/UPNUT/25042/069", "14179/S2026")
- */
-export function normalizeAdmissionNumber(adm: string | null | undefined): string {
-  if (!adm) return "";
-  let s = adm.trim().toUpperCase().replace(/\s+/g, "");
-  // Strip known institutional cohort prefix followed by a slash
-  s = s.replace(/^(ICT4\/ITECH\s*6[^\/]*|ITECH\s*6\s*MOD|ICT4\s*MOD|FBS\s*[56]\s*MOD|FBP\s*6\s*MOD|LS\s*[56]\s*MOD|ADMIN\s*[56]\/?[56]?)\//i, "");
-  return s;
-}
-
-/**
- * Robust bidirectional matching for admission numbers and candidate registration strings.
- */
-export function matchAdmissionNumbers(admA: string | null | undefined, admB: string | null | undefined): boolean {
-  if (!admA || !admB) return false;
-  const rawA = admA.trim().toUpperCase();
-  const rawB = admB.trim().toUpperCase();
-  if (rawA === rawB) return true;
-
-  const noSpaceA = rawA.replace(/\s+/g, "");
-  const noSpaceB = rawB.replace(/\s+/g, "");
-  if (noSpaceA === noSpaceB) return true;
-
-  const normA = normalizeAdmissionNumber(admA);
-  const normB = normalizeAdmissionNumber(admB);
-  if (normA && normB && normA === normB) return true;
-
-  // Slash substitution normalization (e.g., 12026 vs J2026, 52026 vs S2026)
-  const slashA = noSpaceA.replace(/\/12026/g, "/J2026").replace(/\/52026/g, "/S2026");
-  const slashB = noSpaceB.replace(/\/12026/g, "/J2026").replace(/\/52026/g, "/S2026");
-  if (slashA === slashB) return true;
-
-  // Check core digit matches if applicable (e.g. "14179" in "14179/S2026")
-  const coreA = (normA.match(/\b\d{4,6}\b/) || noSpaceA.match(/\d{4,6}/))?.[0];
-  const coreB = (normB.match(/\b\d{4,6}\b/) || noSpaceB.match(/\d{4,6}/))?.[0];
-  if (coreA && coreB && coreA === coreB) {
-    const hasAlphaA = /[A-Z]/.test(normA);
-    const hasAlphaB = /[A-Z]/.test(normB);
-    // If both have complex alphanumeric codes (like D/UPNUT/25042/069), don't false match unless one contains the other
-    if (!hasAlphaA || !hasAlphaB || normA.includes(normB) || normB.includes(normA)) {
-      return true;
-    }
-  }
-
-  // Substring containment for 4+ char registration numbers (e.g. "14179" in "ITECH 6 MOD/14179/S2026")
-  if (normA.length >= 4 && normB.length >= 4) {
-    if (normA.includes(normB) || normB.includes(normA)) return true;
-  }
-
-  return false;
-}
+import {
+  normalizeAdmissionNumber,
+  matchAdmissionNumbers,
+} from "../../../shared/const.ts";
+export {
+  normalizeAdmissionNumber,
+  matchAdmissionNumbers,
+};
 
 export function findMatchingTrainee(
   trainees: Trainee[],

@@ -700,59 +700,14 @@ export const OFFICIAL_INSTITUTIONAL_ROSTER: RosterEntry[] = [
   { id: "tr_ls_harriet", regCode: "D/UPNUT/25042/069", admissionNumber: "D/UPNUT/25042/069", fullName: "Harriet Mwendwa", cohortCode: "LS5/6/S/26", enrolled_units: ["061155101A"] },
 ];
 
-/**
- * Normalizes an institutional admission number or registration code for robust matching.
- * - Strips whitespace and transforms to uppercase
- * - Strips common institutional cohort prefixes (e.g. "ITECH 6 MOD/", "ICT4 MOD/", "FBS 5 MOD/", "LS6 MOD/")
- * - Preserves full alphanumeric structure (e.g. "D/UPNUT/25042/069", "14179/S2026")
- */
-export function normalizeAdmissionNumber(adm: string | null | undefined): string {
-  if (!adm) return "";
-  let s = adm.trim().toUpperCase().replace(/\s+/g, "");
-  s = s.replace(/^(ICT4\/ITECH\s*6[^\/]*|ITECH\s*6\s*MOD|ICT4\s*MOD|FBS\s*[56]\s*MOD|FBP\s*6\s*MOD|LS\s*[56]\s*MOD|ADMIN\s*[56]\/?[56]?)\//i, "");
-  return s;
-}
-
-/**
- * Robust bidirectional matching for admission numbers and candidate registration strings.
- */
-export function matchAdmissionNumbers(admA: string | null | undefined, admB: string | null | undefined): boolean {
-  if (!admA || !admB) return false;
-  const rawA = admA.trim().toUpperCase();
-  const rawB = admB.trim().toUpperCase();
-  if (rawA === rawB) return true;
-
-  const noSpaceA = rawA.replace(/\s+/g, "");
-  const noSpaceB = rawB.replace(/\s+/g, "");
-  if (noSpaceA === noSpaceB) return true;
-
-  const normA = normalizeAdmissionNumber(admA);
-  const normB = normalizeAdmissionNumber(admB);
-  if (normA && normB && normA === normB) return true;
-
-  // Slash substitution normalization (e.g., 12026 vs J2026, 52026 vs S2026)
-  const slashA = noSpaceA.replace(/\/12026/g, "/J2026").replace(/\/52026/g, "/S2026");
-  const slashB = noSpaceB.replace(/\/12026/g, "/J2026").replace(/\/52026/g, "/S2026");
-  if (slashA === slashB) return true;
-
-  // Check core digit matches if applicable (e.g. "14179" in "14179/S2026")
-  const coreA = (normA.match(/\b\d{4,6}\b/) || noSpaceA.match(/\d{4,6}/))?.[0];
-  const coreB = (normB.match(/\b\d{4,6}\b/) || noSpaceB.match(/\d{4,6}/))?.[0];
-  if (coreA && coreB && coreA === coreB) {
-    const hasAlphaA = /[A-Z]/.test(normA);
-    const hasAlphaB = /[A-Z]/.test(normB);
-    if (!hasAlphaA || !hasAlphaB || normA.includes(normB) || normB.includes(normA)) {
-      return true;
-    }
-  }
-
-  // Substring containment for 4+ char registration numbers (e.g. "14179" in "ITECH 6 MOD/14179/S2026")
-  if (normA.length >= 4 && normB.length >= 4) {
-    if (normA.includes(normB) || normB.includes(normA)) return true;
-  }
-
-  return false;
-}
+import {
+  normalizeAdmissionNumber,
+  matchAdmissionNumbers,
+} from "../shared/const.ts";
+export {
+  normalizeAdmissionNumber,
+  matchAdmissionNumbers,
+};
 
 export function findTraineeInRoster(
   regNo: string,
@@ -859,7 +814,9 @@ apiRouter.get("/trainees/lookup", (req: Request, res: Response) => {
 // ─── ENDPOINT: GET /api/trainees (Persistent Trainees Query) ──────────────────
 apiRouter.get("/trainees", async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const classCode = typeof req.query.class_code === "string" ? req.query.class_code.trim() : "";
+    const classCode = typeof req.query.class_code === "string" 
+      ? req.query.class_code.trim() 
+      : (typeof req.query.cohort === "string" ? req.query.cohort.trim() : "");
     const persistentTrainees = loadPersistentTrainees();
 
     // Map official institutional roster to TraineeRecord format
@@ -908,7 +865,20 @@ apiRouter.get("/trainees", async (req: AuthenticatedRequest, res: Response) => {
         });
       } catch (err: any) {
         console.warn("PostgreSQL read trainees notice:", err.message);
+        if (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true" || err?.status === 503 || err?.statusCode === 503) {
+          res.status(503).json({
+            error: `Database Service Unavailable: Failed to load trainees from PostgreSQL: ${err.message}`,
+            service_status: "database_unavailable"
+          });
+          return;
+        }
       }
+    } else if (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true") {
+      res.status(503).json({
+        error: "Database Service Unavailable: PostgreSQL connection pool is not initialized or connected",
+        service_status: "database_unavailable"
+      });
+      return;
     }
 
     let result = Array.from(combinedMap.values());
@@ -936,8 +906,11 @@ apiRouter.get("/trainees", async (req: AuthenticatedRequest, res: Response) => {
       count: result.length,
     });
   } catch (err: any) {
-    const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: err.message || "Failed to load trainees" });
+    const status = err?.status || err?.statusCode || (err?.message?.toLowerCase().includes("database") || err?.message?.toLowerCase().includes("pool") ? 503 : 500);
+    res.status(status).json({
+      error: err.message || "Failed to load trainees",
+      service_status: status === 503 ? "database_unavailable" : undefined
+    });
   }
 });
 
@@ -1060,121 +1033,154 @@ apiRouter.post("/trainees", validateBody(TraineeCreateSchema), async (req: Authe
 });
 
 // ─── ENDPOINT: PUT /api/trainees/:id (Update Trainee) ─────────────────────────
-apiRouter.put("/trainees/:id", validateBody(TraineeUpdateSchema), async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { id } = req.params;
-    const updates = req.body;
-    const now = new Date().toISOString();
+apiRouter.put(
+  "/trainees/:id",
+  requireRoles("admin", "hod", "trainer"),
+  validateBody(TraineeUpdateSchema),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const now = new Date().toISOString();
 
-    let pgPersisted = false;
-    if (pool) {
-      try {
-        const sql = `
-          UPDATE trainees
-          SET
-            name = COALESCE($2, name),
-            adm_no = COALESCE($3, adm_no),
-            reg_number = COALESCE($3, reg_number),
-            reg_code = COALESCE($4, reg_code),
-            class_code = COALESCE($5, class_code),
-            department = COALESCE($6, department),
-            gender = COALESCE($7, gender),
-            phone = COALESCE($8, phone),
-            remarks = COALESCE($9, remarks),
-            updated_at = NOW()
-          WHERE id = $1
-          RETURNING *;
-        `;
-        const result = await query(sql, [
-          id,
-          updates.name || null,
-          updates.admNo || updates.reg_number || null,
-          updates.regCode || updates.reg_code || null,
-          updates.classCode || updates.class_code || null,
-          updates.department || null,
-          updates.gender || null,
-          updates.phone || null,
-          updates.remarks || null,
-        ]);
-        if (result.rowCount > 0) {
-          pgPersisted = true;
+      let pgPersisted = false;
+      if (pool) {
+        try {
+          const sql = `
+            UPDATE trainees
+            SET
+              name = COALESCE($2, name),
+              adm_no = COALESCE($3, adm_no),
+              reg_number = COALESCE($3, reg_number),
+              reg_code = COALESCE($4, reg_code),
+              class_code = COALESCE($5, class_code),
+              department = COALESCE($6, department),
+              gender = COALESCE($7, gender),
+              phone = COALESCE($8, phone),
+              remarks = COALESCE($9, remarks),
+              updated_at = NOW()
+            WHERE id = $1
+            RETURNING *;
+          `;
+          const result = await query(sql, [
+            id,
+            updates.name || null,
+            updates.admNo || updates.adm_no || updates.regNumber || updates.reg_number || null,
+            updates.regCode || updates.reg_code || null,
+            updates.classCode || updates.class_code || updates.classId || updates.class_id || null,
+            updates.department || null,
+            updates.gender || null,
+            updates.phone || null,
+            updates.remarks || null,
+          ]);
+          if (result.rowCount > 0) {
+            pgPersisted = true;
+          }
+        } catch (err: any) {
+          console.error("❌ [PostgreSQL update trainee error]:", err.message);
+          const status = err?.status || err?.statusCode || 500;
+          res.status(status).json({
+            error: `Supabase database error updating trainee: ${err.message}`,
+            service_status: status === 503 ? "database_unavailable" : undefined,
+          });
+          return;
         }
-      } catch (err: any) {
-        console.error("❌ [PostgreSQL update trainee error]:", err.message);
-        const status = err?.status || err?.statusCode || 500;
-        res.status(status).json({ error: `Supabase database error updating trainee: ${err.message}` });
+      } else if (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true") {
+        res.status(503).json({
+          error: "Database Service Unavailable: PostgreSQL connection pool is not initialized or connected",
+          service_status: "database_unavailable",
+        });
         return;
       }
-    }
 
-    const persistent = loadPersistentTrainees();
-    const existIdx = persistent.findIndex(t => t.id === id);
-    if (existIdx >= 0) {
-      persistent[existIdx] = {
-        ...persistent[existIdx],
-        ...updates,
-        adm_no: updates.admNo || updates.adm_no || persistent[existIdx].adm_no,
-        reg_number: updates.admNo || updates.reg_number || persistent[existIdx].reg_number,
-        class_code: updates.classCode || updates.class_code || persistent[existIdx].class_code,
-        updated_at: now,
-      };
-      savePersistentTrainees(persistent);
-    }
+      const persistent = loadPersistentTrainees();
+      const existIdx = persistent.findIndex(t => t.id === id);
+      if (existIdx >= 0) {
+        persistent[existIdx] = {
+          ...persistent[existIdx],
+          ...updates,
+          adm_no: updates.admNo || updates.adm_no || updates.regNumber || updates.reg_number || persistent[existIdx].adm_no,
+          reg_number: updates.admNo || updates.adm_no || updates.regNumber || updates.reg_number || persistent[existIdx].reg_number,
+          class_code: updates.classCode || updates.class_code || updates.classId || updates.class_id || persistent[existIdx].class_code,
+          updated_at: now,
+        };
+        savePersistentTrainees(persistent);
+      }
 
-    const memIdx = DB.trainees.findIndex(t => t.id === id);
-    if (memIdx >= 0) {
-      DB.trainees[memIdx] = {
-        ...DB.trainees[memIdx],
-        name: updates.name || DB.trainees[memIdx].name,
-        reg_number: updates.admNo || DB.trainees[memIdx].reg_number,
-        class_id: updates.classCode || DB.trainees[memIdx].class_id,
-      };
-    }
+      const memIdx = DB.trainees.findIndex(t => t.id === id);
+      if (memIdx >= 0) {
+        DB.trainees[memIdx] = {
+          ...DB.trainees[memIdx],
+          name: updates.name || DB.trainees[memIdx].name,
+          reg_number: updates.admNo || updates.adm_no || updates.regNumber || updates.reg_number || DB.trainees[memIdx].reg_number,
+          class_id: updates.classCode || updates.class_code || updates.classId || updates.class_id || DB.trainees[memIdx].class_id,
+        };
+      }
 
-    res.json({ success: true, id, postgres_persisted: pgPersisted });
-  } catch (err: any) {
-    const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: err.message || "Failed to update trainee" });
+      res.json({ success: true, id, postgres_persisted: pgPersisted });
+    } catch (err: any) {
+      const status = err?.status || err?.statusCode || (err?.message?.toLowerCase().includes("database") || err?.message?.toLowerCase().includes("pool") ? 503 : 500);
+      res.status(status).json({
+        error: err.message || "Failed to update trainee",
+        service_status: status === 503 ? "database_unavailable" : undefined,
+      });
+    }
   }
-});
+);
 
-// ─── ENDPOINT: DELETE /api/trainees/:id (Delete Trainee) ──────────────────────
-apiRouter.delete("/trainees/:id", async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { id } = req.params;
+// ─── ENDPOINT: DELETE /api/trainees/:id (Delete Trainee - Admin/HOD Only) ────
+apiRouter.delete(
+  "/trainees/:id",
+  requireRoles("admin", "hod"),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { id } = req.params;
 
-    let pgDeleted = false;
-    if (pool) {
-      try {
-        const result = await query("DELETE FROM trainees WHERE id = $1 RETURNING id;", [id]);
-        if (result.rowCount > 0) {
-          pgDeleted = true;
+      let pgDeleted = false;
+      if (pool) {
+        try {
+          const result = await query("DELETE FROM trainees WHERE id = $1 RETURNING id;", [id]);
+          if (result.rowCount > 0) {
+            pgDeleted = true;
+          }
+        } catch (err: any) {
+          console.error("❌ [PostgreSQL delete trainee error]:", err.message);
+          const status = err?.status || err?.statusCode || 500;
+          res.status(status).json({
+            error: `Supabase database error deleting trainee: ${err.message}`,
+            service_status: status === 503 ? "database_unavailable" : undefined,
+          });
+          return;
         }
-      } catch (err: any) {
-        console.error("❌ [PostgreSQL delete trainee error]:", err.message);
-        const status = err?.status || err?.statusCode || 500;
-        res.status(status).json({ error: `Supabase database error deleting trainee: ${err.message}` });
+      } else if (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true") {
+        res.status(503).json({
+          error: "Database Service Unavailable: PostgreSQL connection pool is not initialized or connected",
+          service_status: "database_unavailable",
+        });
         return;
       }
-    }
 
-    const persistent = loadPersistentTrainees();
-    const filtered = persistent.filter(t => t.id !== id);
-    if (filtered.length !== persistent.length) {
-      savePersistentTrainees(filtered);
-    }
+      const persistent = loadPersistentTrainees();
+      const filtered = persistent.filter(t => t.id !== id);
+      if (filtered.length !== persistent.length) {
+        savePersistentTrainees(filtered);
+      }
 
-    const memIdx = DB.trainees.findIndex(t => t.id === id);
-    if (memIdx >= 0) {
-      DB.trainees.splice(memIdx, 1);
-    }
+      const memIdx = DB.trainees.findIndex(t => t.id === id);
+      if (memIdx >= 0) {
+        DB.trainees.splice(memIdx, 1);
+      }
 
-    res.json({ success: true, id, postgres_deleted: pgDeleted });
-  } catch (err: any) {
-    const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: err.message || "Failed to delete trainee" });
+      res.json({ success: true, id, postgres_deleted: pgDeleted });
+    } catch (err: any) {
+      const status = err?.status || err?.statusCode || (err?.message?.toLowerCase().includes("database") || err?.message?.toLowerCase().includes("pool") ? 503 : 500);
+      res.status(status).json({
+        error: err.message || "Failed to delete trainee",
+        service_status: status === 503 ? "database_unavailable" : undefined,
+      });
+    }
   }
-});
+);
 
 // ─── RBAC GUARD: /api/attendance/* (Reject Trainees with HTTP 403) ────────────
 apiRouter.use("/attendance", (req: AuthenticatedRequest, res: Response, next: NextFunction) => {

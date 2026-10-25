@@ -7,7 +7,8 @@ import {
   findTraineeInRoster,
   normalizeAdmissionNumber as serverNormalize,
   matchAdmissionNumbers as serverMatch,
-  OFFICIAL_INSTITUTIONAL_ROSTER 
+  OFFICIAL_INSTITUTIONAL_ROSTER,
+  createSignedJwt
 } from "../server/routes.ts";
 import { 
   OFFICIAL_MTTI_TRAINEES, 
@@ -15,6 +16,14 @@ import {
   normalizeAdmissionNumber as clientNormalize, 
   matchAdmissionNumbers as clientMatch 
 } from "../client/src/contexts/TraineeContext";
+import {
+  normalizeAdmissionNumber as sharedNormalize,
+  matchAdmissionNumbers as sharedMatch,
+} from "../shared/const.ts";
+import {
+  normalizeAdmissionNumber as utilsNormalize,
+  matchAdmissionNumbers as utilsMatch,
+} from "../client/src/lib/utils.ts";
 
 describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", () => {
   let app: express.Express;
@@ -430,6 +439,214 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
       });
       expect(matchedDoris).toBeDefined();
       expect(matchedDoris?.name).toBe("Nthiga Gakii Doris");
+    });
+  });
+
+  // ─── TEST 7: ENDPOINTS, RBAC, AND CENTRALIZED NORMALIZATION ─────────────────
+  describe("Test 7: Centralized Normalization, GET Roster Filtering, PUT Updates, and Admin-Only DELETE RBAC", () => {
+    const TEST_JWT_SECRET = "test-secret-trainee-roster-management-12345678";
+    const prevNodeEnv = process.env.NODE_ENV;
+    const prevAuthMode = process.env.AUTH_MODE;
+    const prevStrictDb = process.env.STRICT_DB;
+
+    beforeAll(() => {
+      process.env.AUTH_MODE = "supabase";
+      process.env.ALLOW_DEMO_AUTH = "false";
+      process.env.NODE_ENV = "test";
+      process.env.STRICT_DB = "false";
+      process.env.SUPABASE_JWT_SECRET = TEST_JWT_SECRET;
+    });
+
+    afterAll(() => {
+      process.env.NODE_ENV = prevNodeEnv;
+      process.env.AUTH_MODE = prevAuthMode;
+      process.env.STRICT_DB = prevStrictDb;
+    });
+
+    it("verifies shared, utils, client, and server normalizers produce identical results", () => {
+      const samples = [
+        "  d / upnut / 25042 / 069  ",
+        "ITECH 6 MOD/14179/S2026",
+        "  ICT4 MOD / 14076 / S2026  ",
+        "FBS 5 MOD/13254/J2026",
+        "LS 6 MOD / 14351 / 52026",
+        "CFD MOD/14020/S2026",
+      ];
+
+      for (const sample of samples) {
+        const shared = sharedNormalize(sample);
+        const utils = utilsNormalize(sample);
+        const client = clientNormalize(sample);
+        const server = serverNormalize(sample);
+
+        expect(shared).toBe(utils);
+        expect(shared).toBe(client);
+        expect(shared).toBe(server);
+      }
+    });
+
+    it("GET /api/trainees returns active institutional roster with count", async () => {
+      const res = await fetch(`${baseUrl}/trainees`);
+      expect(res.status).toBe(200);
+
+      const json = await res.json();
+      expect(json.success).toBe(true);
+      expect(Array.isArray(json.data)).toBe(true);
+      expect(json.count).toBeGreaterThan(0);
+      expect(json.data.length).toBe(json.count);
+    });
+
+    it("GET /api/trainees filters accurately by class_code or cohort", async () => {
+      const res = await fetch(`${baseUrl}/trainees?class_code=ITECH 6 MODULAR/S/2026`);
+      expect(res.status).toBe(200);
+
+      const json = await res.json();
+      expect(json.success).toBe(true);
+      expect(json.data.length).toBeGreaterThan(0);
+      for (const t of json.data) {
+        expect((t.class_code || "").toUpperCase().replace(/\s+/g, "")).toContain("ITECH6");
+      }
+    });
+
+    it("PUT /api/trainees/:id updates trainee record when called by authorized role", async () => {
+      const trainerToken = createSignedJwt(
+        {
+          sub: "trainer-uuid-001",
+          email: "trainer@mtti.ac.ke",
+          app_metadata: { role: "trainer" },
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        },
+        TEST_JWT_SECRET
+      );
+
+      const res = await fetch(`${baseUrl}/trainees/tr_it6_01`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${trainerToken}`,
+        },
+        body: JSON.stringify({
+          name: "Nthiga Gakii Doris (Updated)",
+          phone: "+254711223344",
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.success).toBe(true);
+      expect(json.id).toBe("tr_it6_01");
+    });
+
+    it("PUT /api/trainees/:id rejects trainee role with HTTP 403 Forbidden", async () => {
+      const traineeToken = createSignedJwt(
+        {
+          sub: "trainee-uuid-002",
+          email: "trainee@mtti.ac.ke",
+          app_metadata: { role: "trainee" },
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        },
+        TEST_JWT_SECRET
+      );
+
+      const res = await fetch(`${baseUrl}/trainees/tr_it6_01`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${traineeToken}`,
+        },
+        body: JSON.stringify({
+          name: "Attempted Unauthorized Name Change",
+        }),
+      });
+
+      expect(res.status).toBe(403);
+    });
+
+    it("DELETE /api/trainees/:id rejects trainee role with HTTP 403 Forbidden", async () => {
+      const traineeToken = createSignedJwt(
+        {
+          sub: "trainee-uuid-002",
+          email: "trainee@mtti.ac.ke",
+          app_metadata: { role: "trainee" },
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        },
+        TEST_JWT_SECRET
+      );
+
+      const res = await fetch(`${baseUrl}/trainees/tr_temp_candidate`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${traineeToken}`,
+        },
+      });
+
+      expect(res.status).toBe(403);
+    });
+
+    it("DELETE /api/trainees/:id allows admin role to securely remove trainee", async () => {
+      const adminToken = createSignedJwt(
+        {
+          sub: "admin-uuid-001",
+          email: "admin@mtti.ac.ke",
+          app_metadata: { role: "admin" },
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        },
+        TEST_JWT_SECRET
+      );
+
+      const res = await fetch(`${baseUrl}/trainees/tr_temp_candidate_to_delete`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.success).toBe(true);
+      expect(json.id).toBe("tr_temp_candidate_to_delete");
+    });
+
+    it("explicitly returns HTTP 503 Service Unavailable when database connection is unavailable in strict mode", async () => {
+      process.env.STRICT_DB = "true";
+
+      const adminToken = createSignedJwt(
+        {
+          sub: "admin-uuid-001",
+          email: "admin@mtti.ac.ke",
+          app_metadata: { role: "admin" },
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        },
+        TEST_JWT_SECRET
+      );
+
+      // GET /api/trainees under STRICT_DB should return 503
+      const getRes = await fetch(`${baseUrl}/trainees`);
+      expect(getRes.status).toBe(503);
+      const getJson = await getRes.json();
+      expect(getJson.service_status).toBe("database_unavailable");
+
+      // PUT /api/trainees/:id under STRICT_DB should return 503
+      const putRes = await fetch(`${baseUrl}/trainees/tr_it6_01`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({ name: "Fail due to DB" }),
+      });
+      expect(putRes.status).toBe(503);
+
+      // DELETE /api/trainees/:id under STRICT_DB should return 503
+      const delRes = await fetch(`${baseUrl}/trainees/tr_it6_01`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+      expect(delRes.status).toBe(503);
+
+      process.env.STRICT_DB = "false";
     });
   });
 });
