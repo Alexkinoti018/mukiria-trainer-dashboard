@@ -153,6 +153,32 @@ export function validateServerEnv(options: { strict?: boolean } = {}): EnvValida
     }
   }
 
+  // Authentication Mode Validation
+  const rawAuthMode = readEnv("AUTH_MODE")?.toLowerCase();
+  const allowDemoAuth = readEnv("ALLOW_DEMO_AUTH") === "true" || readEnv("ALLOW_DEMO_AUTH") === "1";
+  const jwtSecret = readEnv("SUPABASE_JWT_SECRET");
+
+  let authMode: "supabase" | "demo" = isProduction ? "supabase" : "demo";
+  if (rawAuthMode) {
+    if (rawAuthMode === "supabase" || rawAuthMode === "demo") {
+      authMode = rawAuthMode;
+    } else {
+      errors.push(`Invalid AUTH_MODE specified: '${rawAuthMode}'. Must be either 'supabase' or 'demo'.`);
+    }
+  }
+
+  if (isProduction && authMode === "demo" && !allowDemoAuth) {
+    warnings.push(
+      "⚠️ [MTTI Auth Guard]: AUTH_MODE=demo running in production without explicit ALLOW_DEMO_AUTH=true."
+    );
+  }
+
+  if (isProduction && authMode === "supabase" && !jwtSecret) {
+    warnings.push(
+      "⚠️ [MTTI Auth Guard]: SUPABASE_JWT_SECRET is not configured in production mode. Asymmetric / remote verification required."
+    );
+  }
+
   const valid = errors.length === 0;
 
   return {
@@ -163,8 +189,11 @@ export function validateServerEnv(options: { strict?: boolean } = {}): EnvValida
     config: {
       PORT: parsedPort,
       NODE_ENV: nodeEnv,
+      AUTH_MODE: authMode,
+      ALLOW_DEMO_AUTH: allowDemoAuth,
       hasDatabaseUrl: Boolean(databaseUrl),
       hasDbPassword: Boolean(supabaseDbPassword),
+      hasJwtSecret: Boolean(jwtSecret),
     },
   };
 }
