@@ -266,9 +266,8 @@ export default function HODDashboard() {
 
     // Dynamic database persistence
     if (isSupabaseConfigured()) {
-      (supabase as any)
-        .from("departments")
-        .upsert({
+      Promise.resolve(
+        (supabase as any).from("departments").upsert({
           name: newRecord.name,
           code: newRecord.code,
           hod_name: newRecord.hod,
@@ -277,7 +276,9 @@ export default function HODDashboard() {
           compliance_rate: newRecord.complianceRate,
           status: newRecord.status,
         })
-        .catch(() => {});
+      ).catch((err: any) => {
+        console.warn("Notice: Supabase department upsert error:", err);
+      });
     }
 
     fetch("/api/departments", {

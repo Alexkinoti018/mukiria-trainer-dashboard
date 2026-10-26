@@ -12,6 +12,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { validateClientEnv } from "../../../shared/envValidator";
+import { resolveCanonicalCohortKey } from "../../../shared/cohortRegistry";
 
 // ─── Environment Validation & Boot Guard ──────────────────────────────────────
 export const clientEnvValidation = validateClientEnv();
@@ -138,6 +139,13 @@ export function doesCohortTagMatch(traineeCohort?: string, targetTag?: string): 
   // Exact or cleaned equality
   if (tCohort === tTag || cleanTrainee === cleanTarget) return true;
   if (cleanTrainee.includes(cleanTarget) || cleanTarget.includes(cleanTrainee)) return true;
+
+  // Master Institutional Cohort Registry resolution (cross-level TVET modular alignment)
+  const canonTrainee = resolveCanonicalCohortKey(tCohort);
+  const canonTarget = resolveCanonicalCohortKey(tTag);
+  if (canonTrainee !== "UNKNOWN" && canonTrainee === canonTarget) {
+    return true;
+  }
 
   // 1. Food & Beverage Sales / Hospitality Department:
   // Combined Institutional Cohort: "FBS5/6/J/26" (matches Level 5: "FBS 5 MOD/J/2026" & Level 6: "FBS6 MOD/12026")

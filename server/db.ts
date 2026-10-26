@@ -33,6 +33,7 @@ const CLASS_REGISTERS_FILE = getFixturePath("class_registers.json");
 const ASSESSMENT_MARKS_FILE = getFixturePath("assessment_marks.json");
 const SUBMISSIONS_FILE = getFixturePath("submissions.json");
 const ASSESSMENT_EVIDENCE_FILE = getFixturePath("assessment_evidence.json");
+const USERS_FILE = getFixturePath("users.json");
 
 export class DatabaseServiceUnavailableError extends Error {
   status = 503;
@@ -191,11 +192,24 @@ export interface TraineeRecord {
   updated_at?: string;
 }
 
+export interface UserRecord {
+  id: string;
+  admission_number?: string | null;
+  phone_number?: string | null;
+  full_name: string;
+  email: string;
+  password_hash: string;
+  role: "TRAINEE" | "TRAINER" | "HOD" | "ADMIN" | string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 // ─── STRICT READ-ONLY SEED FIXTURES & PG/SUPABASE PERSISTENCE ENGINE ────────
 // Local JSON files in database/seeds/ are immutable fixtures used solely for provisioning.
 // Production mutations are persisted directly to Supabase / PostgreSQL tables,
 // retaining an in-memory runtime cache for non-destructive local/offline access.
 
+let memoryUsers: UserRecord[] | null = null;
 let memoryAttendance: AttendanceRecord[] | null = null;
 let memoryTrainees: TraineeRecord[] | null = null;
 let memorySessionPlans: any[] | null = null;
@@ -205,6 +219,193 @@ let memoryClassRegisters: Record<string, any> | null = null;
 let memoryAssessmentMarks: any[] | null = null;
 let memorySubmissions: any[] | null = null;
 let memoryAssessmentEvidence: any[] | null = null;
+
+const DEFAULT_STAFF_USERS: UserRecord[] = [
+  {
+    id: "usr-admin-01",
+    admission_number: null,
+    phone_number: "+254700000001",
+    full_name: "System Administrator",
+    email: "admin@mtti.ac.ke",
+    password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry", // Mtti@2026!
+    role: "ADMIN",
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: "usr-hod-ci",
+    admission_number: null,
+    phone_number: "+254700000002",
+    full_name: "Prof. S. Njoroge",
+    email: "hod.ci@mtti.ac.ke",
+    password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry",
+    role: "HOD",
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: "usr-trainer-01",
+    admission_number: null,
+    phone_number: "+254700000003",
+    full_name: "Dr. J. Muriithi",
+    email: "trainer@mtti.ac.ke",
+    password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry",
+    role: "TRAINER",
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  },
+];
+
+export function loadPersistentUsers(): UserRecord[] {
+  if (memoryUsers !== null) return memoryUsers;
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      const data = fs.readFileSync(USERS_FILE, "utf-8");
+      memoryUsers = JSON.parse(data);
+      if (Array.isArray(memoryUsers) && memoryUsers.length > 0) {
+        return memoryUsers;
+      }
+    }
+  } catch (e) {
+    console.warn("Could not read users JSON file:", e);
+  }
+  memoryUsers = [...DEFAULT_STAFF_USERS];
+  return memoryUsers;
+}
+
+export function savePersistentUsers(records: UserRecord[]): void {
+  memoryUsers = [...records];
+}
+
+export async function findUserByEmail(email: string): Promise<UserRecord | null> {
+  const normEmail = (email || "").trim().toLowerCase();
+  if (!normEmail) return null;
+
+  if (pool) {
+    try {
+      const res = await pool.query(
+        `SELECT * FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1`,
+        [normEmail]
+      );
+      if (res.rows.length > 0) return res.rows[0];
+    } catch (err: any) {
+      console.warn("⚠️ [PostgreSQL findUserByEmail Warning]:", err.message);
+    }
+  }
+
+  const users = loadPersistentUsers();
+  const match = users.find((u) => (u.email || "").trim().toLowerCase() === normEmail);
+  return match || null;
+}
+
+export async function findUserByAdmissionNumber(admissionNumber: string): Promise<UserRecord | null> {
+  const normAdm = (admissionNumber || "").trim().toLowerCase();
+  if (!normAdm) return null;
+
+  if (pool) {
+    try {
+      const res = await pool.query(
+        `SELECT * FROM users WHERE LOWER(admission_number) = LOWER($1) LIMIT 1`,
+        [normAdm]
+      );
+      if (res.rows.length > 0) return res.rows[0];
+    } catch (err: any) {
+      console.warn("⚠️ [PostgreSQL findUserByAdmissionNumber Warning]:", err.message);
+    }
+  }
+
+  const users = loadPersistentUsers();
+  const match = users.find(
+    (u) => (u.admission_number || "").trim().toLowerCase() === normAdm
+  );
+  return match || null;
+}
+
+export async function findUserByEmailOrAdmission(identifier: string): Promise<UserRecord | null> {
+  const norm = (identifier || "").trim().toLowerCase();
+  if (!norm) return null;
+
+  if (pool) {
+    try {
+      const res = await pool.query(
+        `SELECT * FROM users 
+         WHERE LOWER(email) = LOWER($1) 
+            OR (admission_number IS NOT NULL AND LOWER(admission_number) = LOWER($1))
+         LIMIT 1`,
+        [norm]
+      );
+      if (res.rows.length > 0) return res.rows[0];
+    } catch (err: any) {
+      console.warn("⚠️ [PostgreSQL findUserByEmailOrAdmission Warning]:", err.message);
+    }
+  }
+
+  const users = loadPersistentUsers();
+  const match = users.find(
+    (u) =>
+      (u.email || "").trim().toLowerCase() === norm ||
+      (u.admission_number && u.admission_number.trim().toLowerCase() === norm)
+  );
+  return match || null;
+}
+
+export async function createUser(data: {
+  id?: string;
+  admission_number?: string | null;
+  phone_number?: string | null;
+  full_name: string;
+  email: string;
+  password_hash: string;
+  role: "TRAINEE" | "TRAINER" | "HOD" | "ADMIN" | string;
+}): Promise<UserRecord> {
+  const newId = data.id || `usr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  const now = new Date().toISOString();
+  const userRecord: UserRecord = {
+    id: newId,
+    admission_number: data.admission_number ? data.admission_number.trim() : null,
+    phone_number: data.phone_number ? data.phone_number.trim() : null,
+    full_name: data.full_name.trim(),
+    email: data.email.trim().toLowerCase(),
+    password_hash: data.password_hash,
+    role: data.role.toUpperCase(),
+    created_at: now,
+    updated_at: now,
+  };
+
+  if (pool) {
+    try {
+      const res = await pool.query(
+        `INSERT INTO users (id, admission_number, phone_number, full_name, email, password_hash, role, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         RETURNING *`,
+        [
+          userRecord.id,
+          userRecord.admission_number,
+          userRecord.phone_number,
+          userRecord.full_name,
+          userRecord.email,
+          userRecord.password_hash,
+          userRecord.role,
+          userRecord.created_at,
+          userRecord.updated_at,
+        ]
+      );
+      if (res.rows.length > 0) {
+        const users = loadPersistentUsers();
+        users.push(res.rows[0]);
+        savePersistentUsers(users);
+        return res.rows[0];
+      }
+    } catch (err: any) {
+      console.warn("⚠️ [PostgreSQL createUser Warning]:", err.message);
+    }
+  }
+
+  const users = loadPersistentUsers();
+  users.push(userRecord);
+  savePersistentUsers(users);
+  return userRecord;
+}
 
 export function loadPersistentAttendance(): AttendanceRecord[] {
   if (memoryAttendance !== null) return memoryAttendance;
@@ -1045,6 +1246,18 @@ export async function initDatabaseSchema(): Promise<void> {
         CONSTRAINT uq_exam_submissions UNIQUE (exam_id, trainee_id)
       );
 
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(100) PRIMARY KEY,
+        admission_number VARCHAR(100) UNIQUE,
+        phone_number VARCHAR(50),
+        full_name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        role VARCHAR(50) NOT NULL DEFAULT 'TRAINEE',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       CREATE TABLE IF NOT EXISTS assessment_evidence (
         id VARCHAR(100) PRIMARY KEY,
         unit_offering_id VARCHAR(100) NOT NULL,
@@ -1073,6 +1286,8 @@ export async function initDatabaseSchema(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_exam_submissions_exam ON exam_submissions (exam_id);
       CREATE INDEX IF NOT EXISTS idx_exam_submissions_trainee ON exam_submissions (trainee_id);
       CREATE INDEX IF NOT EXISTS idx_evidence_unit_trainee ON assessment_evidence (unit_offering_id, trainee_id);
+      CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
+      CREATE INDEX IF NOT EXISTS idx_users_admission_number ON users (admission_number);
     `);
     console.log("✅ [MTTI PostgreSQL]: Centralized institutional tables verified.");
   } catch (err: any) {

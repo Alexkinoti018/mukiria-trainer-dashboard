@@ -219,6 +219,12 @@ export async function authenticateUser(
   res: Response,
   next: NextFunction
 ): Promise<void> {
+  // Public unauthenticated routes
+  if (req.path === "/health" || req.path.startsWith("/auth/")) {
+    next();
+    return;
+  }
+
   const authHeader = req.headers["authorization"] || "";
   const roleHeader = (req.headers["x-user-role"] as string) || "";
   const idHeader = (req.headers["x-user-id"] as string) || "";
@@ -298,14 +304,17 @@ export async function authenticateUser(
 /**
  * Role Requirement Express Middleware Guard.
  */
-export function requireRoles(...allowedRoles: Array<"trainee" | "trainer" | "hod" | "admin">) {
+export function requireRoles(...allowedRoles: Array<"trainee" | "trainer" | "hod" | "admin" | string>) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({ error: "Unauthorized: Missing authentication token" });
       return;
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    const userRoleLower = (req.user.role || "").toLowerCase();
+    const allowedLower = allowedRoles.map((r) => r.toLowerCase());
+
+    if (!allowedLower.includes(userRoleLower)) {
       res.status(403).json({
         error: `Forbidden: Access requires [${allowedRoles.join(", ")}], but user holds '${req.user.role}'`,
       });
@@ -315,3 +324,5 @@ export function requireRoles(...allowedRoles: Array<"trainee" | "trainer" | "hod
     next();
   };
 }
+
+export const requireRole = requireRoles;

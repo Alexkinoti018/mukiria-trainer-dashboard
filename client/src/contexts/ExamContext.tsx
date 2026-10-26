@@ -341,7 +341,9 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     // Dynamic database persistence
     const targetPayload = existingIdx >= 0 ? updated[existingIdx] : updated[updated.length - 1];
     if (isSupabaseConfigured()) {
-      (supabase as any).from("exams").upsert(targetPayload).catch(() => {});
+      Promise.resolve((supabase as any).from("exams").upsert(targetPayload)).catch((err) => {
+        console.warn("Supabase exam upsert notice:", err);
+      });
     }
     fetch("/api/exams", {
       method: "POST",
@@ -371,7 +373,9 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     );
     if (targetUpdated) {
       if (isSupabaseConfigured()) {
-        (supabase as any).from("exams").upsert(targetUpdated).catch(() => {});
+        Promise.resolve((supabase as any).from("exams").upsert(targetUpdated)).catch((err) => {
+          console.warn("Supabase exam schedule upsert notice:", err);
+        });
       }
       fetch("/api/exams", {
         method: "POST",
@@ -519,7 +523,9 @@ export function ExamProvider({ children }: { children: ReactNode }) {
       syncSubmissionWithMarksheet(targetUpdated, exams);
 
       if (isSupabaseConfigured()) {
-        (supabase as any).from("submissions").upsert(targetUpdated).catch(() => {});
+        Promise.resolve((supabase as any).from("submissions").upsert(targetUpdated)).catch((err) => {
+          console.warn("Supabase submission upsert notice:", err);
+        });
       }
       fetch("/api/submissions", {
         method: "POST",

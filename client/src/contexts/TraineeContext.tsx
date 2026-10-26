@@ -974,20 +974,24 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
 
     // 1. Direct Supabase Cloud Database Upsert
     if (isSupabaseConfigured()) {
-      (supabase as any).from("trainees").upsert({
-        id: trainee.id,
-        name: trainee.name,
-        adm_no: trainee.admNo,
-        reg_number: trainee.admNo,
-        reg_code: trainee.regCode,
-        class_code: trainee.classCode,
-        department: trainee.department,
-        gender: trainee.gender,
-        phone: trainee.phone,
-        remarks: trainee.remarks,
-      }).then(({ error }: any) => {
-        if (error) console.warn("Supabase trainee upsert notice:", error.message);
-      });
+      Promise.resolve(
+        (supabase as any).from("trainees").upsert({
+          id: trainee.id,
+          name: trainee.name,
+          adm_no: trainee.admNo,
+          reg_number: trainee.admNo,
+          reg_code: trainee.regCode,
+          class_code: trainee.classCode,
+          department: trainee.department,
+          gender: trainee.gender,
+          phone: trainee.phone,
+          remarks: trainee.remarks,
+        })
+      )
+        .then(({ error }: any) => {
+          if (error) console.warn("Supabase trainee upsert notice:", error.message);
+        })
+        .catch((err: any) => console.warn("Supabase trainee upsert exception:", err));
     }
 
     // 2. Persist to backend API & PostgreSQL
@@ -1007,19 +1011,26 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
 
     // 1. Direct Supabase Cloud Database Update
     if (isSupabaseConfigured()) {
-      (supabase as any).from("trainees").update({
-        name: updates.name,
-        adm_no: updates.admNo,
-        reg_number: updates.admNo,
-        reg_code: updates.regCode,
-        class_code: updates.classCode,
-        department: updates.department,
-        gender: updates.gender,
-        phone: updates.phone,
-        remarks: updates.remarks,
-      }).eq("id", id).then(({ error }: any) => {
-        if (error) console.warn("Supabase trainee update notice:", error.message);
-      });
+      Promise.resolve(
+        (supabase as any)
+          .from("trainees")
+          .update({
+            name: updates.name,
+            adm_no: updates.admNo,
+            reg_number: updates.admNo,
+            reg_code: updates.regCode,
+            class_code: updates.classCode,
+            department: updates.department,
+            gender: updates.gender,
+            phone: updates.phone,
+            remarks: updates.remarks,
+          })
+          .eq("id", id)
+      )
+        .then(({ error }: any) => {
+          if (error) console.warn("Supabase trainee update notice:", error.message);
+        })
+        .catch((err: any) => console.warn("Supabase trainee update exception:", err));
     }
 
     // 2. Backend API / PostgreSQL Update
@@ -1035,9 +1046,11 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
 
     // 1. Direct Supabase Cloud Database Delete
     if (isSupabaseConfigured()) {
-      (supabase as any).from("trainees").delete().eq("id", id).then(({ error }: any) => {
-        if (error) console.warn("Supabase trainee delete notice:", error.message);
-      });
+      Promise.resolve((supabase as any).from("trainees").delete().eq("id", id))
+        .then(({ error }: any) => {
+          if (error) console.warn("Supabase trainee delete notice:", error.message);
+        })
+        .catch((err: any) => console.warn("Supabase trainee delete exception:", err));
     }
 
     // 2. Backend API / PostgreSQL Delete

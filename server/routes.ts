@@ -27,7 +27,15 @@ import {
   saveAssessmentEvidence,
   AttendanceRecord,
   TraineeRecord,
+  UserRecord,
+  findUserByEmail,
+  findUserByAdmissionNumber,
+  findUserByEmailOrAdmission,
+  createUser,
 } from "./db.ts";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { requireRole, requireRoles as requireRoleMiddleware, authenticateToken } from "./middleware/auth.ts";
 import { FBS_COHORT_SUBMISSIONS } from "../client/src/lib/fbsCohortSubmissions.ts";
 import { DIGITAL_LITERACY_EXAMS } from "../client/src/lib/digitalLiteracyExams.ts";
 import { CURRICULUM_CATS } from "../client/src/lib/curriculumContinuousAssessments.ts";
@@ -43,6 +51,7 @@ export {
   AuthenticatedRequest,
   authenticateUser,
   requireRoles,
+  requireRole,
   getAuthConfiguration,
   verifySupabaseToken,
   createSignedJwt,
@@ -586,6 +595,173 @@ apiRouter.get("/health", async (_req: Request, res: Response) => {
       heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`,
     },
   });
+});
+
+// ─── UNIFIED USER AUTHENTICATION & MANAGEMENT ENDPOINTS (Public) ─────────────
+
+/**
+ * Trainee Registration Endpoint
+ * POST /api/auth/register-trainee
+ */
+apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => {
+  try {
+    const full_name = (req.body.full_name || req.body.fullName || "").trim();
+    const admission_number = (req.body.admission_number || req.body.admissionNumber || "").trim();
+    const phone_number = (req.body.phone_number || req.body.phoneNumber || "").trim();
+    const email = (req.body.email || "").trim().toLowerCase();
+    const password = req.body.password;
+
+    if (!full_name || !admission_number || !email || !password) {
+      res.status(400).json({
+        error: "Validation Error: full_name, admission_number, email, and password are required",
+      });
+      return;
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      res.status(400).json({
+        error: "Validation Error: Invalid email format",
+      });
+      return;
+    }
+
+    // Check for duplicate email
+    const existingEmail = await findUserByEmail(email);
+    if (existingEmail) {
+      res.status(409).json({
+        error: "Conflict: A user with this email address is already registered",
+      });
+      return;
+    }
+
+    // Check for duplicate admission number
+    const existingAdm = await findUserByAdmissionNumber(admission_number);
+    if (existingAdm) {
+      res.status(409).json({
+        error: "Conflict: A trainee with this admission number is already registered",
+      });
+      return;
+    }
+
+    // Salt and hash password with bcrypt
+    const password_hash = await bcrypt.hash(password, 10);
+
+    // Rule 2: Privilege Escalation Prevention - Strictly force role to TRAINEE
+    const role = "TRAINEE";
+
+    // Persist user record
+    const created = await createUser({
+      admission_number,
+      phone_number: phone_number || null,
+      full_name,
+      email,
+      password_hash,
+      role,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Trainee registered successfully",
+      user: {
+        id: created.id,
+        admission_number: created.admission_number,
+        phone_number: created.phone_number,
+        full_name: created.full_name,
+        email: created.email,
+        role: "TRAINEE",
+        created_at: created.created_at,
+      },
+    });
+  } catch (err: any) {
+    console.error("❌ [Registration Error]:", err);
+    res.status(500).json({ error: "Internal server error during trainee registration" });
+  }
+});
+
+/**
+ * Flexible Authentication Endpoint
+ * POST /api/auth/login
+ */
+apiRouter.post("/auth/login", async (req: Request, res: Response) => {
+  try {
+    const identifier = (
+      req.body.identifier ||
+      req.body.admission_number ||
+      req.body.admissionNumber ||
+      req.body.email ||
+      req.body.username ||
+      ""
+    ).trim();
+    const password = req.body.password;
+
+    if (!identifier || !password) {
+      res.status(400).json({
+        error: "Validation Error: Identifier (admission number or email) and password are required",
+      });
+      return;
+    }
+
+    const user = await findUserByEmailOrAdmission(identifier);
+    if (!user) {
+      res.status(401).json({
+        error: "Unauthorized: Invalid credentials",
+      });
+      return;
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      res.status(401).json({
+        error: "Unauthorized: Invalid credentials",
+      });
+      return;
+    }
+
+    const secret =
+      process.env.SUPABASE_JWT_SECRET ||
+      process.env.JWT_SECRET ||
+      "mtti-enterprise-jwt-secret-secure-key-2026";
+
+    const userRole = (user.role || "TRAINEE").toUpperCase();
+    const token = jwt.sign(
+      {
+        id: user.id,
+        sub: user.id,
+        email: user.email,
+        admission_number: user.admission_number,
+        reg_number: user.admission_number,
+        full_name: user.full_name,
+        name: user.full_name,
+        role: userRole,
+        user_metadata: {
+          full_name: user.full_name,
+          admission_number: user.admission_number,
+          role: userRole,
+        },
+      },
+      secret,
+      { expiresIn: "24h" }
+    );
+
+    res.json({
+      success: true,
+      message: "Login successful",
+      token,
+      user: {
+        id: user.id,
+        admission_number: user.admission_number,
+        phone_number: user.phone_number,
+        full_name: user.full_name,
+        email: user.email,
+        role: userRole,
+      },
+    });
+  } catch (err: any) {
+    console.error("❌ [Login Error]:", err);
+    res.status(500).json({ error: "Internal server error during authentication" });
+  }
 });
 
 apiRouter.use(authenticateUser);
