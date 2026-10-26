@@ -254,6 +254,17 @@ const DEFAULT_STAFF_USERS: UserRecord[] = [
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
   },
+  {
+    id: "usr-trainer-02",
+    admission_number: null,
+    phone_number: "+254700000004",
+    full_name: "Alexander Kinoti",
+    email: "kinoti@mtti.ac.ke",
+    password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry",
+    role: "TRAINER",
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  },
 ];
 
 export function loadPersistentUsers(): UserRecord[] {
@@ -325,14 +336,24 @@ export async function findUserByEmailOrAdmission(identifier: string): Promise<Us
   const norm = (identifier || "").trim().toLowerCase();
   if (!norm) return null;
 
+  const targetEmail =
+    norm === "admin"
+      ? "admin@mtti.ac.ke"
+      : norm === "trainer"
+        ? "trainer@mtti.ac.ke"
+        : norm === "hod"
+          ? "hod.ci@mtti.ac.ke"
+          : norm;
+
   if (pool) {
     try {
       const res = await pool.query(
         `SELECT * FROM users 
          WHERE LOWER(email) = LOWER($1) 
+            OR LOWER(email) = LOWER($2)
             OR (admission_number IS NOT NULL AND LOWER(admission_number) = LOWER($1))
          LIMIT 1`,
-        [norm]
+        [norm, targetEmail]
       );
       if (res.rows.length > 0) return res.rows[0];
     } catch (err: any) {
@@ -344,6 +365,7 @@ export async function findUserByEmailOrAdmission(identifier: string): Promise<Us
   const match = users.find(
     (u) =>
       (u.email || "").trim().toLowerCase() === norm ||
+      (u.email || "").trim().toLowerCase() === targetEmail ||
       (u.admission_number && u.admission_number.trim().toLowerCase() === norm)
   );
   return match || null;

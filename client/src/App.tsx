@@ -232,7 +232,10 @@ function Router() {
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod"]}><Dashboard /></ProtectedRoute>
       </Route>
       <Route path="/admin">
-        <ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={["admin", "hod"]}><AdminDashboard /></ProtectedRoute>
+      </Route>
+      <Route path="/admin/roster">
+        <ProtectedRoute allowedRoles={["admin", "hod"]}><AdminDashboard /></ProtectedRoute>
       </Route>
       <Route path="/class-register">
         <ProtectedRoute allowedRoles={["trainer", "admin", "hod", "trainee"]}><ClassRegister /></ProtectedRoute>

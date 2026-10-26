@@ -43,7 +43,7 @@ interface AuthContextValue {
     pin: string,
     identifier?: string,
     requestedRole?: "trainer" | "admin" | "hod" | "trainee"
-  ) => Promise<{ success: boolean; error?: string; role?: string }>;
+  ) => Promise<{ success: boolean; error?: string; role?: string; token?: string }>;
   registerTrainer: (data: {
     name: string;
     email: string;
@@ -211,7 +211,9 @@ function installApiAuthFetchBridge() {
           if (activeUser && activeUser.role) {
             const headers = new Headers(init?.headers || {});
             if (!headers.has("Authorization")) {
-              headers.set("Authorization", `Bearer ${getBearerTokenForUser(activeUser)}`);
+              const realToken = window.localStorage.getItem("mtti_auth_token") || window.localStorage.getItem("token");
+              const tokenToUse = realToken || getBearerTokenForUser(activeUser);
+              headers.set("Authorization", `Bearer ${tokenToUse}`);
             }
             if (!headers.has("x-user-role")) {
               headers.set("x-user-role", activeUser.role);
@@ -362,11 +364,74 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       pin: string,
       identifier?: string,
       requestedRole?: "trainer" | "admin" | "hod" | "trainee"
-    ): Promise<{ success: boolean; error?: string; role?: string }> => {
+    ): Promise<{ success: boolean; error?: string; role?: string; token?: string }> => {
       setIsLoading(true);
       try {
         const cleanPin = (pin || "").trim();
         const cleanId = (identifier || "").trim();
+
+        // 0. Primary Centralized Backend Authentication Endpoint (/api/auth/login)
+        if (cleanId && cleanPin && cleanPin !== "@Race5778") {
+          try {
+            const resp = await fetch("/api/auth/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                identifier: cleanId,
+                password: cleanPin,
+              }),
+            });
+
+            if (resp.ok) {
+              const data = await resp.json();
+              if (data.success && data.token && data.user) {
+                const userRole = (data.user.role || requestedRole || "trainee").toLowerCase() as any;
+                localStorage.setItem("mtti_auth_token", data.token);
+                localStorage.setItem("token", data.token);
+
+                const rosterMatch = cleanId ? findRosterTraineeByIdentifier(cleanId) : null;
+                const defaultEnrolledUnits = rosterMatch
+                  ? (rosterMatch.classCode.includes("FBS") || rosterMatch.classCode.includes("FBP") || rosterMatch.department?.includes("FBS"))
+                    ? ["061155101A", "061155101A-PRAC"]
+                    : (rosterMatch.classCode.includes("ADMIN") || rosterMatch.department?.includes("Business"))
+                    ? ["0415-451-21A", "0415-451-21A-PRAC"]
+                    : (rosterMatch.classCode.includes("LS") || rosterMatch.department?.includes("Civil"))
+                    ? ["061155101A", "061155101A-PRAC"]
+                    : rosterMatch.classCode.includes("ITECH")
+                    ? ["IT/CU/ICTA/CR/01/6/MA", "ICT/CU/IT/CR/6/6"]
+                    : ["IT/CU/ICTA/CR/01/4/MA"]
+                  : undefined;
+
+                const authUser: AuthUser = {
+                  id: data.user.id,
+                  email: userRole === "trainee" ? undefined : data.user.email,
+                  phone: data.user.phone_number,
+                  name: data.user.full_name || (rosterMatch ? rosterMatch.name : data.user.email),
+                  role: userRole,
+                  reg_number: data.user.admission_number || (rosterMatch ? rosterMatch.regCode || rosterMatch.admNo : undefined),
+                  cohort_code: rosterMatch ? rosterMatch.classCode : undefined,
+                  enrolled_units: defaultEnrolledUnits,
+                };
+
+                setUser(authUser);
+                localStorage.setItem("mtti_demo_session", JSON.stringify(authUser));
+                return { success: true, role: userRole, token: data.token };
+              }
+            } else if (resp.status === 401) {
+              // Only fail immediately if the user is attempting a password-backed login and not demo PIN fallback
+              const isCommonDemoPin = ["1234", "0000", "5678", "9012", "2026"].includes(cleanPin);
+              if (!isCommonDemoPin) {
+                const errData = await resp.json().catch(() => ({}));
+                return {
+                  success: false,
+                  error: errData.error || "Invalid credentials. Please verify your identifier and password.",
+                };
+              }
+            }
+          } catch {
+            // Network failure or offline environment: fall through to local verification
+          }
+        }
 
         // 1. Trainee Roster-Backed Authentication
         if (requestedRole === "trainee" || (!requestedRole && cleanPin === DEMO_TRAINEE_PIN)) {
