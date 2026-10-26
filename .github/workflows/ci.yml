@@ -32,8 +32,8 @@ jobs:
       - name: TypeScript Typecheck (tsc --noEmit)
         run: npm run check
 
-      - name: Run RBAC & Authorization Security Tests (Vitest)
-        run: npm test
-
       - name: Build Production Client & Server Bundles
         run: npm run build
+
+      - name: Run RBAC & Authorization Security Tests (Vitest)
+        run: npm test
