@@ -5,15 +5,13 @@
  * Design System: Modern Institutional Glassmorphism
  * Primary Color: #000953 (Institutional Navy)
  * Accent Color: #c48820 (Academic Gold)
- * Zero Trainee Email Invariant: Trainees authenticate strictly via Admission/Registration Number.
+ * Principles: Confidentiality, Integrity, and Accessibility (WCAG 2.1 AA)
  */
 
-import React, { useEffect, useState, useMemo } from "react";
-import { useLocation, Link } from "wouter";
+import React, { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import {
   GraduationCap,
-  BookOpen,
-  Building2,
   ShieldCheck,
   Eye,
   EyeOff,
@@ -22,21 +20,16 @@ import {
   User,
   AlertCircle,
   Loader2,
-  Mail,
   Phone,
   CheckCircle2,
-  Sparkles,
-  Check,
-  RefreshCw,
+  Building2,
+  UserCheck,
   UserPlus,
 } from "lucide-react";
 import bcrypt from "bcryptjs";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import {
-  findFacultyInTimetable,
-  getAllTimetableFaculty,
-} from "@/lib/timetableSyncService";
+import { verifyTraineeAdmission } from "@/lib/traineeVerificationService";
 
 type MainPortal = "trainee" | "staff";
 type StaffRole = "trainer" | "hod" | "admin";
@@ -45,7 +38,6 @@ export default function Login() {
   const [mainPortal, setMainPortal] = useState<MainPortal>("trainee");
   const [staffRole, setStaffRole] = useState<StaffRole>("trainer");
   const [isTraineeRegisterMode, setIsTraineeRegisterMode] = useState(false);
-  const [isTrainerRegMode, setIsTrainerRegMode] = useState(false);
 
   // Authentication Credentials
   const [identifier, setIdentifier] = useState("");
@@ -55,125 +47,27 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotNotice, setShowForgotNotice] = useState(false);
 
-  // Trainee Registration & Roster Verification State
-  const [regFullName, setRegFullName] = useState("");
+  // Trainee Account Activation & Roster Verification State
   const [regAdmNo, setRegAdmNo] = useState("");
-  const [regPhone, setRegPhone] = useState("");
-  const [regEmail, setRegEmail] = useState("");
-  const [regPassword, setRegPassword] = useState("");
+  const [regFullName, setRegFullName] = useState("");
   const [regDepartment, setRegDepartment] = useState("");
   const [regClassCode, setRegClassCode] = useState("");
-  const [regIsVerified, setRegIsVerified] = useState(false);
-  const [regIsVerifying, setRegIsVerifying] = useState(false);
-  const [regVerifiedName, setRegVerifiedName] = useState("");
+  const [regPhone, setRegPhone] = useState("");
+  const [regPassword, setRegPassword] = useState("");
   const [regConfirmPassword, setRegConfirmPassword] = useState("");
   const [showRegPassword, setShowRegPassword] = useState(false);
+  const [regIsVerified, setRegIsVerified] = useState(false);
+  const [regIsVerifying, setRegIsVerifying] = useState(false);
 
-  const handleRegAdmissionBlur = async (overrideAdm?: string) => {
-    const cleanAdm = (overrideAdm !== undefined ? overrideAdm : regAdmNo).trim();
-    if (!cleanAdm) {
-      setRegIsVerified(false);
-      setRegVerifiedName("");
-      return;
-    }
+  const { login, isAuthenticated, user } = useAuth();
+  const [location, navigate] = useLocation();
 
-    setRegIsVerifying(true);
-    setError("");
-
-    try {
-      const res = await fetch(`/api/trainees/lookup?admission_no=${encodeURIComponent(cleanAdm)}`);
-      const data = await res.json();
-
-      if (!res.ok) {
-        setRegIsVerified(false);
-        setRegVerifiedName("");
-        setRegDepartment("");
-        setRegClassCode("");
-        setError(data.error || "Admission number is not pre-loaded on the official institutional roster. Please contact your department.");
-        toast.error("Roster Verification Failed", {
-          description: data.error || "Candidate record not found in institutional roster.",
-        });
-        return;
-      }
-
-      const studentName = data.fullName || data.full_name || "";
-      const deptName = data.department || "Computing & Informatics";
-      const cohort = data.classCode || data.class_code || data.cohortCode || "";
-
-      setRegFullName(studentName);
-      setRegVerifiedName(studentName);
-      setRegDepartment(deptName);
-      setRegClassCode(cohort);
-      setRegIsVerified(true);
-      setError("");
-
-      toast.success("Roster Record Verified!", {
-        description: `Verified candidate: ${studentName} (${cohort})`,
-      });
-    } catch (err: any) {
-      setRegIsVerified(false);
-      setError("Network error while verifying admission number with institutional roster.");
-      toast.error("Verification Error", { description: err?.message });
-    } finally {
-      setRegIsVerifying(false);
-    }
-  };
-
-  // Trainer Registration & Live Timetable Auto-fetch state
-  const [trainerNameInput, setTrainerNameInput] = useState("");
-  const [trainerEmailInput, setTrainerEmailInput] = useState("");
-  const [trainerPhoneInput, setTrainerPhoneInput] = useState("");
-  const [trainerPinInput, setTrainerPinInput] = useState("1234");
-  const [matchedFaculty, setMatchedFaculty] = useState<any>(null);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-
-  const { login, registerTrainer, isAuthenticated, user } = useAuth();
-  const [, navigate] = useLocation();
-
-  const allFaculty = useMemo(() => getAllTimetableFaculty(), []);
-
-  // Filtered institutional suggestions based on trainer name input (Registration Mode)
-  const suggestedFaculty = useMemo(() => {
-    if (!trainerNameInput.trim() || trainerNameInput.length < 2) return [];
-    const q = trainerNameInput.toLowerCase();
-    return allFaculty
-      .filter(
-        (f) =>
-          f.name.toLowerCase().includes(q) ||
-          f.department.toLowerCase().includes(q)
-      )
-      .slice(0, 5);
-  }, [allFaculty, trainerNameInput]);
-
-  // Autocomplete suggestions for direct Staff Sign In
-  const [showSignInSuggestions, setShowSignInSuggestions] = useState(false);
-  const suggestedSignInFaculty = useMemo(() => {
-    if (
-      mainPortal !== "staff" ||
-      staffRole !== "trainer" ||
-      !identifier.trim() ||
-      identifier.trim().length < 2 ||
-      identifier.trim() === "1234"
-    ) {
-      return [];
-    }
-    const q = identifier.toLowerCase();
-    return allFaculty
-      .filter(
-        (f) =>
-          f.name.toLowerCase().includes(q) ||
-          f.department.toLowerCase().includes(q)
-      )
-      .slice(0, 5);
-  }, [allFaculty, identifier, mainPortal, staffRole]);
-
-  // Unified Role-Based Redirection:
-  // Trainees -> /trainee/exam, Admins/HODs -> /admin/roster, Trainers -> /trainer/dashboard
-  const handleRoleRedirection = (role?: string) => {
-    const norm = (role || "").toLowerCase();
-    if (norm === "trainee") {
+  // Role-Based Redirection Helper
+  const handleRoleRedirection = (role: string) => {
+    const normRole = (role || "").toUpperCase();
+    if (normRole === "TRAINEE") {
       navigate("/trainee/exam");
-    } else if (norm === "admin" || norm === "hod") {
+    } else if (normRole === "ADMIN" || normRole === "HOD") {
       navigate("/admin/roster");
     } else {
       navigate("/trainer/dashboard");
@@ -187,12 +81,26 @@ export default function Login() {
     }
   }, [isAuthenticated, user]);
 
+  // Check query params (e.g. ?activated=true&adm=...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const adm = params.get("adm");
+    const activated = params.get("activated");
+    if (adm) {
+      setIdentifier(adm);
+    }
+    if (activated === "true") {
+      toast.success("Account Ready", {
+        description: "Your trainee account is activated. Please sign in with your credentials.",
+      });
+    }
+  }, []);
+
   const handlePortalChange = (portal: MainPortal) => {
     setMainPortal(portal);
     setError("");
     setShowForgotNotice(false);
     setIsTraineeRegisterMode(false);
-    setIsTrainerRegMode(false);
     setIdentifier("");
     setPassword("");
   };
@@ -201,40 +109,68 @@ export default function Login() {
     setStaffRole(role);
     setError("");
     setShowForgotNotice(false);
-    setIsTrainerRegMode(false);
+    setPassword("");
     if (role === "admin") {
       setIdentifier("admin@mtti.ac.ke");
-      setPassword("Mtti@2026!");
     } else if (role === "hod") {
       setIdentifier("hod.ci@mtti.ac.ke");
-      setPassword("Mtti@2026!");
     } else {
       setIdentifier("trainer@mtti.ac.ke");
-      setPassword("Mtti@2026!");
     }
   };
 
-  const handleSelectSignInFaculty = (faculty: any) => {
-    const cleanName = faculty.name.replace(/^(mr|md|ms|mrs)\.?\s+/i, (m: string) => m.toUpperCase());
-    setIdentifier(cleanName);
-    setPassword("1234");
-    setShowSignInSuggestions(false);
-    toast.info("Faculty Selected", {
-      description: `${cleanName} (${faculty.department} • ${faculty.classesCount} classes)`,
-    });
+  /**
+   * Institutional Roster Verification for Candidate Activation
+   * Leverages resilient dual-layer traineeVerificationService.
+   */
+  const handleRegAdmissionBlur = async (overrideAdm?: string) => {
+    const cleanAdm = (overrideAdm !== undefined ? overrideAdm : regAdmNo).trim();
+    if (!cleanAdm) {
+      setRegIsVerified(false);
+      return;
+    }
+
+    setRegIsVerifying(true);
+    setError("");
+
+    try {
+      const profile = await verifyTraineeAdmission(cleanAdm);
+      setRegFullName(profile.fullName);
+      setRegDepartment(profile.department);
+      setRegClassCode(profile.classCode);
+      setRegIsVerified(true);
+      setError("");
+
+      toast.success("Roster Record Verified", {
+        description: `Verified: ${profile.fullName} (${profile.classCode})`,
+      });
+    } catch (err: any) {
+      setRegIsVerified(false);
+      setRegFullName("");
+      setRegDepartment("");
+      setRegClassCode("");
+      const msg = err?.message || "Admission number not found in institutional roster.";
+      setError(msg);
+      toast.error("Roster Verification Notice", { description: msg });
+    } finally {
+      setRegIsVerifying(false);
+    }
   };
 
-  // Trainee Registration & Account Activation Handler (POST /api/auth/register-trainee)
+  /**
+   * Trainee Account Activation Form Submission
+   * Enforces client bcrypt hashing and TRAINEE role assignment.
+   */
   const handleTraineeRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanAdm = regAdmNo.trim();
     if (!cleanAdm) {
-      setError("Admission / Registration Number is required.");
+      setError("Please enter your Admission / Registration Number.");
       return;
     }
 
     if (!regIsVerified) {
-      setError("Please enter an admission number and verify it against the institutional roster.");
+      setError("Please verify your Admission Number against the institutional roster first.");
       toast.error("Verification Required", {
         description: "Your admission number must be verified against the official roster before activation.",
       });
@@ -242,7 +178,7 @@ export default function Login() {
     }
 
     if (!regPassword.trim()) {
-      setError("Please create a password for your portal account.");
+      setError("Please create a password for your account.");
       return;
     }
 
@@ -260,10 +196,10 @@ export default function Login() {
     setError("");
 
     try {
-      // Zero-Plaintext Rule: Salt and hash password with bcrypt on client submission
+      // Securely hash password via bcrypt on client
       const salt = bcrypt.genSaltSync(10);
       const hashedPassword = bcrypt.hashSync(regPassword, salt);
-      const internalEmail = (regEmail.trim() || `student.${cleanAdm.toLowerCase().replace(/[^a-z0-9]/g, "")}@mtti.ac.ke`).toLowerCase();
+      const internalEmail = `student.${cleanAdm.toLowerCase().replace(/[^a-z0-9]/g, "")}@mtti.ac.ke`;
 
       const res = await fetch("/api/auth/register-trainee", {
         method: "POST",
@@ -277,107 +213,54 @@ export default function Login() {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Trainee account activation failed.");
+      const text = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = null;
       }
 
+      if (!res.ok) {
+        throw new Error((data && data.error) || "Trainee account activation failed.");
+      }
+
+      const verifiedName = (data && data.user && data.user.full_name) || regFullName;
       toast.success("Account Activated Successfully!", {
-        description: `Welcome, ${data.user.full_name}! Your profile is activated. Sign in using your Admission Number.`,
+        description: `Welcome, ${verifiedName}! Your profile is activated. Please sign in below.`,
       });
 
-      // Switch back to Sign In with the newly activated Admission Number prefilled
+      // Switch back to Candidate Sign In with prefilled admission number
       setIsTraineeRegisterMode(false);
       setIdentifier(cleanAdm);
       setPassword("");
     } catch (err: any) {
       setError(err?.message || "Failed to activate trainee account.");
-      toast.error("Activation Error", { description: err?.message });
+      toast.error("Activation Notice", { description: err?.message });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Trainer Registration & Timetable Linking Handler
-  const handleTrainerRegisterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!trainerNameInput.trim()) {
-      setError("Please enter your Full Name to locate your timetable profile.");
-      return;
-    }
-    if (!trainerEmailInput.trim()) {
-      setError("Please enter your Institutional Email Address.");
-      return;
-    }
-    if (!trainerPhoneInput.trim()) {
-      setError("Please enter your Phone Number.");
-      return;
-    }
-    if (!trainerPinInput.trim()) {
-      setError("Please assign a Security PIN (e.g. 1234).");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError("");
-
-    try {
-      const canonicalName = matchedFaculty?.name
-        ? matchedFaculty.name.replace(/^(mr|md|ms|mrs)\.?\s+/i, (m: string) => m.toUpperCase())
-        : trainerNameInput.trim();
-
-      const result = await registerTrainer({
-        name: canonicalName,
-        email: trainerEmailInput.trim(),
-        phone: trainerPhoneInput.trim(),
-        department: matchedFaculty?.department || "Computing & Informatics",
-        pin: trainerPinInput.trim(),
-        timetableTrainerId: matchedFaculty?.id,
-      });
-
-      if (result.success) {
-        toast.success("Trainer Profile Registered & Synchronized!", {
-          description: `All professional documents aligned with ${canonicalName}'s timetable.`,
-        });
-        navigate("/trainer/dashboard");
-      } else {
-        const err = result.error || "Failed to register trainer.";
-        setError(err);
-        toast.error("Registration Failed", { description: err });
-      }
-    } catch (err: any) {
-      const msg = err?.message || "An unexpected error occurred during registration.";
-      setError(msg);
-      toast.error("Registration Error", { description: msg });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Main Authentication Handler (Trainee or Staff)
+  /**
+   * Main Sign In Handler (POST /api/auth/login)
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    let cleanId = identifier.trim();
+    const cleanId = identifier.trim();
     const cleanPass = password.trim();
-
-    // Frictionless Trainer Default: If identifier is empty and PIN is 1234 on Trainer tab, default to Alexander Kinoti
-    if (!cleanId && mainPortal === "staff" && staffRole === "trainer" && (cleanPass === "1234" || cleanPass === "@Race5778")) {
-      cleanId = "Alexander Kinoti";
-      setIdentifier("Alexander Kinoti");
-    }
 
     if (!cleanId) {
       setError(
         mainPortal === "trainee"
           ? "Please enter your Admission / Registration Number."
-          : "Please enter your Institutional Email address or Staff ID."
+          : "Please enter your Institutional Email."
       );
       return;
     }
 
     if (!cleanPass) {
-      setError("Please enter your Security PIN or password.");
+      setError("Please enter your password.");
       return;
     }
 
@@ -385,23 +268,20 @@ export default function Login() {
     setError("");
 
     try {
-      // Direct API Authentication attempt (POST /api/auth/login)
       const requestedRole = mainPortal === "trainee" ? "trainee" : staffRole;
       const result = await login(cleanPass, cleanId, requestedRole);
 
       if (result.success) {
         const resolvedRole = result.role || requestedRole;
         toast.success("Authentication Successful", {
-          description: `Welcome to MTTI Academic Gateway. Accessing portal...`,
+          description: "Access granted. Entering academic portal...",
         });
 
-        // Store active token in localStorage if returned
         if (result.token) {
           localStorage.setItem("mtti_auth_token", result.token);
           localStorage.setItem("token", result.token);
         }
 
-        // Role-Based Redirection: Trainee -> /trainee/exam, Admin/HOD -> /admin/roster, Trainer -> /trainer/dashboard
         handleRoleRedirection(resolvedRole);
       } else {
         const errorMsg = result.error ?? "Invalid credentials. Please verify your identifier and password.";
@@ -419,15 +299,18 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-slate-50 to-blue-100/30 px-4 py-8">
-      {/* Centered Elevated Material Card */}
-      <div className="w-full max-w-[490px] bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200/80 shadow-2xl shadow-slate-900/10 p-6 sm:p-8 space-y-6">
+      {/* Accessible, Elevated Container Card */}
+      <main
+        className="w-full max-w-[490px] bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200/80 shadow-2xl shadow-slate-900/10 p-6 sm:p-8 space-y-6"
+        aria-labelledby="gateway-title"
+      >
         {/* Institutional Branding Header */}
-        <div className="text-center space-y-2">
+        <header className="text-center space-y-2">
           <div className="flex justify-center mb-3">
             <div className="w-16 h-16 rounded-2xl bg-white border-2 border-[#000953]/15 shadow-md flex items-center justify-center p-2 ring-4 ring-[#c48820]/20 overflow-hidden">
               <img
                 src="/mtti-logo.jpg"
-                alt="Mukiria TTI Crest"
+                alt="Mukiria Technical Training Institute Crest"
                 className="w-full h-full object-contain"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = "none";
@@ -435,21 +318,22 @@ export default function Login() {
               />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-[#000953] tracking-tight">
+          <h1 id="gateway-title" className="text-2xl font-bold text-[#000953] tracking-tight">
             Institutional Access Gateway
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium">
             Mukiria Technical Training Institute — Academic Management System
           </p>
-        </div>
+        </header>
 
-        {/* ── REQUIREMENT 1: PRIMARY PORTAL SWITCHING TABS ── */}
-        <div className="space-y-2">
+        {/* Primary Portal Navigation Tabs */}
+        <nav aria-label="Portal Mode Selection" className="space-y-2">
           <div className="bg-slate-100 p-1.5 rounded-2xl border border-slate-200 grid grid-cols-2 gap-1.5">
             <button
               type="button"
               onClick={() => handlePortalChange("trainee")}
-              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
+              aria-selected={mainPortal === "trainee"}
+              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl transition-all duration-200 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#000953] ${
                 mainPortal === "trainee"
                   ? "bg-[#000953] text-white shadow-md font-bold ring-2 ring-[#000953]/20"
                   : "text-slate-600 hover:text-slate-900 hover:bg-white/60 font-medium"
@@ -466,7 +350,8 @@ export default function Login() {
             <button
               type="button"
               onClick={() => handlePortalChange("staff")}
-              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
+              aria-selected={mainPortal === "staff"}
+              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl transition-all duration-200 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#000953] ${
                 mainPortal === "staff"
                   ? "bg-[#000953] text-white shadow-md font-bold ring-2 ring-[#000953]/20"
                   : "text-slate-600 hover:text-slate-900 hover:bg-white/60 font-medium"
@@ -486,12 +371,12 @@ export default function Login() {
               ? "Candidate examinations, continuous assessment tests & portfolio submissions."
               : "Faculty lesson delivery, departmental quality assurance & system administration."}
           </p>
-        </div>
+        </nav>
 
-        {/* ── PORTAL VIEW 1: TRAINEE PORTAL (Zero-Email Admission Number Auth) ── */}
+        {/* ── PORTAL VIEW 1: TRAINEE PORTAL ── */}
         {mainPortal === "trainee" && (
-          <div className="space-y-4">
-            {/* Trainee Mode Switcher: Sign In vs Sign Up */}
+          <section className="space-y-4" aria-label="Trainee Authentication Area">
+            {/* Trainee Mode Switcher */}
             <div className="flex items-center justify-center p-1 bg-slate-100 rounded-xl border border-slate-200">
               <button
                 type="button"
@@ -499,7 +384,7 @@ export default function Login() {
                   setIsTraineeRegisterMode(false);
                   setError("");
                 }}
-                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#000953] ${
                   !isTraineeRegisterMode
                     ? "bg-white text-[#000953] shadow-sm font-bold"
                     : "text-slate-500 hover:text-slate-900"
@@ -513,49 +398,51 @@ export default function Login() {
                   setIsTraineeRegisterMode(true);
                   setError("");
                 }}
-                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#000953] ${
                   isTraineeRegisterMode
                     ? "bg-[#000953] text-white shadow-sm font-bold"
                     : "text-slate-500 hover:text-slate-900"
                 }`}
               >
                 <UserPlus className="w-3.5 h-3.5 text-[#c48820]" />
-                <span>New Trainee? Activate Account</span>
+                <span>Activate Account</span>
               </button>
             </div>
 
-            {/* TRAINEE SIGN UP & ROSTER-VERIFIED ACTIVATION FORM */}
+            {/* TRAINEE ACTIVATION FORM (ROSTER-VERIFIED) */}
             {isTraineeRegisterMode ? (
-              <form onSubmit={handleTraineeRegisterSubmit} className="space-y-3.5">
-                <div className="p-2.5 bg-blue-50/70 border border-blue-200/80 rounded-xl text-xs text-blue-900 leading-relaxed">
+              <form onSubmit={handleTraineeRegisterSubmit} className="space-y-3.5" aria-label="Candidate Account Activation">
+                <div className="p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl text-xs text-blue-900 leading-relaxed">
                   <p className="font-semibold text-blue-950 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#c48820]" />
-                    Roster-Verified Account Activation
+                    <ShieldCheck className="w-4 h-4 text-[#000953]" />
+                    Official Account Activation
                   </p>
-                  <p className="mt-0.5 text-blue-800">
+                  <p className="mt-0.5 text-blue-800 text-[11px]">
                     Enter your official Admission Number. Your details will be verified against the institutional roster and locked automatically.
                   </p>
                 </div>
 
-                {/* Admission Number with Roster Verification on Blur */}
+                {/* Admission Number Input with Roster Verification */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                      Admission / Registration Number
+                    <label htmlFor="reg_admission_no" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Admission / Registration Number <span className="text-red-500">*</span>
                     </label>
                     {regIsVerifying && (
-                      <span className="text-[11px] text-blue-600 font-medium flex items-center gap-1">
+                      <span className="text-[11px] text-blue-600 font-medium flex items-center gap-1" aria-live="polite">
                         <Loader2 className="w-3 h-3 animate-spin" /> Verifying roster...
                       </span>
                     )}
                     {regIsVerified && (
-                      <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200" aria-live="polite">
                         <CheckCircle2 className="w-3 h-3" /> Roster Verified
                       </span>
                     )}
                   </div>
                   <div className="relative">
                     <input
+                      id="reg_admission_no"
+                      name="reg_admission_no"
                       type="text"
                       value={regAdmNo}
                       onChange={(e) => {
@@ -563,15 +450,17 @@ export default function Login() {
                         setRegIsVerified(false);
                       }}
                       onBlur={() => handleRegAdmissionBlur()}
-                      placeholder="e.g., 14179/S2026 or D/UPNUT/25042/069"
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
+                      placeholder="e.g., 14179/S2026 or 13254"
+                      autoComplete="off"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#000953] focus:border-[#000953] transition-all"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => handleRegAdmissionBlur()}
                       disabled={regIsVerifying || !regAdmNo.trim()}
-                      className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-[#000953] hover:bg-[#001066] text-white text-[11px] font-semibold rounded-lg shadow-xs cursor-pointer disabled:opacity-50"
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-[#000953] hover:bg-[#001066] text-white text-[11px] font-semibold rounded-lg shadow-xs cursor-pointer disabled:opacity-50 transition-all focus:outline-hidden focus:ring-2 focus:ring-[#000953]"
+                      aria-label="Verify candidate admission number"
                     >
                       {regIsVerifying ? "Checking..." : "Verify"}
                     </button>
@@ -580,88 +469,106 @@ export default function Login() {
 
                 {/* Verified Candidate Profile Card */}
                 {regIsVerified && (
-                  <div className="space-y-2 p-3 bg-slate-50 border border-emerald-200/80 rounded-xl">
+                  <div className="space-y-2.5 p-3.5 bg-emerald-50/50 border border-emerald-200/80 rounded-xl animate-in fade-in duration-200">
                     <div className="space-y-1">
-                      <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                      <label htmlFor="reg_verified_fullname" className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider flex items-center justify-between">
                         <span>Official Trainee Name</span>
-                        <span className="text-emerald-700 text-[10px] font-bold flex items-center gap-0.5">
-                          <Lock className="w-2.5 h-2.5" /> Institutional SSOT Locked
+                        <span className="text-emerald-700 text-[10px] font-bold flex items-center gap-1">
+                          <Lock className="w-2.5 h-2.5" /> Institutional Record Locked
                         </span>
                       </label>
                       <input
+                        id="reg_verified_fullname"
                         type="text"
                         value={regFullName}
                         readOnly
-                        className="w-full px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 text-xs font-semibold cursor-not-allowed"
+                        className="w-full px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 text-xs font-semibold cursor-not-allowed select-none"
+                        aria-readonly="true"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                          Department
+                        <label htmlFor="reg_verified_dept" className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                          <Building2 className="w-3 h-3 text-slate-400" /> Department
                         </label>
                         <input
+                          id="reg_verified_dept"
                           type="text"
                           value={regDepartment}
                           readOnly
-                          className="w-full px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-800 text-xs cursor-not-allowed"
+                          className="w-full px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-800 text-xs cursor-not-allowed select-none"
+                          aria-readonly="true"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                          Class / Cohort
+                        <label htmlFor="reg_verified_cohort" className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                          <GraduationCap className="w-3 h-3 text-slate-400" /> Class / Cohort
                         </label>
                         <input
+                          id="reg_verified_cohort"
                           type="text"
                           value={regClassCode}
                           readOnly
-                          className="w-full px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-800 text-xs font-medium cursor-not-allowed"
+                          className="w-full px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-800 text-xs font-medium cursor-not-allowed select-none"
+                          aria-readonly="true"
                         />
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Optional Phone & Password Setup */}
+                {/* Contact & Password Creation */}
                 <div className="space-y-2.5">
                   <div className="space-y-1">
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                    <label htmlFor="reg_phone" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
                       Phone Number (Optional)
                     </label>
-                    <input
-                      type="tel"
-                      value={regPhone}
-                      onChange={(e) => setRegPhone(e.target.value)}
-                      placeholder="+254 712 345 678"
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
-                    />
+                    <div className="relative">
+                      <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        id="reg_phone"
+                        name="reg_phone"
+                        type="tel"
+                        value={regPhone}
+                        onChange={(e) => setRegPhone(e.target.value)}
+                        placeholder="+254 712 345 678"
+                        autoComplete="tel"
+                        className="w-full pl-10 pr-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#000953] focus:border-[#000953]"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div className="space-y-1">
-                      <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                        Create Password
+                      <label htmlFor="reg_password" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                        Create Password <span className="text-red-500">*</span>
                       </label>
                       <input
+                        id="reg_password"
+                        name="reg_password"
                         type={showRegPassword ? "text" : "password"}
                         value={regPassword}
                         onChange={(e) => setRegPassword(e.target.value)}
                         placeholder="Min 6 characters"
-                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
+                        autoComplete="new-password"
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#000953] focus:border-[#000953]"
                         required
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                        Confirm Password
+                      <label htmlFor="reg_confirm_password" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                        Confirm Password <span className="text-red-500">*</span>
                       </label>
                       <input
+                        id="reg_confirm_password"
+                        name="reg_confirm_password"
                         type={showRegPassword ? "text" : "password"}
                         value={regConfirmPassword}
                         onChange={(e) => setRegConfirmPassword(e.target.value)}
                         placeholder="Re-enter password"
-                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
+                        autoComplete="new-password"
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#000953] focus:border-[#000953]"
                         required
                       />
                     </div>
@@ -670,7 +577,8 @@ export default function Login() {
                     <button
                       type="button"
                       onClick={() => setShowRegPassword(!showRegPassword)}
-                      className="text-slate-500 hover:text-slate-700 text-xs flex items-center gap-1 cursor-pointer"
+                      className="text-slate-500 hover:text-slate-800 text-xs flex items-center gap-1 cursor-pointer focus:outline-hidden"
+                      aria-label={showRegPassword ? "Hide passwords" : "Show passwords"}
                     >
                       {showRegPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                       <span>{showRegPassword ? "Hide Passwords" : "Show Passwords"}</span>
@@ -678,38 +586,9 @@ export default function Login() {
                   </div>
                 </div>
 
-                {/* 1-Click Test Chips for Roster Verification */}
-                <div className="pt-1">
-                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-[#c48820]" /> Quick Roster Test Chips
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      { adm: "14179/S2026", label: "Dennis Mwiti" },
-                      { adm: "14076/S2026", label: "Joy Kathambi" },
-                      { adm: "13258", label: "Faith Mwende" },
-                      { adm: "D/UPNUT/25042/069", label: "Diploma Candidate" },
-                    ].map((c) => (
-                      <button
-                        key={c.adm}
-                        type="button"
-                        onClick={() => {
-                          setRegAdmNo(c.adm);
-                          setRegPassword("Trainee@2026!");
-                          setRegConfirmPassword("Trainee@2026!");
-                          handleRegAdmissionBlur(c.adm);
-                        }}
-                        className="px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
-                      >
-                        {c.label} ({c.adm})
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {error && (
-                  <div role="alert" className="flex items-start gap-2 p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div role="alert" aria-live="assertive" className="flex items-start gap-2 p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
                     <span>{error}</span>
                   </div>
                 )}
@@ -717,7 +596,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isSubmitting || !regIsVerified}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#000953] to-[#001066] hover:from-[#000e7a] hover:to-[#001999] border-b-2 border-[#c48820] shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#000953] to-[#001066] hover:from-[#000e7a] hover:to-[#001999] border-b-2 border-[#c48820] shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#000953] focus:ring-offset-2"
                 >
                   {isSubmitting ? (
                     <>
@@ -740,7 +619,7 @@ export default function Login() {
                       setIsTraineeRegisterMode(false);
                       setError("");
                     }}
-                    className="font-semibold text-[#000953] hover:underline cursor-pointer"
+                    className="font-semibold text-[#000953] hover:underline cursor-pointer focus:outline-hidden"
                   >
                     Back to Candidate Sign In
                   </button>
@@ -748,25 +627,25 @@ export default function Login() {
               </form>
             ) : (
               /* TRAINEE SIGN IN FORM */
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Zero-Email Invariant Assurance Tag */}
-                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs flex items-center justify-between text-slate-600">
+              <form onSubmit={handleSubmit} className="space-y-4" aria-label="Candidate Sign In">
+                {/* Clean Institutional Identification Info Card */}
+                <div className="p-2.5 bg-slate-50 border border-slate-200/90 rounded-xl text-xs flex items-center justify-between text-slate-700">
                   <span className="font-semibold text-[#000953] flex items-center gap-1.5">
                     <GraduationCap className="w-4 h-4 text-[#c48820]" />
-                    Zero-Email Invariant:
+                    Candidate Authentication:
                   </span>
-                  <span className="text-[11px] text-slate-500">Authenticate via Admission No.</span>
+                  <span className="text-[11px] text-slate-500">Official Admission No. Required</span>
                 </div>
 
-                {/* Dedicated Account Activation Banner for First-Time Trainees */}
-                <div className="p-3 bg-gradient-to-r from-amber-50/80 via-blue-50/40 to-slate-50 border border-amber-200/90 rounded-xl flex items-center justify-between gap-2 shadow-xs">
+                {/* First-Time Activation Action Card */}
+                <div className="p-3 bg-gradient-to-r from-blue-50/70 via-slate-50 to-amber-50/40 border border-blue-200/70 rounded-xl flex items-center justify-between gap-3 text-xs shadow-xs">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-[#c48820]/15 flex items-center justify-center shrink-0">
-                      <Sparkles className="w-4 h-4 text-[#c48820]" />
+                    <div className="w-7 h-7 rounded-lg bg-[#000953]/10 flex items-center justify-center shrink-0">
+                      <UserPlus className="w-4 h-4 text-[#000953]" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-900 leading-tight">First-Time Candidate?</p>
-                      <p className="text-[11px] text-slate-600">Activate your profile with your Admission No.</p>
+                      <p className="font-semibold text-slate-900 leading-tight">First time here?</p>
+                      <p className="text-[11px] text-slate-500">Activate your trainee account with your Admission No.</p>
                     </div>
                   </div>
                   <button
@@ -775,527 +654,48 @@ export default function Login() {
                       setIsTraineeRegisterMode(true);
                       setError("");
                     }}
-                    className="px-3 py-1.5 bg-[#000953] hover:bg-[#001066] text-white text-xs font-semibold rounded-lg shadow-sm transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap active:scale-95"
+                    className="px-3 py-1.5 bg-[#000953] hover:bg-[#001066] text-white text-xs font-semibold rounded-lg shadow-xs transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap active:scale-95 focus:outline-hidden focus:ring-2 focus:ring-[#000953]"
                   >
-                    <span>Activate Profile</span>
+                    <span>Activate</span>
                     <ArrowRight className="w-3 h-3 text-[#c48820]" />
                   </button>
                 </div>
 
                 {/* 1. Admission Number Input */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Admission / Registration Number
+                  <label htmlFor="trainee_adm_no" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                    Admission / Registration Number <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
+                      id="trainee_adm_no"
+                      name="admission_number"
                       type="text"
-                      name="trainee_admission_number"
                       value={identifier}
                       onChange={(e) => {
                         setIdentifier(e.target.value);
                         setError("");
                       }}
-                      placeholder="e.g., 14179/S2026 or D/UPNUT/25042/069"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
-                      disabled={isSubmitting}
-                      autoComplete="off"
-                    />
-                  </div>
-                </div>
-
-                {/* 2. Password / Security PIN Input */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                      Security PIN / Password
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowForgotNotice((prev) => !prev)}
-                      className="text-xs text-[#000953] hover:underline font-medium cursor-pointer"
-                    >
-                      Forgot PIN?
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        setError("");
-                      }}
-                      placeholder="Enter your security PIN or password"
-                      className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
-                      disabled={isSubmitting}
-                      autoComplete="current-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
-                    <span>Default Trainee PIN: <strong className="text-slate-800">9012</strong></span>
-                    <span className="text-[10px] text-slate-400">Core Adm digits also supported</span>
-                  </div>
-                </div>
-
-                {/* Fast Login Demo Pills for Trainees */}
-                <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1.5">
-                  <div className="text-[11px] font-semibold text-slate-500 flex items-center justify-between">
-                    <span className="flex items-center gap-1 text-[#000953] font-bold">
-                      <Sparkles className="w-3.5 h-3.5 text-[#c48820]" />
-                      Quick 1-Click Candidate Fill
-                    </span>
-                    <span className="text-[10px] text-slate-400">Demo Roster</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIdentifier("14179/S2026");
-                        setPassword("9012");
-                        setError("");
-                      }}
-                      className="text-xs bg-white hover:bg-blue-50 text-[#000953] font-medium px-2 py-1 rounded-lg border border-slate-200 transition-all cursor-pointer"
-                    >
-                      Dennis Mwiti (14179/S2026)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIdentifier("13254");
-                        setPassword("9012");
-                        setError("");
-                      }}
-                      className="text-xs bg-white hover:bg-slate-50 text-slate-700 font-medium px-2 py-1 rounded-lg border border-slate-200 transition-all cursor-pointer"
-                    >
-                      FBS Trainee (13254)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIdentifier("13258");
-                        setPassword("9012");
-                        setError("");
-                      }}
-                      className="text-xs bg-white hover:bg-slate-50 text-slate-700 font-medium px-2 py-1 rounded-lg border border-slate-200 transition-all cursor-pointer"
-                    >
-                      Faith Mwende (13258)
-                    </button>
-                  </div>
-                </div>
-
-                {showForgotNotice && (
-                  <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs leading-relaxed space-y-1">
-                    <p className="font-semibold text-blue-950">Credential Reset Notice</p>
-                    <p>
-                      Trainees should present their student ID to the Registrar or Academic Office for PIN verification.
-                    </p>
-                  </div>
-                )}
-
-                {error && (
-                  <div role="alert" className="flex items-start gap-2.5 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm font-medium">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#000953] to-[#001066] hover:from-[#000e7a] hover:to-[#001999] border-b-2 border-[#c48820] shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.99] disabled:opacity-70 cursor-pointer"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Authenticating Candidate...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Access Trainee Examination Portal</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </form>
-            )}
-          </div>
-        )}
-
-        {/* ── PORTAL VIEW 2: STAFF & ADMIN (Email & Password Auth) ── */}
-        {mainPortal === "staff" && (
-          <div className="space-y-4">
-            {/* Staff Role Selector Pills (Trainer, HOD, Admin) */}
-            <div className="bg-slate-100 p-1 rounded-xl border border-slate-200 grid grid-cols-3 gap-1">
-              <button
-                type="button"
-                onClick={() => handleStaffRoleChange("trainer")}
-                className={`flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  staffRole === "trainer"
-                    ? "bg-white text-[#000953] shadow-sm font-bold"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <BookOpen className="w-3.5 h-3.5 text-[#c48820]" />
-                <span>Trainer</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleStaffRoleChange("hod")}
-                className={`flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  staffRole === "hod"
-                    ? "bg-white text-[#000953] shadow-sm font-bold"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <Building2 className="w-3.5 h-3.5 text-[#c48820]" />
-                <span>HOD</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleStaffRoleChange("admin")}
-                className={`flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  staffRole === "admin"
-                    ? "bg-white text-[#000953] shadow-sm font-bold"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-[#c48820]" />
-                <span>Admin</span>
-              </button>
-            </div>
-
-            {/* Segmented Mode Selector for Trainer Role: Sign In vs Register & Sync Timetable */}
-            {staffRole === "trainer" && (
-              <div className="flex items-center justify-center p-1 bg-slate-100 rounded-xl border border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsTrainerRegMode(false);
-                    setError("");
-                  }}
-                  className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                    !isTrainerRegMode
-                      ? "bg-white text-[#000953] shadow-sm font-bold"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  Faculty Sign In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsTrainerRegMode(true);
-                    setError("");
-                  }}
-                  className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                    isTrainerRegMode
-                      ? "bg-[#000953] text-white shadow-sm font-bold"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-[#c48820]" />
-                  <span>Register & Link Timetable</span>
-                </button>
-              </div>
-            )}
-
-            {/* TRAINER SELF-REGISTRATION & TIMETABLE SYNC VIEW */}
-            {staffRole === "trainer" && isTrainerRegMode ? (
-              <form onSubmit={handleTrainerRegisterSubmit} className="space-y-4">
-                <div className="p-3 bg-blue-50/70 border border-blue-200/80 rounded-2xl text-xs text-blue-900 leading-relaxed">
-                  <p className="font-semibold text-blue-950 flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-[#c48820]" />
-                    Institutional Timetable Auto-Fetch
-                  </p>
-                  <p className="mt-0.5 text-blue-800">
-                    Type your Full Name to automatically locate your institutional teaching schedule, classes, and units.
-                  </p>
-                </div>
-
-                <div className="space-y-1.5 relative">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Full Name (Faculty / Trainer)
-                  </label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="text"
-                      value={trainerNameInput}
-                      onChange={(e) => {
-                        setTrainerNameInput(e.target.value);
-                        setError("");
-                        setShowSuggestions(true);
-                        const matched = findFacultyInTimetable(e.target.value);
-                        setMatchedFaculty(matched);
-                        if (matched && !trainerEmailInput) {
-                          const clean = matched.name.toLowerCase().replace(/^(mr|md|ms|mrs)\.?\s+/i, "").trim().replace(/\s+/g, ".");
-                          setTrainerEmailInput(`${clean}@mtti.ac.ke`);
-                        }
-                      }}
-                      onFocus={() => setShowSuggestions(true)}
-                      placeholder="e.g., Alexander Kinoti"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  {showSuggestions && suggestedFaculty.length > 0 && (
-                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 overflow-hidden divide-y divide-slate-100">
-                      <div className="px-3 py-1.5 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                        Matching Timetable Faculty
-                      </div>
-                      {suggestedFaculty.map((fac) => (
-                        <button
-                          key={fac.id}
-                          type="button"
-                          onClick={() => {
-                            const cleanName = fac.name.replace(/^(mr|md|ms|mrs)\.?\s+/i, (m: string) => m.toUpperCase());
-                            setTrainerNameInput(cleanName);
-                            setMatchedFaculty(fac);
-                            setShowSuggestions(false);
-                            if (!trainerEmailInput) {
-                              const slug = fac.name.toLowerCase().replace(/^(mr|md|ms|mrs)\.?\s+/i, "").trim().replace(/\s+/g, ".");
-                              setTrainerEmailInput(`${slug}@mtti.ac.ke`);
-                            }
-                          }}
-                          className="w-full text-left px-3.5 py-2.5 hover:bg-blue-50 transition-colors flex items-center justify-between cursor-pointer"
-                        >
-                          <div>
-                            <div className="text-xs font-bold text-slate-900">{fac.name}</div>
-                            <div className="text-[11px] text-slate-500">
-                              {fac.department} • {fac.classesCount} Classes • {fac.unitsCount} Units
-                            </div>
-                          </div>
-                          <Check className="w-3.5 h-3.5 text-blue-600" />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Institutional Email Address
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="email"
-                      value={trainerEmailInput}
-                      onChange={(e) => setTrainerEmailInput(e.target.value)}
-                      placeholder="e.g., alexander.kinoti@mtti.ac.ke"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Phone Number
-                  </label>
-                  <div className="relative">
-                    <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="tel"
-                      value={trainerPhoneInput}
-                      onChange={(e) => setTrainerPhoneInput(e.target.value)}
-                      placeholder="+254 722 000 000"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Password / PIN
-                  </label>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="password"
-                      value={trainerPinInput}
-                      onChange={(e) => setTrainerPinInput(e.target.value)}
-                      placeholder="Default PIN: 1234"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-
-                {error && (
-                  <div role="alert" className="flex items-start gap-2.5 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#000953] to-[#001066] hover:from-[#000e7a] hover:to-[#001999] border-b-2 border-[#c48820] shadow-md transition-all active:scale-[0.99] disabled:opacity-70 cursor-pointer"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Synchronizing & Registering...</span>
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="w-4 h-4 text-[#c48820]" />
-                      <span>Complete Registration & Link Timetable</span>
-                    </>
-                  )}
-                </button>
-              </form>
-            ) : (
-              /* STAFF SIGN IN FORM (Email & Password) */
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Quick 1-Click Fast Fill for Staff */}
-                <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1.5">
-                  <div className="text-[11px] font-semibold text-slate-500 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-[#000953] font-bold">
-                      <Sparkles className="w-3.5 h-3.5 text-[#c48820]" />
-                      Quick 1-Click Demo Profiles
-                    </span>
-                    <span className="text-[10px] text-slate-400">Institutional Staff</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {staffRole === "trainer" && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIdentifier("trainer@mtti.ac.ke");
-                            setPassword("Mtti@2026!");
-                            setError("");
-                          }}
-                          className="text-xs bg-white hover:bg-blue-50 text-[#000953] font-medium px-2 py-1 rounded-lg border border-slate-200 transition-all cursor-pointer"
-                        >
-                          Dr. J. Muriithi (trainer@mtti.ac.ke)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIdentifier("Alexander Kinoti");
-                            setPassword("1234");
-                            setError("");
-                          }}
-                          className="text-xs bg-white hover:bg-slate-50 text-slate-700 font-medium px-2 py-1 rounded-lg border border-slate-200 transition-all cursor-pointer"
-                        >
-                          Alexander Kinoti (PIN: 1234)
-                        </button>
-                      </>
-                    )}
-
-                    {staffRole === "hod" && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIdentifier("hod.ci@mtti.ac.ke");
-                          setPassword("Mtti@2026!");
-                          setError("");
-                        }}
-                        className="text-xs bg-white hover:bg-blue-50 text-[#000953] font-medium px-2 py-1 rounded-lg border border-slate-200 transition-all cursor-pointer"
-                      >
-                        Prof. S. Njoroge (hod.ci@mtti.ac.ke)
-                      </button>
-                    )}
-
-                    {staffRole === "admin" && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIdentifier("admin@mtti.ac.ke");
-                          setPassword("Mtti@2026!");
-                          setError("");
-                        }}
-                        className="text-xs bg-white hover:bg-blue-50 text-[#000953] font-medium px-2 py-1 rounded-lg border border-slate-200 transition-all cursor-pointer"
-                      >
-                        System Admin (admin@mtti.ac.ke)
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* 1. Dynamic Identifier Input: Institutional Email */}
-                <div className="space-y-1.5 relative">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Institutional Email / Staff ID
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="text"
-                      name="staff_identifier"
-                      value={identifier}
-                      onChange={(e) => {
-                        setIdentifier(e.target.value);
-                        setError("");
-                        setShowSignInSuggestions(true);
-                      }}
-                      onFocus={() => setShowSignInSuggestions(true)}
-                      placeholder="e.g., admin@mtti.ac.ke or trainer@mtti.ac.ke"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
+                      placeholder="e.g., 14179/S2026 or 13254"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#000953] focus:border-[#000953] transition-all"
                       disabled={isSubmitting}
                       autoComplete="username"
+                      required
                     />
                   </div>
-
-                  {/* Suggestions Dropdown for Faculty */}
-                  {staffRole === "trainer" && showSignInSuggestions && suggestedSignInFaculty.length > 0 && (
-                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 overflow-hidden divide-y divide-slate-100">
-                      <div className="px-3 py-1.5 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
-                        <span>Master Timetable Faculty</span>
-                        <span className="text-[10px] text-blue-600 font-normal">Click to autofill PIN 1234</span>
-                      </div>
-                      {suggestedSignInFaculty.map((fac) => (
-                        <button
-                          key={fac.id}
-                          type="button"
-                          onClick={() => handleSelectSignInFaculty(fac)}
-                          className="w-full text-left px-3.5 py-2.5 hover:bg-blue-50 transition-colors flex items-center justify-between cursor-pointer"
-                        >
-                          <div>
-                            <div className="text-xs font-bold text-slate-900">{fac.name}</div>
-                            <div className="text-[11px] text-slate-500">
-                              {fac.department} • {fac.classesCount} Classes
-                            </div>
-                          </div>
-                          <span className="text-[11px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                            Select
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 {/* 2. Password Input */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                      Password
+                    <label htmlFor="trainee_pwd" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Security Password <span className="text-red-500">*</span>
                     </label>
                     <button
                       type="button"
-                      onClick={() => setShowForgotNotice((prev) => !prev)}
-                      className="text-xs text-[#000953] hover:underline font-medium cursor-pointer"
+                      onClick={() => setShowForgotNotice(!showForgotNotice)}
+                      className="text-xs font-medium text-[#000953] hover:underline focus:outline-hidden cursor-pointer"
                     >
                       Forgot Password?
                     </button>
@@ -1303,45 +703,44 @@ export default function Login() {
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
+                      id="trainee_pwd"
+                      name="password"
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => {
                         setPassword(e.target.value);
                         setError("");
                       }}
-                      placeholder="Enter your password"
-                      className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
+                      placeholder="Enter your account password"
+                      className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#000953] focus:border-[#000953] transition-all"
                       disabled={isSubmitting}
                       autoComplete="current-password"
+                      required
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-hidden"
                       tabIndex={-1}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
-                    <span>Default Password: <strong className="text-slate-800">Mtti@2026!</strong></span>
-                    <span className="text-[10px] text-slate-400">Master: @Race5778</span>
                   </div>
                 </div>
 
                 {showForgotNotice && (
                   <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs leading-relaxed space-y-1">
-                    <p className="font-semibold text-blue-950">Credential Reset Notice</p>
+                    <p className="font-semibold text-blue-950">Credential Reset Support</p>
                     <p>
-                      Academic faculty and administrators may request a credential reset via the MTTI ICT Support Desk.
+                      If you have forgotten your password, please contact your Head of Department or visit the Academic Office with your Student ID card.
                     </p>
                   </div>
                 )}
 
                 {error && (
-                  <div role="alert" className="flex items-start gap-2.5 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm font-medium">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div role="alert" aria-live="assertive" className="flex items-start gap-2.5 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm font-medium">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
                     <span>{error}</span>
                   </div>
                 )}
@@ -1349,38 +748,150 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#000953] to-[#001066] hover:from-[#000e7a] hover:to-[#001999] border-b-2 border-[#c48820] shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.99] disabled:opacity-70 cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#000953] to-[#001066] hover:from-[#000e7a] hover:to-[#001999] border-b-2 border-[#c48820] shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.99] disabled:opacity-70 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#000953] focus:ring-offset-2"
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Authenticating Staff...</span>
+                      <span>Signing in...</span>
                     </>
                   ) : (
                     <>
-                      <span>Sign In to Staff Workspace</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <span>Access Trainee Examination Portal</span>
+                      <ArrowRight className="w-4 h-4 text-[#c48820]" />
                     </>
                   )}
                 </button>
               </form>
             )}
-          </div>
+          </section>
         )}
 
-        {/* Minimal Institutional Footer & Metadata */}
-        <div className="pt-4 border-t border-slate-200/70 text-center space-y-1.5">
+        {/* ── PORTAL VIEW 2: STAFF & ADMIN PORTAL ── */}
+        {mainPortal === "staff" && (
+          <section className="space-y-4" aria-label="Staff & Administrator Sign In Area">
+            {/* Staff Role Switcher */}
+            <div className="bg-slate-100 p-1 rounded-xl border border-slate-200 grid grid-cols-3 gap-1">
+              {(["trainer", "hod", "admin"] as StaffRole[]).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => handleStaffRoleChange(r)}
+                  className={`py-1.5 text-xs font-semibold rounded-lg capitalize transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#000953] ${
+                    staffRole === r
+                      ? "bg-white text-[#000953] shadow-sm font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  {r === "hod" ? "HOD" : r}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4" aria-label="Staff Sign In">
+              {/* Institutional Email Input */}
+              <div className="space-y-1.5">
+                <label htmlFor="staff_email" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                  Institutional Email <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    id="staff_email"
+                    name="email"
+                    type="email"
+                    value={identifier}
+                    onChange={(e) => {
+                      setIdentifier(e.target.value);
+                      setError("");
+                    }}
+                    placeholder={
+                      staffRole === "admin"
+                        ? "admin@mtti.ac.ke"
+                        : staffRole === "hod"
+                        ? "hod.ci@mtti.ac.ke"
+                        : "trainer@mtti.ac.ke"
+                    }
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#000953] focus:border-[#000953] transition-all"
+                    disabled={isSubmitting}
+                    autoComplete="email"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Staff Password Input */}
+              <div className="space-y-1.5">
+                <label htmlFor="staff_pwd" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                  Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    id="staff_pwd"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setError("");
+                    }}
+                    placeholder="Enter staff password"
+                    className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#000953] focus:border-[#000953] transition-all"
+                    disabled={isSubmitting}
+                    autoComplete="current-password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-hidden"
+                    tabIndex={-1}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <div role="alert" aria-live="assertive" className="flex items-start gap-2.5 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm font-medium">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#000953] to-[#001066] hover:from-[#000e7a] hover:to-[#001999] border-b-2 border-[#c48820] shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.99] disabled:opacity-70 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#000953] focus:ring-offset-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Authenticating Staff...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign In to Staff Portal</span>
+                    <ArrowRight className="w-4 h-4 text-[#c48820]" />
+                  </>
+                )}
+              </button>
+            </form>
+          </section>
+        )}
+
+        {/* Institutional Footer */}
+        <footer className="text-center pt-2 border-t border-slate-200/80 space-y-1">
           <p className="text-xs text-slate-500 font-medium">
-            Institutional Period: <strong>Term 3, 2026 (31/08/2026 – 13/11/2026)</strong>
+            Institutional Period: <span className="font-semibold text-slate-700">Term 3, 2026 (31/08/2026 – 13/11/2026)</span>
           </p>
           <p className="text-[11px] text-slate-400">
-            &copy; {new Date().getFullYear()} Mukiria Technical Training Institute. All rights reserved.
+            © {new Date().getFullYear()} Mukiria Technical Training Institute. All rights reserved.
           </p>
-        </div>
-      </div>
+        </footer>
+      </main>
     </div>
   );
 }
-
-
-

@@ -995,7 +995,8 @@ export function findTraineeInRoster(
 
 // ─── ENDPOINT: GET /api/trainees/lookup (Roster-Backed Candidate Verification) ──
 apiRouter.get("/trainees/lookup", async (req: Request, res: Response) => {
-  const isAdmissionLookup = typeof req.query.admission_no === "string" || typeof req.query.admission_number === "string" || typeof req.query.admissionNumber === "string";
+  try {
+    const isAdmissionLookup = typeof req.query.admission_no === "string" || typeof req.query.admission_number === "string" || typeof req.query.admissionNumber === "string";
   const queryParam = typeof req.query.admission_no === "string"
     ? req.query.admission_no
     : (typeof req.query.admissionNumber === "string"
@@ -1082,6 +1083,10 @@ apiRouter.get("/trainees/lookup", async (req: Request, res: Response) => {
     fullName: trainee.fullName,
     cohortCode: trainee.cohortCode,
   });
+  } catch (err: any) {
+    console.error("[Trainee Lookup Error]:", err);
+    res.status(500).json({ error: "Failed to verify trainee admission number." });
+  }
 });
 
 
