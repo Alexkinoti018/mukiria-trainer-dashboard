@@ -54,7 +54,7 @@ const getLevelFromUnitCode = (code: string): number => {
   return 6;
 };
 
-const validateExamCompliance = (level: number, payload: ExamPayload): string[] => {
+export const validateExamCompliance = (level: number, payload: ExamPayload): string[] => {
   const errors: string[] = [];
 
   if (payload.type === "practical") {
@@ -86,9 +86,11 @@ const validateExamCompliance = (level: number, payload: ExamPayload): string[] =
     if (sectionBTotal !== 30) errors.push(`Level 3 Section B must total exactly 30 marks (currently: ${sectionBTotal}).`);
     if (overallTotal !== 50) errors.push(`Level 3 Total marks must be exactly 50 (currently: ${overallTotal}).`);
 
-    const invalidSectionB = sectionBQuestions.filter((q: ExamQuestion) => (q as any).type !== "short_answer");
+    const invalidSectionB = sectionBQuestions.filter(
+      (q: ExamQuestion) => (q as any).type !== "essay" && (q as any).type !== "structured"
+    );
     if (invalidSectionB.length > 0) {
-      errors.push("Level 3 Section B must contain only Short Answer questions.");
+      errors.push("Level 3 Section B must contain only Extended Essay / Structured questions (not short answer).");
     }
   } else if (level === 4) {
     if (sectionATotal !== 10) errors.push(`Level 4 Section A must total exactly 10 marks (currently: ${sectionATotal}).`);
@@ -98,6 +100,13 @@ const validateExamCompliance = (level: number, payload: ExamPayload): string[] =
     const nonMCQInA = sectionAQuestions.filter((q: ExamQuestion) => (q as any).type !== "mcq");
     if (nonMCQInA.length > 0) {
       errors.push("Level 4 Section A must contain strictly Multiple Choice Questions (MCQs).");
+    }
+
+    const invalidSectionB = sectionBQuestions.filter(
+      (q: ExamQuestion) => (q as any).type !== "essay" && (q as any).type !== "structured"
+    );
+    if (invalidSectionB.length > 0) {
+      errors.push("Level 4 Section B must contain only Extended Essay / Structured questions (not short answer).");
     }
 
     const hasProhibitedTypes = [...sectionAQuestions, ...sectionBQuestions].some(
@@ -118,10 +127,10 @@ const validateExamCompliance = (level: number, payload: ExamPayload): string[] =
     }
 
     const nonEssayInB = sectionBQuestions.filter(
-      (q: ExamQuestion) => (q as any).type !== "essay" && (q as any).type !== "short_answer"
+      (q: ExamQuestion) => (q as any).type !== "essay" && (q as any).type !== "structured"
     );
     if (nonEssayInB.length > 0) {
-      errors.push(`Level ${level} Section B must contain only Extended Essay / Structured questions.`);
+      errors.push(`Level ${level} Section B must contain only Extended Essay / Structured questions (not short answer).`);
     }
   }
 
@@ -147,7 +156,7 @@ const EMPTY_QUESTION = (): ExamQuestion => ({
   critical_aspect: "",
 });
 
-const EMPTY_PAYLOAD = (): ExamPayload => ({
+export const EMPTY_PAYLOAD = (): ExamPayload => ({
   title: "",
   duration_minutes: 90,
   total_marks: 100,
@@ -162,22 +171,22 @@ const EMPTY_PAYLOAD = (): ExamPayload => ({
   release_results_mode: "after_trainer_grading",
   proctoring_required: true,
   section_a: {
-    title: "Section A — Multiple Choice Questions",
-    instructions: "Each question carries 2 marks. Circle the correct answer.",
+    title: "Section A — Short Answer Questions (Compulsory)",
+    instructions: "Answer ALL questions in this section (Compulsory - 40 Marks total).",
     total_marks: 40,
     questions: [EMPTY_QUESTION()],
   },
   section_b: {
-    title: "Section B — Structured Questions",
-    instructions: "Answer ANY TWO questions. Each question carries 30 marks.",
+    title: "Section B — Extended Essay / Structured Questions",
+    instructions: "Answer ANY THREE questions from this section (Each question carries 20 marks).",
     total_marks: 60,
     questions: [
       {
         id: nanoid(8),
         text: "",
-        type: "short_answer",
+        type: "structured",
         correct_answer: "",
-        marks: 30,
+        marks: 20,
       },
     ],
   },
@@ -658,7 +667,7 @@ export default function ExamBuilder() {
       const newQ: ExamQuestion =
         section === "a"
           ? EMPTY_QUESTION()
-          : { id: nanoid(8), text: "", type: "short_answer", correct_answer: "", marks: 30, critical_aspect: "" };
+          : { id: nanoid(8), text: "", type: "structured", correct_answer: "", marks: 20, critical_aspect: "" };
       return { ...prev, [key]: { ...sec, questions: [...(sec.questions || []), newQ] } };
     });
   };
@@ -1499,7 +1508,7 @@ export default function ExamBuilder() {
                     {/* Section A */}
                     <SectionEditor
                       section="a"
-                      title="Section A — Multiple Choice / Short Answer"
+                      title="Section A — Short Answer Questions (Compulsory)"
                       questions={payload.section_a?.questions || []}
                       sectionInstructions={payload.section_a?.instructions || ""}
                       expanded={expandedSection === "a"}
@@ -1516,7 +1525,7 @@ export default function ExamBuilder() {
                     {/* Section B */}
                     <SectionEditor
                       section="b"
-                      title="Section B — Structured Questions"
+                      title="Section B — Extended Essay / Structured Questions"
                       questions={payload.section_b?.questions || []}
                       sectionInstructions={payload.section_b?.instructions || ""}
                       expanded={expandedSection === "b"}
@@ -1677,14 +1686,28 @@ function QuestionEditor({ question, index, section, onUpdate, onRemove, canRemov
           {unitLevel >= 4 && question.type === "true_false" && (
             <span className="text-[10px] text-rose-600 font-bold">⚠️ Level {unitLevel} CDACC prohibits True/False</span>
           )}
+          {section === "b" && ((question as any).type === "short_answer") && (
+            <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-bold border border-amber-200">
+              ⚠️ Section B requires Extended Essay / Structured
+            </span>
+          )}
           <select
             value={question.type}
             onChange={(e) => onUpdate({ type: e.target.value as ExamQuestion["type"] })}
             className="text-xs px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-[#0f172a] font-medium focus:outline-none focus:border-[#000953]"
           >
-            {unitLevel < 5 && <option value="mcq">MCQ</option>}
-            <option value="short_answer">Short Answer</option>
-            {unitLevel < 4 && <option value="true_false">True/False</option>}
+            {section === "a" ? (
+              <>
+                <option value="short_answer">Short Answer</option>
+                {unitLevel < 5 && <option value="mcq">MCQ</option>}
+                {unitLevel < 4 && <option value="true_false">True/False</option>}
+              </>
+            ) : (
+              <>
+                <option value="structured">Structured Question</option>
+                <option value="essay">Extended Essay</option>
+              </>
+            )}
           </select>
           <input
             type="number"
@@ -1780,15 +1803,25 @@ function QuestionEditor({ question, index, section, onUpdate, onRemove, canRemov
         </div>
       )}
 
-      {question.type === "short_answer" && (
+      {(question.type === "short_answer" || question.type === "essay" || question.type === "structured") && (
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1">
-            Model Answer / Marking Guide (for trainer reference):
+            {question.type === "essay"
+              ? "Extended Essay Model Answer / Evaluation Rubric (for trainer reference):"
+              : question.type === "structured"
+              ? "Structured Solution / Step-by-Step Marking Breakdown:"
+              : "Model Answer / Marking Guide (for trainer reference):"}
           </label>
           <textarea
-            value={question.correct_answer as string}
+            value={(question.correct_answer as string) ?? ""}
             onChange={(e) => onUpdate({ correct_answer: e.target.value })}
-            placeholder="Key points to award marks..."
+            placeholder={
+              question.type === "essay"
+                ? "Key arguments, theoretical depth, industry examples, and marks breakdown (e.g., Intro 4m, Analysis 10m, Conclusion 6m)..."
+                : question.type === "structured"
+                ? "Step-by-step procedure, sub-part solutions (a, b, c), technical error margins, and mark allocation..."
+                : "Key points to award marks..."
+            }
             rows={4}
             className="w-full px-3.5 py-2.5 rounded-lg text-sm resize-y min-h-[110px] leading-relaxed bg-white border border-slate-300 text-[#0f172a] placeholder-slate-400 focus:outline-none focus:border-[#000953] focus:ring-2 focus:ring-[#000953]/15"
           />

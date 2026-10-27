@@ -27,7 +27,7 @@ interface GradingItem {
   regNumber: string;
   questionId: string;
   questionText: string;
-  questionType: "mcq" | "short_answer" | "essay";
+  questionType: "mcq" | "short_answer" | "essay" | "structured";
   studentAnswer: string;
   correctAnswer?: string;
   marks: number;

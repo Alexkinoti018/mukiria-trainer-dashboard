@@ -2128,7 +2128,7 @@ export default function CandidatePortal() {
                       <span>
                         {isInSectionA
                           ? "Candidate Written Response (Short Answer):"
-                          : "Candidate Written / Practical Procedure Response (Structured):"}
+                          : "Candidate Extended Essay / Structured Response (Section B):"}
                       </span>
                     </div>
                     <button

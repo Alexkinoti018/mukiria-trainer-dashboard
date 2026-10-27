@@ -622,7 +622,7 @@ def build_cdacc_exam(unit_code: str, course_name: str, level: int, topics: list,
             questions_b.append({
                 "id": f"q-ex-{i+1}",
                 "text": q_text,
-                "type": "short_answer",
+                "type": "essay",
                 "correct_answer": "Grading rubrics: Methodology (8m), Equipment (6m), Risk Management (6m).",
                 "marks": 20,
                 "critical_aspect": f"Demonstrated capability for {topic.lower().strip()}."
@@ -656,7 +656,7 @@ def build_cdacc_exam(unit_code: str, course_name: str, level: int, topics: list,
             questions_b.append({
                 "id": f"q-sb-{i+1}",
                 "text": q_text,
-                "type": "short_answer",
+                "type": "structured",
                 "correct_answer": "a) Setup requirements (12m). b) Validation criteria (8m).",
                 "marks": 20,
                 "critical_aspect": f"Formulates test cases for {topic.lower().strip()}."
@@ -690,7 +690,7 @@ def build_cdacc_exam(unit_code: str, course_name: str, level: int, topics: list,
             questions_b.append({
                 "id": f"q-sb-{i+1}",
                 "text": q_text,
-                "type": "short_answer",
+                "type": "structured",
                 "correct_answer": "a) Operational steps (12m). b) Risk mitigation (8m).",
                 "marks": 20,
                 "critical_aspect": f"Verifies values for {topic.lower().strip()}."
@@ -708,7 +708,7 @@ def build_cdacc_exam(unit_code: str, course_name: str, level: int, topics: list,
             "questions": questions_a
         },
         "section_b": {
-            "title": "Section B — Practical Performance (CP)",
+            "title": "Section B — Extended Essay / Structured Questions",
             "instructions": "Answer ANY THREE questions in this section." if level in [5, 6] else "Answer ANY TWO questions in this section.",
             "total_marks": 60 if level in [5, 6] else 40,
             "questions": questions_b
