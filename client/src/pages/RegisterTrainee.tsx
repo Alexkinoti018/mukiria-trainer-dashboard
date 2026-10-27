@@ -81,6 +81,9 @@ export default function RegisterTrainee() {
       setVerifiedStudentName(studentName);
       setDepartment(deptName);
       setClassCode(cohort);
+      if (!email.trim()) {
+        setEmail(`student.${cleanAdm.replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}@mtti.ac.ke`);
+      }
       setIsVerified(true);
       setError("");
 
@@ -145,7 +148,7 @@ export default function RegisterTrainee() {
       return;
     }
 
-    if (!admissionNumber.trim() || !fullName.trim() || !email.trim() || !password) {
+    if (!admissionNumber.trim() || !fullName.trim() || !password) {
       setError("Please complete all required fields.");
       return;
     }
@@ -175,7 +178,7 @@ export default function RegisterTrainee() {
           fullName: fullName.trim(),
           admissionNumber: admissionNumber.trim(),
           phoneNumber: phoneNumber.trim() || null,
-          email: email.trim().toLowerCase(),
+          email: (email.trim() || `student.${admissionNumber.trim().replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}@mtti.ac.ke`).toLowerCase(),
           password: hashedPassword,
         }),
       });

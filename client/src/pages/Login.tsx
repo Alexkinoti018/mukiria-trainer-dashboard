@@ -30,6 +30,7 @@ import {
   RefreshCw,
   UserPlus,
 } from "lucide-react";
+import bcrypt from "bcryptjs";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
@@ -54,12 +55,69 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotNotice, setShowForgotNotice] = useState(false);
 
-  // Trainee Registration State
+  // Trainee Registration & Roster Verification State
   const [regFullName, setRegFullName] = useState("");
   const [regAdmNo, setRegAdmNo] = useState("");
   const [regPhone, setRegPhone] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
+  const [regDepartment, setRegDepartment] = useState("");
+  const [regClassCode, setRegClassCode] = useState("");
+  const [regIsVerified, setRegIsVerified] = useState(false);
+  const [regIsVerifying, setRegIsVerifying] = useState(false);
+  const [regVerifiedName, setRegVerifiedName] = useState("");
+  const [regConfirmPassword, setRegConfirmPassword] = useState("");
+  const [showRegPassword, setShowRegPassword] = useState(false);
+
+  const handleRegAdmissionBlur = async (overrideAdm?: string) => {
+    const cleanAdm = (overrideAdm !== undefined ? overrideAdm : regAdmNo).trim();
+    if (!cleanAdm) {
+      setRegIsVerified(false);
+      setRegVerifiedName("");
+      return;
+    }
+
+    setRegIsVerifying(true);
+    setError("");
+
+    try {
+      const res = await fetch(`/api/trainees/lookup?admission_no=${encodeURIComponent(cleanAdm)}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setRegIsVerified(false);
+        setRegVerifiedName("");
+        setRegDepartment("");
+        setRegClassCode("");
+        setError(data.error || "Admission number is not pre-loaded on the official institutional roster. Please contact your department.");
+        toast.error("Roster Verification Failed", {
+          description: data.error || "Candidate record not found in institutional roster.",
+        });
+        return;
+      }
+
+      const studentName = data.fullName || data.full_name || "";
+      const deptName = data.department || "Computing & Informatics";
+      const cohort = data.classCode || data.class_code || data.cohortCode || "";
+
+      setRegFullName(studentName);
+      setRegVerifiedName(studentName);
+      setRegDepartment(deptName);
+      setRegClassCode(cohort);
+      setRegIsVerified(true);
+      setError("");
+
+      toast.success("Roster Record Verified!", {
+        description: `Verified candidate: ${studentName} (${cohort})`,
+      });
+    } catch (err: any) {
+      setRegIsVerified(false);
+      setError("Network error while verifying admission number with institutional roster.");
+      toast.error("Verification Error", { description: err?.message });
+    } finally {
+      setRegIsVerifying(false);
+    }
+  };
 
   // Trainer Registration & Live Timetable Auto-fetch state
   const [trainerNameInput, setTrainerNameInput] = useState("");
@@ -166,11 +224,35 @@ export default function Login() {
     });
   };
 
-  // Trainee Registration Handler (POST /api/auth/register-trainee)
+  // Trainee Registration & Account Activation Handler (POST /api/auth/register-trainee)
   const handleTraineeRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!regFullName.trim() || !regAdmNo.trim() || !regEmail.trim() || !regPassword.trim()) {
-      setError("Full Name, Admission Number, Email, and Password are all required.");
+    const cleanAdm = regAdmNo.trim();
+    if (!cleanAdm) {
+      setError("Admission / Registration Number is required.");
+      return;
+    }
+
+    if (!regIsVerified) {
+      setError("Please enter an admission number and verify it against the institutional roster.");
+      toast.error("Verification Required", {
+        description: "Your admission number must be verified against the official roster before activation.",
+      });
+      return;
+    }
+
+    if (!regPassword.trim()) {
+      setError("Please create a password for your portal account.");
+      return;
+    }
+
+    if (regPassword.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+
+    if (regConfirmPassword && regPassword !== regConfirmPassword) {
+      setError("Passwords do not match. Please re-enter your password.");
       return;
     }
 
@@ -178,34 +260,39 @@ export default function Login() {
     setError("");
 
     try {
+      // Zero-Plaintext Rule: Salt and hash password with bcrypt on client submission
+      const salt = bcrypt.genSaltSync(10);
+      const hashedPassword = bcrypt.hashSync(regPassword, salt);
+      const internalEmail = (regEmail.trim() || `student.${cleanAdm.toLowerCase().replace(/[^a-z0-9]/g, "")}@mtti.ac.ke`).toLowerCase();
+
       const res = await fetch("/api/auth/register-trainee", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName: regFullName.trim(),
-          admissionNumber: regAdmNo.trim(),
-          phoneNumber: regPhone.trim(),
-          email: regEmail.trim(),
-          password: regPassword,
+          admissionNumber: cleanAdm,
+          phoneNumber: regPhone.trim() || null,
+          email: internalEmail,
+          password: hashedPassword,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Trainee registration failed.");
+        throw new Error(data.error || "Trainee account activation failed.");
       }
 
-      toast.success("Registration Successful!", {
-        description: `Candidate account created for ${data.user.full_name}. You can now sign in using your Admission Number.`,
+      toast.success("Account Activated Successfully!", {
+        description: `Welcome, ${data.user.full_name}! Your profile is activated. Sign in using your Admission Number.`,
       });
 
-      // Switch back to Sign In with the newly created Admission Number prefilled
+      // Switch back to Sign In with the newly activated Admission Number prefilled
       setIsTraineeRegisterMode(false);
-      setIdentifier(regAdmNo.trim());
+      setIdentifier(cleanAdm);
       setPassword("");
     } catch (err: any) {
-      setError(err?.message || "Failed to register trainee account.");
-      toast.error("Registration Error", { description: err?.message });
+      setError(err?.message || "Failed to activate trainee account.");
+      toast.error("Activation Error", { description: err?.message });
     } finally {
       setIsSubmitting(false);
     }
@@ -433,55 +520,114 @@ export default function Login() {
                 }`}
               >
                 <UserPlus className="w-3.5 h-3.5 text-[#c48820]" />
-                <span>New Trainee? Register</span>
+                <span>New Trainee? Activate Account</span>
               </button>
             </div>
 
-            {/* TRAINEE SIGN UP FORM (POST /api/auth/register-trainee) */}
+            {/* TRAINEE SIGN UP & ROSTER-VERIFIED ACTIVATION FORM */}
             {isTraineeRegisterMode ? (
               <form onSubmit={handleTraineeRegisterSubmit} className="space-y-3.5">
                 <div className="p-2.5 bg-blue-50/70 border border-blue-200/80 rounded-xl text-xs text-blue-900 leading-relaxed">
                   <p className="font-semibold text-blue-950 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-[#c48820]" />
-                    Candidate Self-Registration
+                    Roster-Verified Account Activation
                   </p>
                   <p className="mt-0.5 text-blue-800">
-                    Register your candidate profile. Your password will be salted and hashed with bcrypt. Or <Link href="/register-trainee" className="font-semibold underline text-[#000953]">open dedicated Activation Gateway ?</Link>
+                    Enter your official Admission Number. Your details will be verified against the institutional roster and locked automatically.
                   </p>
                 </div>
 
+                {/* Admission Number with Roster Verification on Blur */}
                 <div className="space-y-1">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    value={regFullName}
-                    onChange={(e) => setRegFullName(e.target.value)}
-                    placeholder="e.g., Brian Kiprono"
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
-                    required
-                  />
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Admission / Registration Number
+                    </label>
+                    {regIsVerifying && (
+                      <span className="text-[11px] text-blue-600 font-medium flex items-center gap-1">
+                        <Loader2 className="w-3 h-3 animate-spin" /> Verifying roster...
+                      </span>
+                    )}
+                    {regIsVerified && (
+                      <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        <CheckCircle2 className="w-3 h-3" /> Roster Verified
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={regAdmNo}
+                      onChange={(e) => {
+                        setRegAdmNo(e.target.value);
+                        setRegIsVerified(false);
+                      }}
+                      onBlur={() => handleRegAdmissionBlur()}
+                      placeholder="e.g., 14179/S2026 or D/UPNUT/25042/069"
+                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRegAdmissionBlur()}
+                      disabled={regIsVerifying || !regAdmNo.trim()}
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-[#000953] hover:bg-[#001066] text-white text-[11px] font-semibold rounded-lg shadow-xs cursor-pointer disabled:opacity-50"
+                    >
+                      {regIsVerifying ? "Checking..." : "Verify"}
+                    </button>
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Admission / Registration Number
-                  </label>
-                  <input
-                    type="text"
-                    value={regAdmNo}
-                    onChange={(e) => setRegAdmNo(e.target.value)}
-                    placeholder="e.g., 14179/S2026 or D/UPNUT/25042/069"
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
-                    required
-                  />
-                </div>
+                {/* Verified Candidate Profile Card */}
+                {regIsVerified && (
+                  <div className="space-y-2 p-3 bg-slate-50 border border-emerald-200/80 rounded-xl">
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                        <span>Official Trainee Name</span>
+                        <span className="text-emerald-700 text-[10px] font-bold flex items-center gap-0.5">
+                          <Lock className="w-2.5 h-2.5" /> Institutional SSOT Locked
+                        </span>
+                      </label>
+                      <input
+                        type="text"
+                        value={regFullName}
+                        readOnly
+                        className="w-full px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 text-xs font-semibold cursor-not-allowed"
+                      />
+                    </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                          Department
+                        </label>
+                        <input
+                          type="text"
+                          value={regDepartment}
+                          readOnly
+                          className="w-full px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-800 text-xs cursor-not-allowed"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                          Class / Cohort
+                        </label>
+                        <input
+                          type="text"
+                          value={regClassCode}
+                          readOnly
+                          className="w-full px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-800 text-xs font-medium cursor-not-allowed"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Optional Phone & Password Setup */}
+                <div className="space-y-2.5">
                   <div className="space-y-1">
                     <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                      Phone Number
+                      Phone Number (Optional)
                     </label>
                     <input
                       type="tel"
@@ -492,33 +638,73 @@ export default function Login() {
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                      Contact Email
-                    </label>
-                    <input
-                      type="email"
-                      value={regEmail}
-                      onChange={(e) => setRegEmail(e.target.value)}
-                      placeholder="student@mtti.ac.ke"
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
-                      required
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                        Create Password
+                      </label>
+                      <input
+                        type={showRegPassword ? "text" : "password"}
+                        value={regPassword}
+                        onChange={(e) => setRegPassword(e.target.value)}
+                        placeholder="Min 6 characters"
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                        Confirm Password
+                      </label>
+                      <input
+                        type={showRegPassword ? "text" : "password"}
+                        value={regConfirmPassword}
+                        onChange={(e) => setRegConfirmPassword(e.target.value)}
+                        placeholder="Re-enter password"
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowRegPassword(!showRegPassword)}
+                      className="text-slate-500 hover:text-slate-700 text-xs flex items-center gap-1 cursor-pointer"
+                    >
+                      {showRegPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      <span>{showRegPassword ? "Hide Passwords" : "Show Passwords"}</span>
+                    </button>
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
-                    placeholder="Create secure password"
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-[#000953]/10 focus:border-[#000953]"
-                    required
-                  />
+                {/* 1-Click Test Chips for Roster Verification */}
+                <div className="pt-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-[#c48820]" /> Quick Roster Test Chips
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { adm: "14179/S2026", label: "Dennis Mwiti" },
+                      { adm: "14076/S2026", label: "Joy Kathambi" },
+                      { adm: "13258", label: "Faith Mwende" },
+                      { adm: "D/UPNUT/25042/069", label: "Diploma Candidate" },
+                    ].map((c) => (
+                      <button
+                        key={c.adm}
+                        type="button"
+                        onClick={() => {
+                          setRegAdmNo(c.adm);
+                          setRegPassword("Trainee@2026!");
+                          setRegConfirmPassword("Trainee@2026!");
+                          handleRegAdmissionBlur(c.adm);
+                        }}
+                        className="px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
+                      >
+                        {c.label} ({c.adm})
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {error && (
@@ -530,21 +716,35 @@ export default function Login() {
 
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#000953] to-[#001066] hover:from-[#000e7a] hover:to-[#001999] border-b-2 border-[#c48820] shadow-md transition-all active:scale-[0.99] disabled:opacity-70 cursor-pointer"
+                  disabled={isSubmitting || !regIsVerified}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#000953] to-[#001066] hover:from-[#000e7a] hover:to-[#001999] border-b-2 border-[#c48820] shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Registering Candidate...</span>
+                      <span>Activating Trainee Account...</span>
                     </>
                   ) : (
                     <>
-                      <UserPlus className="w-4 h-4 text-[#c48820]" />
-                      <span>Complete Candidate Registration</span>
+                      <ShieldCheck className="w-4 h-4 text-[#c48820]" />
+                      <span>Activate Trainee Account</span>
                     </>
                   )}
                 </button>
+
+                <p className="text-center text-xs text-slate-500 pt-1">
+                  Already activated?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsTraineeRegisterMode(false);
+                      setError("");
+                    }}
+                    className="font-semibold text-[#000953] hover:underline cursor-pointer"
+                  >
+                    Back to Candidate Sign In
+                  </button>
+                </p>
               </form>
             ) : (
               /* TRAINEE SIGN IN FORM */
@@ -556,6 +756,30 @@ export default function Login() {
                     Zero-Email Invariant:
                   </span>
                   <span className="text-[11px] text-slate-500">Authenticate via Admission No.</span>
+                </div>
+
+                {/* Dedicated Account Activation Banner for First-Time Trainees */}
+                <div className="p-3 bg-gradient-to-r from-amber-50/80 via-blue-50/40 to-slate-50 border border-amber-200/90 rounded-xl flex items-center justify-between gap-2 shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-[#c48820]/15 flex items-center justify-center shrink-0">
+                      <Sparkles className="w-4 h-4 text-[#c48820]" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 leading-tight">First-Time Candidate?</p>
+                      <p className="text-[11px] text-slate-600">Activate your profile with your Admission No.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsTraineeRegisterMode(true);
+                      setError("");
+                    }}
+                    className="px-3 py-1.5 bg-[#000953] hover:bg-[#001066] text-white text-xs font-semibold rounded-lg shadow-sm transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap active:scale-95"
+                  >
+                    <span>Activate Profile</span>
+                    <ArrowRight className="w-3 h-3 text-[#c48820]" />
+                  </button>
                 </div>
 
                 {/* 1. Admission Number Input */}
