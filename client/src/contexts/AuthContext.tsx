@@ -506,14 +506,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (cleanPin === "@Race5778") {
           // Lead Developer / Trainer master credential
           resolvedUser =
-            requestedRole === "admin"
+            cleanId.toLowerCase().includes("admin") || requestedRole === "admin"
               ? DEMO_USERS[DEMO_ADMIN_PIN]
-              : requestedRole === "hod"
+              : cleanId.toLowerCase().includes("hod") || requestedRole === "hod"
                 ? DEMO_USERS[DEMO_HOD_PIN]
                 : DEMO_USERS[DEMO_TRAINER_PIN];
         } else if (
+          requestedRole === "admin" ||
+          cleanPin === DEMO_ADMIN_PIN ||
+          (cleanId.toLowerCase().includes("admin") && (cleanPin === "0000" || cleanPin === "1234" || cleanPin === "Mtti@2026!"))
+        ) {
+          resolvedUser = DEMO_USERS[DEMO_ADMIN_PIN];
+        } else if (
+          requestedRole === "hod" ||
+          cleanPin === DEMO_HOD_PIN ||
+          (cleanId.toLowerCase().includes("hod") && (cleanPin === "5678" || cleanPin === "1234" || cleanPin === "Mtti@2026!"))
+        ) {
+          resolvedUser = DEMO_USERS[DEMO_HOD_PIN];
+        } else if (
           requestedRole === "trainer" ||
-          (!requestedRole && (cleanPin === "1234" || cleanId.toLowerCase().includes("trainer")))
+          (!requestedRole && (cleanPin === "1234" || cleanId.toLowerCase().includes("trainer") || cleanPin === "Mtti@2026!"))
         ) {
           // 1. Check registered trainers store
           if (typeof localStorage !== "undefined") {

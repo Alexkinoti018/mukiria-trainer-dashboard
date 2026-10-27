@@ -32,11 +32,9 @@ import { toast } from "sonner";
 import { verifyTraineeAdmission } from "@/lib/traineeVerificationService";
 
 type MainPortal = "trainee" | "staff";
-type StaffRole = "trainer" | "hod" | "admin";
 
 export default function Login() {
   const [mainPortal, setMainPortal] = useState<MainPortal>("trainee");
-  const [staffRole, setStaffRole] = useState<StaffRole>("trainer");
   const [isTraineeRegisterMode, setIsTraineeRegisterMode] = useState(false);
 
   // Authentication Credentials
@@ -67,8 +65,10 @@ export default function Login() {
     const normRole = (role || "").toUpperCase();
     if (normRole === "TRAINEE") {
       navigate("/trainee/exam");
-    } else if (normRole === "ADMIN" || normRole === "HOD") {
+    } else if (normRole === "ADMIN") {
       navigate("/admin/roster");
+    } else if (normRole === "HOD") {
+      navigate("/hod/dashboard");
     } else {
       navigate("/trainer/dashboard");
     }
@@ -105,20 +105,7 @@ export default function Login() {
     setPassword("");
   };
 
-  const handleStaffRoleChange = (role: StaffRole) => {
-    setStaffRole(role);
-    setError("");
-    setShowForgotNotice(false);
-    setPassword("");
-    if (role === "admin") {
-      setIdentifier("admin@mtti.ac.ke");
-    } else if (role === "hod") {
-      setIdentifier("hod.ci@mtti.ac.ke");
-    } else {
-      setIdentifier("trainer@mtti.ac.ke");
-    }
-  };
-
+  
   /**
    * Institutional Roster Verification for Candidate Activation
    * Leverages resilient dual-layer traineeVerificationService.
@@ -268,11 +255,11 @@ export default function Login() {
     setError("");
 
     try {
-      const requestedRole = mainPortal === "trainee" ? "trainee" : staffRole;
+      const requestedRole = mainPortal === "trainee" ? "trainee" : undefined;
       const result = await login(cleanPass, cleanId, requestedRole);
 
       if (result.success) {
-        const resolvedRole = result.role || requestedRole;
+        const resolvedRole = result.role || (mainPortal === "trainee" ? "trainee" : "trainer");
         toast.success("Authentication Successful", {
           description: "Access granted. Entering academic portal...",
         });
@@ -770,22 +757,13 @@ export default function Login() {
         {/* ── PORTAL VIEW 2: STAFF & ADMIN PORTAL ── */}
         {mainPortal === "staff" && (
           <section className="space-y-4" aria-label="Staff & Administrator Sign In Area">
-            {/* Staff Role Switcher */}
-            <div className="bg-slate-100 p-1 rounded-xl border border-slate-200 grid grid-cols-3 gap-1">
-              {(["trainer", "hod", "admin"] as StaffRole[]).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => handleStaffRoleChange(r)}
-                  className={`py-1.5 text-xs font-semibold rounded-lg capitalize transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#000953] ${
-                    staffRole === r
-                      ? "bg-white text-[#000953] shadow-sm font-bold"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  {r === "hod" ? "HOD" : r}
-                </button>
-              ))}
+            {/* Staff Access Notice */}
+            <div className="p-2.5 bg-slate-50 border border-slate-200/90 rounded-xl text-xs flex items-center justify-between text-slate-700">
+              <span className="font-semibold text-[#000953] flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-[#c48820]" />
+                Staff & Faculty Gateway:
+              </span>
+              <span className="text-[11px] text-slate-500">Automated Role Resolution</span>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4" aria-label="Staff Sign In">
@@ -805,13 +783,7 @@ export default function Login() {
                       setIdentifier(e.target.value);
                       setError("");
                     }}
-                    placeholder={
-                      staffRole === "admin"
-                        ? "admin@mtti.ac.ke"
-                        : staffRole === "hod"
-                        ? "hod.ci@mtti.ac.ke"
-                        : "trainer@mtti.ac.ke"
-                    }
+                    placeholder="e.g., trainer@mtti.ac.ke or admin@mtti.ac.ke"
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#000953] focus:border-[#000953] transition-all"
                     disabled={isSubmitting}
                     autoComplete="email"
