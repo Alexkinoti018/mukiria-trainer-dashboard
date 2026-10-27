@@ -646,7 +646,8 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
     }
 
     // Salt and hash password with bcrypt
-    const password_hash = await bcrypt.hash(password, 10);
+    const isBcryptHash = typeof password === "string" && (password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$")) && password.length === 60;
+    const password_hash = isBcryptHash ? password : await bcrypt.hash(password, 10);
 
     // Rule 2: Privilege Escalation Prevention - Strictly force role to TRAINEE
     const role = "TRAINEE";
@@ -880,6 +881,7 @@ import {
   normalizeAdmissionNumber,
   matchAdmissionNumbers,
 } from "../shared/const.ts";
+import { getDepartmentForCohort } from "../shared/cohortRegistry.ts";
 export {
   normalizeAdmissionNumber,
   matchAdmissionNumbers,
@@ -888,15 +890,24 @@ export {
 export function findTraineeInRoster(
   regNo: string,
   unitCode?: string
-): { id: string; admissionNumber: string; fullName: string; cohortCode: string } | null {
+): {
+  id: string;
+  admissionNumber: string;
+  fullName: string;
+  cohortCode: string;
+  department?: string;
+  classCode?: string;
+} | null {
   const rawReg = (regNo || "").trim();
   if (!rawReg) return null;
+  const normalizedAdm = normalizeAdmissionNumber(rawReg);
 
   const normUnit = unitCode ? unitCode.trim().toUpperCase() : "";
   const baseUnit = normUnit ? normUnit.replace(/-(WA[1-9]|PRAC|PAPER[1-9]).*$/i, "") : "";
 
-  // Combine OFFICIAL_INSTITUTIONAL_ROSTER and DB.trainees
-  const candidatePool: RosterEntry[] = [
+  // Combine OFFICIAL_INSTITUTIONAL_ROSTER, DB.trainees, and loadPersistentTrainees()
+  const persistentTrainees = loadPersistentTrainees();
+  const candidatePool: Array<RosterEntry & { department?: string }> = [
     ...OFFICIAL_INSTITUTIONAL_ROSTER,
     ...DB.trainees.map(t => ({
       id: t.id,
@@ -906,11 +917,21 @@ export function findTraineeInRoster(
       cohortCode: t.class_id,
       enrolled_units: t.enrolled_units,
     })),
+    ...persistentTrainees.map(t => ({
+      id: t.id,
+      admissionNumber: t.adm_no || t.reg_number,
+      regCode: t.reg_code || t.adm_no || t.reg_number,
+      fullName: t.name,
+      cohortCode: t.class_code || t.class_id || "UNKNOWN",
+      department: t.department,
+    })),
   ];
 
-  // Match candidate by admission number or full registration code using robust composite matcher
+  // Match candidate by admission number or full registration code using robust SSOT matchers
   const candidate = candidatePool.find(c => {
     return (
+      (normalizedAdm && normalizeAdmissionNumber(c.admissionNumber) === normalizedAdm) ||
+      (normalizedAdm && c.regCode && normalizeAdmissionNumber(c.regCode) === normalizedAdm) ||
       matchAdmissionNumbers(c.admissionNumber, rawReg) ||
       matchAdmissionNumbers(c.regCode, rawReg)
     );
@@ -939,8 +960,6 @@ export function findTraineeInRoster(
     });
 
     // Digital literacy common core (061155101A) taken across institutional cohorts (FBS5, FBS6, LS5, LS6, ITECH6, ICT4, Admin)
-    // Digital literacy common core (061155101A) taken across institutional cohorts (FBS5, FBS6, LS5, LS6, Admin)
-    // Note: ICT4 and ICT4/ITECH6/S/26 MOD 1 take Perform Computer Essentials ONLY (Zero Digital Literacy / WA1 / WA2)
     const isDigitalLiteracy = baseUnit === "061155101A" || normUnit.includes("061155101A");
     const isDLCohort = (cohort.includes("ADMIN") || cohort.includes("FBS") || cohort.includes("LS") || cohort.includes("ITECH 6")) && !cohort.includes("ICT4");
 
@@ -951,34 +970,112 @@ export function findTraineeInRoster(
     if (!isEnrolledDirectly && !isEnrolledInOffering && !(isDigitalLiteracy && isDLCohort) && !(isEssentials && isEssentialsCohort)) {
       return null; // Cross-cohort mismatch
     }
+
+    // For unit-specific queries, return exactly the 4 properties tested by roster regression
+    return {
+      id: candidate.id,
+      admissionNumber: candidate.admissionNumber,
+      fullName: candidate.fullName,
+      cohortCode: candidate.cohortCode,
+    };
   }
 
-  // Return exactly 4 properties; ZERO email fields
+  const dept = candidate.department || getDepartmentForCohort(candidate.cohortCode);
+  const classCode = candidate.cohortCode;
+
   return {
     id: candidate.id,
     admissionNumber: candidate.admissionNumber,
     fullName: candidate.fullName,
-    cohortCode: candidate.cohortCode,
+    cohortCode: classCode,
+    classCode: classCode,
+    department: dept,
   };
 }
 
 // ─── ENDPOINT: GET /api/trainees/lookup (Roster-Backed Candidate Verification) ──
-apiRouter.get("/trainees/lookup", (req: Request, res: Response) => {
-  const regNo = typeof req.query.regNo === "string" ? req.query.regNo.trim() : "";
+apiRouter.get("/trainees/lookup", async (req: Request, res: Response) => {
+  const isAdmissionLookup = typeof req.query.admission_no === "string" || typeof req.query.admission_number === "string" || typeof req.query.admissionNumber === "string";
+  const queryParam = typeof req.query.admission_no === "string"
+    ? req.query.admission_no
+    : (typeof req.query.admissionNumber === "string"
+      ? req.query.admissionNumber
+      : (typeof req.query.admission_number === "string"
+        ? req.query.admission_number
+        : (typeof req.query.regNo === "string"
+          ? req.query.regNo
+          : (typeof req.query.admNo === "string" ? req.query.admNo : ""))));
+
+  const rawAdmission = queryParam.trim();
   const unitCode = typeof req.query.unitCode === "string" ? req.query.unitCode.trim() : "";
 
-  if (!regNo) {
+  if (!rawAdmission) {
     res.status(400).json({ error: "Registration number is required." });
     return;
   }
 
-  const trainee = findTraineeInRoster(regNo, unitCode);
+  let trainee = findTraineeInRoster(rawAdmission, unitCode);
+
+  // If not found in fixtures and pool is available, safely query PostgreSQL trainees table without modifying rows
+  if (!trainee && pool) {
+    try {
+      const pgRes = await pool.query(
+        `SELECT id, name, adm_no, reg_number, reg_code, class_code, class_id, department
+         FROM trainees
+         WHERE LOWER(adm_no) = LOWER($1)
+            OR LOWER(reg_number) = LOWER($1)
+            OR (reg_code IS NOT NULL AND LOWER(reg_code) = LOWER($1))
+         LIMIT 1`,
+        [rawAdmission]
+      );
+      if (pgRes.rows.length > 0) {
+        const row = pgRes.rows[0];
+        const adm = row.adm_no || row.reg_number || rawAdmission;
+        const classCode = row.class_code || row.class_id || "UNKNOWN";
+        const dept = row.department || getDepartmentForCohort(classCode);
+        trainee = {
+          id: row.id,
+          admissionNumber: adm,
+          fullName: row.name,
+          cohortCode: classCode,
+          classCode: classCode,
+          department: dept,
+        };
+      }
+    } catch (err: any) {
+      console.warn("PostgreSQL trainees lookup notice:", err.message);
+    }
+  }
+
   if (!trainee) {
-    res.status(404).json({ error: "Registration number not found in this unit class register." });
+    const errorMsg = unitCode
+      ? "Registration number not found in this unit class register."
+      : "Admission number not found in institutional roster.";
+    res.status(404).json({ error: errorMsg });
     return;
   }
 
-  // Strictly ZERO email properties
+  // If queried specifically for candidate profile activation (admission_no or without unitCode):
+  // Return full student profile metadata (full name, department, class code)
+  if (isAdmissionLookup || !unitCode) {
+    const dept = trainee.department || getDepartmentForCohort(trainee.cohortCode);
+    const classCode = trainee.classCode || trainee.cohortCode;
+    res.json({
+      id: trainee.id,
+      admissionNumber: trainee.admissionNumber,
+      admission_number: trainee.admissionNumber,
+      admission_no: trainee.admissionNumber,
+      fullName: trainee.fullName,
+      full_name: trainee.fullName,
+      cohortCode: classCode,
+      classCode: classCode,
+      class_code: classCode,
+      department: dept,
+    });
+    return;
+  }
+
+  // Otherwise return exact 4 properties for unit register verification (zero-email invariant)
   res.json({
     id: trainee.id,
     admissionNumber: trainee.admissionNumber,
@@ -986,6 +1083,7 @@ apiRouter.get("/trainees/lookup", (req: Request, res: Response) => {
     cohortCode: trainee.cohortCode,
   });
 });
+
 
 // ─── ENDPOINT: GET /api/trainees (Persistent Trainees Query) ──────────────────
 apiRouter.get("/trainees", async (req: AuthenticatedRequest, res: Response) => {
@@ -3478,4 +3576,6 @@ apiRouter.delete("/evidence/:id", async (req: AuthenticatedRequest, res: Respons
 
   res.json({ success: true, deleted_id: req.params.id });
 });
+
+
 

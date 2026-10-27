@@ -9,7 +9,7 @@
  */
 
 import React, { useEffect, useState, useMemo } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import {
   GraduationCap,
   BookOpen,
@@ -446,7 +446,7 @@ export default function Login() {
                     Candidate Self-Registration
                   </p>
                   <p className="mt-0.5 text-blue-800">
-                    Register your candidate profile. Your password will be salted and hashed with bcrypt.
+                    Register your candidate profile. Your password will be salted and hashed with bcrypt. Or <Link href="/register-trainee" className="font-semibold underline text-[#000953]">open dedicated Activation Gateway ?</Link>
                   </p>
                 </div>
 
@@ -1157,3 +1157,6 @@ export default function Login() {
     </div>
   );
 }
+
+
+
