@@ -221,14 +221,22 @@ export function doesCohortTagMatch(traineeCohort?: string, targetTag?: string): 
 }
 
 export function doesExamMatchTraineeCohort(exam: Exam, cohortCode?: string, enrolledUnits?: string[]): boolean {
+  const normUnit = (s: string) => (s || "").replace(/[\s\-_]/g, "").toUpperCase();
   const unitUpper = (exam.unit_code || "").trim().toUpperCase();
+  const unitNorm = normUnit(exam.unit_code || "");
 
   // 1. Direct Enrolled Units Match
   if (enrolledUnits && enrolledUnits.length > 0) {
     if (
       enrolledUnits.some((u) => {
         const uUpper = u.trim().toUpperCase();
-        return unitUpper === uUpper || unitUpper.startsWith(uUpper) || uUpper.startsWith(unitUpper);
+        const uNorm = normUnit(u);
+        return (
+          unitUpper === uUpper ||
+          unitUpper.startsWith(uUpper) ||
+          uUpper.startsWith(unitUpper) ||
+          (Boolean(unitNorm) && Boolean(uNorm) && (unitNorm === uNorm || unitNorm.startsWith(uNorm) || uNorm.startsWith(unitNorm)))
+        );
       })
     ) {
       return true;
@@ -267,7 +275,7 @@ export function doesExamMatchTraineeCohort(exam: Exam, cohortCode?: string, enro
   ) {
     return true;
   }
-  const isAdmin = upperCohort.includes("ADMIN");
+  const isAdmin = upperCohort.includes("ADMIN") || upperCohort.includes("BUS");
   if (isAdmin && (courseUpper.includes("OFFICE ADMIN") || deptUpper.includes("BUSINESS"))) {
     return true;
   }
@@ -277,17 +285,23 @@ export function doesExamMatchTraineeCohort(exam: Exam, cohortCode?: string, enro
   }
 
   // 5. Institutional Common Curriculum Mapping
-  if (unitUpper.startsWith("061155101A")) {
+  if (unitUpper.startsWith("061155101A") || unitNorm.startsWith("061155101A")) {
     // Apply Digital Literacy is common to FBS (Food & Beverage), LS (Land Survey), and CSDP
     return isFBS || isLS || upperCohort.includes("CSDP") || upperCohort.includes("ADMIN");
   }
-  if (unitUpper.startsWith("0415-451-21A") || unitUpper.startsWith("0415 451 21A")) {
+  if (
+    unitUpper.startsWith("0415-451-21A") ||
+    unitUpper.startsWith("0415 451 21A") ||
+    unitNorm.startsWith("041545121A") ||
+    unitUpper.startsWith("041355101A") ||
+    unitNorm.startsWith("041355101A")
+  ) {
     return isAdmin;
   }
-  if (unitUpper.startsWith("IT/CU/ICTA/CR/01/4/MA")) {
+  if (unitUpper.startsWith("IT/CU/ICTA/CR/01/4/MA") || (unitNorm && unitNorm.startsWith("ITCU/ICTA/CR/01/4/MA".replace(/[\s\-_]/g, "")))) {
     return upperCohort.includes("ICT4") || upperCohort.includes("ICTT");
   }
-  if (unitUpper.startsWith("IT/CU/ICTA/CR/01/6/MA")) {
+  if (unitUpper.startsWith("IT/CU/ICTA/CR/01/6/MA") || (unitNorm && unitNorm.startsWith("ITCU/ICTA/CR/01/6/MA".replace(/[\s\-_]/g, "")))) {
     return upperCohort.includes("ITECH 6") || upperCohort.includes("ICT6") || upperCohort.includes("CSDP");
   }
 

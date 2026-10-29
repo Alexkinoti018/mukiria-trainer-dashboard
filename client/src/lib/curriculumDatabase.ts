@@ -198,9 +198,20 @@ export function canonicalizeCohortCode(rawCohort: string): string {
     "ICT4/ITECH6/S/ 26 MOD 1": "ICT4/ITECH6/S/26 MOD 1",
     "ICT4/ITECH6/S/2026 MOD 1": "ICT4/ITECH6/S/26 MOD 1",
     "ICT4/ITECH6/S/26MOD1": "ICT4/ITECH6/S/26 MOD 1",
-    "ADMIN5/6/J/26": "ADMIN5/6/J/26",
+    "ADMIN5/6/J/26": "ADMIN5/6/J/26 MOD 3",
+    "ADMIN 5/6/J/26": "ADMIN5/6/J/26 MOD 3",
+    "Admin 5/6/j 26": "ADMIN5/6/J/26 MOD 3",
+    "ADMIN 5/6/J 26": "ADMIN5/6/J/26 MOD 3",
+    "ADMIN5/6/J 26": "ADMIN5/6/J/26 MOD 3",
+    "ADMIN 5/6/J/26 MOD 3": "ADMIN5/6/J/26 MOD 3",
     "ADMIN5/6/J/26 MOD 3": "ADMIN5/6/J/26 MOD 3",
+    "ADMIN5/6/J/2026": "ADMIN5/6/J/26 MOD 3",
+    "ADMIN 5/6/J/2026": "ADMIN5/6/J/26 MOD 3",
+    "ADMIN5/6/J/256 MOD 3": "ADMIN5/6/J/26 MOD 3",
+    "ADMIN 5/6/J/256 MOD 3": "ADMIN5/6/J/26 MOD 3",
     "ICT SKILLS ADMIN5/6/J/26 MOD 3": "ADMIN5/6/J/26 MOD 3",
+    "ICT SKILLS ADMIN 5/6/J/26": "ADMIN5/6/J/26 MOD 3",
+    "ICT SKILLS ADMIN 5/6/J 26": "ADMIN5/6/J/26 MOD 3",
     "ICT SKILS 1 ADMIN4/5/6/S/ 26 MOD 1": "ADMIN4/5/6/S/26 MOD 1",
     "ICT SKILS 1 ADMIN4/5/6/S/26 MOD 1": "ADMIN4/5/6/S/26 MOD 1",
     "ICT SKILLS 1 ADMIN4/5/6/S/ 26 MOD 1": "ADMIN4/5/6/S/26 MOD 1",
@@ -226,6 +237,8 @@ export function canonicalizeCohortCode(rawCohort: string): string {
 
   return cleaned;
 }
+
+export const normalizeCohortCode = canonicalizeCohortCode;
 
 /**
  * Normalizes unit title string representations into canonical CDACC competency titles
