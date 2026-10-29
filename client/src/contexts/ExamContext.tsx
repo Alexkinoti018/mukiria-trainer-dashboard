@@ -386,18 +386,41 @@ export function ExamProvider({ children }: { children: ReactNode }) {
   };
 
   const submitExam = (submissionPayload: Omit<Submission, "id" | "created_at" | "updated_at">) => {
+    const payReg = (submissionPayload.reg_number || "").trim().toUpperCase();
+    const payExamId = (submissionPayload as any).exam_id;
+    const payTask = ((submissionPayload as any).task_code || "").trim().toUpperCase();
+    const payUnit = (submissionPayload.unit_code || "").trim().toUpperCase();
+
     const existingIdx = allSubmissions.findIndex(
-      (s) =>
-        (s.unit_code === submissionPayload.unit_code || s.exam_id === (submissionPayload as any).exam_id) &&
-        (s.reg_number === submissionPayload.reg_number ||
-          (submissionPayload.trainee_id && s.trainee_id === submissionPayload.trainee_id))
+      (s) => {
+        const subReg = (s.reg_number || "").trim().toUpperCase();
+        const identityMatch =
+          (Boolean(subReg) && Boolean(payReg) && (subReg === payReg || subReg.includes(payReg) || payReg.includes(subReg))) ||
+          (Boolean(submissionPayload.trainee_id) && s.trainee_id === submissionPayload.trainee_id);
+
+        if (!identityMatch) return false;
+
+        if (s.exam_id && payExamId) {
+          return s.exam_id === payExamId;
+        }
+        const sTask = (s.task_code || "").trim().toUpperCase();
+        if (sTask && payTask) {
+          return sTask === payTask;
+        }
+        if (!s.exam_id && !payExamId && !sTask && !payTask) {
+          return (s.unit_code || "").trim().toUpperCase() === payUnit;
+        }
+        return false;
+      }
+
+
     );
 
     const nowIso = new Date().toISOString();
     const existing = existingIdx >= 0 ? allSubmissions[existingIdx] : null;
 
     // Strict Submission Lock: Once submitted and locked, reject any subsequent attempt unless reopened by trainer
-    if (existing && existing.is_locked && existing.status !== "reopened") {
+    if (existing && existing.is_locked && existing.status !== "reopened" && (existing.status as any) !== "in_progress" && (existing.status as any) !== "draft") {
       throw new Error("Locked: This assessment has already been submitted and sealed. Retakes must be unlocked by the certified trainer.");
     }
 

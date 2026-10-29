@@ -2176,8 +2176,29 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: Aut
 
   // 2. Submission Storage & Update (Accepts student exam submission from portal)
   const existingSub = DB.submissions.find(
-    s => (s.exam_id === exam_id || s.unit_code === exam.unit_code) &&
-         (s.trainee_id === user.id || s.reg_number === user.reg_number)
+    s => {
+      const subReg = (s.reg_number || "").trim().toUpperCase();
+      const userReg = (user.reg_number || (req.body as any).reg_number || "").trim().toUpperCase();
+      const identityMatch =
+        (Boolean(subReg) && Boolean(userReg) && (subReg === userReg || subReg.includes(userReg) || userReg.includes(subReg))) ||
+        (user.id && s.trainee_id === user.id);
+
+      if (!identityMatch) return false;
+
+      // Strict assessment match by exam_id or task_code
+      if (s.exam_id && exam_id) {
+        return s.exam_id === exam_id;
+      }
+      const sTask = (s.task_code || "").trim().toUpperCase();
+      const examTask = ((exam.payload as any)?.task_code || (exam as any).task_code || (req.body as any).task_code || "").trim().toUpperCase();
+      if (sTask && examTask) {
+        return sTask === examTask;
+      }
+      if (!s.exam_id && !exam_id && !sTask && !examTask) {
+        return (s.unit_code || "").trim().toUpperCase() === (exam.unit_code || "").trim().toUpperCase();
+      }
+      return false;
+    }
   );
 
   // 3. Server-side Objective Grading (Keeps answer key strictly on server!)
@@ -2233,6 +2254,7 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: Aut
   const newSub = {
     id: `sub-${Date.now()}`,
     exam_id,
+    task_code: (exam.payload as any)?.task_code || (exam as any).task_code || (req.body as any).task_code || null,
     unit_code: exam.unit_code,
     trainee_id: user.id,
     reg_number: user.reg_number || "10525",

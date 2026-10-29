@@ -277,5 +277,56 @@ describe("Trainee Portal — Component, Handlers & Workflow Verification Suite",
       });
       expect(formattedObject).toBe("a) Define operating system. (5 Marks)");
     });
+
+    it("ensures Risper Mwende (13410) CAT 1 submission is strictly isolated from previous final exams and saved safely", () => {
+      const existingFinalExamSub: Submission = {
+        id: "sub-risper-0415",
+        exam_id: "exam-wa1-0415",
+        task_code: "CT1",
+        unit_code: "0415-451-21A",
+        student_name: "RISPER MWENDE",
+        reg_number: "13410",
+        status: "graded",
+        is_locked: true,
+        created_at: "2026-10-04T20:30:00Z",
+      } as any;
+
+      const cat1Exam: Exam = {
+        id: "cat-ict-lo1",
+        unit_code: "0415-451-21A",
+        course_name: "Apply ICT Skills (Office Administration Level 5 & 6)",
+        payload: {
+          title: "CAT 1 — Fundamental Principles of ICT Skills",
+          task_code: "CAT-ICT-LO1",
+          total_marks: 15,
+        },
+      } as any;
+
+      // Verification: Existing final exam sub must NOT match cat1Exam
+      expect(doesSubMatchTargetExam(existingFinalExamSub, cat1Exam)).toBe(false);
+
+      // Now create new CAT 1 submission
+      const newCat1Sub: Submission = {
+        id: "sub-risper-cat1",
+        exam_id: "cat-ict-lo1",
+        task_code: "CAT-ICT-LO1",
+        unit_code: "0415-451-21A",
+        student_name: "RISPER MWENDE",
+        reg_number: "13410",
+        status: "submitted",
+        is_locked: true,
+        section_a: [
+          { question_id: "ict_lo1_q1", answer: "ALU performs calculations, CU decodes instructions, Registers store active memory" },
+          { question_id: "ict_lo1_q2", answer: "RAM is volatile memory; ROM is non-volatile memory storing BIOS" },
+          { question_id: "ict_lo1_q3", answer: "a) Glare, non-adjustable chairs, awkward wrist angles. b) OCR converts image to text, Barcode scans inventory codes." },
+        ],
+        section_b: [],
+        created_at: new Date().toISOString(),
+      };
+
+      // Both must be distinct and match their respective exam targets
+      expect(doesSubMatchTargetExam(newCat1Sub, cat1Exam)).toBe(true);
+      expect(doesSubMatchTargetExam(newCat1Sub, { id: "exam-wa1-0415", unit_code: "0415-451-21A", payload: { task_code: "CT1" } } as any)).toBe(false);
+    });
   });
 });

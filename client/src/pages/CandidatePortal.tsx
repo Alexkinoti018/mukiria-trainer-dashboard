@@ -643,6 +643,8 @@ export default function CandidatePortal() {
               },
               body: JSON.stringify({
                 exam_id: exam.id,
+                unit_code: exam.unit_code,
+                task_code: exam.payload?.task_code || (exam as any).task_code,
                 section_a: sectionAPayload,
                 section_b: sectionBPayload,
               }),
@@ -668,6 +670,7 @@ export default function CandidatePortal() {
 
         const payload = {
           exam_id: exam.id,
+          task_code: exam.payload?.task_code || (exam as any).task_code,
           unit_code: exam.unit_code,
           student_name: student.name.trim(),
           reg_number: regNo,

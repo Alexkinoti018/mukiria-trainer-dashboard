@@ -580,6 +580,15 @@ export function loadPersistentSubmissions(): any[] {
 
 export function savePersistentSubmissions(records: any[]): void {
   memorySubmissions = [...records];
+  try {
+    const dir = path.dirname(SUBMISSIONS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify(records, null, 2), "utf-8");
+  } catch (e) {
+    console.warn("Could not write submissions JSON file:", e);
+  }
 }
 
 export function loadPersistentAssessmentEvidence(): any[] {

@@ -32,11 +32,23 @@ describe("Exam Submission Lockdown & Trainer Retake Authorization Engine", () =>
     let submissionsStore: any[] = [];
 
     const mockSubmitExam = (payload: any) => {
-      const existingIdx = submissionsStore.findIndex(
-        (s) =>
-          (s.unit_code === payload.unit_code || s.exam_id === payload.exam_id) &&
-          s.reg_number === payload.reg_number
-      );
+      const payReg = (payload.reg_number || "").trim().toUpperCase();
+      const payExamId = payload.exam_id;
+      const payTask = (payload.task_code || "").trim().toUpperCase();
+      const payUnit = (payload.unit_code || "").trim().toUpperCase();
+
+      const existingIdx = submissionsStore.findIndex((s) => {
+        const subReg = (s.reg_number || "").trim().toUpperCase();
+        if (subReg !== payReg) return false;
+
+        if (s.exam_id && payExamId) return s.exam_id === payExamId;
+        const sTask = (s.task_code || "").trim().toUpperCase();
+        if (sTask && payTask) return sTask === payTask;
+        if (!s.exam_id && !payExamId && !sTask && !payTask) {
+          return (s.unit_code || "").trim().toUpperCase() === payUnit;
+        }
+        return false;
+      });
 
       const nowIso = new Date().toISOString();
       const existing = existingIdx >= 0 ? submissionsStore[existingIdx] : null;
@@ -181,6 +193,43 @@ describe("Exam Submission Lockdown & Trainer Retake Authorization Engine", () =>
           section_b: [],
         });
       }).toThrowError(/Locked/);
+    });
+
+    it("should allow a trainee to submit CAT 1 even if they have an existing locked submission for final exam under the same unit code", () => {
+      // 1. Existing locked final exam submission for Risper Mwende (13410)
+      mockSubmitExam({
+        unit_code: "0415-451-21A",
+        exam_id: "exam-wa1-0415",
+        task_code: "CT1",
+        student_name: "RISPER MWENDE",
+        reg_number: "13410",
+        section_a: [{ question_id: "wa1_a1", answer: "Operating system definition" }],
+        section_b: [{ question_id: "wa1_b1", answer: "Word strengths" }],
+      });
+
+      expect(submissionsStore.length).toBe(1);
+      expect(submissionsStore[0].is_locked).toBe(true);
+
+      // 2. Risper Mwende submits CAT 1 (cat-ict-lo1) with the same unit code (0415-451-21A)
+      const catSub = mockSubmitExam({
+        unit_code: "0415-451-21A",
+        exam_id: "cat-ict-lo1",
+        task_code: "CAT-ICT-LO1",
+        student_name: "RISPER MWENDE",
+        reg_number: "13410",
+        section_a: [
+          { question_id: "ict_lo1_q1", answer: "ALU, CU, Registers" },
+          { question_id: "ict_lo1_q2", answer: "RAM vs ROM" },
+          { question_id: "ict_lo1_q3", answer: "Workplace ergonomics" },
+        ],
+        section_b: [],
+      });
+
+      expect(catSub.status).toBe("submitted");
+      expect(catSub.exam_id).toBe("cat-ict-lo1");
+      expect(catSub.task_code).toBe("CAT-ICT-LO1");
+      expect(catSub.is_locked).toBe(true);
+      expect(submissionsStore.length).toBe(2); // Both submissions safely preserved!
     });
   });
 
