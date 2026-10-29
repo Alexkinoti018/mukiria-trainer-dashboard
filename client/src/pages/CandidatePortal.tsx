@@ -1202,7 +1202,7 @@ export default function CandidatePortal() {
               Allocated Online Examinations & CATs
             </h2>
             <p className="text-xs text-slate-600">
-              Only assessments explicitly allocated and scheduled for your cohort ({user?.cohort_code || "Official Roster"}) by your Trainer or Department appear here.
+              Only assessments explicitly allocated and scheduled for your cohort ({user?.cohort_code || "Official Roster"}) by your Trainer or Department appear here.</p><div className="pt-2 flex items-center justify-center gap-2.5 flex-wrap"><a href="/trainee/dashboard" className="px-3 py-1.5 text-xs font-bold rounded-lg bg-[#000953] hover:bg-[#000e7a] text-white shadow-xs transition inline-flex items-center gap-1.5"><ChevronLeft className="w-3.5 h-3.5" />Return to Trainee Dashboard</a><a href="/trainee/results" className="px-3 py-1.5 text-xs font-bold rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-xs transition inline-flex items-center gap-1.5">View Marked Scripts & Results</a><a href="/trainee/assignments" className="px-3 py-1.5 text-xs font-bold rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-xs transition inline-flex items-center gap-1.5">Assignments & Evidence</a></div><p className="hidden">
             </p>
           </div>
 

@@ -130,5 +130,93 @@
     "role": "TRAINEE",
     "created_at": "2026-10-29T09:51:48.520Z",
     "updated_at": "2026-10-29T09:51:48.520Z"
+  },
+  {
+    "id": "usr-1793270059593-crbp5",
+    "admission_number": "ADM1793270059062",
+    "phone_number": "+254712345678",
+    "full_name": "Brian Kiprono",
+    "email": "trainee_1793270059062@mtti.ac.ke",
+    "password_hash": "$2b$10$Leowha9egRsp0RGkDtz1D.Xy7ShfdhpQHXgdJwxWNFGNhbyPm9Hwi",
+    "role": "TRAINEE",
+    "created_at": "2026-10-29T10:34:19.593Z",
+    "updated_at": "2026-10-29T10:34:19.593Z"
+  },
+  {
+    "id": "usr-1793270060297-8cwna",
+    "admission_number": "HACK_1793270059997",
+    "phone_number": null,
+    "full_name": "Escalation Attempt",
+    "email": "hack_1793270059997@mtti.ac.ke",
+    "password_hash": "$2b$10$OfJBf6xFBKNWQbajVpchWOKndhNr1gHF8JAJdak2Q3FbXPqZaO/UK",
+    "role": "TRAINEE",
+    "created_at": "2026-10-29T10:34:20.297Z",
+    "updated_at": "2026-10-29T10:34:20.297Z"
+  },
+  {
+    "id": "usr-1793270060691-88ee5",
+    "admission_number": "LOGIN_ADM_1793270059063",
+    "phone_number": "+254700112233",
+    "full_name": "Faith Mwende",
+    "email": "login_1793270059063@mtti.ac.ke",
+    "password_hash": "$2b$10$rtakq8V/zHQDWUUwnZe9Deb2NZA2Gw908k7lCDLstuT7ANTi2g5mS",
+    "role": "TRAINEE",
+    "created_at": "2026-10-29T10:34:20.691Z",
+    "updated_at": "2026-10-29T10:34:20.691Z"
+  },
+  {
+    "id": "usr-1793270062402-z7t5h",
+    "admission_number": "RBAC_TR_1793270062097",
+    "phone_number": null,
+    "full_name": "RBAC Trainee",
+    "email": "rbac_tr_1793270062402@mtti.ac.ke",
+    "password_hash": "$2b$10$rGff1.EnE.AMLLAJGA4bYuU1wzjCCr3nVJsoNpFoUGgxJWucp/vU.",
+    "role": "TRAINEE",
+    "created_at": "2026-10-29T10:34:22.403Z",
+    "updated_at": "2026-10-29T10:34:22.403Z"
+  },
+  {
+    "id": "usr-1793270070249-wnp55",
+    "admission_number": "14179/S2026",
+    "phone_number": null,
+    "full_name": "Nthiga Gakii Doris",
+    "email": "nthiga.gakii@mtti.ac.ke",
+    "password_hash": "$2b$10$9.xCwUx7I2wAALDoKYBXaOO/nj8NJ805IQnC.M4JRsiGEO1sAuK6q",
+    "role": "TRAINEE",
+    "created_at": "2026-10-29T10:34:30.249Z",
+    "updated_at": "2026-10-29T10:34:30.249Z"
+  },
+  {
+    "id": "usr-1793270071119-94r36",
+    "admission_number": "D/UPNUT/25042/069",
+    "phone_number": null,
+    "full_name": "Eugene Murimi",
+    "email": "eugene.murimi@mtti.ac.ke",
+    "password_hash": "$2b$10$sDEvdaygFjKRkVa9qPLwkOha9oC3rNEtU8/1aQKNyfvIf9sX0pbkW",
+    "role": "TRAINEE",
+    "created_at": "2026-10-29T10:34:31.119Z",
+    "updated_at": "2026-10-29T10:34:31.119Z"
+  },
+  {
+    "id": "usr-1793270072861-9iltx",
+    "admission_number": "ADM_1793270072512",
+    "phone_number": "+254711223344",
+    "full_name": "Brendah Mumbi",
+    "email": "trainee_1793270072512@mtti.ac.ke",
+    "password_hash": "$2b$10$WpdO8i3vXYgjIiiNrLGvN.8CGb6oion.T5a/k8DFFb085v2p8qeR2",
+    "role": "TRAINEE",
+    "created_at": "2026-10-29T10:34:32.861Z",
+    "updated_at": "2026-10-29T10:34:32.861Z"
+  },
+  {
+    "id": "usr-1793270078057-v5ol9",
+    "admission_number": "ACT_1793270077234",
+    "phone_number": "+254711223344",
+    "full_name": "Brenda Mukiri Test",
+    "email": "activate_1793270077234@mtti.ac.ke",
+    "password_hash": "$2b$10$dq5DWR5NUp5gsZ/ymQJ0Ke..AByzTrk1DUm1uNflMvKE4gC3fOocm",
+    "role": "TRAINEE",
+    "created_at": "2026-10-29T10:34:38.057Z",
+    "updated_at": "2026-10-29T10:34:38.057Z"
   }
 ]
