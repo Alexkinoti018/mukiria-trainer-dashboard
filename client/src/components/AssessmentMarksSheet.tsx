@@ -52,6 +52,20 @@ const DEFAULT_LS_CT1_MARKS: Record<string, number> = {
   "D/UPNUT/25042/069": 74, // Harriet Mwendwa
 };
 
+const DEFAULT_ADMIN_CT1_MARKS: Record<string, number> = {
+  "13410": 82, // Risper Mwende
+  "13527": 78, // Banta Micheni
+  "12218": 74, // Christine Gitonga
+  "13252": 85, // Cynthia Nkatha
+  "13284": 79, // Linet Ntinyari
+  "13424": 72, // Nanis Ngugi
+  "13276": 84, // Sharon Minoo
+  "10203": 75, // Frida Kianjira
+  "12254": 77, // Mercy Kiende
+  "12665": 83, // Ruth Kathure
+  "13580": 76, // MERCY KATHUURE
+};
+
 export function AssessmentMarksSheet() {
   const [centerCode, setCenterCode] = useState("01200004");
   const [level, setLevel] = useState<number>(4);
@@ -380,6 +394,16 @@ export function AssessmentMarksSheet() {
         if ((t.classCode.includes("LS") || selectedClass.includes("LS")) && initCtScores[0] === "") {
           const matchedEntry = Object.entries(DEFAULT_LS_CT1_MARKS).find(([lsAdm]) =>
             matchAdmissionNumbers(lsAdm, t.admNo) || matchAdmissionNumbers(lsAdm, t.regCode)
+          );
+          if (matchedEntry) {
+            initCtScores[0] = String(matchedEntry[1]);
+          }
+        }
+
+        // 4b. Protect & auto-seed canonical CT1 marks for Business Admin (ADMIN5/6/J/26 MOD 3) cohort if not yet manually overridden
+        if ((t.classCode.includes("ADMIN") || selectedClass.includes("ADMIN")) && initCtScores[0] === "") {
+          const matchedEntry = Object.entries(DEFAULT_ADMIN_CT1_MARKS).find(([adm]) =>
+            matchAdmissionNumbers(adm, t.admNo) || matchAdmissionNumbers(adm, t.regCode)
           );
           if (matchedEntry) {
             initCtScores[0] = String(matchedEntry[1]);
