@@ -16,6 +16,8 @@ import React, {
 } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
+import bcrypt from "bcryptjs";
+import { findLocalActivatedTrainee } from "@/lib/traineeActivationService";
 import {
   syncTrainerToProfessionalDocuments,
   findFacultyInTimetable,
@@ -436,8 +438,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // 1. Trainee Roster-Backed Authentication
         if (requestedRole === "trainee" || (!requestedRole && cleanPin === DEMO_TRAINEE_PIN)) {
           const rosterMatch = cleanId ? findRosterTraineeByIdentifier(cleanId) : null;
+          const activatedMatch = cleanId ? findLocalActivatedTrainee(cleanId) : null;
 
-          if (cleanId && !rosterMatch) {
+          if (cleanId && !rosterMatch && !activatedMatch) {
             return {
               success: false,
               error:
@@ -445,13 +448,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             };
           }
 
+          let isPasswordMatch = false;
+          if (activatedMatch?.passwordHash) {
+            try {
+              isPasswordMatch = bcrypt.compareSync(cleanPin, activatedMatch.passwordHash);
+            } catch {
+              isPasswordMatch = false;
+            }
+          }
+
           const coreDigits =
-            (rosterMatch ? `${rosterMatch.admNo} ${rosterMatch.regCode}` : cleanId).match(
+            (rosterMatch ? `${rosterMatch.admNo} ${rosterMatch.regCode}` : (activatedMatch ? activatedMatch.admissionNumber : cleanId)).match(
               /\b\d{4,6}\b/
             )?.[0] || "";
 
           const isValidTraineePin =
+            isPasswordMatch ||
             Boolean(rosterMatch) ||
+            Boolean(activatedMatch) ||
             cleanPin === DEMO_TRAINEE_PIN ||
             cleanPin === "2026" ||
             (coreDigits && cleanPin === coreDigits) ||

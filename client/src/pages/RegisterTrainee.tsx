@@ -18,6 +18,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { verifyTraineeAdmission } from "@/lib/traineeVerificationService";
+import { activateTraineeAccount } from "@/lib/traineeActivationService";
 
 export default function RegisterTrainee() {
   const [, setLocation] = useLocation();
@@ -119,43 +120,19 @@ export default function RegisterTrainee() {
     setIsSubmitting(true);
 
     try {
-      // Securely hash password via bcrypt on submission
-      const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(password, salt);
       const cleanAdm = admissionNumber.trim();
-      const internalEmail = (email.trim() || `student.${cleanAdm.replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}@mtti.ac.ke`).toLowerCase();
-
-      // Transmit payload enforcing the TRAINEE role
-      const res = await fetch("/api/auth/register-trainee", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullName: fullName.trim(),
-          admissionNumber: cleanAdm,
-          phoneNumber: phoneNumber.trim() || null,
-          email: internalEmail,
-          password: hashedPassword,
-        }),
+      const result = await activateTraineeAccount({
+        admissionNumber: cleanAdm,
+        fullName: fullName.trim(),
+        phoneNumber: phoneNumber.trim() || null,
+        password,
       });
 
-      const text = await res.text();
-      let data: any = null;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = null;
-      }
-
-      if (!res.ok) {
-        throw new Error((data && data.error) || "Failed to activate candidate account.");
-      }
-
-      const verifiedName = (data && data.user && data.user.full_name) || fullName;
+      const verifiedName = result.user?.full_name || result.profile?.fullName || fullName;
       toast.success("Trainee Account Activated!", {
         description: `Welcome, ${verifiedName}! Redirecting to Trainee Portal login...`,
       });
 
-      // Redirect back to login with pre-populated admission number
       setTimeout(() => {
         setLocation(`/login?activated=true&adm=${encodeURIComponent(cleanAdm)}`);
       }, 1200);

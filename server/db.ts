@@ -286,6 +286,15 @@ export function loadPersistentUsers(): UserRecord[] {
 
 export function savePersistentUsers(records: UserRecord[]): void {
   memoryUsers = [...records];
+  try {
+    const dir = path.dirname(USERS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(USERS_FILE, JSON.stringify(records, null, 2), "utf-8");
+  } catch (e) {
+    console.warn("Could not write users JSON file:", e);
+  }
 }
 
 export async function findUserByEmail(email: string): Promise<UserRecord | null> {

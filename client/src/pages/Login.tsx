@@ -30,6 +30,7 @@ import bcrypt from "bcryptjs";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { verifyTraineeAdmission } from "@/lib/traineeVerificationService";
+import { activateTraineeAccount } from "@/lib/traineeActivationService";
 
 type MainPortal = "trainee" | "staff";
 
@@ -183,36 +184,14 @@ export default function Login() {
     setError("");
 
     try {
-      // Securely hash password via bcrypt on client
-      const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(regPassword, salt);
-      const internalEmail = `student.${cleanAdm.toLowerCase().replace(/[^a-z0-9]/g, "")}@mtti.ac.ke`;
-
-      const res = await fetch("/api/auth/register-trainee", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullName: regFullName.trim(),
-          admissionNumber: cleanAdm,
-          phoneNumber: regPhone.trim() || null,
-          email: internalEmail,
-          password: hashedPassword,
-        }),
+      const result = await activateTraineeAccount({
+        admissionNumber: cleanAdm,
+        fullName: regFullName.trim(),
+        phoneNumber: regPhone.trim() || null,
+        password: regPassword,
       });
 
-      const text = await res.text();
-      let data: any = null;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = null;
-      }
-
-      if (!res.ok) {
-        throw new Error((data && data.error) || "Trainee account activation failed.");
-      }
-
-      const verifiedName = (data && data.user && data.user.full_name) || regFullName;
+      const verifiedName = result.user?.full_name || result.profile?.fullName || regFullName;
       toast.success("Account Activated Successfully!", {
         description: `Welcome, ${verifiedName}! Your profile is activated. Please sign in below.`,
       });
@@ -220,7 +199,8 @@ export default function Login() {
       // Switch back to Candidate Sign In with prefilled admission number
       setIsTraineeRegisterMode(false);
       setIdentifier(cleanAdm);
-      setPassword("");
+      setPassword(regPassword);
+      setError("");
     } catch (err: any) {
       setError(err?.message || "Failed to activate trainee account.");
       toast.error("Activation Notice", { description: err?.message });

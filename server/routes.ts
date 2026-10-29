@@ -32,6 +32,8 @@ import {
   findUserByAdmissionNumber,
   findUserByEmailOrAdmission,
   createUser,
+  loadPersistentUsers,
+  savePersistentUsers,
 } from "./db.ts";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -46,9 +48,11 @@ import {
   AttendanceMarkSchema,
 } from "./security.ts";
 
-export {
+export type {
   AuthenticatedUser,
   AuthenticatedRequest,
+} from "./auth.ts";
+export {
   authenticateUser,
   requireRoles,
   requireRole,
@@ -56,9 +60,11 @@ export {
   verifySupabaseToken,
   createSignedJwt,
 } from "./auth.ts";
-import {
+import type {
   AuthenticatedUser,
   AuthenticatedRequest,
+} from "./auth.ts";
+import {
   authenticateUser,
   requireRoles,
 } from "./auth.ts";
@@ -639,6 +645,30 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
     // Check for duplicate admission number
     const existingAdm = await findUserByAdmissionNumber(admission_number);
     if (existingAdm) {
+      if (req.body.isActivation || req.body.reactivate) {
+        const isBcryptHash = typeof password === "string" && (password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$")) && password.length === 60;
+        const password_hash = isBcryptHash ? password : await bcrypt.hash(password, 10);
+        existingAdm.password_hash = password_hash;
+        if (phone_number) existingAdm.phone_number = phone_number;
+        if (full_name) existingAdm.full_name = full_name;
+        existingAdm.updated_at = new Date().toISOString();
+        const allUsers = loadPersistentUsers();
+        savePersistentUsers(allUsers);
+        res.status(200).json({
+          success: true,
+          message: "Trainee account activated successfully",
+          user: {
+            id: existingAdm.id,
+            admission_number: existingAdm.admission_number,
+            phone_number: existingAdm.phone_number,
+            full_name: existingAdm.full_name,
+            email: existingAdm.email,
+            role: "TRAINEE",
+            created_at: existingAdm.created_at,
+          },
+        });
+        return;
+      }
       res.status(409).json({
         error: "Conflict: A trainee with this admission number is already registered",
       });
