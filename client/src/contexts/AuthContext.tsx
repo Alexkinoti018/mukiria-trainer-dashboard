@@ -212,22 +212,25 @@ function installApiAuthFetchBridge() {
           const activeUser = JSON.parse(rawSession) as AuthUser;
           if (activeUser && activeUser.role) {
             const headers = new Headers(init?.headers || {});
+            const realToken = window.localStorage.getItem("mtti_auth_token") || window.localStorage.getItem("token");
             if (!headers.has("Authorization")) {
-              const realToken = window.localStorage.getItem("mtti_auth_token") || window.localStorage.getItem("token");
               const tokenToUse = realToken || getBearerTokenForUser(activeUser);
               headers.set("Authorization", `Bearer ${tokenToUse}`);
             }
-            if (!headers.has("x-user-role")) {
-              headers.set("x-user-role", activeUser.role);
-            }
-            if (!headers.has("x-user-id") && activeUser.id) {
-              headers.set("x-user-id", activeUser.id);
-            }
-            if (!headers.has("x-user-reg") && activeUser.reg_number) {
-              headers.set("x-user-reg", activeUser.reg_number);
-            }
-            if (!headers.has("x-user-dept") && activeUser.department_id) {
-              headers.set("x-user-dept", activeUser.department_id);
+            // Stop sending unverified x-user-* headers when a real token exists
+            if (!realToken) {
+              if (!headers.has("x-user-role")) {
+                headers.set("x-user-role", activeUser.role);
+              }
+              if (!headers.has("x-user-id") && activeUser.id) {
+                headers.set("x-user-id", activeUser.id);
+              }
+              if (!headers.has("x-user-reg") && activeUser.reg_number) {
+                headers.set("x-user-reg", activeUser.reg_number);
+              }
+              if (!headers.has("x-user-dept") && activeUser.department_id) {
+                headers.set("x-user-dept", activeUser.department_id);
+              }
             }
             return originalFetch(input, { ...init, headers });
           }

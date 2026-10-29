@@ -6,7 +6,8 @@
 
 import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
-import { getAuthConfiguration, verifySupabaseToken, DEMO_TOKENS_MAP } from "../auth.ts";
+import { getAuthConfiguration, verifySupabaseToken, DEMO_TOKENS_MAP, getJwtSecret } from "../auth.ts";
+export { getJwtSecret };
 
 export interface UserPayload {
   id: string;
@@ -26,13 +27,6 @@ export interface AuthenticatedRequest extends Request {
   user?: UserPayload;
 }
 
-export function getJwtSecret(): string {
-  return (
-    process.env.SUPABASE_JWT_SECRET ||
-    process.env.JWT_SECRET ||
-    "mtti-enterprise-jwt-secret-secure-key-2026"
-  );
-}
 
 /**
  * Middleware: Verifies JWT token from Authorization Bearer header.

@@ -59,6 +59,7 @@ export {
   getAuthConfiguration,
   verifySupabaseToken,
   createSignedJwt,
+  getJwtSecret,
 } from "./auth.ts";
 import type {
   AuthenticatedUser,
@@ -67,6 +68,7 @@ import type {
 import {
   authenticateUser,
   requireRoles,
+  getJwtSecret,
 } from "./auth.ts";
 
 export const apiRouter = Router();
@@ -750,10 +752,7 @@ apiRouter.post("/auth/login", async (req: Request, res: Response) => {
       return;
     }
 
-    const secret =
-      process.env.SUPABASE_JWT_SECRET ||
-      process.env.JWT_SECRET ||
-      "mtti-enterprise-jwt-secret-secure-key-2026";
+    const secret = getJwtSecret();
 
     const userRole = (user.role || "TRAINEE").toUpperCase();
     const token = jwt.sign(

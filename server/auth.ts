@@ -53,15 +53,30 @@ export function getAuthConfiguration(): AuthConfiguration {
     mode = "demo";
   }
 
-  const allowDemoAuth = explicitAllowDemo || mode === "demo";
+  // In production, demo auth is ONLY permitted if explicit ALLOW_DEMO_AUTH is true
+  const allowDemoAuth = isProduction ? explicitAllowDemo : (explicitAllowDemo || mode === "demo");
 
   return {
     mode,
     allowDemoAuth,
     isProduction,
-    jwtSecret: process.env.SUPABASE_JWT_SECRET,
+    jwtSecret: process.env.SUPABASE_JWT_SECRET || process.env.JWT_SECRET,
     supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
   };
+}
+
+/**
+ * Returns the authoritative JWT secret for issuing and verifying tokens.
+ * Fails fast in production if no secret is configured.
+ */
+export function getJwtSecret(): string {
+  const secret = process.env.SUPABASE_JWT_SECRET || process.env.JWT_SECRET;
+  if (secret) return secret;
+  const config = getAuthConfiguration();
+  if (config.isProduction) {
+    throw new Error("FATAL: JWT Secret (SUPABASE_JWT_SECRET or JWT_SECRET) is required in production mode.");
+  }
+  return "mtti-dev-only-local-secret-not-for-production";
 }
 
 /**
@@ -143,28 +158,32 @@ export async function verifySupabaseToken(
   }
 
   // 4. Cryptographic signature verification
-  const secret = secretOverride || process.env.SUPABASE_JWT_SECRET;
-  if (secret) {
-    if (header.alg !== "HS256") {
-      throw new Error(`Unsupported JWT algorithm: ${header.alg}. Expected HS256 with SUPABASE_JWT_SECRET`);
-    }
+  const secret = secretOverride || process.env.SUPABASE_JWT_SECRET || process.env.JWT_SECRET;
+  const config = getAuthConfiguration();
+  if (!secret && config.isProduction) {
+    throw new Error("Cryptographic verification failed: Server missing JWT secret configuration in production");
+  }
+  const effectiveSecret = secret || "mtti-dev-only-local-secret-not-for-production";
 
-    const signatureInput = `${headerB64}.${payloadB64}`;
-    const expectedSignature = crypto.createHmac("sha256", secret).update(signatureInput).digest();
-    
-    // Normalize signature padding for safe buffer comparison
-    let normalizedSigB64 = signatureB64.replace(/-/g, "+").replace(/_/g, "/");
-    while (normalizedSigB64.length % 4) {
-      normalizedSigB64 += "=";
-    }
-    const providedSignature = Buffer.from(normalizedSigB64, "base64");
+  if (header.alg !== "HS256") {
+    throw new Error(`Unsupported JWT algorithm: ${header.alg}. Expected HS256`);
+  }
 
-    if (
-      expectedSignature.length !== providedSignature.length ||
-      !crypto.timingSafeEqual(expectedSignature, providedSignature)
-    ) {
-      throw new Error("Cryptographic verification failed: Invalid JWT signature");
-    }
+  const signatureInput = `${headerB64}.${payloadB64}`;
+  const expectedSignature = crypto.createHmac("sha256", effectiveSecret).update(signatureInput).digest();
+  
+  // Normalize signature padding for safe buffer comparison
+  let normalizedSigB64 = signatureB64.replace(/-/g, "+").replace(/_/g, "/");
+  while (normalizedSigB64.length % 4) {
+    normalizedSigB64 += "=";
+  }
+  const providedSignature = Buffer.from(normalizedSigB64, "base64");
+
+  if (
+    expectedSignature.length !== providedSignature.length ||
+    !crypto.timingSafeEqual(expectedSignature, providedSignature)
+  ) {
+    throw new Error("Cryptographic verification failed: Invalid JWT signature");
   }
 
   // 5. Extract role and user claims
