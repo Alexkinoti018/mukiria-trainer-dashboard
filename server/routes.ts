@@ -2017,15 +2017,71 @@ apiRouter.get("/exams/:id", (req: AuthenticatedRequest, res: Response) => {
     return;
   }
 
-  // Trainee Scope: verify enrolled unit + completely shield answer columns
+  // Trainee Scope: verify enrolled unit + completely shield answer columns + verify submission lock
   if (user.role === "trainee") {
     const isEnrolled = user.enrolled_units?.includes(exam.unit_code);
     if (!isEnrolled) {
       res.status(403).json({ error: "Forbidden: Trainee cohort is not enrolled in this unit" });
       return;
     }
+
+    // Trainee Exam Locking: If the trainee has already completed or submitted this assessment,
+    // lock access so they cannot open the exam paper or view questions again.
+    const cleanUserReg = (user.reg_number || "").trim().toUpperCase();
+    const coreUserReg = cleanUserReg.match(/\b\d{4,6}\b/)?.[0] || "";
+    const cleanUserName = (user.name || "").trim().toUpperCase();
+
+    const priorSub = DB.submissions.find((s) => {
+      const subReg = (s.reg_number || "").trim().toUpperCase();
+      const subCore = subReg.match(/\b\d{4,6}\b/)?.[0] || "";
+      const isCandidateMatch =
+        (Boolean(user.id) && Boolean(s.trainee_id) && s.trainee_id === user.id) ||
+        (Boolean(cleanUserReg) && Boolean(subReg) && (
+          subReg === cleanUserReg ||
+          (subReg.length >= 4 && cleanUserReg.includes(subReg)) ||
+          (cleanUserReg.length >= 4 && subReg.includes(cleanUserReg))
+        )) ||
+        (Boolean(coreUserReg) && Boolean(subCore) && coreUserReg === subCore) ||
+        (Boolean(cleanUserName) && Boolean(s.student_name) && s.student_name.trim().toUpperCase() === cleanUserName);
+
+      if (!isCandidateMatch) return false;
+
+      // Strict assessment match by exam_id first
+      if (s.exam_id && exam.id) {
+        if (s.exam_id !== exam.id) return false;
+      } else {
+        const sTask = (s.task_code || "").trim().toUpperCase();
+        const examTask = (((exam.payload as any)?.task_code || (exam as any).task_code || "") as string).trim().toUpperCase();
+        if (sTask && examTask) {
+          if (sTask !== examTask) return false;
+        } else {
+          const sUnit = (s.unit_code || "").trim().toUpperCase();
+          const examUnit = (exam.unit_code || "").trim().toUpperCase();
+          if (sUnit !== examUnit) return false;
+        }
+      }
+
+      const isLockedOrSubmitted =
+        (Boolean((s as any).is_locked) || s.status === "submitted" || s.status === "graded") &&
+        s.status !== "reopened";
+
+      return isLockedOrSubmitted;
+    });
+
+    const sanitized = sanitizeExamForStudent(exam);
+    if (priorSub) {
+      res.status(200).json({
+        ...sanitized,
+        is_locked: true,
+        locked_reason: "Assessment Locked: You have already completed this assessment. Resubmission is locked.",
+        submission_id: priorSub.id,
+        status: priorSub.status,
+      });
+      return;
+    }
+
     // Return sanitized view (Column Shielding)
-    res.json(sanitizeExamForStudent(exam));
+    res.json(sanitized);
     return;
   }
 

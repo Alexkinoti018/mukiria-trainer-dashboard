@@ -65,7 +65,13 @@ export default function Login() {
   const handleRoleRedirection = (role: string) => {
     const normRole = (role || "").toUpperCase();
     if (normRole === "TRAINEE") {
-      navigate("/trainee/exam");
+      const params = new URLSearchParams(window.location.search);
+      const redirectUrl = params.get("redirect") || params.get("returnTo");
+      if (redirectUrl && (redirectUrl.startsWith("/trainee/") || redirectUrl.startsWith("/candidate/"))) {
+        navigate(redirectUrl);
+      } else {
+        navigate("/trainee/dashboard");
+      }
     } else if (normRole === "ADMIN") {
       navigate("/admin/roster");
     } else if (normRole === "HOD") {

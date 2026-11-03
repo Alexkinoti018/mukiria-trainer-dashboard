@@ -511,21 +511,40 @@ export default function CandidatePortal() {
       setExam(foundExam);
       console.log("✅ [MTTI Portal] Exam loaded with Column Shielding:", foundExam.id || foundExam.unit_code);
 
-      // Check if this trainee has an existing locked submission for this assessment
+      // Check if this trainee has an existing locked or completed submission for this assessment
       const checkReg = (user?.reg_number || student.regNumber || "").trim().toUpperCase();
-      if (checkReg) {
-        const lockedSub = (submissions || []).find(
-          (s) =>
-            doesSubMatchTargetExam(s, foundExam) &&
-            (s.reg_number?.toUpperCase() === checkReg || (user?.id && s.trainee_id === user.id)) &&
-            s.is_locked &&
-            s.status !== "reopened"
-        );
+      const checkCore = checkReg.match(/\b\d{4,6}\b/)?.[0] || "";
+      const checkUserId = user?.id;
+      const checkName = (user?.name || student.name || "").trim().toUpperCase();
+
+      if (checkReg || checkUserId || checkName) {
+        const lockedSub = (submissions || []).find((s) => {
+          if (!doesSubMatchTargetExam(s, foundExam)) return false;
+
+          const sReg = (s.reg_number || "").trim().toUpperCase();
+          const sCore = sReg.match(/\b\d{4,6}\b/)?.[0] || "";
+          const sName = (s.student_name || "").trim().toUpperCase();
+
+          const isUserMatch =
+            (checkUserId && s.trainee_id === checkUserId) ||
+            (checkReg && (sReg === checkReg || sReg.includes(checkReg) || checkReg.includes(sReg))) ||
+            (checkCore && sCore && checkCore === sCore) ||
+            (checkName && sName === checkName);
+
+          if (!isUserMatch) return false;
+
+          const isDone =
+            (Boolean((s as any).is_locked) || s.status === "submitted" || s.status === "graded") &&
+            s.status !== "reopened";
+
+          return isDone;
+        });
+
         if (lockedSub) {
           setLockedSubmission(lockedSub);
           setStudent({
-            name: lockedSub.student_name,
-            regNumber: lockedSub.reg_number,
+            name: lockedSub.student_name || user?.name || student.name || "",
+            regNumber: lockedSub.reg_number || checkReg,
             cohortCode: user?.cohort_code || "Active Register",
           });
           setState("locked");
@@ -977,15 +996,28 @@ export default function CandidatePortal() {
           );
 
           const checkCandidateLock = (candidateReg: string, candidateName: string, candidateCohort: string): boolean => {
-            const lockedSub = (submissions || []).find(
-              (s) =>
-                doesSubMatchTargetExam(s, exam) &&
-                (s.reg_number?.toUpperCase() === candidateReg.toUpperCase() ||
-                  s.reg_number?.toUpperCase() === normReg ||
-                  s.reg_number?.toUpperCase() === cleanReg) &&
-                s.is_locked &&
-                s.status !== "reopened"
-            );
+            const cleanCandReg = candidateReg.trim().toUpperCase();
+            const candCore = cleanCandReg.match(/\b\d{4,6}\b/)?.[0] || "";
+            const candName = candidateName.trim().toUpperCase();
+
+            const lockedSub = (submissions || []).find((s) => {
+              if (!doesSubMatchTargetExam(s, exam)) return false;
+
+              const sReg = (s.reg_number || "").trim().toUpperCase();
+              const sCore = sReg.match(/\b\d{4,6}\b/)?.[0] || "";
+              const sName = (s.student_name || "").trim().toUpperCase();
+
+              const isIdentityMatch =
+                (user?.id && s.trainee_id === user.id) ||
+                (cleanCandReg && (sReg === cleanCandReg || sReg.includes(cleanCandReg) || cleanCandReg.includes(sReg))) ||
+                (candCore && sCore && candCore === sCore) ||
+                (candName && sName === candName);
+
+              if (!isIdentityMatch) return false;
+
+              return (Boolean((s as any).is_locked) || s.status === "submitted" || s.status === "graded") &&
+                s.status !== "reopened";
+            });
             if (lockedSub) {
               setStudent({
                 name: candidateName,
@@ -1077,15 +1109,21 @@ export default function CandidatePortal() {
         setVerifiedCohort(offlineMatch.classCode);
         setVerificationError(null);
 
-        const lockedSub = (submissions || []).find(
-          (s) =>
-            doesSubMatchTargetExam(s, exam) &&
-            (s.reg_number?.toUpperCase() === regNo.toUpperCase() ||
-              s.reg_number?.toUpperCase() === normReg ||
-              s.reg_number?.toUpperCase() === cleanReg) &&
-            s.is_locked &&
-            s.status !== "reopened"
-        );
+        const lockedSub = (submissions || []).find((s) => {
+          if (!doesSubMatchTargetExam(s, exam)) return false;
+          const sReg = (s.reg_number || "").trim().toUpperCase();
+          const sCore = sReg.match(/\b\d{4,6}\b/)?.[0] || "";
+          const sName = (s.student_name || "").trim().toUpperCase();
+          const isMatch =
+            (user?.id && s.trainee_id === user.id) ||
+            sReg === normReg ||
+            sReg === cleanReg ||
+            (coreReg && sCore && coreReg === sCore) ||
+            (offlineMatch && sName === offlineMatch.name.trim().toUpperCase());
+          if (!isMatch) return false;
+          return (Boolean((s as any).is_locked) || s.status === "submitted" || s.status === "graded") &&
+            s.status !== "reopened";
+        });
         if (lockedSub) {
           setLockedSubmission(lockedSub);
           setState("locked");
@@ -1298,18 +1336,61 @@ export default function CandidatePortal() {
                         <span className="text-xs text-slate-500 font-medium">
                           Class: {ex.payload?.class || "L5/6 Combined"}
                         </span>
-                        {portalStatus.canStart ? (
-                          <button
-                            onClick={() => {
-                              setExam(ex);
-                              setState(ex.payload?.type === "practical" ? "practical" : "registration");
-                            }}
-                            className="px-4 py-2 text-xs font-bold rounded-lg flex items-center gap-1.5 bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition"
-                          >
-                            Start Assessment
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
-                        ) : (
+                        {(() => {
+                          const userRegCheck = (user?.reg_number || student.regNumber || "").trim().toUpperCase();
+                          const userCoreCheck = userRegCheck.match(/\b\d{4,6}\b/)?.[0] || "";
+                          const userNameCheck = (user?.name || student.name || "").trim().toUpperCase();
+
+                          const completedSub = (submissions || []).find((s) => {
+                            if (!doesSubMatchTargetExam(s, ex)) return false;
+                            const sReg = (s.reg_number || "").trim().toUpperCase();
+                            const sCore = sReg.match(/\b\d{4,6}\b/)?.[0] || "";
+                            const sName = (s.student_name || "").trim().toUpperCase();
+
+                            const isUserMatch =
+                              (user?.id && s.trainee_id === user.id) ||
+                              (userRegCheck && (sReg === userRegCheck || sReg.includes(userRegCheck) || userRegCheck.includes(sReg))) ||
+                              (userCoreCheck && sCore && userCoreCheck === sCore) ||
+                              (userNameCheck && sName === userNameCheck);
+
+                            if (!isUserMatch) return false;
+                            return (Boolean((s as any).is_locked) || s.status === "submitted" || s.status === "graded") && s.status !== "reopened";
+                          });
+
+                          if (completedSub) {
+                            return (
+                              <div className="flex items-center gap-2">
+                                <span className="px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-300">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                  Completed & Locked
+                                </span>
+                                <a
+                                  href="/trainee/results"
+                                  className="px-3 py-1.5 text-xs font-bold rounded-lg bg-[#000953] hover:bg-[#000e7a] text-white shadow-xs transition"
+                                >
+                                  View Status
+                                </a>
+                              </div>
+                            );
+                          }
+
+                          if (portalStatus.canStart) {
+                            return (
+                              <button
+                                onClick={() => {
+                                  setExam(ex);
+                                  setState(ex.payload?.type === "practical" ? "practical" : "registration");
+                                }}
+                                className="px-4 py-2 text-xs font-bold rounded-lg flex items-center gap-1.5 bg-[#000953] hover:bg-[#000e7a] text-white shadow-sm transition"
+                              >
+                                Start Assessment
+                                <ChevronRight className="w-3.5 h-3.5" />
+                              </button>
+                            );
+                          }
+
+                          return null;
+                        })() || (
                           <span className="px-3.5 py-2 text-xs font-bold rounded-lg flex items-center gap-1.5 bg-slate-100 text-slate-500 border border-slate-300 cursor-not-allowed">
                             <Lock className="w-3.5 h-3.5" />
                             {portalStatus.state === "scheduled" ? "Scheduled" : "Closed"}

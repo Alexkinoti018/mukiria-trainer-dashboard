@@ -314,25 +314,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const restoreSession = async () => {
       try {
+        let restoredUser: AuthUser | null = null;
+
         if (isSupabaseConfigured()) {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
-          if (session?.user) {
-            const restoredRole = session.user.user_metadata?.role ?? "trainer";
-            setUser({
-              id: session.user.id,
-              email: restoredRole === "trainee" ? undefined : (session.user.email ?? ""),
-              name: session.user.user_metadata?.name ?? "User",
-              role: restoredRole,
-            });
+          try {
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+            if (session?.user) {
+              const restoredRole = session.user.user_metadata?.role ?? "trainer";
+              restoredUser = {
+                id: session.user.id,
+                email: restoredRole === "trainee" ? undefined : (session.user.email ?? ""),
+                name: session.user.user_metadata?.name ?? "User",
+                role: restoredRole,
+              };
+            }
+          } catch (e) {
+            console.warn("Supabase session check notice:", e);
           }
-        } else {
+        }
+
+        // Resilient fallback to local storage session (for trainees & local PIN/token logins)
+        if (!restoredUser) {
           const stored = localStorage.getItem("mtti_demo_session");
           if (stored) {
-            const parsed = JSON.parse(stored) as AuthUser;
-            setUser(parsed);
+            try {
+              restoredUser = JSON.parse(stored) as AuthUser;
+            } catch {
+              localStorage.removeItem("mtti_demo_session");
+            }
           }
+        }
+
+        if (restoredUser) {
+          setUser(restoredUser);
         }
       } catch (err) {
         console.error("❌ [MTTI Auth] Session restore failed:", err);
@@ -356,7 +372,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             role: restoredRole,
           });
         } else {
-          setUser(null);
+          // Do not overwrite local trainee or token session if Supabase Auth is not authenticated
+          const stored = localStorage.getItem("mtti_demo_session");
+          if (!stored) {
+            setUser(null);
+          }
         }
       });
       return () => subscription.unsubscribe();
@@ -743,6 +763,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       localStorage.removeItem("mtti_demo_session");
       localStorage.removeItem("student_demo_session");
+      localStorage.removeItem("mtti_auth_token");
+      localStorage.removeItem("token");
       sessionStorage.removeItem("active_tab");
       setUser(null);
     }
