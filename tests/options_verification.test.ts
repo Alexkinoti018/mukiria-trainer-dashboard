@@ -51,6 +51,7 @@ describe("MTTI TVET Comprehensive Verification & Compliance Audit (Options A, B,
   const initialDBState = JSON.parse(JSON.stringify(DB));
 
   beforeAll(async () => {
+    process.env.ALLOW_DEMO_AUTH = "true";
     app = express();
     app.use(express.json());
     app.use("/api", apiRouter);

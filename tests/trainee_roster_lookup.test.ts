@@ -455,6 +455,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
       process.env.NODE_ENV = "test";
       process.env.STRICT_DB = "false";
       process.env.SUPABASE_JWT_SECRET = TEST_JWT_SECRET;
+    process.env.JWT_SECRET = TEST_JWT_SECRET;
     });
 
     afterAll(() => {
@@ -486,7 +487,20 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     });
 
     it("GET /api/trainees returns active institutional roster with count", async () => {
-      const res = await fetch(`${baseUrl}/trainees`);
+      const trainerToken = createSignedJwt(
+        {
+          sub: "usr-trainer-01",
+          email: "trainer@mtti.ac.ke",
+          role: "trainer",
+          app_metadata: { role: "trainer" },
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        },
+        TEST_JWT_SECRET
+      );
+
+      const res = await fetch(`${baseUrl}/trainees`, {
+        headers: { Authorization: `Bearer ${trainerToken}` },
+      });
       expect(res.status).toBe(200);
 
       const json = await res.json();
@@ -497,7 +511,20 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     });
 
     it("GET /api/trainees filters accurately by class_code or cohort", async () => {
-      const res = await fetch(`${baseUrl}/trainees?class_code=ITECH 6 MODULAR/S/2026`);
+      const trainerToken = createSignedJwt(
+        {
+          sub: "usr-trainer-01",
+          email: "trainer@mtti.ac.ke",
+          role: "trainer",
+          app_metadata: { role: "trainer" },
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        },
+        TEST_JWT_SECRET
+      );
+
+      const res = await fetch(`${baseUrl}/trainees?class_code=ITECH 6 MODULAR/S/2026`, {
+        headers: { Authorization: `Bearer ${trainerToken}` },
+      });
       expect(res.status).toBe(200);
 
       const json = await res.json();
@@ -511,8 +538,9 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     it("PUT /api/trainees/:id updates trainee record when called by authorized role", async () => {
       const trainerToken = createSignedJwt(
         {
-          sub: "trainer-uuid-001",
+          sub: "usr-trainer-01",
           email: "trainer@mtti.ac.ke",
+          role: "trainer",
           app_metadata: { role: "trainer" },
           exp: Math.floor(Date.now() / 1000) + 3600,
         },
@@ -540,8 +568,9 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     it("PUT /api/trainees/:id rejects trainee role with HTTP 403 Forbidden", async () => {
       const traineeToken = createSignedJwt(
         {
-          sub: "trainee-uuid-002",
+          sub: "usr-1793267499410-1cc05",
           email: "trainee@mtti.ac.ke",
+          role: "trainee",
           app_metadata: { role: "trainee" },
           exp: Math.floor(Date.now() / 1000) + 3600,
         },
@@ -565,8 +594,9 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     it("DELETE /api/trainees/:id rejects trainee role with HTTP 403 Forbidden", async () => {
       const traineeToken = createSignedJwt(
         {
-          sub: "trainee-uuid-002",
+          sub: "usr-1793267499410-1cc05",
           email: "trainee@mtti.ac.ke",
+          role: "trainee",
           app_metadata: { role: "trainee" },
           exp: Math.floor(Date.now() / 1000) + 3600,
         },
@@ -586,8 +616,9 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     it("DELETE /api/trainees/:id allows admin role to securely remove trainee", async () => {
       const adminToken = createSignedJwt(
         {
-          sub: "admin-uuid-001",
+          sub: "usr-admin-01",
           email: "admin@mtti.ac.ke",
+          role: "admin",
           app_metadata: { role: "admin" },
           exp: Math.floor(Date.now() / 1000) + 3600,
         },
@@ -612,8 +643,9 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
 
       const adminToken = createSignedJwt(
         {
-          sub: "admin-uuid-001",
+          sub: "usr-admin-01",
           email: "admin@mtti.ac.ke",
+          role: "admin",
           app_metadata: { role: "admin" },
           exp: Math.floor(Date.now() / 1000) + 3600,
         },
@@ -621,7 +653,9 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
       );
 
       // GET /api/trainees under STRICT_DB should return 503
-      const getRes = await fetch(`${baseUrl}/trainees`);
+      const getRes = await fetch(`${baseUrl}/trainees`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
       expect(getRes.status).toBe(503);
       const getJson = await getRes.json();
       expect(getJson.service_status).toBe("database_unavailable");

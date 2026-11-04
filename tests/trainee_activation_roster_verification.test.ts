@@ -157,7 +157,7 @@ describe("Roster-Verified Trainee Account Activation & Lookup Suite", () => {
       const loginData = await loginRes.json();
       expect(loginData.success).toBe(true);
       expect(loginData.token).toBeDefined();
-      expect(loginData.user.role).toBe("TRAINEE");
+      expect(loginData.user.role).toBe("trainee");
       expect(loginData.user.admission_number).toBe(testAdmNo);
     });
 

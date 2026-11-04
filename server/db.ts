@@ -35,6 +35,17 @@ const SUBMISSIONS_FILE = getFixturePath("submissions.json");
 const ASSESSMENT_EVIDENCE_FILE = getFixturePath("assessment_evidence.json");
 const USERS_FILE = getFixturePath("users.json");
 
+export class DatabaseUnavailableError extends Error {
+  status: number;
+  statusCode: number;
+  constructor(message = "Authentication database is temporarily unavailable") {
+    super(message);
+    this.name = "DatabaseUnavailableError";
+    this.status = 503;
+    this.statusCode = 503;
+  }
+}
+
 export class DatabaseServiceUnavailableError extends Error {
   status = 503;
   statusCode = 503;
@@ -200,6 +211,7 @@ export interface UserRecord {
   email: string;
   password_hash: string;
   role: "TRAINEE" | "TRAINER" | "HOD" | "ADMIN" | string;
+  profile_id?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -297,6 +309,94 @@ export function savePersistentUsers(records: UserRecord[]): void {
   }
 }
 
+
+export async function findUserById(id: string): Promise<UserRecord | null> {
+  const normId = (id || "").trim();
+  if (!normId) return null;
+
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      const res = await pool.query(
+        `SELECT id, email, phone_number, full_name, admission_number, password_hash, role, profile_id, created_at, updated_at
+         FROM users WHERE id = $1 LIMIT 1`,
+        [normId]
+      );
+      if (res.rows.length > 0) return res.rows[0];
+      return null;
+    } catch (err: any) {
+      if (process.env.NODE_ENV === "production") {
+        throw new DatabaseUnavailableError("PostgreSQL database unavailable in production mode");
+      }
+      console.warn("⚠️ [PostgreSQL findUserById Warning]:", err.message);
+    }
+  } else if (process.env.NODE_ENV === "production") {
+    throw new DatabaseUnavailableError("PostgreSQL database pool unavailable in production mode");
+  }
+
+  const users = loadPersistentUsers();
+  const match = [...users].reverse().find((u) => u.id === normId);
+  return match || null;
+}
+
+export async function updateUserProfileId(userId: string, profileId: string): Promise<void> {
+  const normUserId = (userId || "").trim();
+  const normProfileId = (profileId || "").trim();
+  if (!normUserId || !normProfileId) return;
+
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      await pool.query("UPDATE users SET profile_id = $1 WHERE id = $2", [normProfileId, normUserId]);
+    } catch (err: any) {
+      console.warn("⚠️ [PostgreSQL updateUserProfileId Warning]:", err.message);
+    }
+  }
+
+  const users = loadPersistentUsers();
+  const user = users.find((u) => u.id === normUserId);
+  if (user) {
+    user.profile_id = normProfileId;
+    savePersistentUsers(users);
+  }
+}
+
+export async function loadDatabaseTrainers(): Promise<Array<{ id: string; name: string; email?: string; assigned_units?: string[] }>> {
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      const res = await pool.query("SELECT id, name, email FROM Trainers");
+      if (res.rows.length > 0) {
+        return res.rows;
+      }
+    } catch (err: any) {
+      // fallback
+    }
+  }
+  return [
+    { id: "trainer-001", name: "Dr. J. Muriithi", email: "trainer@mtti.ac.ke", assigned_units: ["ICT/CU/IT/CR/6/6", "061155101A"] },
+    { id: "trainer-002", name: "Alexander Kinoti", email: "kinoti@mtti.ac.ke", assigned_units: ["ICT/OS/IT/CR/1/6"] },
+  ];
+}
+
+export async function loadDatabaseDepartments(): Promise<Array<{ id: string; name: string; code: string; hod_id: string; hod_email?: string }>> {
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      const res = await pool.query("SELECT id, name, code, hod_id, hod_email FROM Departments");
+      if (res.rows.length > 0) {
+        return res.rows;
+      }
+    } catch (err: any) {
+      // fallback
+    }
+  }
+  return [
+    { id: "dept-ci", name: "Computing & Informatics", code: "CI", hod_id: "hod-001", hod_email: "hod.ci@mtti.ac.ke" },
+    { id: "dept-ee", name: "Electrical & Electronics", code: "EE", hod_id: "hod-002", hod_email: "hod.ee@mtti.ac.ke" },
+  ];
+}
+
 export async function findUserByEmail(email: string): Promise<UserRecord | null> {
   const normEmail = (email || "").trim().toLowerCase();
   if (!normEmail) return null;
@@ -314,7 +414,7 @@ export async function findUserByEmail(email: string): Promise<UserRecord | null>
   }
 
   const users = loadPersistentUsers();
-  const match = users.find((u) => (u.email || "").trim().toLowerCase() === normEmail);
+  const match = [...users].reverse().find((u) => (u.email || "").trim().toLowerCase() === normEmail);
   return match || null;
 }
 
@@ -335,9 +435,7 @@ export async function findUserByAdmissionNumber(admissionNumber: string): Promis
   }
 
   const users = loadPersistentUsers();
-  const match = users.find(
-    (u) => (u.admission_number || "").trim().toLowerCase() === normAdm
-  );
+  const match = [...users].reverse().find((u) => (u.admission_number || "").trim().toLowerCase() === normAdm);
   return match || null;
 }
 
@@ -371,12 +469,7 @@ export async function findUserByEmailOrAdmission(identifier: string): Promise<Us
   }
 
   const users = loadPersistentUsers();
-  const match = users.find(
-    (u) =>
-      (u.email || "").trim().toLowerCase() === norm ||
-      (u.email || "").trim().toLowerCase() === targetEmail ||
-      (u.admission_number && u.admission_number.trim().toLowerCase() === norm)
-  );
+  const match = [...users].reverse().find((u) => (u.email || "").trim().toLowerCase() === norm || (u.email || "").trim().toLowerCase() === targetEmail || (u.admission_number && u.admission_number.trim().toLowerCase() === norm));
   return match || null;
 }
 
@@ -388,9 +481,45 @@ export async function createUser(data: {
   email: string;
   password_hash: string;
   role: "TRAINEE" | "TRAINER" | "HOD" | "ADMIN" | string;
+  profile_id?: string | null;
 }): Promise<UserRecord> {
   const newId = data.id || `usr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const now = new Date().toISOString();
+  let resolvedProfileId: string | null = null;
+  const normRole = (data.role || "").toUpperCase();
+
+  if (data.profile_id !== undefined) {
+    resolvedProfileId = data.profile_id ? data.profile_id.trim() : null;
+  } else {
+    if (normRole === "TRAINEE" && data.admission_number) {
+      const cleanAdm = data.admission_number.trim();
+      const trainees = loadPersistentTrainees();
+      const existing = trainees.find(t => (t.reg_number || t.adm_no || "").trim().toUpperCase() === cleanAdm.toUpperCase());
+      if (existing) {
+        resolvedProfileId = existing.id;
+      } else {
+        resolvedProfileId = `trainee-${cleanAdm}`;
+        trainees.push({
+          id: resolvedProfileId,
+          name: data.full_name.trim(),
+          reg_number: cleanAdm,
+          adm_no: cleanAdm,
+          reg_code: cleanAdm,
+          created_at: now,
+          updated_at: now,
+        });
+        savePersistentTrainees(trainees);
+      }
+    } else if (normRole === "TRAINER" && data.email) {
+      const cleanEmail = data.email.trim().toLowerCase();
+      if (cleanEmail === "trainer@mtti.ac.ke") resolvedProfileId = "trainer-001";
+      else if (cleanEmail.includes("kinoti")) resolvedProfileId = "trainer-002";
+      else resolvedProfileId = `trainer-${newId}`;
+    } else if (normRole === "ADMIN") {
+      resolvedProfileId = newId;
+    }
+  }
+
   const userRecord: UserRecord = {
     id: newId,
     admission_number: data.admission_number ? data.admission_number.trim() : null,
@@ -398,7 +527,8 @@ export async function createUser(data: {
     full_name: data.full_name.trim(),
     email: data.email.trim().toLowerCase(),
     password_hash: data.password_hash,
-    role: data.role.toUpperCase(),
+    role: normRole,
+    profile_id: resolvedProfileId,
     created_at: now,
     updated_at: now,
   };
@@ -406,8 +536,8 @@ export async function createUser(data: {
   if (pool) {
     try {
       const res = await pool.query(
-        `INSERT INTO users (id, admission_number, phone_number, full_name, email, password_hash, role, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        `INSERT INTO users (id, admission_number, phone_number, full_name, email, password_hash, role, profile_id, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          RETURNING *`,
         [
           userRecord.id,
@@ -417,6 +547,7 @@ export async function createUser(data: {
           userRecord.email,
           userRecord.password_hash,
           userRecord.role,
+          userRecord.profile_id,
           userRecord.created_at,
           userRecord.updated_at,
         ]

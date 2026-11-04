@@ -3,6 +3,7 @@ import express from "express";
 import type { Server } from "http";
 import type { AddressInfo } from "net";
 import { apiRouter, DB } from "../server/routes.ts";
+import { createUser } from "../server/db.ts";
 import { createSignedJwt, getJwtSecret } from "../server/auth.ts";
 
 describe("Trainee Exam Lockdown & Session Resilience Suite", () => {
@@ -58,6 +59,16 @@ describe("Trainee Exam Lockdown & Session Resilience Suite", () => {
     );
     const existingExamIdx = DB.exams.findIndex((e) => e.id === testExam.id);
     if (existingExamIdx >= 0) DB.exams.splice(existingExamIdx, 1);
+
+    await createUser({
+      id: testTrainee.id,
+      admission_number: testTrainee.reg_number,
+      full_name: testTrainee.name,
+      email: testTrainee.email,
+      password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry",
+      role: "TRAINEE",
+      profile_id: testTrainee.id,
+    });
 
     const secret = getJwtSecret();
     traineeToken = createSignedJwt({

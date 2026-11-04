@@ -16,6 +16,7 @@ describe("Phases 4 & 5: Server Hardening & Payload Validation Suite", () => {
   let baseUrl: string;
 
   beforeAll(async () => {
+    process.env.ALLOW_DEMO_AUTH = "true";
     app = express();
     app.use(securityHeaders);
     app.use(corsMiddleware);

@@ -167,16 +167,14 @@ export function validateServerEnv(options: { strict?: boolean } = {}): EnvValida
     }
   }
 
-  if (isProduction && authMode === "demo" && !allowDemoAuth) {
-    warnings.push(
-      "⚠️ [MTTI Auth Guard]: AUTH_MODE=demo running in production without explicit ALLOW_DEMO_AUTH=true."
-    );
-  }
-
-  if (isProduction && authMode === "supabase" && !jwtSecret) {
-    warnings.push(
-      "⚠️ [MTTI Auth Guard]: SUPABASE_JWT_SECRET is not configured in production mode. Asymmetric / remote verification required."
-    );
+  const actualJwtSecret = readEnv("JWT_SECRET") || readEnv("SUPABASE_JWT_SECRET");
+  if (isProduction) {
+    if (allowDemoAuth) {
+      errors.push("FATAL: ALLOW_DEMO_AUTH is strictly forbidden in production mode.");
+    }
+    if (!actualJwtSecret || actualJwtSecret.length < 32) {
+      errors.push("FATAL: JWT_SECRET must be configured and at least 32 characters in production mode.");
+    }
   }
 
   const valid = errors.length === 0;

@@ -17,6 +17,7 @@ describe("Admin Dashboard UI Runtime & Roster Management Verification", () => {
   let baseUrl: string;
 
   beforeAll(async () => {
+    process.env.ALLOW_DEMO_AUTH = "true";
     app = express();
     app.use(express.json());
     app.use("/api", apiRouter);

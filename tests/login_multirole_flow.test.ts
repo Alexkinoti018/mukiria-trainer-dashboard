@@ -68,7 +68,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       expect(data.token).toBeDefined();
       expect(typeof data.token).toBe("string");
       expect(data.user.admission_number).toBe(testAdmNo);
-      expect(data.user.role).toBe("TRAINEE");
+      expect(data.user.role).toBe("trainee");
 
       // Verify destination mapping for Trainee is /trainee/exam
       const targetDestination = data.user.role.toLowerCase() === "trainee" ? "/trainee/exam" : "/trainer/dashboard";
@@ -98,7 +98,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       expect(res.status).toBe(200);
       const data = await res.json();
       expect(data.user.admission_number).toBe(tvetAdm);
-      expect(data.user.role).toBe("TRAINEE");
+      expect(data.user.role).toBe("trainee");
     });
   });
 
@@ -118,7 +118,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       const data = await res.json();
       expect(data.success).toBe(true);
       expect(data.user.email).toBe("admin@mtti.ac.ke");
-      expect(data.user.role).toBe("ADMIN");
+      expect(data.user.role).toBe("admin");
 
       // Role-Based Redirection: Admins/HODs route to /admin/roster
       const targetDestination = ["admin", "hod"].includes(data.user.role.toLowerCase())
@@ -141,7 +141,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       const data = await res.json();
       expect(data.success).toBe(true);
       expect(data.user.email).toBe("hod.ci@mtti.ac.ke");
-      expect(data.user.role).toBe("HOD");
+      expect(data.user.role).toBe("hod");
 
       const targetDestination = ["admin", "hod"].includes(data.user.role.toLowerCase())
         ? "/admin/roster"
@@ -163,7 +163,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       const data = await res.json();
       expect(data.success).toBe(true);
       expect(data.user.email).toBe("trainer@mtti.ac.ke");
-      expect(data.user.role).toBe("TRAINER");
+      expect(data.user.role).toBe("trainer");
 
       const targetDestination = data.user.role.toLowerCase() === "trainer"
         ? "/trainer/dashboard"
@@ -216,7 +216,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       const loginData = await loginRes.json();
       expect(loginData.token).toBeDefined();
       expect(loginData.user.admission_number).toBe(newAdm);
-      expect(loginData.user.role).toBe("TRAINEE");
+      expect(loginData.user.role).toBe("trainee");
     });
   });
 
