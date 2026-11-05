@@ -1024,6 +1024,49 @@ describe("Phase 1 Acceptance Suite: Cryptographic Auth Core, ID Mapping & RBAC",
         expect(data.error).toContain("already registered");
       });
 
+      it("rejects duplicate registration of admission number '23505' with HTTP 409 Conflict", async () => {
+        const adm = "23505";
+        const profileId = "trainee-23505";
+        const trainees = loadPersistentTrainees();
+        if (!trainees.some(t => t.id === profileId)) {
+          trainees.push({
+            id: profileId,
+            name: "Candidate 23505",
+            reg_number: adm,
+            adm_no: adm,
+            reg_code: adm,
+            department: "Computing & Informatics",
+          });
+          savePersistentTrainees(trainees);
+        }
+
+        const existing = await findUserByAdmissionNumber(adm);
+        if (!existing) {
+          await createUser({
+            admission_number: adm,
+            full_name: "Candidate 23505",
+            email: `candidate_23505_${Date.now()}@mtti.ac.ke`,
+            password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry",
+            role: "trainee",
+            profile_id: profileId,
+          });
+        }
+
+        const res = await fetch(`${baseUrl}/auth/register-trainee`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fullName: "Duplicate Candidate 23505",
+            admissionNumber: "23505",
+            email: `dup_23505_${Date.now()}@mtti.ac.ke`,
+            password: "SecurePassword@2026!",
+          }),
+        });
+        expect(res.status).toBe(409);
+        const data = await res.json();
+        expect(data.error).toMatch(/already registered|already claimed/i);
+      });
+
       it("allows registration of a valid unclaimed roster candidate with profile_id set (HTTP 201)", async () => {
         const unclaimedAdm = `UNCLAIMED_${Date.now()}`;
         const unclaimedProfileId = `trainee-unclaimed-${Date.now()}`;

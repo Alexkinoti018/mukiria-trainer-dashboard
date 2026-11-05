@@ -208,7 +208,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       expect(regRes.status).toBe(201);
       const regData = await regRes.json();
       expect(regData.success).toBe(true);
-      expect(regData.user.role).toBe("TRAINEE");
+      expect(regData.user.role).toBe("trainee");
 
       // Verify password was salted & hashed in the database
       const dbUser = await findUserByAdmissionNumber(newAdm);

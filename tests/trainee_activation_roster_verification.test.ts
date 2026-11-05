@@ -153,7 +153,7 @@ describe("Roster-Verified Trainee Account Activation & Lookup Suite", () => {
       expect(data.success).toBe(true);
       expect(data.user.admission_number).toBe(testAdmNo);
       // Strictly enforced role
-      expect(data.user.role).toBe("TRAINEE");
+      expect(data.user.role).toBe("trainee");
       expect(data.user.password_hash).toBeUndefined(); // Zero plain-text / hash leak
     });
 

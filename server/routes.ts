@@ -710,7 +710,7 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
             phone_number: existingUser.phone_number,
             full_name: existingUser.full_name,
             email: existingUser.email,
-            role: "TRAINEE",
+            role: "trainee",
             profile_id: existingUser.profile_id,
             created_at: existingUser.created_at,
           },
@@ -750,7 +750,7 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
         phone_number: created.phone_number,
         full_name: created.full_name,
         email: created.email,
-        role: "TRAINEE",
+        role: "trainee",
         profile_id: created.profile_id,
         created_at: created.created_at,
       },
@@ -1643,8 +1643,13 @@ apiRouter.post("/attendance/mark", async (req: AuthenticatedRequest, res: Respon
       status = "present",
       hours_attended = 2.0,
       remarks = "",
-      marked_by = req.user?.id || "trainer-002",
     } = req.body;
+
+    const marked_by = req.user?.profile_id;
+    if (!marked_by) {
+      res.status(401).json({ error: "Unauthorized: Active faculty identity required to record attendance" });
+      return;
+    }
 
     if (!trainee_id) {
       res.status(400).json({ error: "Missing trainee_id parameter." });
@@ -2317,7 +2322,7 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: Aut
     const studentNameExisting = user.name || existingSub.student_name || "Enrolled Trainee";
     if (studentRegExisting && !DB.trainees.some(t => t.reg_number === studentRegExisting)) {
       DB.trainees.push({
-        id: user.id || `trainee-${studentRegExisting}`,
+        id: user.profile_id,
         name: studentNameExisting,
         reg_number: studentRegExisting,
         class_id: (user as any).cohort_code || "class-itech-6",
@@ -2360,7 +2365,7 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: Aut
   const studentNameNew = user.name || newSub.student_name || "Enrolled Trainee";
   if (studentRegNew && !DB.trainees.some(t => t.reg_number === studentRegNew)) {
     DB.trainees.push({
-      id: user.id || `trainee-${studentRegNew}`,
+      id: user.profile_id,
       name: studentNameNew,
       reg_number: studentRegNew,
       class_id: (user as any).cohort_code || "class-itech-6",
