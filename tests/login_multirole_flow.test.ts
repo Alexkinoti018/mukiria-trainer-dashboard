@@ -9,6 +9,8 @@ import {
   findUserByAdmissionNumber,
   createUser,
   loadPersistentUsers,
+  loadPersistentTrainees,
+  savePersistentTrainees,
 } from "../server/db.ts";
 
 describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
@@ -178,6 +180,17 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       const newAdm = `ADM_${Date.now()}`;
       const newEmail = `trainee_${Date.now()}@mtti.ac.ke`;
       const pass = "NewTraineeSecure@2026";
+
+      const trainees = loadPersistentTrainees();
+      trainees.push({
+        id: `trainee-${newAdm}`,
+        name: "Brendah Mumbi",
+        reg_number: newAdm,
+        adm_no: newAdm,
+        reg_code: newAdm,
+        department: "Computing & Informatics",
+      });
+      savePersistentTrainees(trainees);
 
       // 1. Register Trainee
       const regRes = await fetch(`${baseUrl}/auth/register-trainee`, {

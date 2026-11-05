@@ -11,6 +11,8 @@ import {
   findUserByEmailOrAdmission,
   loadPersistentUsers,
   createUser,
+  loadPersistentTrainees,
+  savePersistentTrainees,
 } from "../server/db.ts";
 
 describe("Unified User Management, Secure Authentication, and RBAC Suite", () => {
@@ -84,6 +86,31 @@ describe("Unified User Management, Secure Authentication, and RBAC Suite", () =>
   describe("2. Trainee Registration Endpoint (POST /api/auth/register-trainee)", () => {
     const testTraineeAdm = `ADM${Date.now()}`;
     const testTraineeEmail = `trainee_${Date.now()}@mtti.ac.ke`;
+    const maliciousAdm = `HACK_${Date.now()}`;
+    const maliciousEmail = `hack_${Date.now()}@mtti.ac.ke`;
+
+    beforeAll(() => {
+      const trainees = loadPersistentTrainees();
+      trainees.push(
+        {
+          id: `trainee-${testTraineeAdm}`,
+          name: "Brian Kiprono",
+          reg_number: testTraineeAdm,
+          adm_no: testTraineeAdm,
+          reg_code: testTraineeAdm,
+          department: "Computing & Informatics",
+        },
+        {
+          id: `trainee-${maliciousAdm}`,
+          name: "Escalation Attempt",
+          reg_number: maliciousAdm,
+          adm_no: maliciousAdm,
+          reg_code: maliciousAdm,
+          department: "Computing & Informatics",
+        }
+      );
+      savePersistentTrainees(trainees);
+    });
 
     it("should reject registration requests with missing required fields (HTTP 400)", async () => {
       const res = await fetch(`${baseUrl}/auth/register-trainee`, {
@@ -151,9 +178,6 @@ describe("Unified User Management, Secure Authentication, and RBAC Suite", () =>
     });
 
     it("should strictly enforce zero privilege escalation by forcing role to TRAINEE even if caller specifies ADMIN (HTTP 201)", async () => {
-      const maliciousAdm = `HACK_${Date.now()}`;
-      const maliciousEmail = `hack_${Date.now()}@mtti.ac.ke`;
-
       const res = await fetch(`${baseUrl}/auth/register-trainee`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

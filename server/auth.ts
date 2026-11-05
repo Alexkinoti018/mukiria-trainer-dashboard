@@ -10,6 +10,7 @@ import {
   findUserById,
   updateUserProfileId,
   loadPersistentTrainees,
+  loadDatabaseTrainees,
   loadDatabaseTrainers,
   loadDatabaseDepartments,
   DatabaseUnavailableError,
@@ -57,14 +58,18 @@ export const FORBIDDEN_PRODUCTION_SECRETS = new Set([
 ]);
 
 /**
- * Evaluates whether current runtime must enforce secure production invariants.
- * Secure-by-default: unset (empty string or undefined), "staging", and "production"
- * strictly enforce production cryptographic and authentication invariants.
- * Only explicit "test" or local development without staging enforce non-production.
+ * Evaluates whether current runtime is in relaxed mode.
+ * Relaxed mode applies ONLY when NODE_ENV is strictly "development" or "test".
+ * Everything else (unset/undefined, empty string, "staging", "prod", "Production", "preview", "qa", etc.)
+ * strictly enforces production cryptographic, authentication, and database invariants.
  */
-export function isSecureProductionMode(): boolean {
+export function isRelaxedMode(): boolean {
   const env = (process.env.NODE_ENV || "").trim().toLowerCase();
-  return env === "production" || env === "staging" || env === "";
+  return env === "development" || env === "test";
+}
+
+export function isSecureProductionMode(): boolean {
+  return !isRelaxedMode();
 }
 
 /**
@@ -237,36 +242,81 @@ export async function verifyToken(token: string): Promise<{ sub: string; role: R
 }
 
 /**
+ * Positive verification that a resolved profile_id exists in the authoritative domain table for the given role.
+ * Applied on EVERY hydration (persisted or dynamic) to prevent any privilege escalation or corrupted linkage.
+ */
+export async function validateRoleProfileLink(
+  role: Role,
+  profileId: string,
+  userId: string
+): Promise<{ error?: string; status?: number }> {
+  if (role === "admin") {
+    if (profileId !== userId) {
+      return { error: "Forbidden: Admin profile must anchor directly to user id", status: 403 };
+    }
+    return {};
+  }
+
+  if (role === "trainee") {
+    if (
+      profileId.startsWith("trainer-") ||
+      profileId.startsWith("hod-") ||
+      profileId.startsWith("admin-")
+    ) {
+      return { error: "Forbidden: Trainee account profile cannot reference staff or administrative records", status: 403 };
+    }
+    const trainers = await loadDatabaseTrainers();
+    if (trainers.some((t) => t.id === profileId)) {
+      return { error: "Forbidden: Trainee account profile cannot reference trainer records", status: 403 };
+    }
+    const trainees = await loadDatabaseTrainees();
+    const exists = trainees.some((t) => t.id === profileId);
+    if (!exists) {
+      return { error: "Forbidden: Trainee academic profile does not exist in roster", status: 403 };
+    }
+    return {};
+  }
+
+  if (role === "trainer") {
+    if (profileId.startsWith("trainee-") || profileId.startsWith("admin-")) {
+      return { error: "Forbidden: Trainer account profile cannot reference trainee or administrative records", status: 403 };
+    }
+    const trainers = await loadDatabaseTrainers();
+    const exists = trainers.some((t) => t.id === profileId);
+    if (!exists) {
+      return { error: "Forbidden: Trainer profile does not exist in faculty registry", status: 403 };
+    }
+    return {};
+  }
+
+  if (role === "hod") {
+    if (profileId.startsWith("trainee-") || profileId.startsWith("admin-")) {
+      return { error: "Forbidden: HOD account profile cannot reference trainee records", status: 403 };
+    }
+    const depts = await loadDatabaseDepartments();
+    const exists = depts.some((d) => d.hod_id === profileId);
+    if (!exists) {
+      return { error: "Forbidden: HOD profile does not match any departmental head", status: 403 };
+    }
+    return {};
+  }
+
+  return { error: "Forbidden: Unrecognized role for profile validation", status: 403 };
+}
+
+/**
  * Resolves a user's domain profile_id from persisted user record or dynamic directory resolution.
  */
 export async function resolveProfileId(
   user: UserRecord
 ): Promise<{ profileId?: string; error?: string; status?: number }> {
-  const role = String(user.role || "").trim().toLowerCase();
+  const role = String(user.role || "").trim().toLowerCase() as Role;
 
-  // 1. Persisted link check with strict role-to-profile type validation
+  // 1. Persisted link check with positive role-to-profile existence validation
   if (user.profile_id) {
-    const pid = user.profile_id;
-    if (role === "trainee") {
-      if (
-        pid.startsWith("trainer-") ||
-        pid.startsWith("hod-") ||
-        pid.startsWith("admin-")
-      ) {
-        return { error: "Forbidden: Trainee account profile cannot reference staff or administrative records", status: 403 };
-      }
-      const trainers = await loadDatabaseTrainers();
-      if (trainers.some((t) => t.id === pid)) {
-        return { error: "Forbidden: Trainee account profile cannot reference trainer records", status: 403 };
-      }
-    } else if (role === "trainer") {
-      if (pid.startsWith("trainee-") || pid.startsWith("admin-")) {
-        return { error: "Forbidden: Trainer account profile cannot reference trainee or administrative records", status: 403 };
-      }
-    } else if (role === "hod") {
-      if (pid.startsWith("trainee-") || pid.startsWith("admin-")) {
-        return { error: "Forbidden: HOD account profile cannot reference trainee records", status: 403 };
-      }
+    const val = await validateRoleProfileLink(role, user.profile_id, user.id);
+    if (val.error) {
+      return { error: val.error, status: val.status || 403 };
     }
     return { profileId: user.profile_id };
   }
@@ -283,19 +333,9 @@ export async function resolveProfileId(
       return { error: "User account has no associated active academic profile", status: 403 };
     }
 
-    const persistentTrainees = loadPersistentTrainees();
-    const memoryTrainees = [
-      { id: "trainee-001", name: "Nthiga Gakii Doris", reg_number: "14179/S2026", adm_no: "14179/S2026", reg_code: "14179/S2026" },
-      { id: "trainee-10525", name: "Alex Kinoti", reg_number: "10525", adm_no: "10525", reg_code: "10525" },
-      { id: "trainee-002", name: "Harriet Mwendwa", reg_number: "10526", adm_no: "10526", reg_code: "10526" },
-      { id: "trainee-003", name: "Other Student", reg_number: "99999", adm_no: "99999", reg_code: "99999" },
-    ];
-    const trainees = [
-      ...persistentTrainees,
-      ...memoryTrainees.filter((m) => !persistentTrainees.some((p) => p.id === m.id || normalizeAdmissionIdentifier(p.reg_number) === normalizeAdmissionIdentifier(m.reg_number))),
-    ];
+    const trainees = await loadDatabaseTrainees();
 
-    // MATCH SET REMOVAL: Only normReg, normNo, normCode. t.id is strictly EXCLUDED!
+    // MATCH SET: Only normReg, normNo, normCode. t.id is strictly EXCLUDED!
     const matches = trainees.filter((t) => {
       const normReg = normalizeAdmissionIdentifier(t.reg_number);
       const normNo = normalizeAdmissionIdentifier(t.adm_no);
@@ -304,7 +344,6 @@ export async function resolveProfileId(
     });
 
     if (matches.length > 1) {
-      // Log sanitized security incident (user id, count, and matched IDs only)
       console.error(
         JSON.stringify({
           event: "SECURITY_AMBIGUOUS_PROFILE_MATCH",
@@ -321,7 +360,12 @@ export async function resolveProfileId(
     }
 
     const matchedId = matches[0].id;
-    // Persist link asynchronously
+    const val = await validateRoleProfileLink(role, matchedId, user.id);
+    if (val.error) {
+      return { error: val.error, status: val.status || 403 };
+    }
+
+    // Persist link asynchronously with conditional update
     updateUserProfileId(user.id, matchedId).catch(() => {});
     return { profileId: matchedId };
   }
@@ -353,6 +397,11 @@ export async function resolveProfileId(
     }
 
     const matchedId = matches[0].id;
+    const val = await validateRoleProfileLink(role, matchedId, user.id);
+    if (val.error) {
+      return { error: val.error, status: val.status || 403 };
+    }
+
     updateUserProfileId(user.id, matchedId).catch(() => {});
     return { profileId: matchedId };
   }
@@ -365,8 +414,18 @@ export async function resolveProfileId(
 
     if (matches.length === 1) {
       const matchedId = matches[0].hod_id;
+      const val = await validateRoleProfileLink(role, matchedId, user.id);
+      if (val.error) {
+        return { error: val.error, status: val.status || 403 };
+      }
       updateUserProfileId(user.id, matchedId).catch(() => {});
       return { profileId: matchedId };
+    }
+
+    // Check default HOD link
+    const val = await validateRoleProfileLink(role, "hod-001", user.id);
+    if (val.error) {
+      return { error: val.error, status: val.status || 403 };
     }
     return { profileId: "hod-001" };
   }
@@ -407,6 +466,13 @@ export async function hydrateUserProfile(
   }
 
   const profileId = resolution.profileId;
+
+  // 5. Positive Role-to-Profile verification check on EVERY hydration
+  const linkCheck = await validateRoleProfileLink(dbRole, profileId, userRec.id);
+  if (linkCheck.error) {
+    return { error: linkCheck.error, status: linkCheck.status || 403 };
+  }
+
   let name = userRec.full_name || `User ${sub}`;
   let email = userRec.email;
   let admNo = userRec.admission_number;
@@ -415,8 +481,8 @@ export async function hydrateUserProfile(
   let enrolledUnits: string[] | undefined;
 
   if (dbRole === "trainee") {
-    const persistentTrainees = loadPersistentTrainees();
-    const matchedTrainee = persistentTrainees.find((t) => t.id === profileId);
+    const trainees = await loadDatabaseTrainees();
+    const matchedTrainee = trainees.find((t) => t.id === profileId);
     departmentId = matchedTrainee?.department || "dept-ci";
     enrolledUnits = ["061155101A", "ICT/CU/IT/CR/6/6"];
   } else if (dbRole === "trainer") {

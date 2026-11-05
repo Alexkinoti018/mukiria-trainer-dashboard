@@ -16,6 +16,10 @@ import {
   isSelf,
   isAssignedTrainer,
   invalidateUserProfileCache,
+  isRelaxedMode,
+  isSecureProductionMode,
+  validateRoleProfileLink,
+  hydrateUserProfile,
 } from "../server/auth.ts";
 import {
   createUser,
@@ -25,6 +29,8 @@ import {
   loadPersistentTrainees,
   savePersistentTrainees,
   loadPersistentAttendance,
+  loadDatabaseTrainees,
+  isSecureProductionRuntime,
 } from "../server/db.ts";
 import { loginAs } from "./test_auth_helpers.ts";
 
@@ -813,7 +819,7 @@ describe("Phase 1 Acceptance Suite: Cryptographic Auth Core, ID Mapping & RBAC",
       expect(currentAttendance.length).toBe(initialCount);
     });
 
-    it("registering with an internal trainee id (e.g. 'TRAINEE-001') yields no profile (403 on protected routes)", async () => {
+    it("registering with an internal trainee id (e.g. 'TRAINEE-001') yields HTTP 403 Forbidden", async () => {
       const uniqueEmail = `internal_id_${Date.now()}@mtti.ac.ke`;
       const internalAdm = `TRAINEE-${Date.now()}`;
       const regRes = await fetch(`${baseUrl}/auth/register-trainee`, {
@@ -826,24 +832,9 @@ describe("Phase 1 Acceptance Suite: Cryptographic Auth Core, ID Mapping & RBAC",
           password: "AttackerPassword@2026!",
         }),
       });
-      expect([201, 403]).toContain(regRes.status);
-
-      if (regRes.status === 201) {
-        const loginRes = await fetch(`${baseUrl}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ identifier: uniqueEmail, password: "AttackerPassword@2026!" }),
-        });
-        expect(loginRes.status).toBe(200);
-        const { token } = await loginRes.json();
-
-        const protectedRes = await fetch(`${baseUrl}/test-auth/open-protected`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        expect(protectedRes.status).toBe(403);
-        const data = await protectedRes.json();
-        expect(data.error).toMatch(/no associated active academic profile/i);
-      }
+      expect(regRes.status).toBe(403);
+      const data = await regRes.json();
+      expect(data.error).toMatch(/roster/i);
     });
 
     it("isolates evidence and marks with real login tokens (trainee isolated, trainer offering-scoped)", async () => {
@@ -881,6 +872,188 @@ describe("Phase 1 Acceptance Suite: Cryptographic Auth Core, ID Mapping & RBAC",
         headers: { Authorization: `Bearer ${trainerToken}` },
       });
       expect(unassignedMarksRes.status).toBe(403);
+    });
+  });
+
+  // ─── 13. RIGOROUS PHASE 1 VERIFICATION & SIGN-OFF REQUIREMENTS ────────────
+  describe("13. Rigorous Phase 1 Sign-Off Matrix", () => {
+    describe("Condition 3: NODE_ENV Strict-by-Default (Only development & test are relaxed)", () => {
+      const strictValues: Array<string | undefined> = [
+        undefined,
+        "",
+        "staging",
+        "prod",
+        "Production",
+        "preview",
+        "qa",
+      ];
+
+      for (const val of strictValues) {
+        it(`enforces strict production mode when NODE_ENV is ${val === undefined ? "undefined" : `"${val}"`}`, () => {
+          const original = process.env.NODE_ENV;
+          try {
+            if (val === undefined) {
+              delete process.env.NODE_ENV;
+            } else {
+              process.env.NODE_ENV = val;
+            }
+            expect(isRelaxedMode()).toBe(false);
+            expect(isSecureProductionMode()).toBe(true);
+            expect(isSecureProductionRuntime()).toBe(true);
+          } finally {
+            process.env.NODE_ENV = original;
+          }
+        });
+      }
+
+      it("enforces relaxed mode only when NODE_ENV is strictly 'development' or 'test'", () => {
+        const original = process.env.NODE_ENV;
+        try {
+          process.env.NODE_ENV = "development";
+          expect(isRelaxedMode()).toBe(true);
+          expect(isSecureProductionMode()).toBe(false);
+
+          process.env.NODE_ENV = "test";
+          expect(isRelaxedMode()).toBe(true);
+          expect(isSecureProductionMode()).toBe(false);
+        } finally {
+          process.env.NODE_ENV = original;
+        }
+      });
+    });
+
+    describe("Condition 4: Authoritative Data Store Hydration (loadDatabaseTrainees)", () => {
+      it("hydrates a newly inserted trainee from domain store into roster lookup", async () => {
+        const dynamicAdm = `DB_ONLY_${Date.now()}`;
+        const dynamicId = `trainee-db-${Date.now()}`;
+        const trainees = loadPersistentTrainees();
+        trainees.push({
+          id: dynamicId,
+          name: "Database Only Trainee",
+          reg_number: dynamicAdm,
+          adm_no: dynamicAdm,
+          reg_code: dynamicAdm,
+          department: "Electrical & Electronics",
+        });
+        savePersistentTrainees(trainees);
+
+        const loaded = await loadDatabaseTrainees();
+        const found = loaded.find((t) => t.id === dynamicId);
+        expect(found).toBeDefined();
+        expect(found?.reg_number).toBe(dynamicAdm);
+        expect(found?.name).toBe("Database Only Trainee");
+      });
+    });
+
+    describe("Condition 5: Positive Role-to-Profile Link Validation on Hydration (403 on mismatch)", () => {
+      it("rejects trainee whose profile_id points to a trainer profile (HTTP 403)", async () => {
+        const check = await validateRoleProfileLink("trainee", "trainer-001", "usr-trainee-fake");
+        expect(check.error).toBeDefined();
+        expect(check.status).toBe(403);
+        expect(check.error).toMatch(/cannot reference staff or administrative records|does not exist in roster/i);
+      });
+
+      it("rejects trainer whose profile_id points to a trainee profile (HTTP 403)", async () => {
+        const check = await validateRoleProfileLink("trainer", "trainee-001", "usr-trainer-fake");
+        expect(check.error).toBeDefined();
+        expect(check.status).toBe(403);
+        expect(check.error).toMatch(/cannot reference trainee or administrative records|does not exist in faculty/i);
+      });
+
+      it("rejects HOD whose profile_id does not match any departmental head (HTTP 403)", async () => {
+        const check = await validateRoleProfileLink("hod", "trainer-001", "usr-hod-fake");
+        expect(check.error).toBeDefined();
+        expect(check.status).toBe(403);
+        expect(check.error).toContain("HOD profile does not match any departmental head");
+      });
+
+      it("rejects admin whose profile_id does not anchor directly to user id (HTTP 403)", async () => {
+        const check = await validateRoleProfileLink("admin", "admin-other-profile", "usr-admin-actual");
+        expect(check.error).toBeDefined();
+        expect(check.status).toBe(403);
+        expect(check.error).toContain("Admin profile must anchor directly to user id");
+      });
+    });
+
+    describe("Condition 2: POST /api/auth/register-trainee Roster Guardrails Matrix", () => {
+      it("rejects registration with arbitrary admission number not in roster (HTTP 403)", async () => {
+        const res = await fetch(`${baseUrl}/auth/register-trainee`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fullName: "Arbitrary Candidate",
+            admissionNumber: `UNKNOWN_${Date.now()}`,
+            email: `arbitrary_${Date.now()}@mtti.ac.ke`,
+            password: "SecurePassword@2026!",
+          }),
+        });
+        expect(res.status).toBe(403);
+        const data = await res.json();
+        expect(data.error).toContain("Forbidden: Admission number does not match an official institutional roster record");
+      });
+
+      it("rejects registration with internal ID string like 'TRAINEE-001' (HTTP 403)", async () => {
+        const res = await fetch(`${baseUrl}/auth/register-trainee`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fullName: "Internal ID Attacker",
+            admissionNumber: "TRAINEE-001",
+            email: `internal_attacker_${Date.now()}@mtti.ac.ke`,
+            password: "SecurePassword@2026!",
+          }),
+        });
+        expect(res.status).toBe(403);
+        const data = await res.json();
+        expect(data.error).toContain("Forbidden: Admission number does not match an official institutional roster record");
+      });
+
+      it("rejects registration for an already-claimed roster profile (HTTP 409 Conflict)", async () => {
+        const res = await fetch(`${baseUrl}/auth/register-trainee`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fullName: "Duplicate Claim Attempt",
+            admissionNumber: "14179/S2026", // Already registered in seed/fixtures
+            email: `duplicate_claim_${Date.now()}@mtti.ac.ke`,
+            password: "SecurePassword@2026!",
+          }),
+        });
+        expect(res.status).toBe(409);
+        const data = await res.json();
+        expect(data.error).toContain("already registered");
+      });
+
+      it("allows registration of a valid unclaimed roster candidate with profile_id set (HTTP 201)", async () => {
+        const unclaimedAdm = `UNCLAIMED_${Date.now()}`;
+        const unclaimedProfileId = `trainee-unclaimed-${Date.now()}`;
+        const trainees = loadPersistentTrainees();
+        trainees.push({
+          id: unclaimedProfileId,
+          name: "Eligible Unregistered Trainee",
+          reg_number: unclaimedAdm,
+          adm_no: unclaimedAdm,
+          reg_code: unclaimedAdm,
+          department: "Computing & Informatics",
+        });
+        savePersistentTrainees(trainees);
+
+        const res = await fetch(`${baseUrl}/auth/register-trainee`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fullName: "Eligible Unregistered Trainee",
+            admissionNumber: unclaimedAdm,
+            email: `unclaimed_${Date.now()}@mtti.ac.ke`,
+            password: "SecurePassword@2026!",
+          }),
+        });
+        expect(res.status).toBe(201);
+        const data = await res.json();
+        expect(data.success).toBe(true);
+        expect(data.user.admission_number).toBe(unclaimedAdm);
+        expect(data.user.profile_id).toBe(unclaimedProfileId);
+      });
     });
   });
 });

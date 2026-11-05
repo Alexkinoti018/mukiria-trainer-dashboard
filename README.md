@@ -27,20 +27,25 @@ To maintain absolute database and session integrity, all production and preview 
    ```bash
    npm run db:migrate
    ```
-3. **Step 3: Dry-Run Profile Backfill Gate (Mandatory Inspection)**
+3. **Step 3: Rotate Seeded Staff Account Passwords in Production**
+   Prior to production rollout, all default and seeded staff passwords (trainers, HODs, administrators) must be rotated using a cryptographically strong credential ($\ge 12$ chars) read strictly from the execution environment without logging or persistent plaintext storage:
+   ```bash
+   STAFF_NEW_PASSWORD="your-strong-production-password" node scripts/rotate_staff_passwords.mjs
+   ```
+4. **Step 4: Dry-Run Profile Backfill Gate (Mandatory Inspection)**
    Run the profile backfill script with `--dry-run` to inspect all prospective user-to-profile links without modifying any database or persistent storage:
    ```bash
    npx tsx scripts/backfill_user_profiles.mjs --dry-run
    ```
    *Gate Requirement:* Review prospective links and confirm zero unresolved ambiguous collisions before proceeding.
-4. **Step 4: Execute Live Profile Backfill**
+5. **Step 5: Execute Live Profile Backfill**
    Execute the live backfill. All database updates run conditionally with `WHERE profile_id IS NULL` to prevent overwriting existing authoritative associations:
    ```bash
    npx tsx scripts/backfill_user_profiles.mjs
    ```
-5. **Step 5: Vercel Preview Deployment & Verification**
+6. **Step 6: Vercel Preview Deployment & Verification**
    Push the branch to trigger a Vercel preview deployment. Run integration and verification suites against the preview environment.
-6. **Step 6: Production Merge & Promotion**
+7. **Step 7: Production Merge & Promotion**
    Only after the preview deployment passes all security and RBAC verification checks, merge the branch into `main`.
 
 ### 3. Local Development & Testing

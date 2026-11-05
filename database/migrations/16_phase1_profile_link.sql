@@ -8,6 +8,18 @@
 ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_id TEXT;
 CREATE INDEX IF NOT EXISTS idx_users_profile_id ON users(profile_id);
 
+-- Phase 1 Partial Unique Index: Ensures a domain profile cannot be claimed by multiple user accounts
+-- Deduplication Guidance (Run before applying the unique index if existing duplicate links exist):
+-- 1. Identify duplicates:
+--    SELECT profile_id, COUNT(*) FROM users WHERE profile_id IS NOT NULL GROUP BY profile_id HAVING COUNT(*) > 1;
+-- 2. Clean up duplicates, retaining the earliest created user:
+--    UPDATE users SET profile_id = NULL WHERE id NOT IN (
+--      SELECT DISTINCT ON (profile_id) id FROM users WHERE profile_id IS NOT NULL ORDER BY profile_id, created_at ASC
+--    ) AND profile_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_unique_profile_id
+ON users(profile_id)
+WHERE profile_id IS NOT NULL;
+
 -- 2. Ensure staff tables have email lookup fields for directory resolution
 ALTER TABLE Trainers ADD COLUMN IF NOT EXISTS email VARCHAR(255) UNIQUE;
 ALTER TABLE Departments ADD COLUMN IF NOT EXISTS hod_email VARCHAR(255);

@@ -46,12 +46,12 @@ export class DatabaseUnavailableError extends Error {
   }
 }
 
-export class DatabaseServiceUnavailableError extends Error {
-  status = 503;
-  statusCode = 503;
+export class DatabaseServiceUnavailableError extends DatabaseUnavailableError {
   constructor(message = "Database Service Unavailable: PostgreSQL connection pool is not initialized or connected") {
     super(message);
     this.name = "DatabaseServiceUnavailableError";
+    this.status = 503;
+    this.statusCode = 503;
   }
 }
 
@@ -67,7 +67,16 @@ if (!connectionString && process.env.SUPABASE_DB_PASSWORD) {
   connectionString = `postgresql://${DEFAULT_USER}:${encodeURIComponent(process.env.SUPABASE_DB_PASSWORD)}@${DEFAULT_HOST}:${DEFAULT_PORT}/${DEFAULT_DATABASE}`;
 }
 
-const isProduction = process.env.NODE_ENV === "production";
+export function isRelaxedDbMode(): boolean {
+  const env = (process.env.NODE_ENV || "").trim().toLowerCase();
+  return env === "development" || env === "test";
+}
+
+export function isSecureProductionRuntime(): boolean {
+  return !isRelaxedDbMode();
+}
+
+const isProduction = isSecureProductionRuntime();
 const rejectUnauthorized = process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false" && isProduction;
 
 export const pool = connectionString
@@ -85,8 +94,8 @@ export function isTlsStrict(): boolean {
 }
 
 export function ensurePoolAvailable(): void {
-  if (!pool && (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true")) {
-    throw new DatabaseServiceUnavailableError();
+  if (!pool && (isSecureProductionRuntime() || process.env.STRICT_DB === "true")) {
+    throw new DatabaseServiceUnavailableError("PostgreSQL database pool unavailable in production mode");
   }
 }
 
@@ -122,7 +131,7 @@ export async function query(text: string, params?: any[]): Promise<{ rows: any[]
     }
   }
 
-  if (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true") {
+  if (isSecureProductionRuntime() || process.env.STRICT_DB === "true") {
     throw new DatabaseServiceUnavailableError();
   }
 
@@ -136,7 +145,7 @@ export async function withTransaction<T>(
   callback: (client: pg.PoolClient) => Promise<T>
 ): Promise<T | null> {
   if (!pool) {
-    if (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true") {
+    if (isSecureProductionRuntime() || process.env.STRICT_DB === "true") {
       throw new DatabaseServiceUnavailableError(
         "Database Service Unavailable: Cannot initiate transaction without PostgreSQL pool"
       );
@@ -325,17 +334,46 @@ export async function findUserById(id: string): Promise<UserRecord | null> {
       if (res.rows.length > 0) return res.rows[0];
       return null;
     } catch (err: any) {
-      if (process.env.NODE_ENV === "production") {
+      if (isSecureProductionRuntime()) {
         throw new DatabaseUnavailableError("PostgreSQL database unavailable in production mode");
       }
       console.warn("⚠️ [PostgreSQL findUserById Warning]:", err.message);
     }
-  } else if (process.env.NODE_ENV === "production") {
+  } else if (isSecureProductionRuntime()) {
     throw new DatabaseUnavailableError("PostgreSQL database pool unavailable in production mode");
   }
 
   const users = loadPersistentUsers();
   const match = [...users].reverse().find((u) => u.id === normId);
+  return match || null;
+}
+
+export async function findUserByProfileId(profileId: string): Promise<UserRecord | null> {
+  const norm = (profileId || "").trim();
+  if (!norm) return null;
+
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      const res = await pool.query(
+        `SELECT id, email, phone_number, full_name, admission_number, password_hash, role, profile_id, created_at, updated_at
+         FROM users WHERE profile_id = $1 LIMIT 1`,
+        [norm]
+      );
+      if (res.rows.length > 0) return res.rows[0];
+      return null;
+    } catch (err: any) {
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL database unavailable in production mode");
+      }
+      console.warn("⚠️ [PostgreSQL findUserByProfileId Warning]:", err.message);
+    }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL database pool unavailable in production mode");
+  }
+
+  const users = loadPersistentUsers();
+  const match = [...users].reverse().find((u) => u.profile_id === norm);
   return match || null;
 }
 
@@ -370,8 +408,13 @@ export async function loadDatabaseTrainers(): Promise<Array<{ id: string; name: 
         return res.rows;
       }
     } catch (err: any) {
-      // fallback
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL Trainers table unavailable in production mode");
+      }
+      console.warn("⚠️ [PostgreSQL loadDatabaseTrainers Warning]:", err.message);
     }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL connection unavailable for Trainers query in production mode");
   }
   return [
     { id: "trainer-001", name: "Dr. J. Muriithi", email: "trainer@mtti.ac.ke", assigned_units: ["ICT/CU/IT/CR/6/6", "061155101A"] },
@@ -388,8 +431,13 @@ export async function loadDatabaseDepartments(): Promise<Array<{ id: string; nam
         return res.rows;
       }
     } catch (err: any) {
-      // fallback
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL Departments table unavailable in production mode");
+      }
+      console.warn("⚠️ [PostgreSQL loadDatabaseDepartments Warning]:", err.message);
     }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL connection unavailable for Departments query in production mode");
   }
   return [
     { id: "dept-ci", name: "Computing & Informatics", code: "CI", hod_id: "hod-001", hod_email: "hod.ci@mtti.ac.ke" },
@@ -397,10 +445,47 @@ export async function loadDatabaseDepartments(): Promise<Array<{ id: string; nam
   ];
 }
 
+export async function loadDatabaseTrainees(): Promise<TraineeRecord[]> {
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      const res = await pool.query("SELECT id, name, reg_number, adm_no, reg_code, class_id, class_code, department FROM Trainees");
+      if (isSecureProductionRuntime()) {
+        return res.rows;
+      }
+      if (res.rows.length > 0) {
+        const persistentTrainees = loadPersistentTrainees();
+        const dbIds = new Set(res.rows.map((r: any) => r.id));
+        return [...res.rows, ...persistentTrainees.filter((p) => !dbIds.has(p.id))];
+      }
+    } catch (err: any) {
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL Trainees table unavailable in production mode");
+      }
+      console.warn("⚠️ [PostgreSQL loadDatabaseTrainees Warning]:", err.message);
+    }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL connection unavailable for Trainees query in production mode");
+  }
+
+  const persistentTrainees = loadPersistentTrainees();
+  const memoryTrainees: TraineeRecord[] = [
+    { id: "trainee-001", name: "Nthiga Gakii Doris", reg_number: "14179/S2026", adm_no: "14179/S2026", reg_code: "14179/S2026", department: "Computing & Informatics" },
+    { id: "trainee-10525", name: "Alex Kinoti", reg_number: "10525", adm_no: "10525", reg_code: "10525", department: "Computing & Informatics" },
+    { id: "trainee-002", name: "Harriet Mwendwa", reg_number: "10526", adm_no: "10526", reg_code: "10526", department: "Computing & Informatics" },
+    { id: "trainee-003", name: "Other Student", reg_number: "99999", adm_no: "99999", reg_code: "99999", department: "Building & Civil Engineering" },
+  ];
+  return [
+    ...persistentTrainees,
+    ...memoryTrainees.filter((m) => !persistentTrainees.some((p) => p.id === m.id || (p.reg_number && p.reg_number.trim().toUpperCase() === m.reg_number.trim().toUpperCase()))),
+  ];
+}
+
 export async function findUserByEmail(email: string): Promise<UserRecord | null> {
   const normEmail = (email || "").trim().toLowerCase();
   if (!normEmail) return null;
 
+  ensurePoolAvailable();
   if (pool) {
     try {
       const res = await pool.query(
@@ -408,9 +493,15 @@ export async function findUserByEmail(email: string): Promise<UserRecord | null>
         [normEmail]
       );
       if (res.rows.length > 0) return res.rows[0];
+      return null;
     } catch (err: any) {
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL database unavailable in production mode");
+      }
       console.warn("⚠️ [PostgreSQL findUserByEmail Warning]:", err.message);
     }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL database pool unavailable in production mode");
   }
 
   const users = loadPersistentUsers();
@@ -422,6 +513,7 @@ export async function findUserByAdmissionNumber(admissionNumber: string): Promis
   const normAdm = (admissionNumber || "").trim().toLowerCase();
   if (!normAdm) return null;
 
+  ensurePoolAvailable();
   if (pool) {
     try {
       const res = await pool.query(
@@ -429,9 +521,15 @@ export async function findUserByAdmissionNumber(admissionNumber: string): Promis
         [normAdm]
       );
       if (res.rows.length > 0) return res.rows[0];
+      return null;
     } catch (err: any) {
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL database unavailable in production mode");
+      }
       console.warn("⚠️ [PostgreSQL findUserByAdmissionNumber Warning]:", err.message);
     }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL database pool unavailable in production mode");
   }
 
   const users = loadPersistentUsers();
@@ -452,6 +550,7 @@ export async function findUserByEmailOrAdmission(identifier: string): Promise<Us
           ? "hod.ci@mtti.ac.ke"
           : norm;
 
+  ensurePoolAvailable();
   if (pool) {
     try {
       const res = await pool.query(
@@ -463,9 +562,15 @@ export async function findUserByEmailOrAdmission(identifier: string): Promise<Us
         [norm, targetEmail]
       );
       if (res.rows.length > 0) return res.rows[0];
+      return null;
     } catch (err: any) {
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL database unavailable in production mode");
+      }
       console.warn("⚠️ [PostgreSQL findUserByEmailOrAdmission Warning]:", err.message);
     }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL database pool unavailable in production mode");
   }
 
   const users = loadPersistentUsers();

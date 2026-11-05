@@ -31,6 +31,9 @@ import {
   findUserByEmail,
   findUserByAdmissionNumber,
   findUserByEmailOrAdmission,
+  findUserByProfileId,
+  loadDatabaseTrainees,
+  DatabaseUnavailableError,
   createUser,
   loadPersistentUsers,
   savePersistentUsers,
@@ -49,6 +52,7 @@ import {
   getAuthConfiguration,
   verifySupabaseToken,
   createSignedJwt,
+  normalizeAdmissionIdentifier,
   type AuthenticatedUser,
   type AuthenticatedRequest,
 } from "./auth.ts";
@@ -646,29 +650,69 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
       return;
     }
 
-    // Check for duplicate admission number
+    // Dual-sided exact normalization of candidate admission identifier
+    const normAdm = normalizeAdmissionIdentifier(admission_number);
+
+    // Load official institutional roster
+    const rosterTrainees = await loadDatabaseTrainees();
+
+    // Match strictly against domain admission identifiers (reg_number, adm_no, reg_code) - excluding t.id!
+    const matchingProfiles = rosterTrainees.filter((t) => {
+      const normReg = normalizeAdmissionIdentifier(t.reg_number);
+      const normNo = normalizeAdmissionIdentifier(t.adm_no);
+      const normCode = normalizeAdmissionIdentifier(t.reg_code);
+      return (
+        (normReg && normReg === normAdm) ||
+        (normNo && normNo === normAdm) ||
+        (normCode && normCode === normAdm)
+      );
+    });
+
+    if (matchingProfiles.length === 0) {
+      res.status(403).json({
+        error: "Forbidden: Admission number does not match an official institutional roster record",
+      });
+      return;
+    }
+
+    if (matchingProfiles.length > 1) {
+      res.status(403).json({
+        error: "Forbidden: Admission number is ambiguous across roster records",
+      });
+      return;
+    }
+
+    const matchedProfile = matchingProfiles[0];
+
+    // Check if this profile or admission number is already claimed by an existing user
+    const existingUserByProfile = await findUserByProfileId(matchedProfile.id);
     const existingAdm = await findUserByAdmissionNumber(admission_number);
-    if (existingAdm) {
+    if (existingUserByProfile || existingAdm) {
+      const existingUser = existingUserByProfile || existingAdm!;
       if (req.body.isActivation || req.body.reactivate) {
         const isBcryptHash = typeof password === "string" && (password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$")) && password.length === 60;
         const password_hash = isBcryptHash ? password : await bcrypt.hash(password, 10);
-        existingAdm.password_hash = password_hash;
-        if (phone_number) existingAdm.phone_number = phone_number;
-        if (full_name) existingAdm.full_name = full_name;
-        existingAdm.updated_at = new Date().toISOString();
+        existingUser.password_hash = password_hash;
+        if (phone_number) existingUser.phone_number = phone_number;
+        if (full_name) existingUser.full_name = full_name;
+        existingUser.updated_at = new Date().toISOString();
+        if (!existingUser.profile_id) {
+          existingUser.profile_id = matchedProfile.id;
+        }
         const allUsers = loadPersistentUsers();
         savePersistentUsers(allUsers);
         res.status(200).json({
           success: true,
           message: "Trainee account activated successfully",
           user: {
-            id: existingAdm.id,
-            admission_number: existingAdm.admission_number,
-            phone_number: existingAdm.phone_number,
-            full_name: existingAdm.full_name,
-            email: existingAdm.email,
-            role: "trainee",
-            created_at: existingAdm.created_at,
+            id: existingUser.id,
+            admission_number: existingUser.admission_number,
+            phone_number: existingUser.phone_number,
+            full_name: existingUser.full_name,
+            email: existingUser.email,
+            role: "TRAINEE",
+            profile_id: existingUser.profile_id,
+            created_at: existingUser.created_at,
           },
         });
         return;
@@ -686,7 +730,7 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
     // Rule 2: Privilege Escalation Prevention - Strictly force role to TRAINEE
     const role = "trainee";
 
-    // Persist user record
+    // Persist user record with explicit profile_id set to matchedProfile.id at creation
     const created = await createUser({
       admission_number,
       phone_number: phone_number || null,
@@ -694,6 +738,7 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
       email,
       password_hash,
       role,
+      profile_id: matchedProfile.id,
     });
 
     res.status(201).json({
@@ -706,10 +751,15 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
         full_name: created.full_name,
         email: created.email,
         role: "TRAINEE",
+        profile_id: created.profile_id,
         created_at: created.created_at,
       },
     });
   } catch (err: any) {
+    if (err instanceof DatabaseUnavailableError) {
+      res.status(503).json({ error: "Service Unavailable: Database connection failed" });
+      return;
+    }
     console.error("❌ [Registration Error]:", err);
     res.status(500).json({ error: "Internal server error during trainee registration" });
   }

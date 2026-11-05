@@ -3,7 +3,7 @@ import express from "express";
 import type { Server } from "http";
 import type { AddressInfo } from "net";
 import { apiRouter, DB } from "../server/routes.ts";
-import { createUser } from "../server/db.ts";
+import { createUser, loadPersistentTrainees, savePersistentTrainees } from "../server/db.ts";
 import { createSignedJwt, getJwtSecret } from "../server/auth.ts";
 
 describe("Trainee Exam Lockdown & Session Resilience Suite", () => {
@@ -59,6 +59,17 @@ describe("Trainee Exam Lockdown & Session Resilience Suite", () => {
     );
     const existingExamIdx = DB.exams.findIndex((e) => e.id === testExam.id);
     if (existingExamIdx >= 0) DB.exams.splice(existingExamIdx, 1);
+
+    const trainees = loadPersistentTrainees();
+    trainees.push({
+      id: testTrainee.id,
+      name: testTrainee.name,
+      reg_number: testTrainee.reg_number,
+      adm_no: testTrainee.reg_number,
+      reg_code: testTrainee.reg_number,
+      department: "Food & Beverage",
+    });
+    savePersistentTrainees(trainees);
 
     await createUser({
       id: testTrainee.id,
