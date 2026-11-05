@@ -2,6 +2,10 @@
  * Mukiria Technical Training Institute (MTTI)
  * Phase 1 One-Time Profile Link Backfill Script
  * File: scripts/backfill_user_profiles.mjs
+ *
+ * Usage:
+ *   node scripts/backfill_user_profiles.mjs --dry-run
+ *   node scripts/backfill_user_profiles.mjs
  */
 
 import {
@@ -18,7 +22,8 @@ export function normalizeAdmissionIdentifier(raw) {
 }
 
 export async function runBackfill() {
-  console.log("=== Starting Phase 1 Profile ID Backfill ===");
+  const isDryRun = process.argv.includes("--dry-run");
+  console.log(`=== Starting Phase 1 Profile ID Backfill ${isDryRun ? "[DRY-RUN]" : "[LIVE]"} ===`);
   ensurePoolAvailable();
 
   let dbUsers = [];
@@ -47,6 +52,7 @@ export async function runBackfill() {
   let linkedCount = 0;
   let skippedCount = 0;
   let ambiguousCount = 0;
+  const plannedUpdates = [];
 
   for (const user of allUsers) {
     if (user.profile_id) {
@@ -54,10 +60,10 @@ export async function runBackfill() {
     }
 
     const role = (user.role || "").toLowerCase();
+    let targetProfileId = null;
 
     if (role === "admin") {
-      user.profile_id = user.id;
-      linkedCount++;
+      targetProfileId = user.id;
     } else if (role === "trainee") {
       const normAdm = normalizeAdmissionIdentifier(user.admission_number);
       if (!normAdm) {
@@ -66,17 +72,16 @@ export async function runBackfill() {
         continue;
       }
 
+      // Exact match on admission number, adm_no, or reg_code ONLY (t.id strictly excluded)
       const matches = trainees.filter((t) => {
         const normReg = normalizeAdmissionIdentifier(t.reg_number);
         const normNo = normalizeAdmissionIdentifier(t.adm_no);
         const normCode = normalizeAdmissionIdentifier(t.reg_code);
-        const normId = normalizeAdmissionIdentifier(t.id);
-        return normAdm === normReg || normAdm === normNo || normAdm === normCode || normAdm === normId;
+        return normAdm === normReg || normAdm === normNo || normAdm === normCode;
       });
 
       if (matches.length === 1) {
-        user.profile_id = matches[0].id;
-        linkedCount++;
+        targetProfileId = matches[0].id;
       } else if (matches.length === 0) {
         console.warn(`[BACKFILL SKIP]: User ${user.id} (${user.admission_number}) has no matching trainee profile`);
         skippedCount++;
@@ -88,8 +93,7 @@ export async function runBackfill() {
       const normEmail = (user.email || "").trim().toLowerCase();
       const matches = mockTrainers.filter((t) => t.email && t.email.trim().toLowerCase() === normEmail);
       if (matches.length === 1) {
-        user.profile_id = matches[0].id;
-        linkedCount++;
+        targetProfileId = matches[0].id;
       } else if (matches.length === 0) {
         console.warn(`[BACKFILL SKIP]: Trainer user ${user.id} (${user.email}) has no matching trainer profile`);
         skippedCount++;
@@ -101,25 +105,49 @@ export async function runBackfill() {
       const normEmail = (user.email || "").trim().toLowerCase();
       const matches = mockDepts.filter((d) => d.hod_email && d.hod_email.trim().toLowerCase() === normEmail);
       if (matches.length === 1) {
-        user.profile_id = matches[0].hod_id;
-        linkedCount++;
+        targetProfileId = matches[0].hod_id;
       } else {
-        user.profile_id = "hod-001";
-        linkedCount++;
+        targetProfileId = "hod-001";
       }
     }
 
-    if (user.profile_id && pool) {
-      try {
-        await pool.query("UPDATE users SET profile_id = $1 WHERE id = $2", [user.profile_id, user.id]);
-      } catch (err) {
-        // ignore in offline/local mode
-      }
+    if (targetProfileId) {
+      plannedUpdates.push({ userId: user.id, profileId: targetProfileId, role, identifier: user.admission_number || user.email });
+      linkedCount++;
     }
   }
 
-  savePersistentUsers(allUsers);
+  if (isDryRun) {
+    console.log(`\n--- Prospective Updates (${plannedUpdates.length}) ---`);
+    for (const update of plannedUpdates) {
+      console.log(`[DRY-RUN PLAN]: User ${update.userId} (${update.role}: ${update.identifier}) -> profile_id: ${update.profileId}`);
+    }
+    console.log(`\n=== Dry Run Complete: ${linkedCount} prospective links, ${skippedCount} skipped, ${ambiguousCount} ambiguous. No changes written. ===`);
+    return { linkedCount, skippedCount, ambiguousCount, plannedUpdates };
+  }
+
+  // Live execution: update DB conditionally and update local file
+  for (const update of plannedUpdates) {
+    if (pool) {
+      try {
+        await pool.query("UPDATE users SET profile_id = $1 WHERE id = $2 AND profile_id IS NULL", [
+          update.profileId,
+          update.userId,
+        ]);
+      } catch (err) {
+        console.warn(`[DB UPDATE WARNING]: Could not update user ${update.userId}:`, err.message);
+      }
+    }
+
+    const localTarget = localUsers.find((u) => u.id === update.userId);
+    if (localTarget && !localTarget.profile_id) {
+      localTarget.profile_id = update.profileId;
+    }
+  }
+
+  savePersistentUsers(localUsers);
   console.log(`=== Backfill Complete: ${linkedCount} linked, ${skippedCount} skipped, ${ambiguousCount} ambiguous ===`);
+  return { linkedCount, skippedCount, ambiguousCount, plannedUpdates };
 }
 
 // Execute when run directly

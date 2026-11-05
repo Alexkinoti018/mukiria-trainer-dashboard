@@ -8,6 +8,7 @@ import {
   verifyEvidenceAccess,
   calculateServerWeightedMark 
 } from "../server/routes.ts";
+import { loginAs } from "./test_auth_helpers.ts";
 
 describe("Trainee Assessment Evidence Pipeline & Security Suite", () => {
   let app: express.Express;
@@ -331,6 +332,58 @@ describe("Trainee Assessment Evidence Pipeline & Security Suite", () => {
       expect(res.status).toBe(200);
       const check = DB.assessment_evidence.find(e => e.id === "ev-003");
       expect(check).toBeUndefined();
+    });
+  });
+
+  // ─── 8. REAL LOGIN TOKEN COVERAGE (ALLOW_DEMO_AUTH UNSET) ───────────────────
+  describe("8. Real Login Token Evidence Access & Isolation (ALLOW_DEMO_AUTH unset)", () => {
+    let origDemoAuth: string | undefined;
+
+    beforeAll(() => {
+      origDemoAuth = process.env.ALLOW_DEMO_AUTH;
+      delete process.env.ALLOW_DEMO_AUTH;
+    });
+
+    afterAll(() => {
+      if (origDemoAuth !== undefined) {
+        process.env.ALLOW_DEMO_AUTH = origDemoAuth;
+      }
+    });
+
+    it("allows trainee to access own evidence file via real login token (HTTP 200)", async () => {
+      const { token: traineeToken } = await loginAs(baseUrl, "trainee");
+      const res = await fetch(`${baseUrl}/evidence/ev-001/file`, {
+        headers: { Authorization: `Bearer ${traineeToken}` },
+      });
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toBe("application/pdf");
+    });
+
+    it("prevents trainee from accessing another trainee's evidence via real login token (HTTP 403)", async () => {
+      const { token: traineeToken } = await loginAs(baseUrl, "trainee");
+      const res = await fetch(`${baseUrl}/evidence/ev-002/file`, {
+        headers: { Authorization: `Bearer ${traineeToken}` },
+      });
+      expect(res.status).toBe(403);
+      const data = await res.json();
+      expect(data.error).toContain("Forbidden");
+    });
+
+    it("allows assigned trainer to access offering evidence via real login token (HTTP 200)", async () => {
+      const { token: trainerToken } = await loginAs(baseUrl, "trainer");
+      const res = await fetch(`${baseUrl}/evidence/ev-001/file`, {
+        headers: { Authorization: `Bearer ${trainerToken}` },
+      });
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toBe("application/pdf");
+    });
+
+    it("rejects unassigned trainer from accessing evidence of another unit offering (HTTP 403)", async () => {
+      const { token: trainerToken } = await loginAs(baseUrl, "trainer");
+      const res = await fetch(`${baseUrl}/evidence/ev-003/file`, {
+        headers: { Authorization: `Bearer ${trainerToken}` },
+      });
+      expect(res.status).toBe(403);
     });
   });
 });

@@ -347,7 +347,7 @@ export async function updateUserProfileId(userId: string, profileId: string): Pr
   ensurePoolAvailable();
   if (pool) {
     try {
-      await pool.query("UPDATE users SET profile_id = $1 WHERE id = $2", [normProfileId, normUserId]);
+      await pool.query("UPDATE users SET profile_id = $1 WHERE id = $2 AND profile_id IS NULL", [normProfileId, normUserId]);
     } catch (err: any) {
       console.warn("⚠️ [PostgreSQL updateUserProfileId Warning]:", err.message);
     }
@@ -355,7 +355,7 @@ export async function updateUserProfileId(userId: string, profileId: string): Pr
 
   const users = loadPersistentUsers();
   const user = users.find((u) => u.id === normUserId);
-  if (user) {
+  if (user && !user.profile_id) {
     user.profile_id = normProfileId;
     savePersistentUsers(users);
   }
@@ -497,7 +497,7 @@ export async function createUser(data: {
       const existing = trainees.find(t => (t.reg_number || t.adm_no || "").trim().toUpperCase() === cleanAdm.toUpperCase());
       if (existing) {
         resolvedProfileId = existing.id;
-      } else {
+      } else if (!cleanAdm.toUpperCase().startsWith("TRAINEE-")) {
         resolvedProfileId = `trainee-${cleanAdm}`;
         trainees.push({
           id: resolvedProfileId,
@@ -509,6 +509,8 @@ export async function createUser(data: {
           updated_at: now,
         });
         savePersistentTrainees(trainees);
+      } else {
+        resolvedProfileId = null;
       }
     } else if (normRole === "TRAINER" && data.email) {
       const cleanEmail = data.email.trim().toLowerCase();

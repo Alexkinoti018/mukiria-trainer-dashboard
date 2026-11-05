@@ -24,7 +24,9 @@ import {
   savePersistentUsers,
   loadPersistentTrainees,
   savePersistentTrainees,
+  loadPersistentAttendance,
 } from "../server/db.ts";
+import { loginAs } from "./test_auth_helpers.ts";
 
 const VALID_TEST_SECRET = "mtti_test_jwt_secret_min_32_chars_long_and_cryptographically_strong!";
 
@@ -665,6 +667,220 @@ describe("Phase 1 Acceptance Suite: Cryptographic Auth Core, ID Mapping & RBAC",
         process.env.NODE_ENV = origNodeEnv;
         process.env.JWT_SECRET = origSecret;
       }
+    });
+  });
+
+  // ─── 8. CRITICAL VERIFICATION GATES (USER CONDITIONS & INVARIANTS) ─────────
+  describe("8. Critical Security Verification Invariants & Condition 4 Suites", () => {
+    it("rejects test secret and .env.example placeholder in production mode", () => {
+      const origEnv = { ...process.env };
+      try {
+        process.env.NODE_ENV = "production";
+        process.env.JWT_SECRET = VALID_TEST_SECRET;
+        expect(() => validateEnvironmentInvariants()).toThrow(/Test secret or placeholder secret cannot be used in production mode/i);
+
+        process.env.JWT_SECRET = "replace_with_openssl_rand_base64_48_secret_here";
+        expect(() => validateEnvironmentInvariants()).toThrow(/Test secret or placeholder secret cannot be used in production mode/i);
+      } finally {
+        process.env = origEnv;
+      }
+    });
+
+    it("enforces production invariants when NODE_ENV is unset or set to 'staging'", async () => {
+      const origEnv = { ...process.env };
+      try {
+        // 1. Unset NODE_ENV
+        delete process.env.NODE_ENV;
+        process.env.ALLOW_DEMO_AUTH = "true";
+        process.env.JWT_SECRET = "production_secret_32_chars_minimum_openssl_verified!";
+        expect(() => validateEnvironmentInvariants()).toThrow(/ALLOW_DEMO_AUTH is strictly forbidden in production mode/i);
+
+        delete process.env.ALLOW_DEMO_AUTH;
+        process.env.JWT_SECRET = VALID_TEST_SECRET;
+        expect(() => validateEnvironmentInvariants()).toThrow(/Test secret or placeholder secret cannot be used in production mode/i);
+
+        // 2. Staging NODE_ENV
+        process.env.NODE_ENV = "staging";
+        process.env.ALLOW_DEMO_AUTH = "true";
+        process.env.JWT_SECRET = "production_secret_32_chars_minimum_openssl_verified!";
+        expect(() => validateEnvironmentInvariants()).toThrow(/ALLOW_DEMO_AUTH is strictly forbidden in production mode/i);
+
+        delete process.env.ALLOW_DEMO_AUTH;
+        process.env.JWT_SECRET = "replace_with_openssl_rand_base64_48_secret_here";
+        expect(() => validateEnvironmentInvariants()).toThrow(/Test secret or placeholder secret cannot be used in production mode/i);
+      } finally {
+        process.env = origEnv;
+      }
+    });
+
+    it("throws immediately upon importing api/index.ts without JWT_SECRET", () => {
+      const origEnv = { ...process.env };
+      try {
+        delete process.env.JWT_SECRET;
+        expect(() => validateEnvironmentInvariants()).toThrow(/JWT_SECRET must be configured/i);
+      } finally {
+        process.env = origEnv;
+      }
+    });
+
+    it("enforces HOD department scope and exam access with real login tokens", async () => {
+      // Ensure cross-department fixtures exist
+      if (!DB.exams.some((e) => e.id === "exam-ee-01")) {
+        DB.exams.push({
+          id: "exam-ee-01",
+          unit_id: "unit-ee-1",
+          unit_code: "EE/CU/PO/CR/1/6",
+          course_name: "Electrical Engineering",
+          created_at: new Date().toISOString(),
+          payload: {
+            title: "Power Systems Exam",
+            task_code: "EE1",
+            duration_minutes: 60,
+            total_marks: 30,
+            portal_visible: true,
+            section_a: { questions: [] },
+            section_b: { questions: [] },
+          },
+        } as any);
+      }
+      if (!DB.unit_offerings.some((uo) => uo.id === "uo-ee-1")) {
+        DB.unit_offerings.push({
+          id: "uo-ee-1",
+          unit_id: "unit-ee-1",
+          unit_code: "EE/CU/PO/CR/1/6",
+          department_id: "dept-ee",
+          trainer_id: "trainer-003",
+          status: "active",
+        } as any);
+      }
+
+      // 1. Log in HOD (Computing, dept-ci)
+      const { token: hodToken } = await loginAs(baseUrl, "hod");
+      expect(hodToken).toBeDefined();
+
+      // 2. Query computing exam (exam-cr-001 in dept-ci) -> 200
+      const examRes = await fetch(`${baseUrl}/exams/exam-cr-001`, {
+        headers: { Authorization: `Bearer ${hodToken}` },
+      });
+      expect(examRes.status).toBe(200);
+
+      // 3. Query cross-department exam (exam-ee-01 in dept-ee) -> 403 Forbidden
+      const crossRes = await fetch(`${baseUrl}/exams/exam-ee-01`, {
+        headers: { Authorization: `Bearer ${hodToken}` },
+      });
+      expect(crossRes.status).toBe(403);
+    });
+
+    it("rejects trainee with profile_id pointing at a trainer record with 403 Forbidden", async () => {
+      const hash = await bcrypt.hash("pass123", 10);
+      const spoofedUser = await createUser({
+        admission_number: `SPOOF_${Date.now()}`,
+        full_name: "Spoofed Trainee",
+        email: `spoofed_${Date.now()}@mtti.ac.ke`,
+        password_hash: hash,
+        role: "trainee",
+        profile_id: "trainer-001", // Malicious pointer
+      });
+
+      const token = signToken({ sub: spoofedUser.id, role: "trainee" });
+      const res = await fetch(`${baseUrl}/test-auth/open-protected`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(res.status).toBe(403);
+      const data = await res.json();
+      expect(data.error).toMatch(/cannot reference staff or administrative records|cannot reference trainer records/i);
+    });
+
+    it("rejects unresolvable identity and ensures zero records are written", async () => {
+      const initialAttendance = loadPersistentAttendance();
+      const initialCount = initialAttendance.length;
+
+      // Send unauthenticated attendance submission
+      const res = await fetch(`${baseUrl}/attendance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          unit_offering_id: "uo-1",
+          date: "2026-11-05",
+          status: "present",
+          trainee_id: "trainee-001",
+        }),
+      });
+      expect(res.status).toBe(401);
+
+      // Verify no record written
+      const currentAttendance = loadPersistentAttendance();
+      expect(currentAttendance.length).toBe(initialCount);
+    });
+
+    it("registering with an internal trainee id (e.g. 'TRAINEE-001') yields no profile (403 on protected routes)", async () => {
+      const uniqueEmail = `internal_id_${Date.now()}@mtti.ac.ke`;
+      const internalAdm = `TRAINEE-${Date.now()}`;
+      const regRes = await fetch(`${baseUrl}/auth/register-trainee`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: "Attacker User",
+          admissionNumber: internalAdm,
+          email: uniqueEmail,
+          password: "AttackerPassword@2026!",
+        }),
+      });
+      expect([201, 403]).toContain(regRes.status);
+
+      if (regRes.status === 201) {
+        const loginRes = await fetch(`${baseUrl}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ identifier: uniqueEmail, password: "AttackerPassword@2026!" }),
+        });
+        expect(loginRes.status).toBe(200);
+        const { token } = await loginRes.json();
+
+        const protectedRes = await fetch(`${baseUrl}/test-auth/open-protected`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        expect(protectedRes.status).toBe(403);
+        const data = await protectedRes.json();
+        expect(data.error).toMatch(/no associated active academic profile/i);
+      }
+    });
+
+    it("isolates evidence and marks with real login tokens (trainee isolated, trainer offering-scoped)", async () => {
+      // 1. Trainee login
+      const { token: traineeToken } = await loginAs(baseUrl, "trainee");
+
+      // Trainee views own submissions -> only trainee-001
+      const subRes = await fetch(`${baseUrl}/submissions`, {
+        headers: { Authorization: `Bearer ${traineeToken}` },
+      });
+      expect(subRes.status).toBe(200);
+      const subData = await subRes.json();
+      const subs = Array.isArray(subData) ? subData : subData.submissions;
+      for (const s of subs) {
+        expect(s.trainee_id).toBe("trainee-001");
+      }
+
+      // Trainee cannot access other trainee's submission (sub-102) -> 403
+      const idorRes = await fetch(`${baseUrl}/submissions/sub-102`, {
+        headers: { Authorization: `Bearer ${traineeToken}` },
+      });
+      expect(idorRes.status).toBe(403);
+
+      // 2. Trainer login
+      const { token: trainerToken } = await loginAs(baseUrl, "trainer");
+
+      // Trainer can access assigned offering marks -> 200
+      const assignedMarksRes = await fetch(`${baseUrl}/assessment-marks/uo-1`, {
+        headers: { Authorization: `Bearer ${trainerToken}` },
+      });
+      expect(assignedMarksRes.status).toBe(200);
+
+      // Trainer cannot access unassigned offering marks -> 403
+      const unassignedMarksRes = await fetch(`${baseUrl}/assessment-marks/uo-3`, {
+        headers: { Authorization: `Bearer ${trainerToken}` },
+      });
+      expect(unassignedMarksRes.status).toBe(403);
     });
   });
 });

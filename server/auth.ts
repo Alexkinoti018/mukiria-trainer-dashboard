@@ -57,12 +57,23 @@ export const FORBIDDEN_PRODUCTION_SECRETS = new Set([
 ]);
 
 /**
+ * Evaluates whether current runtime must enforce secure production invariants.
+ * Secure-by-default: unset (empty string or undefined), "staging", and "production"
+ * strictly enforce production cryptographic and authentication invariants.
+ * Only explicit "test" or local development without staging enforce non-production.
+ */
+export function isSecureProductionMode(): boolean {
+  const env = (process.env.NODE_ENV || "").trim().toLowerCase();
+  return env === "production" || env === "staging" || env === "";
+}
+
+/**
  * Top-level environment boot invariant validation.
  * Executes at module evaluation time to ensure serverless entrypoints (api/index.ts)
  * fail immediately if secrets or security invariants are violated.
  */
 export function validateEnvironmentInvariants(): void {
-  const isProd = process.env.NODE_ENV === "production";
+  const isProd = isSecureProductionMode();
   const allowDemo = process.env.ALLOW_DEMO_AUTH === "true" || process.env.ALLOW_DEMO_AUTH === "1";
 
   if (isProd && allowDemo) {
@@ -78,7 +89,8 @@ export function validateEnvironmentInvariants(): void {
     if (
       FORBIDDEN_PRODUCTION_SECRETS.has(secret) ||
       secret.toLowerCase().includes("test") ||
-      secret.toLowerCase().includes("placeholder")
+      secret.toLowerCase().includes("placeholder") ||
+      secret.includes("replace_with_openssl_rand_base64_48_secret_here")
     ) {
       throw new Error("FATAL: Test secret or placeholder secret cannot be used in production mode.");
     }
@@ -230,12 +242,34 @@ export async function verifyToken(token: string): Promise<{ sub: string; role: R
 export async function resolveProfileId(
   user: UserRecord
 ): Promise<{ profileId?: string; error?: string; status?: number }> {
-  // 1. Persisted link check
+  const role = String(user.role || "").trim().toLowerCase();
+
+  // 1. Persisted link check with strict role-to-profile type validation
   if (user.profile_id) {
+    const pid = user.profile_id;
+    if (role === "trainee") {
+      if (
+        pid.startsWith("trainer-") ||
+        pid.startsWith("hod-") ||
+        pid.startsWith("admin-")
+      ) {
+        return { error: "Forbidden: Trainee account profile cannot reference staff or administrative records", status: 403 };
+      }
+      const trainers = await loadDatabaseTrainers();
+      if (trainers.some((t) => t.id === pid)) {
+        return { error: "Forbidden: Trainee account profile cannot reference trainer records", status: 403 };
+      }
+    } else if (role === "trainer") {
+      if (pid.startsWith("trainee-") || pid.startsWith("admin-")) {
+        return { error: "Forbidden: Trainer account profile cannot reference trainee or administrative records", status: 403 };
+      }
+    } else if (role === "hod") {
+      if (pid.startsWith("trainee-") || pid.startsWith("admin-")) {
+        return { error: "Forbidden: HOD account profile cannot reference trainee records", status: 403 };
+      }
+    }
     return { profileId: user.profile_id };
   }
-
-  const role = String(user.role || "").trim().toLowerCase();
 
   // 2. Admin is exempt from faculty/roster mapping
   if (role === "admin") {
@@ -261,12 +295,12 @@ export async function resolveProfileId(
       ...memoryTrainees.filter((m) => !persistentTrainees.some((p) => p.id === m.id || normalizeAdmissionIdentifier(p.reg_number) === normalizeAdmissionIdentifier(m.reg_number))),
     ];
 
+    // MATCH SET REMOVAL: Only normReg, normNo, normCode. t.id is strictly EXCLUDED!
     const matches = trainees.filter((t) => {
       const normReg = normalizeAdmissionIdentifier(t.reg_number);
       const normNo = normalizeAdmissionIdentifier(t.adm_no);
       const normCode = normalizeAdmissionIdentifier(t.reg_code);
-      const normId = normalizeAdmissionIdentifier(t.id);
-      return normAdm === normReg || normAdm === normNo || normAdm === normCode || normAdm === normId;
+      return normAdm === normReg || normAdm === normNo || normAdm === normCode;
     });
 
     if (matches.length > 1) {
@@ -381,12 +415,19 @@ export async function hydrateUserProfile(
   let enrolledUnits: string[] | undefined;
 
   if (dbRole === "trainee") {
+    const persistentTrainees = loadPersistentTrainees();
+    const matchedTrainee = persistentTrainees.find((t) => t.id === profileId);
+    departmentId = matchedTrainee?.department || "dept-ci";
     enrolledUnits = ["061155101A", "ICT/CU/IT/CR/6/6"];
   } else if (dbRole === "trainer") {
+    const trainers = await loadDatabaseTrainers();
+    const matchedTrainer = trainers.find((t) => t.id === profileId);
     departmentId = "dept-ci";
-    assignedUnits = profileId === "trainer-002" ? ["ICT/OS/IT/CR/1/6"] : ["ICT/CU/IT/CR/6/6", "061155101A"];
+    assignedUnits = matchedTrainer?.assigned_units || (profileId === "trainer-002" ? ["ICT/OS/IT/CR/1/6"] : ["ICT/CU/IT/CR/6/6", "061155101A"]);
   } else if (dbRole === "hod") {
-    departmentId = "dept-ci";
+    const depts = await loadDatabaseDepartments();
+    const matchedDept = depts.find((d) => d.hod_id === profileId);
+    departmentId = matchedDept?.id || "dept-ci";
   }
 
   const authUser: AuthenticatedUser = {
@@ -464,7 +505,7 @@ export async function authenticateToken(
     return next();
   }
 
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProduction = isSecureProductionMode();
   const allowDemo = !isProduction && (process.env.ALLOW_DEMO_AUTH === "true" || process.env.ALLOW_DEMO_AUTH === "1" || process.env.AUTH_MODE === "demo");
 
   // 1. Bearer Token Verification

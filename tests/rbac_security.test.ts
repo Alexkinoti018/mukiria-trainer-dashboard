@@ -10,6 +10,7 @@ import {
   verifyHODDepartmentScope,
   atomicSubmitSubmission 
 } from "../server/routes.ts";
+import { loginAs } from "./test_auth_helpers.ts";
 
 describe("MTTI RBAC & Object Authorization Security Suite", () => {
   let app: express.Express;
@@ -549,6 +550,105 @@ describe("MTTI RBAC & Object Authorization Security Suite", () => {
       expect(res.status).toBe(403);
       const data = await res.json();
       expect(data.error).toContain("Forbidden: You are not the assigned trainer");
+    });
+  });
+
+  // ─── 8. REAL LOGIN TOKEN BOLA & RBAC VERIFICATION ───────────────────────────
+  describe("8. Real Login Token BOLA & RBAC Coverage (ALLOW_DEMO_AUTH disabled)", () => {
+    let origDemoAuth: string | undefined;
+
+    beforeAll(() => {
+      origDemoAuth = process.env.ALLOW_DEMO_AUTH;
+      delete process.env.ALLOW_DEMO_AUTH;
+    });
+
+    afterAll(() => {
+      if (origDemoAuth !== undefined) {
+        process.env.ALLOW_DEMO_AUTH = origDemoAuth;
+      }
+    });
+
+    it("prevents Trainee from accessing another trainee's submission using real login token (HTTP 403)", async () => {
+      const { token: traineeToken } = await loginAs(baseUrl, "trainee");
+      const res = await fetch(`${baseUrl}/submissions/sub-102`, {
+        headers: { Authorization: `Bearer ${traineeToken}` },
+      });
+      expect(res.status).toBe(403);
+      const data = await res.json();
+      expect(data.error).toContain("Forbidden (BOLA)");
+    });
+
+    it("allows Trainee to access their own submission using real login token (HTTP 200)", async () => {
+      const { token: traineeToken } = await loginAs(baseUrl, "trainee");
+      const res = await fetch(`${baseUrl}/submissions/sub-101`, {
+        headers: { Authorization: `Bearer ${traineeToken}` },
+      });
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.id).toBe("sub-101");
+      expect(data.trainee_id).toBe("trainee-001");
+    });
+
+    it("allows assigned Trainer to access offering marks using real login token (HTTP 200)", async () => {
+      const { token: trainerToken } = await loginAs(baseUrl, "trainer");
+      const res = await fetch(`${baseUrl}/assessment-marks/uo-1`, {
+        headers: { Authorization: `Bearer ${trainerToken}` },
+      });
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.marks.length).toBe(2);
+    });
+
+    it("rejects unassigned Trainer from accessing offering marks using real login token (HTTP 403)", async () => {
+      const { token: trainerToken } = await loginAs(baseUrl, "trainer");
+      const res = await fetch(`${baseUrl}/assessment-marks/uo-3`, {
+        headers: { Authorization: `Bearer ${trainerToken}` },
+      });
+      expect(res.status).toBe(403);
+      const data = await res.json();
+      expect(data.error).toContain("Forbidden: You are not the assigned trainer");
+    });
+
+    it("enforces HOD department scope using real login token", async () => {
+      if (!DB.exams.some((e) => e.id === "exam-ee-01")) {
+        DB.exams.push({
+          id: "exam-ee-01",
+          unit_id: "unit-ee-1",
+          unit_code: "EE/CU/PO/CR/1/6",
+          course_name: "Electrical Engineering",
+          created_at: new Date().toISOString(),
+          payload: {
+            title: "Power Systems Exam",
+            task_code: "EE1",
+            duration_minutes: 60,
+            total_marks: 30,
+            portal_visible: true,
+            section_a: { questions: [] },
+            section_b: { questions: [] },
+          },
+        } as any);
+      }
+      if (!DB.unit_offerings.some((uo) => uo.id === "uo-ee-1")) {
+        DB.unit_offerings.push({
+          id: "uo-ee-1",
+          unit_id: "unit-ee-1",
+          unit_code: "EE/CU/PO/CR/1/6",
+          department_id: "dept-ee",
+          trainer_id: "trainer-003",
+          status: "active",
+        } as any);
+      }
+
+      const { token: hodToken } = await loginAs(baseUrl, "hod");
+      const examRes = await fetch(`${baseUrl}/exams/exam-cr-001`, {
+        headers: { Authorization: `Bearer ${hodToken}` },
+      });
+      expect(examRes.status).toBe(200);
+
+      const crossRes = await fetch(`${baseUrl}/exams/exam-ee-01`, {
+        headers: { Authorization: `Bearer ${hodToken}` },
+      });
+      expect(crossRes.status).toBe(403);
     });
   });
 });
