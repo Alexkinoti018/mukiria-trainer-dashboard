@@ -24,6 +24,7 @@ import {
 import {
   createUser,
   findUserByEmailOrAdmission,
+  findUserByAdmissionNumber,
   loadPersistentUsers,
   savePersistentUsers,
   loadPersistentTrainees,
