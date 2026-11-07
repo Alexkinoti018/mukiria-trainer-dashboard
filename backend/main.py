@@ -6,7 +6,7 @@ import io
 import urllib.parse
 import docx
 import difflib
-import docx.shared
+from docx.shared import Inches, Pt, RGBColor
 from http.server import ThreadingHTTPServer, HTTPServer, BaseHTTPRequestHandler
 from fpdf import FPDF
 from PIL import Image
