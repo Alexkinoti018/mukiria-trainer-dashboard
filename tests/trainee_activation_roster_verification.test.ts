@@ -5,6 +5,7 @@ import type { AddressInfo } from "net";
 import bcrypt from "bcryptjs";
 import { apiRouter } from "../server/routes.ts";
 import { normalizeAdmissionNumber } from "../shared/const.ts";
+import { loadPersistentTrainees, savePersistentTrainees } from "../server/db.ts";
 
 describe("Roster-Verified Trainee Account Activation & Lookup Suite", () => {
   let app: express.Express;
@@ -116,6 +117,19 @@ describe("Roster-Verified Trainee Account Activation & Lookup Suite", () => {
     const testEmail = `activate_${uniqueTimestamp}@mtti.ac.ke`;
     const plainPassword = "SecureTrainee@2026!";
 
+    beforeAll(() => {
+      const trainees = loadPersistentTrainees();
+      trainees.push({
+        id: `trainee-${testAdmNo}`,
+        name: "Brenda Mukiri Test",
+        reg_number: testAdmNo,
+        adm_no: testAdmNo,
+        reg_code: testAdmNo,
+        department: "Computing & Informatics",
+      });
+      savePersistentTrainees(trainees);
+    });
+
     it("activates trainee account and stores bcrypt hash with enforced TRAINEE role", async () => {
       // Client-side bcrypt hashing simulation
       const salt = bcrypt.genSaltSync(10);
@@ -139,7 +153,7 @@ describe("Roster-Verified Trainee Account Activation & Lookup Suite", () => {
       expect(data.success).toBe(true);
       expect(data.user.admission_number).toBe(testAdmNo);
       // Strictly enforced role
-      expect(data.user.role).toBe("TRAINEE");
+      expect(data.user.role).toBe("trainee");
       expect(data.user.password_hash).toBeUndefined(); // Zero plain-text / hash leak
     });
 
@@ -157,7 +171,7 @@ describe("Roster-Verified Trainee Account Activation & Lookup Suite", () => {
       const loginData = await loginRes.json();
       expect(loginData.success).toBe(true);
       expect(loginData.token).toBeDefined();
-      expect(loginData.user.role).toBe("TRAINEE");
+      expect(loginData.user.role).toBe("trainee");
       expect(loginData.user.admission_number).toBe(testAdmNo);
     });
 

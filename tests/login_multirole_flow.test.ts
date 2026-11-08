@@ -9,6 +9,8 @@ import {
   findUserByAdmissionNumber,
   createUser,
   loadPersistentUsers,
+  loadPersistentTrainees,
+  savePersistentTrainees,
 } from "../server/db.ts";
 
 describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
@@ -68,7 +70,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       expect(data.token).toBeDefined();
       expect(typeof data.token).toBe("string");
       expect(data.user.admission_number).toBe(testAdmNo);
-      expect(data.user.role).toBe("TRAINEE");
+      expect(data.user.role).toBe("trainee");
 
       // Verify destination mapping for Trainee is /trainee/exam
       const targetDestination = data.user.role.toLowerCase() === "trainee" ? "/trainee/exam" : "/trainer/dashboard";
@@ -98,7 +100,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       expect(res.status).toBe(200);
       const data = await res.json();
       expect(data.user.admission_number).toBe(tvetAdm);
-      expect(data.user.role).toBe("TRAINEE");
+      expect(data.user.role).toBe("trainee");
     });
   });
 
@@ -118,7 +120,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       const data = await res.json();
       expect(data.success).toBe(true);
       expect(data.user.email).toBe("admin@mtti.ac.ke");
-      expect(data.user.role).toBe("ADMIN");
+      expect(data.user.role).toBe("admin");
 
       // Role-Based Redirection: Admins/HODs route to /admin/roster
       const targetDestination = ["admin", "hod"].includes(data.user.role.toLowerCase())
@@ -141,7 +143,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       const data = await res.json();
       expect(data.success).toBe(true);
       expect(data.user.email).toBe("hod.ci@mtti.ac.ke");
-      expect(data.user.role).toBe("HOD");
+      expect(data.user.role).toBe("hod");
 
       const targetDestination = ["admin", "hod"].includes(data.user.role.toLowerCase())
         ? "/admin/roster"
@@ -163,7 +165,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       const data = await res.json();
       expect(data.success).toBe(true);
       expect(data.user.email).toBe("trainer@mtti.ac.ke");
-      expect(data.user.role).toBe("TRAINER");
+      expect(data.user.role).toBe("trainer");
 
       const targetDestination = data.user.role.toLowerCase() === "trainer"
         ? "/trainer/dashboard"
@@ -178,6 +180,17 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       const newAdm = `ADM_${Date.now()}`;
       const newEmail = `trainee_${Date.now()}@mtti.ac.ke`;
       const pass = "NewTraineeSecure@2026";
+
+      const trainees = loadPersistentTrainees();
+      trainees.push({
+        id: `trainee-${newAdm}`,
+        name: "Brendah Mumbi",
+        reg_number: newAdm,
+        adm_no: newAdm,
+        reg_code: newAdm,
+        department: "Computing & Informatics",
+      });
+      savePersistentTrainees(trainees);
 
       // 1. Register Trainee
       const regRes = await fetch(`${baseUrl}/auth/register-trainee`, {
@@ -195,7 +208,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       expect(regRes.status).toBe(201);
       const regData = await regRes.json();
       expect(regData.success).toBe(true);
-      expect(regData.user.role).toBe("TRAINEE");
+      expect(regData.user.role).toBe("trainee");
 
       // Verify password was salted & hashed in the database
       const dbUser = await findUserByAdmissionNumber(newAdm);
@@ -216,7 +229,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
       const loginData = await loginRes.json();
       expect(loginData.token).toBeDefined();
       expect(loginData.user.admission_number).toBe(newAdm);
-      expect(loginData.user.role).toBe("TRAINEE");
+      expect(loginData.user.role).toBe("trainee");
     });
   });
 

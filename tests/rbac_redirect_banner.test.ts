@@ -174,6 +174,7 @@ describe("RBAC Gateway Redirection & Alert Banner Verification", () => {
     let baseUrl: string;
 
     beforeAll(async () => {
+      process.env.ALLOW_DEMO_AUTH = "true";
       const app = express();
       app.use(express.json());
       app.use("/api", apiRouter);

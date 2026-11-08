@@ -2,7 +2,15 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import express from "express";
 import type { Server } from "http";
 import type { AddressInfo } from "net";
-import { loadPersistentUsers, savePersistentUsers } from "../server/db.ts";
+import bcrypt from "bcryptjs";
+import {
+  createStaffAccount,
+  createUser,
+  findUserByEmail,
+  loadPersistentUsers,
+  removeInMemoryStaffProfile,
+  savePersistentUsers,
+} from "../server/db.ts";
 import { 
   apiRouter, 
   DB, 
@@ -11,17 +19,29 @@ import {
   verifyHODDepartmentScope,
   atomicSubmitSubmission 
 } from "../server/routes.ts";
+import { loginAs } from "./test_auth_helpers.ts";
 
 describe("MTTI RBAC & Object Authorization Security Suite", () => {
   let app: express.Express;
   let server: Server;
   let baseUrl: string;
-  let createdStaffEmail: string | null = null;
+  const createdStaffProfileIds: string[] = [];
+  const initialPersistentUsers = JSON.parse(JSON.stringify(loadPersistentUsers()));
 
   // Snapshot initial in-memory DB state for isolation
   const initialDBState = JSON.parse(JSON.stringify(DB));
 
   beforeAll(async () => {
+    process.env.ALLOW_DEMO_AUTH = "true";
+    await createUser({
+      id: "rbac-real-login-trainee",
+      admission_number: "14179/S2026",
+      full_name: "RBAC Login Trainee",
+      email: "rbac-login-trainee@mtti.ac.ke",
+      password_hash: await bcrypt.hash("TraineePassword@2026!", 12),
+      role: "TRAINEE",
+      profile_id: "trainee-001",
+    });
     app = express();
     app.use(express.json());
     app.use("/api", apiRouter);
@@ -39,11 +59,12 @@ describe("MTTI RBAC & Object Authorization Security Suite", () => {
     await new Promise<void>((resolve) => {
       server.close(() => resolve());
     });
-    if (createdStaffEmail) {
-      savePersistentUsers(
-        loadPersistentUsers().filter((user) => user.email !== createdStaffEmail)
-      );
-    }
+    savePersistentUsers(initialPersistentUsers);
+    new Set(createdStaffProfileIds).forEach(removeInMemoryStaffProfile);
+    DB.trainers = initialDBState.trainers;
+    DB.departments = initialDBState.departments;
+    DB.unit_offerings = initialDBState.unit_offerings;
+    DB.assessment_evidence = initialDBState.assessment_evidence;
   });
 
   beforeEach(() => {
@@ -167,7 +188,7 @@ describe("MTTI RBAC & Object Authorization Security Suite", () => {
     });
 
     it("should allow Administrator to create institutional users (HTTP 201)", async () => {
-      createdStaffEmail = `staff-${Date.now()}@mtti.ac.ke`;
+      const createdStaffEmail = `staff-${Date.now()}@mtti.ac.ke`;
       const res = await fetch(`${baseUrl}/admin/users`, {
         method: "POST",
         headers: {
@@ -187,8 +208,12 @@ describe("MTTI RBAC & Object Authorization Security Suite", () => {
       expect(data.success).toBe(true);
       expect(data.user.role).toBe("trainer");
       expect(data.user.department_id).toBe("dept-ci");
+      expect(data.user.profile_id).toBeTruthy();
+      expect(data.user.must_change_password).toBe(true);
       expect(data.temporaryPassword).toHaveLength(24);
+      expect(res.headers.get("cache-control")).toBe("no-store");
       expect(data.user.password_hash).toBeUndefined();
+      createdStaffProfileIds.push(data.user.profile_id);
 
       const loginRes = await fetch(`${baseUrl}/auth/login`, {
         method: "POST",
@@ -200,8 +225,170 @@ describe("MTTI RBAC & Object Authorization Security Suite", () => {
       });
       expect(loginRes.status).toBe(200);
       const loginData = await loginRes.json();
-      expect(loginData.user.role).toBe("TRAINER");
+      expect(loginData.user.role).toBe("trainer");
       expect(loginData.user.department_id).toBe("dept-ci");
+      expect(loginData.user.must_change_password).toBe(true);
+    });
+
+    it("creates a trainer profile atomically, enforces first-login password change, and scopes evidence to their own offerings", async () => {
+      const email = `scoped-trainer-${Date.now()}@mtti.ac.ke`;
+      const { token: adminToken } = await loginAs(baseUrl, "admin");
+      const createRes = await fetch(`${baseUrl}/admin/users`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Scoped Trainer", email, role: "trainer", department_id: "dept-ci" }),
+      });
+      expect(createRes.status).toBe(201);
+      const created = await createRes.json();
+      createdStaffProfileIds.push(created.user.profile_id);
+
+      const loginRes = await fetch(`${baseUrl}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: email, password: created.temporaryPassword }),
+      });
+      expect(loginRes.status).toBe(200);
+      const login = await loginRes.json();
+      expect(login.user.profile_id).toBe(created.user.profile_id);
+
+      const blocked = await fetch(`${baseUrl}/evidence`, {
+        headers: { Authorization: `Bearer ${login.token}` },
+      });
+      expect(blocked.status).toBe(428);
+
+      const changeRes = await fetch(`${baseUrl}/auth/change-password`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${login.token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: created.temporaryPassword, newPassword: "A-new-strong-password-2026!" }),
+      });
+      expect(changeRes.status).toBe(200);
+
+      const ownOffering = `offering-own-${Date.now()}`;
+      const otherOffering = `offering-other-${Date.now()}`;
+      const ownUnit = `unit-own-${Date.now()}`;
+      const otherUnit = `unit-other-${Date.now()}`;
+      const ownExam = `exam-${ownOffering}`;
+      const otherExam = `exam-${otherOffering}`;
+      DB.unit_offerings.push(
+        { id: ownOffering, unit_id: ownUnit, trainer_id: created.user.profile_id, department_id: "dept-ci" },
+        { id: otherOffering, unit_id: otherUnit, trainer_id: "trainer-002", department_id: "dept-ci" },
+      );
+      DB.exams.push(
+        { id: ownExam, unit_id: ownUnit, unit_code: "OWN-UNIT", payload: {} },
+        { id: otherExam, unit_id: otherUnit, unit_code: "OTHER-UNIT", payload: {} },
+      );
+      DB.assessment_evidence.push(
+        { id: `evidence-${ownOffering}`, unit_offering_id: ownOffering, trainee_id: "trainee-001" },
+        { id: `evidence-${otherOffering}`, unit_offering_id: otherOffering, trainee_id: "trainee-001" },
+      );
+
+      const evidenceRes = await fetch(`${baseUrl}/evidence`, {
+        headers: { Authorization: `Bearer ${login.token}` },
+      });
+      expect(evidenceRes.status).toBe(200);
+      const evidence = await evidenceRes.json();
+      expect(evidence.evidence.map((item: any) => item.id)).toContain(`evidence-${ownOffering}`);
+      expect(evidence.evidence.map((item: any) => item.id)).not.toContain(`evidence-${otherOffering}`);
+      const examsRes = await fetch(`${baseUrl}/exams`, {
+        headers: { Authorization: `Bearer ${login.token}` },
+      });
+      expect(examsRes.status).toBe(200);
+      const exams = await examsRes.json();
+      expect(exams.map((exam: any) => exam.id)).toContain(ownExam);
+      expect(exams.map((exam: any) => exam.id)).not.toContain(otherExam);
+      DB.unit_offerings = DB.unit_offerings.filter((item: any) => item.id !== ownOffering && item.id !== otherOffering);
+      DB.assessment_evidence = DB.assessment_evidence.filter((item: any) => ![ownOffering, otherOffering].includes(item.unit_offering_id));
+      DB.exams = DB.exams.filter((exam: any) => exam.id !== ownExam && exam.id !== otherExam);
+    }, 20000);
+
+    it("scopes an HOD account created through the admin form to the assigned department", async () => {
+      const email = `scoped-hod-${Date.now()}@mtti.ac.ke`;
+      const { token: adminToken } = await loginAs(baseUrl, "admin");
+      const createRes = await fetch(`${baseUrl}/admin/users`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Scoped HOD", email, role: "hod", department_id: "dept-ee" }),
+      });
+      expect(createRes.status).toBe(201);
+      const created = await createRes.json();
+      createdStaffProfileIds.push(created.user.profile_id);
+
+      const loginRes = await fetch(`${baseUrl}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: email, password: created.temporaryPassword }),
+      });
+      const login = await loginRes.json();
+      expect(login.user.department_id).toBe("dept-ee");
+
+      const changeRes = await fetch(`${baseUrl}/auth/change-password`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${login.token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: created.temporaryPassword, newPassword: "A-new-HOD-password-2026!" }),
+      });
+      expect(changeRes.status).toBe(200);
+
+      const eeOffering = `offering-ee-${Date.now()}`;
+      const ciOffering = `offering-ci-${Date.now()}`;
+      DB.unit_offerings.push(
+        { id: eeOffering, trainer_id: "trainer-002", department_id: "dept-ee" },
+        { id: ciOffering, trainer_id: "trainer-001", department_id: "dept-ci" },
+      );
+      DB.assessment_evidence.push(
+        { id: `evidence-${eeOffering}`, unit_offering_id: eeOffering, trainee_id: "trainee-001" },
+        { id: `evidence-${ciOffering}`, unit_offering_id: ciOffering, trainee_id: "trainee-001" },
+      );
+      const evidenceRes = await fetch(`${baseUrl}/evidence`, {
+        headers: { Authorization: `Bearer ${login.token}` },
+      });
+      expect(evidenceRes.status).toBe(200);
+      const evidence = await evidenceRes.json();
+      expect(evidence.evidence.map((item: any) => item.id)).toContain(`evidence-${eeOffering}`);
+      expect(evidence.evidence.map((item: any) => item.id)).not.toContain(`evidence-${ciOffering}`);
+      DB.unit_offerings = DB.unit_offerings.filter((item: any) => item.id !== eeOffering && item.id !== ciOffering);
+      DB.assessment_evidence = DB.assessment_evidence.filter((item: any) => ![eeOffering, ciOffering].includes(item.unit_offering_id));
+    }, 20000);
+
+    it("fails closed when the stored staff department does not match a real department", async () => {
+      const email = `mismatch-${Date.now()}@mtti.ac.ke`;
+      const { token: adminToken } = await loginAs(baseUrl, "admin");
+      const createRes = await fetch(`${baseUrl}/admin/users`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Mismatch Trainer", email, role: "trainer", department_id: "dept-ci" }),
+      });
+      expect(createRes.status).toBe(201);
+      const created = await createRes.json();
+      createdStaffProfileIds.push(created.user.profile_id);
+      const loginRes = await fetch(`${baseUrl}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: email, password: created.temporaryPassword }),
+      });
+      const login = await loginRes.json();
+
+      const users = loadPersistentUsers();
+      const account = users.find((item) => item.email === email)!;
+      account.department_id = "department-does-not-exist";
+      savePersistentUsers(users);
+
+      const response = await fetch(`${baseUrl}/evidence`, {
+        headers: { Authorization: `Bearer ${login.token}` },
+      });
+      expect(response.status).toBe(403);
+    }, 20000);
+
+    it("rolls back the user row when staff profile creation fails", async () => {
+      const email = `rollback-${Date.now()}@mtti.ac.ke`;
+      const passwordHash = await bcrypt.hash("Test-password-2026!", 12);
+      await expect(createStaffAccount({
+        full_name: "Rollback Test",
+        email,
+        department_id: "missing-department",
+        password_hash: passwordHash,
+        role: "HOD",
+      })).rejects.toMatchObject({ code: "DEPARTMENT_NOT_FOUND" });
+      expect(await findUserByEmail(email)).toBeNull();
     });
   });
 
@@ -573,6 +760,105 @@ describe("MTTI RBAC & Object Authorization Security Suite", () => {
       expect(res.status).toBe(403);
       const data = await res.json();
       expect(data.error).toContain("Forbidden: You are not the assigned trainer");
+    });
+  });
+
+  // ─── 8. REAL LOGIN TOKEN BOLA & RBAC VERIFICATION ───────────────────────────
+  describe("8. Real Login Token BOLA & RBAC Coverage (ALLOW_DEMO_AUTH disabled)", () => {
+    let origDemoAuth: string | undefined;
+
+    beforeAll(() => {
+      origDemoAuth = process.env.ALLOW_DEMO_AUTH;
+      delete process.env.ALLOW_DEMO_AUTH;
+    });
+
+    afterAll(() => {
+      if (origDemoAuth !== undefined) {
+        process.env.ALLOW_DEMO_AUTH = origDemoAuth;
+      }
+    });
+
+    it("prevents Trainee from accessing another trainee's submission using real login token (HTTP 403)", async () => {
+      const { token: traineeToken } = await loginAs(baseUrl, "trainee");
+      const res = await fetch(`${baseUrl}/submissions/sub-102`, {
+        headers: { Authorization: `Bearer ${traineeToken}` },
+      });
+      expect(res.status).toBe(403);
+      const data = await res.json();
+      expect(data.error).toContain("Forbidden (BOLA)");
+    });
+
+    it("allows Trainee to access their own submission using real login token (HTTP 200)", async () => {
+      const { token: traineeToken } = await loginAs(baseUrl, "trainee");
+      const res = await fetch(`${baseUrl}/submissions/sub-101`, {
+        headers: { Authorization: `Bearer ${traineeToken}` },
+      });
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.id).toBe("sub-101");
+      expect(data.trainee_id).toBe("trainee-001");
+    });
+
+    it("allows assigned Trainer to access offering marks using real login token (HTTP 200)", async () => {
+      const { token: trainerToken } = await loginAs(baseUrl, "trainer");
+      const res = await fetch(`${baseUrl}/assessment-marks/uo-1`, {
+        headers: { Authorization: `Bearer ${trainerToken}` },
+      });
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.marks.length).toBe(2);
+    });
+
+    it("rejects unassigned Trainer from accessing offering marks using real login token (HTTP 403)", async () => {
+      const { token: trainerToken } = await loginAs(baseUrl, "trainer");
+      const res = await fetch(`${baseUrl}/assessment-marks/uo-3`, {
+        headers: { Authorization: `Bearer ${trainerToken}` },
+      });
+      expect(res.status).toBe(403);
+      const data = await res.json();
+      expect(data.error).toContain("Forbidden: You are not the assigned trainer");
+    });
+
+    it("enforces HOD department scope using real login token", async () => {
+      if (!DB.exams.some((e) => e.id === "exam-ee-01")) {
+        DB.exams.push({
+          id: "exam-ee-01",
+          unit_id: "unit-ee-1",
+          unit_code: "EE/CU/PO/CR/1/6",
+          course_name: "Electrical Engineering",
+          created_at: new Date().toISOString(),
+          payload: {
+            title: "Power Systems Exam",
+            task_code: "EE1",
+            duration_minutes: 60,
+            total_marks: 30,
+            portal_visible: true,
+            section_a: { questions: [] },
+            section_b: { questions: [] },
+          },
+        } as any);
+      }
+      if (!DB.unit_offerings.some((uo) => uo.id === "uo-ee-1")) {
+        DB.unit_offerings.push({
+          id: "uo-ee-1",
+          unit_id: "unit-ee-1",
+          unit_code: "EE/CU/PO/CR/1/6",
+          department_id: "dept-ee",
+          trainer_id: "trainer-003",
+          status: "active",
+        } as any);
+      }
+
+      const { token: hodToken } = await loginAs(baseUrl, "hod");
+      const examRes = await fetch(`${baseUrl}/exams/exam-cr-001`, {
+        headers: { Authorization: `Bearer ${hodToken}` },
+      });
+      expect(examRes.status).toBe(200);
+
+      const crossRes = await fetch(`${baseUrl}/exams/exam-ee-01`, {
+        headers: { Authorization: `Bearer ${hodToken}` },
+      });
+      expect(crossRes.status).toBe(403);
     });
   });
 });

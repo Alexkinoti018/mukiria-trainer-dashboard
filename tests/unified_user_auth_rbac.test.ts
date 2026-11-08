@@ -4,13 +4,15 @@ import type { Server } from "http";
 import type { AddressInfo } from "net";
 import bcrypt from "bcryptjs";
 import { apiRouter } from "../server/routes.ts";
-import { requireRole, requireRoles, authenticateToken } from "../server/middleware/auth.ts";
+import { requireRole, requireRoles, authenticateToken } from "../server/auth.ts";
 import {
   findUserByEmail,
   findUserByAdmissionNumber,
   findUserByEmailOrAdmission,
   loadPersistentUsers,
   createUser,
+  loadPersistentTrainees,
+  savePersistentTrainees,
 } from "../server/db.ts";
 
 describe("Unified User Management, Secure Authentication, and RBAC Suite", () => {
@@ -85,6 +87,19 @@ describe("Unified User Management, Secure Authentication, and RBAC Suite", () =>
     const testTraineeAdm = `ADM${Date.now()}`;
     const testTraineeEmail = `trainee_${Date.now()}@mtti.ac.ke`;
 
+    beforeAll(() => {
+      const trainees = loadPersistentTrainees();
+      trainees.push({
+        id: `trainee-${testTraineeAdm}`,
+        name: "Brian Kiprono",
+        reg_number: testTraineeAdm,
+        adm_no: testTraineeAdm,
+        reg_code: testTraineeAdm,
+        department: "Computing & Informatics",
+      });
+      savePersistentTrainees(trainees);
+    });
+
     it("should reject registration requests with missing required fields (HTTP 400)", async () => {
       const res = await fetch(`${baseUrl}/auth/register-trainee`, {
         method: "POST",
@@ -136,7 +151,7 @@ describe("Unified User Management, Secure Authentication, and RBAC Suite", () =>
       expect(data.success).toBe(true);
       expect(data.user.admission_number).toBe(testTraineeAdm);
       expect(data.user.email).toBe(testTraineeEmail);
-      expect(data.user.role).toBe("TRAINEE");
+      expect(data.user.role).toBe("trainee");
       expect(data.user.password_hash).toBeUndefined(); // Zero plain-text / hash leak
 
       // Verify the record directly in the database abstraction
@@ -154,6 +169,17 @@ describe("Unified User Management, Secure Authentication, and RBAC Suite", () =>
       const maliciousAdm = `HACK_${Date.now()}`;
       const maliciousEmail = `hack_${Date.now()}@mtti.ac.ke`;
 
+      const trainees = loadPersistentTrainees();
+      trainees.push({
+        id: `trainee-${maliciousAdm}`,
+        name: "Escalation Attempt",
+        reg_number: maliciousAdm,
+        adm_no: maliciousAdm,
+        reg_code: maliciousAdm,
+        department: "Computing & Informatics",
+      });
+      savePersistentTrainees(trainees);
+
       const res = await fetch(`${baseUrl}/auth/register-trainee`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -168,7 +194,7 @@ describe("Unified User Management, Secure Authentication, and RBAC Suite", () =>
 
       expect(res.status).toBe(201);
       const data = await res.json();
-      expect(data.user.role).toBe("TRAINEE");
+      expect(data.user.role).toBe("trainee");
 
       const dbUser = await findUserByAdmissionNumber(maliciousAdm);
       expect(dbUser?.role).toBe("TRAINEE");
@@ -286,7 +312,7 @@ describe("Unified User Management, Secure Authentication, and RBAC Suite", () =>
       expect(typeof data.token).toBe("string");
       expect(data.token.split(".").length).toBe(3); // Valid 3-part JWT
       expect(data.user.admission_number).toBe(loginAdm);
-      expect(data.user.role).toBe("TRAINEE");
+      expect(data.user.role).toBe("trainee");
     });
 
     it("should authenticate trainee using email address and return signed JWT (HTTP 200)", async () => {
@@ -304,7 +330,7 @@ describe("Unified User Management, Secure Authentication, and RBAC Suite", () =>
       expect(data.success).toBe(true);
       expect(data.token).toBeDefined();
       expect(data.user.email).toBe(loginEmail);
-      expect(data.user.role).toBe("TRAINEE");
+      expect(data.user.role).toBe("trainee");
     });
 
     it("should authenticate staff using institutional email address (HTTP 200)", async () => {
@@ -322,7 +348,7 @@ describe("Unified User Management, Secure Authentication, and RBAC Suite", () =>
       expect(data.success).toBe(true);
       expect(data.token).toBeDefined();
       expect(data.user.email).toBe("admin@mtti.ac.ke");
-      expect(data.user.role).toBe("ADMIN");
+      expect(data.user.role).toBe("admin");
     });
   });
 

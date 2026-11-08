@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from
 import express from "express";
 import type { Server } from "http";
 import type { AddressInfo } from "net";
+import { setCachedUserProfile } from "../server/auth.ts";
 import {
   apiRouter,
   authenticateUser,
@@ -216,16 +217,25 @@ describe("Phase 2: Secure Cryptographic Authentication & RBAC Suite", () => {
     });
 
     it("should accept verified cryptographic JWT in production mode and grant role-scoped access", async () => {
+      setCachedUserProfile("usr-admin-01", {
+        id: "usr-admin-01",
+        profile_id: "admin-001",
+        email: "admin@mtti.ac.ke",
+        name: "System Administrator",
+        role: "admin",
+      });
       process.env.AUTH_MODE = "supabase";
       process.env.ALLOW_DEMO_AUTH = "false";
       process.env.NODE_ENV = "production";
+      process.env.JWT_SECRET = TEST_JWT_SECRET;
       process.env.SUPABASE_JWT_SECRET = TEST_JWT_SECRET;
 
       const adminPayload = {
-        sub: "real-admin-uuid",
+        sub: "usr-admin-01",
         email: "admin@mtti.ac.ke",
+        role: "admin",
         app_metadata: { role: "admin" },
-        user_metadata: { name: "Principal Administrator" },
+        user_metadata: { name: "System Administrator" },
         exp: Math.floor(Date.now() / 1000) + 3600,
       };
 
@@ -243,14 +253,25 @@ describe("Phase 2: Secure Cryptographic Authentication & RBAC Suite", () => {
     });
 
     it("should enforce RBAC with HTTP 403 when a valid trainee JWT accesses an admin endpoint", async () => {
+      setCachedUserProfile("usr-10525", {
+        id: "usr-10525",
+        profile_id: "trainee-001",
+        email: "student@mtti.ac.ke",
+        name: "Demo Trainee",
+        role: "trainee",
+        admission_number: "10525",
+        reg_number: "10525",
+      });
       process.env.AUTH_MODE = "supabase";
       process.env.ALLOW_DEMO_AUTH = "false";
       process.env.NODE_ENV = "production";
+      process.env.JWT_SECRET = TEST_JWT_SECRET;
       process.env.SUPABASE_JWT_SECRET = TEST_JWT_SECRET;
 
       const traineePayload = {
-        sub: "trainee-uuid-403",
+        sub: "usr-10525",
         email: "student@mtti.ac.ke",
+        role: "trainee",
         app_metadata: { role: "trainee" },
         exp: Math.floor(Date.now() / 1000) + 3600,
       };
