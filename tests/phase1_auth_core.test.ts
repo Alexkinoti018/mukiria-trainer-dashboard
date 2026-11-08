@@ -77,7 +77,7 @@ describe("Phase 1 Acceptance Suite: Cryptographic Auth Core, ID Mapping & RBAC",
     }
 
     // Seed test trainer user with email and persisted link to "trainer-001"
-    const trainerHash = "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry";
+    const trainerHash = await bcrypt.hash(testTrainerPassword, 10);
     const existingTrainer = await findUserByEmailOrAdmission(testTrainerEmail);
     if (existingTrainer) {
       existingTrainer.password_hash = trainerHash;
@@ -1048,7 +1048,7 @@ describe("Phase 1 Acceptance Suite: Cryptographic Auth Core, ID Mapping & RBAC",
             admission_number: adm,
             full_name: "Candidate 23505",
             email: `candidate_23505_${Date.now()}@mtti.ac.ke`,
-            password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry",
+            password_hash: await bcrypt.hash("CandidatePassword@2026!", 10),
             role: "trainee",
             profile_id: profileId,
           });

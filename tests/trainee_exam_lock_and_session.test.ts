@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import express from "express";
 import type { Server } from "http";
 import type { AddressInfo } from "net";
+import bcrypt from "bcryptjs";
 import { apiRouter, DB } from "../server/routes.ts";
 import { createUser, loadPersistentTrainees, savePersistentTrainees } from "../server/db.ts";
 import { createSignedJwt, getJwtSecret } from "../server/auth.ts";
@@ -76,7 +77,7 @@ describe("Trainee Exam Lockdown & Session Resilience Suite", () => {
       admission_number: testTrainee.reg_number,
       full_name: testTrainee.name,
       email: testTrainee.email,
-      password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry",
+      password_hash: await bcrypt.hash("ExamPassword@2026!", 10),
       role: "TRAINEE",
       profile_id: testTrainee.id,
     });
