@@ -23,6 +23,7 @@ const ServerConfigSchema = z.object({
   SUPABASE_DB_PASSWORD: z.string().optional(),
   SUPABASE_URL: z.string().url().optional().or(z.literal("")),
   SUPABASE_ANON_KEY: z.string().optional(),
+  JWT_SECRET: z.string().optional(),
   SUPABASE_JWT_SECRET: z.string().optional(),
   STRICT_DB: z
     .string()
@@ -48,7 +49,16 @@ export function loadServerConfig(): ServerConfig & {
   const isDevelopment = parsed.NODE_ENV === "development";
 
   // Demo auth is allowed if explicitly permitted or if running in demo mode in non-production
-  const allowDemoAuth = parsed.ALLOW_DEMO_AUTH || (parsed.AUTH_MODE === "demo" && !isProduction);
+  if (isProduction) {
+    if (parsed.ALLOW_DEMO_AUTH) {
+      throw new Error("FATAL: ALLOW_DEMO_AUTH is strictly forbidden in production mode.");
+    }
+    if (!parsed.JWT_SECRET || parsed.JWT_SECRET.length < 32) {
+      throw new Error("FATAL: JWT_SECRET must be configured and at least 32 characters in production mode.");
+    }
+  }
+
+  const allowDemoAuth = !isProduction && (parsed.ALLOW_DEMO_AUTH || parsed.AUTH_MODE === "demo");
 
   return {
     ...parsed,

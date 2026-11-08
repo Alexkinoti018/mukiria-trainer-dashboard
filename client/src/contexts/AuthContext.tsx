@@ -33,6 +33,7 @@ export interface AuthUser {
   reg_number?: string;
   cohort_code?: string;
   department_id?: string;
+  must_change_password?: boolean;
   enrolled_units?: string[];
   assigned_units?: string[];
 }
@@ -45,7 +46,8 @@ interface AuthContextValue {
     pin: string,
     identifier?: string,
     requestedRole?: "trainer" | "admin" | "hod" | "trainee"
-  ) => Promise<{ success: boolean; error?: string; role?: string; token?: string }>;
+  ) => Promise<{ success: boolean; error?: string; role?: string; token?: string; mustChangePassword?: boolean }>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   registerTrainer: (data: {
     name: string;
     email: string;
@@ -212,22 +214,25 @@ function installApiAuthFetchBridge() {
           const activeUser = JSON.parse(rawSession) as AuthUser;
           if (activeUser && activeUser.role) {
             const headers = new Headers(init?.headers || {});
+            const realToken = window.localStorage.getItem("mtti_auth_token") || window.localStorage.getItem("token");
             if (!headers.has("Authorization")) {
-              const realToken = window.localStorage.getItem("mtti_auth_token") || window.localStorage.getItem("token");
               const tokenToUse = realToken || getBearerTokenForUser(activeUser);
               headers.set("Authorization", `Bearer ${tokenToUse}`);
             }
-            if (!headers.has("x-user-role")) {
-              headers.set("x-user-role", activeUser.role);
-            }
-            if (!headers.has("x-user-id") && activeUser.id) {
-              headers.set("x-user-id", activeUser.id);
-            }
-            if (!headers.has("x-user-reg") && activeUser.reg_number) {
-              headers.set("x-user-reg", activeUser.reg_number);
-            }
-            if (!headers.has("x-user-dept") && activeUser.department_id) {
-              headers.set("x-user-dept", activeUser.department_id);
+            // Stop sending unverified x-user-* headers when a real token exists
+            if (!realToken) {
+              if (!headers.has("x-user-role")) {
+                headers.set("x-user-role", activeUser.role);
+              }
+              if (!headers.has("x-user-id") && activeUser.id) {
+                headers.set("x-user-id", activeUser.id);
+              }
+              if (!headers.has("x-user-reg") && activeUser.reg_number) {
+                headers.set("x-user-reg", activeUser.reg_number);
+              }
+              if (!headers.has("x-user-dept") && activeUser.department_id) {
+                headers.set("x-user-dept", activeUser.department_id);
+              }
             }
             return originalFetch(input, { ...init, headers });
           }
@@ -311,25 +316,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const restoreSession = async () => {
       try {
+        let restoredUser: AuthUser | null = null;
+
         if (isSupabaseConfigured()) {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
-          if (session?.user) {
-            const restoredRole = session.user.user_metadata?.role ?? "trainer";
-            setUser({
-              id: session.user.id,
-              email: restoredRole === "trainee" ? undefined : (session.user.email ?? ""),
-              name: session.user.user_metadata?.name ?? "User",
-              role: restoredRole,
-            });
+          try {
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+            if (session?.user) {
+              const restoredRole = session.user.user_metadata?.role ?? "trainer";
+              restoredUser = {
+                id: session.user.id,
+                email: restoredRole === "trainee" ? undefined : (session.user.email ?? ""),
+                name: session.user.user_metadata?.name ?? "User",
+                role: restoredRole,
+              };
+            }
+          } catch (e) {
+            console.warn("Supabase session check notice:", e);
           }
-        } else {
+        }
+
+        // Resilient fallback to local storage session (for trainees & local PIN/token logins)
+        if (!restoredUser) {
           const stored = localStorage.getItem("mtti_demo_session");
           if (stored) {
-            const parsed = JSON.parse(stored) as AuthUser;
-            setUser(parsed);
+            try {
+              restoredUser = JSON.parse(stored) as AuthUser;
+            } catch {
+              localStorage.removeItem("mtti_demo_session");
+            }
           }
+        }
+
+        if (restoredUser) {
+          setUser(restoredUser);
         }
       } catch (err) {
         console.error("❌ [MTTI Auth] Session restore failed:", err);
@@ -353,7 +374,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             role: restoredRole,
           });
         } else {
-          setUser(null);
+          // Do not overwrite local trainee or token session if Supabase Auth is not authenticated
+          const stored = localStorage.getItem("mtti_demo_session");
+          if (!stored) {
+            setUser(null);
+          }
         }
       });
       return () => subscription.unsubscribe();
@@ -366,7 +391,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       pin: string,
       identifier?: string,
       requestedRole?: "trainer" | "admin" | "hod" | "trainee"
-    ): Promise<{ success: boolean; error?: string; role?: string; token?: string }> => {
+    ): Promise<{ success: boolean; error?: string; role?: string; token?: string; mustChangePassword?: boolean }> => {
       setIsLoading(true);
       try {
         const cleanPin = (pin || "").trim();
@@ -411,6 +436,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   name: data.user.full_name || (rosterMatch ? rosterMatch.name : data.user.email),
                   role: userRole,
                   department_id: data.user.department_id,
+                  must_change_password: data.user.must_change_password === true,
                   reg_number: data.user.admission_number || (rosterMatch ? rosterMatch.regCode || rosterMatch.admNo : undefined),
                   cohort_code: rosterMatch ? rosterMatch.classCode : undefined,
                   enrolled_units: defaultEnrolledUnits,
@@ -418,7 +444,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 setUser(authUser);
                 localStorage.setItem("mtti_demo_session", JSON.stringify(authUser));
-                return { success: true, role: userRole, token: data.token };
+                return {
+                  success: true,
+                  role: userRole,
+                  token: data.token,
+                  mustChangePassword: authUser.must_change_password === true,
+                };
               }
             } else if (resp.status === 401) {
               // Only fail immediately if the user is attempting a password-backed login and not demo PIN fallback
@@ -670,6 +701,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
+      try {
+        const token = localStorage.getItem("mtti_auth_token") || localStorage.getItem("token");
+        const response = await fetch("/api/auth/change-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ currentPassword, newPassword }),
+        });
+        const data = await response.json();
+        if (!response.ok) return { success: false, error: data.error || "Could not update your password." };
+        if (user) {
+          const updatedUser = { ...user, must_change_password: false };
+          setUser(updatedUser);
+          localStorage.setItem("mtti_demo_session", JSON.stringify(updatedUser));
+        }
+        return { success: true };
+      } catch {
+        return { success: false, error: "Could not reach the server. Please try again." };
+      }
+    },
+    [user]
+  );
+
   // ── Register Trainer with Timetable Synchronization ───────
   const registerTrainer = useCallback(
     async (data: {
@@ -741,6 +799,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       localStorage.removeItem("mtti_demo_session");
       localStorage.removeItem("student_demo_session");
+      localStorage.removeItem("mtti_auth_token");
+      localStorage.removeItem("token");
       sessionStorage.removeItem("active_tab");
       setUser(null);
     }
@@ -753,6 +813,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         login,
+        changePassword,
         registerTrainer,
         logout,
       }}

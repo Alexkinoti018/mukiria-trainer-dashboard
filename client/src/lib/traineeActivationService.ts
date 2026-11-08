@@ -160,7 +160,7 @@ export async function activateTraineeAccount(
         admission_number: profile.admissionNumber,
         full_name: profile.fullName,
         email: internalEmail,
-        role: "TRAINEE",
+        role: "trainee",
         phone_number: payload.phoneNumber ? payload.phoneNumber.trim() : null,
       };
     } else {
@@ -200,7 +200,7 @@ export async function activateTraineeAccount(
       admission_number: activatedRecord.admissionNumber,
       full_name: activatedRecord.fullName,
       email: activatedRecord.email,
-      role: "TRAINEE",
+      role: "trainee",
       phone_number: activatedRecord.phoneNumber,
     },
   };

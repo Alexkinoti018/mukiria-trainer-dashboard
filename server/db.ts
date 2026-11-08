@@ -9,19 +9,23 @@
 import pg from "pg";
 import fs from "fs";
 import path from "path";
+import os from "os";
 import { fileURLToPath } from "url";
+import { randomUUID } from "node:crypto";
 
 const { Pool } = pg;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SEEDS_DIR = path.resolve(__dirname, "..", "database", "seeds");
-const DATA_DIR = path.resolve(__dirname, "data");
+const DATA_DIR = path.resolve(process.env.MTTI_DATA_DIR || path.join(os.homedir(), ".mukiria-trainer-dashboard"));
 
 function getFixturePath(filename: string): string {
+  const runtimePath = path.join(DATA_DIR, filename);
+  if (fs.existsSync(runtimePath)) return runtimePath;
   const seedPath = path.join(SEEDS_DIR, filename);
   if (fs.existsSync(seedPath)) return seedPath;
-  return path.join(DATA_DIR, filename);
+  return runtimePath;
 }
 
 const ATTENDANCE_FILE = getFixturePath("attendance_register.json");
@@ -35,12 +39,23 @@ const SUBMISSIONS_FILE = getFixturePath("submissions.json");
 const ASSESSMENT_EVIDENCE_FILE = getFixturePath("assessment_evidence.json");
 const USERS_FILE = getFixturePath("users.json");
 
-export class DatabaseServiceUnavailableError extends Error {
-  status = 503;
-  statusCode = 503;
+export class DatabaseUnavailableError extends Error {
+  status: number;
+  statusCode: number;
+  constructor(message = "Authentication database is temporarily unavailable") {
+    super(message);
+    this.name = "DatabaseUnavailableError";
+    this.status = 503;
+    this.statusCode = 503;
+  }
+}
+
+export class DatabaseServiceUnavailableError extends DatabaseUnavailableError {
   constructor(message = "Database Service Unavailable: PostgreSQL connection pool is not initialized or connected") {
     super(message);
     this.name = "DatabaseServiceUnavailableError";
+    this.status = 503;
+    this.statusCode = 503;
   }
 }
 
@@ -56,7 +71,16 @@ if (!connectionString && process.env.SUPABASE_DB_PASSWORD) {
   connectionString = `postgresql://${DEFAULT_USER}:${encodeURIComponent(process.env.SUPABASE_DB_PASSWORD)}@${DEFAULT_HOST}:${DEFAULT_PORT}/${DEFAULT_DATABASE}`;
 }
 
-const isProduction = process.env.NODE_ENV === "production";
+export function isRelaxedDbMode(): boolean {
+  const env = (process.env.NODE_ENV || "").trim().toLowerCase();
+  return env === "development" || env === "test";
+}
+
+export function isSecureProductionRuntime(): boolean {
+  return !isRelaxedDbMode();
+}
+
+const isProduction = isSecureProductionRuntime();
 const rejectUnauthorized = process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false" && isProduction;
 
 export const pool = connectionString
@@ -74,8 +98,8 @@ export function isTlsStrict(): boolean {
 }
 
 export function ensurePoolAvailable(): void {
-  if (!pool && (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true")) {
-    throw new DatabaseServiceUnavailableError();
+  if (!pool && (isSecureProductionRuntime() || process.env.STRICT_DB === "true")) {
+    throw new DatabaseServiceUnavailableError("PostgreSQL database pool unavailable in production mode");
   }
 }
 
@@ -111,7 +135,7 @@ export async function query(text: string, params?: any[]): Promise<{ rows: any[]
     }
   }
 
-  if (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true") {
+  if (isSecureProductionRuntime() || process.env.STRICT_DB === "true") {
     throw new DatabaseServiceUnavailableError();
   }
 
@@ -125,7 +149,7 @@ export async function withTransaction<T>(
   callback: (client: pg.PoolClient) => Promise<T>
 ): Promise<T | null> {
   if (!pool) {
-    if (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true") {
+    if (isSecureProductionRuntime() || process.env.STRICT_DB === "true") {
       throw new DatabaseServiceUnavailableError(
         "Database Service Unavailable: Cannot initiate transaction without PostgreSQL pool"
       );
@@ -200,7 +224,9 @@ export interface UserRecord {
   email: string;
   password_hash: string;
   role: "TRAINEE" | "TRAINER" | "HOD" | "ADMIN" | string;
+  profile_id?: string | null;
   department_id?: string | null;
+  must_change_password?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -211,6 +237,8 @@ export interface UserRecord {
 // retaining an in-memory runtime cache for non-destructive local/offline access.
 
 let memoryUsers: UserRecord[] | null = null;
+const memoryStaffTrainers: Array<{ id: string; name: string; email: string; department?: string; assigned_units?: string[] }> = [];
+const memoryStaffDepartmentHeads: Array<{ department_id: string; hod_id: string; hod_email: string }> = [];
 let memoryAttendance: AttendanceRecord[] | null = null;
 let memoryTrainees: TraineeRecord[] | null = null;
 let memorySessionPlans: any[] | null = null;
@@ -220,53 +248,6 @@ let memoryClassRegisters: Record<string, any> | null = null;
 let memoryAssessmentMarks: any[] | null = null;
 let memorySubmissions: any[] | null = null;
 let memoryAssessmentEvidence: any[] | null = null;
-
-const DEFAULT_STAFF_USERS: UserRecord[] = [
-  {
-    id: "usr-admin-01",
-    admission_number: null,
-    phone_number: "+254700000001",
-    full_name: "System Administrator",
-    email: "admin@mtti.ac.ke",
-    password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry", // Mtti@2026!
-    role: "ADMIN",
-    created_at: "2026-01-01T00:00:00.000Z",
-    updated_at: "2026-01-01T00:00:00.000Z",
-  },
-  {
-    id: "usr-hod-ci",
-    admission_number: null,
-    phone_number: "+254700000002",
-    full_name: "Prof. S. Njoroge",
-    email: "hod.ci@mtti.ac.ke",
-    password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry",
-    role: "HOD",
-    created_at: "2026-01-01T00:00:00.000Z",
-    updated_at: "2026-01-01T00:00:00.000Z",
-  },
-  {
-    id: "usr-trainer-01",
-    admission_number: null,
-    phone_number: "+254700000003",
-    full_name: "Dr. J. Muriithi",
-    email: "trainer@mtti.ac.ke",
-    password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry",
-    role: "TRAINER",
-    created_at: "2026-01-01T00:00:00.000Z",
-    updated_at: "2026-01-01T00:00:00.000Z",
-  },
-  {
-    id: "usr-trainer-02",
-    admission_number: null,
-    phone_number: "+254700000004",
-    full_name: "Alexander Kinoti",
-    email: "kinoti@mtti.ac.ke",
-    password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry",
-    role: "TRAINER",
-    created_at: "2026-01-01T00:00:00.000Z",
-    updated_at: "2026-01-01T00:00:00.000Z",
-  },
-];
 
 export function loadPersistentUsers(): UserRecord[] {
   if (memoryUsers !== null) return memoryUsers;
@@ -281,27 +262,229 @@ export function loadPersistentUsers(): UserRecord[] {
   } catch (e) {
     console.warn("Could not read users JSON file:", e);
   }
-  memoryUsers = [...DEFAULT_STAFF_USERS];
+  memoryUsers = [];
   return memoryUsers;
 }
 
 export function savePersistentUsers(records: UserRecord[]): void {
   memoryUsers = [...records];
   try {
-    const dir = path.dirname(USERS_FILE);
+    const filePath = path.join(DATA_DIR, "users.json");
+    const dir = path.dirname(filePath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(USERS_FILE, JSON.stringify(records, null, 2), "utf-8");
+    fs.writeFileSync(filePath, JSON.stringify(records, null, 2), "utf-8");
   } catch (e) {
     console.warn("Could not write users JSON file:", e);
   }
+}
+
+export function removeInMemoryStaffProfile(profileId: string): void {
+  const trainerIndex = memoryStaffTrainers.findIndex((trainer) => trainer.id === profileId);
+  if (trainerIndex >= 0) memoryStaffTrainers.splice(trainerIndex, 1);
+  const departmentIndex = memoryStaffDepartmentHeads.findIndex((department) => department.hod_id === profileId);
+  if (departmentIndex >= 0) memoryStaffDepartmentHeads.splice(departmentIndex, 1);
+}
+
+async function addInMemoryStaffProfile(
+  role: "TRAINER" | "HOD",
+  profileId: string,
+  name: string,
+  email: string,
+  departmentId: string
+): Promise<void> {
+  const department = (await loadDatabaseDepartments()).find((item) => item.id === departmentId);
+  if (!department) {
+    throw Object.assign(new Error("The selected department does not exist."), { code: "DEPARTMENT_NOT_FOUND" });
+  }
+
+  if (role === "TRAINER") {
+    const trainers = await loadDatabaseTrainers();
+    if (trainers.some((trainer) => trainer.email?.trim().toLowerCase() === email)) {
+      throw Object.assign(new Error("A trainer profile with this email already exists."), { code: "23505" });
+    }
+    memoryStaffTrainers.push({ id: profileId, name, email, department: department.name });
+    return;
+  }
+
+  const existing = memoryStaffDepartmentHeads.find((department) => department.department_id === departmentId);
+  if (existing) {
+    existing.hod_id = profileId;
+    existing.hod_email = email;
+  } else {
+    memoryStaffDepartmentHeads.push({ department_id: departmentId, hod_id: profileId, hod_email: email });
+  }
+}
+
+
+export async function findUserById(id: string): Promise<UserRecord | null> {
+  const normId = (id || "").trim();
+  if (!normId) return null;
+
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      const res = await pool.query(
+        `SELECT id, email, phone_number, full_name, admission_number, password_hash, role, profile_id, department_id, must_change_password, created_at, updated_at
+         FROM users WHERE id = $1 LIMIT 1`,
+        [normId]
+      );
+      if (res.rows.length > 0) return res.rows[0];
+      return null;
+    } catch (err: any) {
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL database unavailable in production mode");
+      }
+      console.warn("⚠️ [PostgreSQL findUserById Warning]:", err.message);
+    }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL database pool unavailable in production mode");
+  }
+
+  const users = loadPersistentUsers();
+  const match = [...users].reverse().find((u) => u.id === normId);
+  return match || null;
+}
+
+export async function findUserByProfileId(profileId: string): Promise<UserRecord | null> {
+  const norm = (profileId || "").trim();
+  if (!norm) return null;
+
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      const res = await pool.query(
+        `SELECT id, email, phone_number, full_name, admission_number, password_hash, role, profile_id, department_id, must_change_password, created_at, updated_at
+         FROM users WHERE profile_id = $1 LIMIT 1`,
+        [norm]
+      );
+      if (res.rows.length > 0) return res.rows[0];
+      return null;
+    } catch (err: any) {
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL database unavailable in production mode");
+      }
+      console.warn("⚠️ [PostgreSQL findUserByProfileId Warning]:", err.message);
+    }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL database pool unavailable in production mode");
+  }
+
+  const users = loadPersistentUsers();
+  const match = [...users].reverse().find((u) => u.profile_id === norm);
+  return match || null;
+}
+
+export async function updateUserProfileId(userId: string, profileId: string): Promise<void> {
+  const normUserId = (userId || "").trim();
+  const normProfileId = (profileId || "").trim();
+  if (!normUserId || !normProfileId) return;
+
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      await pool.query("UPDATE users SET profile_id = $1 WHERE id = $2 AND profile_id IS NULL", [normProfileId, normUserId]);
+    } catch (err: any) {
+      console.warn("⚠️ [PostgreSQL updateUserProfileId Warning]:", err.message);
+    }
+  }
+
+  const users = loadPersistentUsers();
+  const user = users.find((u) => u.id === normUserId);
+  if (user && !user.profile_id) {
+    user.profile_id = normProfileId;
+    savePersistentUsers(users);
+  }
+}
+
+export async function loadDatabaseTrainers(): Promise<Array<{ id: string; name: string; email?: string; department?: string; assigned_units?: string[] }>> {
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      const res = await pool.query("SELECT id, name, email, department FROM Trainers");
+      return res.rows;
+    } catch (err: any) {
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL Trainers table unavailable in production mode");
+      }
+      console.warn("⚠️ [PostgreSQL loadDatabaseTrainers Warning]:", err.message);
+    }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL connection unavailable for Trainers query in production mode");
+  }
+  return [
+    { id: "trainer-001", name: "Dr. J. Muriithi", email: "trainer@mtti.ac.ke", department: "Computing & Informatics", assigned_units: ["ICT/CU/IT/CR/6/6", "061155101A"] },
+    { id: "trainer-002", name: "Alexander Kinoti", email: "kinoti@mtti.ac.ke", department: "Computing & Informatics", assigned_units: ["ICT/OS/IT/CR/1/6"] },
+    ...memoryStaffTrainers,
+  ];
+}
+
+export async function loadDatabaseDepartments(): Promise<Array<{ id: string; name: string; code: string; hod_id: string; hod_email?: string }>> {
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      const res = await pool.query("SELECT id, name, code, hod_id, hod_email FROM Departments");
+      return res.rows;
+    } catch (err: any) {
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL Departments table unavailable in production mode");
+      }
+      console.warn("⚠️ [PostgreSQL loadDatabaseDepartments Warning]:", err.message);
+    }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL connection unavailable for Departments query in production mode");
+  }
+  return [
+    { id: "dept-ci", name: "Computing & Informatics", code: "CI", hod_id: "hod-001", hod_email: "hod.ci@mtti.ac.ke" },
+    { id: "dept-ee", name: "Electrical & Electronics", code: "EE", hod_id: "hod-002", hod_email: "hod.ee@mtti.ac.ke" },
+  ].map((department) => {
+    const head = memoryStaffDepartmentHeads.find((item) => item.department_id === department.id);
+    return head ? { ...department, hod_id: head.hod_id, hod_email: head.hod_email } : department;
+  });
+}
+
+export async function loadDatabaseTrainees(): Promise<TraineeRecord[]> {
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      const res = await pool.query("SELECT id, name, reg_number, adm_no, reg_code, class_id, class_code, department FROM Trainees");
+      if (isSecureProductionRuntime()) {
+        return res.rows;
+      }
+      if (res.rows.length > 0) {
+        const persistentTrainees = loadPersistentTrainees();
+        const dbIds = new Set(res.rows.map((r: any) => r.id));
+        return [...res.rows, ...persistentTrainees.filter((p) => !dbIds.has(p.id))];
+      }
+    } catch (err: any) {
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL Trainees table unavailable in production mode");
+      }
+      console.warn("⚠️ [PostgreSQL loadDatabaseTrainees Warning]:", err.message);
+    }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL connection unavailable for Trainees query in production mode");
+  }
+
+  const persistentTrainees = loadPersistentTrainees();
+  const memoryTrainees: TraineeRecord[] = [
+    { id: "trainee-001", name: "Nthiga Gakii Doris", reg_number: "14179/S2026", adm_no: "14179/S2026", reg_code: "14179/S2026", department: "Computing & Informatics" },
+    { id: "trainee-10525", name: "Alex Kinoti", reg_number: "10525", adm_no: "10525", reg_code: "10525", department: "Computing & Informatics" },
+    { id: "trainee-002", name: "Harriet Mwendwa", reg_number: "10526", adm_no: "10526", reg_code: "10526", department: "Computing & Informatics" },
+    { id: "trainee-003", name: "Other Student", reg_number: "99999", adm_no: "99999", reg_code: "99999", department: "Building & Civil Engineering" },
+  ];
+  return [
+    ...persistentTrainees,
+    ...memoryTrainees.filter((m) => !persistentTrainees.some((p) => p.id === m.id || (p.reg_number && p.reg_number.trim().toUpperCase() === m.reg_number.trim().toUpperCase()))),
+  ];
 }
 
 export async function findUserByEmail(email: string): Promise<UserRecord | null> {
   const normEmail = (email || "").trim().toLowerCase();
   if (!normEmail) return null;
 
+  ensurePoolAvailable();
   if (pool) {
     try {
       const res = await pool.query(
@@ -309,13 +492,19 @@ export async function findUserByEmail(email: string): Promise<UserRecord | null>
         [normEmail]
       );
       if (res.rows.length > 0) return res.rows[0];
+      return null;
     } catch (err: any) {
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL database unavailable in production mode");
+      }
       console.warn("⚠️ [PostgreSQL findUserByEmail Warning]:", err.message);
     }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL database pool unavailable in production mode");
   }
 
   const users = loadPersistentUsers();
-  const match = users.find((u) => (u.email || "").trim().toLowerCase() === normEmail);
+  const match = [...users].reverse().find((u) => (u.email || "").trim().toLowerCase() === normEmail);
   return match || null;
 }
 
@@ -323,6 +512,7 @@ export async function findUserByAdmissionNumber(admissionNumber: string): Promis
   const normAdm = (admissionNumber || "").trim().toLowerCase();
   if (!normAdm) return null;
 
+  ensurePoolAvailable();
   if (pool) {
     try {
       const res = await pool.query(
@@ -330,15 +520,19 @@ export async function findUserByAdmissionNumber(admissionNumber: string): Promis
         [normAdm]
       );
       if (res.rows.length > 0) return res.rows[0];
+      return null;
     } catch (err: any) {
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL database unavailable in production mode");
+      }
       console.warn("⚠️ [PostgreSQL findUserByAdmissionNumber Warning]:", err.message);
     }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL database pool unavailable in production mode");
   }
 
   const users = loadPersistentUsers();
-  const match = users.find(
-    (u) => (u.admission_number || "").trim().toLowerCase() === normAdm
-  );
+  const match = [...users].reverse().find((u) => (u.admission_number || "").trim().toLowerCase() === normAdm);
   return match || null;
 }
 
@@ -355,6 +549,7 @@ export async function findUserByEmailOrAdmission(identifier: string): Promise<Us
           ? "hod.ci@mtti.ac.ke"
           : norm;
 
+  ensurePoolAvailable();
   if (pool) {
     try {
       const res = await pool.query(
@@ -366,18 +561,19 @@ export async function findUserByEmailOrAdmission(identifier: string): Promise<Us
         [norm, targetEmail]
       );
       if (res.rows.length > 0) return res.rows[0];
+      return null;
     } catch (err: any) {
+      if (isSecureProductionRuntime()) {
+        throw new DatabaseUnavailableError("PostgreSQL database unavailable in production mode");
+      }
       console.warn("⚠️ [PostgreSQL findUserByEmailOrAdmission Warning]:", err.message);
     }
+  } else if (isSecureProductionRuntime()) {
+    throw new DatabaseUnavailableError("PostgreSQL database pool unavailable in production mode");
   }
 
   const users = loadPersistentUsers();
-  const match = users.find(
-    (u) =>
-      (u.email || "").trim().toLowerCase() === norm ||
-      (u.email || "").trim().toLowerCase() === targetEmail ||
-      (u.admission_number && u.admission_number.trim().toLowerCase() === norm)
-  );
+  const match = [...users].reverse().find((u) => (u.email || "").trim().toLowerCase() === norm || (u.email || "").trim().toLowerCase() === targetEmail || (u.admission_number && u.admission_number.trim().toLowerCase() === norm));
   return match || null;
 }
 
@@ -390,9 +586,48 @@ export async function createUser(data: {
   email: string;
   password_hash: string;
   role: "TRAINEE" | "TRAINER" | "HOD" | "ADMIN" | string;
+  profile_id?: string | null;
+  must_change_password?: boolean;
 }): Promise<UserRecord> {
   const newId = data.id || `usr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const now = new Date().toISOString();
+  let resolvedProfileId: string | null = null;
+  const normRole = (data.role || "").toUpperCase();
+
+  if (data.profile_id !== undefined) {
+    resolvedProfileId = data.profile_id ? data.profile_id.trim() : null;
+  } else {
+    if (normRole === "TRAINEE" && data.admission_number) {
+      const cleanAdm = data.admission_number.trim();
+      const trainees = loadPersistentTrainees();
+      const existing = trainees.find(t => (t.reg_number || t.adm_no || "").trim().toUpperCase() === cleanAdm.toUpperCase());
+      if (existing) {
+        resolvedProfileId = existing.id;
+      } else if (!cleanAdm.toUpperCase().startsWith("TRAINEE-")) {
+        resolvedProfileId = `trainee-${cleanAdm}`;
+        trainees.push({
+          id: resolvedProfileId,
+          name: data.full_name.trim(),
+          reg_number: cleanAdm,
+          adm_no: cleanAdm,
+          reg_code: cleanAdm,
+          created_at: now,
+          updated_at: now,
+        });
+        savePersistentTrainees(trainees);
+      } else {
+        resolvedProfileId = null;
+      }
+    } else if (normRole === "TRAINER" && data.email) {
+      const cleanEmail = data.email.trim().toLowerCase();
+      if (cleanEmail === "trainer@mtti.ac.ke") resolvedProfileId = "trainer-001";
+      else if (cleanEmail.includes("kinoti")) resolvedProfileId = "trainer-002";
+      else resolvedProfileId = `trainer-${newId}`;
+    } else if (normRole === "ADMIN") {
+      resolvedProfileId = newId;
+    }
+  }
+
   const userRecord: UserRecord = {
     id: newId,
     admission_number: data.admission_number ? data.admission_number.trim() : null,
@@ -401,7 +636,9 @@ export async function createUser(data: {
     full_name: data.full_name.trim(),
     email: data.email.trim().toLowerCase(),
     password_hash: data.password_hash,
-    role: data.role.toUpperCase(),
+    role: normRole,
+    profile_id: resolvedProfileId,
+    must_change_password: data.must_change_password ?? false,
     created_at: now,
     updated_at: now,
   };
@@ -409,9 +646,9 @@ export async function createUser(data: {
   if (pool) {
     try {
       const res = await pool.query(
-        `INSERT INTO users (id, admission_number, phone_number, full_name, email, password_hash, role, department_id, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-         RETURNING *`,
+        `INSERT INTO users (id, admission_number, phone_number, full_name, email, password_hash, role, profile_id, department_id, must_change_password, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING *`,
         [
           userRecord.id,
           userRecord.admission_number,
@@ -420,7 +657,9 @@ export async function createUser(data: {
           userRecord.email,
           userRecord.password_hash,
           userRecord.role,
+          userRecord.profile_id,
           userRecord.department_id,
+          userRecord.must_change_password ?? false,
           userRecord.created_at,
           userRecord.updated_at,
         ]
@@ -441,6 +680,99 @@ export async function createUser(data: {
   users.push(userRecord);
   savePersistentUsers(users);
   return userRecord;
+}
+
+export async function createStaffAccount(data: {
+  full_name: string;
+  email: string;
+  phone_number?: string | null;
+  department_id: string;
+  password_hash: string;
+  role: "TRAINER" | "HOD";
+}): Promise<UserRecord> {
+  const userId = randomUUID();
+  const profileId = randomUUID();
+  const now = new Date().toISOString();
+  const normalizedEmail = data.email.trim().toLowerCase();
+  const normalizedName = data.full_name.trim();
+
+  const persisted = await withTransaction(async (client) => {
+    const department = await client.query(
+      "SELECT id, name FROM Departments WHERE id = $1 FOR UPDATE",
+      [data.department_id]
+    );
+    if (department.rowCount !== 1) {
+      throw Object.assign(new Error("The selected department does not exist."), { code: "DEPARTMENT_NOT_FOUND" });
+    }
+
+    const userResult = await client.query(
+      `INSERT INTO users (
+        id, full_name, email, phone_number, password_hash, role, profile_id,
+        department_id, must_change_password, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE, $9, $9)
+      RETURNING *`,
+      [userId, normalizedName, normalizedEmail, data.phone_number || null, data.password_hash, data.role, profileId, data.department_id, now]
+    );
+
+    await client.query(
+      "INSERT INTO Trainers (id, name, email, department) VALUES ($1, $2, $3, $4)",
+      [profileId, normalizedName, normalizedEmail, department.rows[0].name]
+    );
+
+    if (data.role === "HOD") {
+      const update = await client.query(
+        "UPDATE Departments SET hod_id = $1, hod_email = $2 WHERE id = $3",
+        [profileId, normalizedEmail, data.department_id]
+      );
+      if (update.rowCount !== 1) {
+        throw Object.assign(new Error("The selected department could not be linked to this HOD."), { code: "DEPARTMENT_NOT_FOUND" });
+      }
+    }
+
+    return userResult.rows[0] as UserRecord;
+  });
+  if (persisted) return persisted;
+
+  const previousUsers = [...loadPersistentUsers()];
+  const userRecord = await createUser({
+    id: userId,
+    full_name: normalizedName,
+    email: normalizedEmail,
+    phone_number: data.phone_number || null,
+    password_hash: data.password_hash,
+    role: data.role,
+    profile_id: profileId,
+    department_id: data.department_id,
+    must_change_password: true,
+  });
+
+  try {
+    await addInMemoryStaffProfile(data.role, profileId, normalizedName, normalizedEmail, data.department_id);
+    return userRecord;
+  } catch (error) {
+    savePersistentUsers(previousUsers);
+    removeInMemoryStaffProfile(profileId);
+    throw error;
+  }
+}
+
+export async function updateUserPassword(userId: string, passwordHash: string): Promise<void> {
+  ensurePoolAvailable();
+  if (pool) {
+    const result = await pool.query(
+      "UPDATE users SET password_hash = $1, must_change_password = FALSE, updated_at = NOW() WHERE id = $2",
+      [passwordHash, userId]
+    );
+    if (result.rowCount !== 1) throw new Error("User account no longer exists.");
+  } else {
+    const users = loadPersistentUsers();
+    const user = users.find((record) => record.id === userId);
+    if (!user) throw new Error("User account no longer exists.");
+    user.password_hash = passwordHash;
+    user.must_change_password = false;
+    user.updated_at = new Date().toISOString();
+    savePersistentUsers(users);
+  }
 }
 
 export function loadPersistentAttendance(): AttendanceRecord[] {
@@ -586,11 +918,12 @@ export function loadPersistentSubmissions(): any[] {
 export function savePersistentSubmissions(records: any[]): void {
   memorySubmissions = [...records];
   try {
-    const dir = path.dirname(SUBMISSIONS_FILE);
+    const filePath = path.join(DATA_DIR, "submissions.json");
+    const dir = path.dirname(filePath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify(records, null, 2), "utf-8");
+    fs.writeFileSync(filePath, JSON.stringify(records, null, 2), "utf-8");
   } catch (e) {
     console.warn("Could not write submissions JSON file:", e);
   }

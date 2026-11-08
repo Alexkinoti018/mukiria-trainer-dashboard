@@ -266,9 +266,18 @@ export function ExamProvider({ children }: { children: ReactNode }) {
   const scopedSubmissions = useMemo(() => {
     if (!user) return [];
     if (user.role === "trainee") {
-      return allSubmissions.filter(
-        (s) => s.reg_number === user.reg_number || s.trainee_id === user.id
-      );
+      const cleanUserReg = (user.reg_number || "").trim().toUpperCase();
+      const coreReg = cleanUserReg.match(/\b\d{4,6}\b/)?.[0] || "";
+      const cleanUserName = (user.name || "").trim().toUpperCase();
+
+      return allSubmissions.filter((s) => {
+        if (user.id && s.trainee_id === user.id) return true;
+        const sReg = (s.reg_number || "").trim().toUpperCase();
+        if (cleanUserReg && (sReg === cleanUserReg || sReg.includes(cleanUserReg) || cleanUserReg.includes(sReg))) return true;
+        if (coreReg && sReg.includes(coreReg)) return true;
+        if (cleanUserName && (s.student_name || "").trim().toUpperCase() === cleanUserName) return true;
+        return false;
+      });
     }
     return allSubmissions;
   }, [allSubmissions, user]);
@@ -420,7 +429,13 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     const existing = existingIdx >= 0 ? allSubmissions[existingIdx] : null;
 
     // Strict Submission Lock: Once submitted and locked, reject any subsequent attempt unless reopened by trainer
-    if (existing && existing.is_locked && existing.status !== "reopened" && (existing.status as any) !== "in_progress" && (existing.status as any) !== "draft") {
+    const isAlreadyDone = existing && (
+      Boolean(existing.is_locked) ||
+      existing.status === "submitted" ||
+      existing.status === "graded"
+    ) && existing.status !== "reopened" && (existing.status as any) !== "in_progress" && (existing.status as any) !== "draft";
+
+    if (isAlreadyDone) {
       throw new Error("Locked: This assessment has already been submitted and sealed. Retakes must be unlocked by the certified trainer.");
     }
 
