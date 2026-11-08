@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import express from "express";
 import type { Server } from "http";
 import type { AddressInfo } from "net";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import * as dbModule from "../server/db.ts";
 import { apiRouter, DB } from "../server/routes.ts";
 import {
   authenticateToken,
@@ -1066,6 +1067,44 @@ describe("Phase 1 Acceptance Suite: Cryptographic Auth Core, ID Mapping & RBAC",
         expect(res.status).toBe(409);
         const data = await res.json();
         expect(data.error).toMatch(/already registered|already claimed/i);
+      });
+
+      it("maps a concurrent unique-constraint violation to HTTP 409", async () => {
+        const admissionNumber = `RACE_${Date.now()}`;
+        const trainees = loadPersistentTrainees();
+        trainees.push({
+          id: `trainee-${admissionNumber}`,
+          name: "Concurrent Registration Candidate",
+          reg_number: admissionNumber,
+          adm_no: admissionNumber,
+          reg_code: admissionNumber,
+          department: "Computing & Informatics",
+        });
+        savePersistentTrainees(trainees);
+
+        const createUserSpy = vi.spyOn(dbModule, "createUser").mockRejectedValue(
+          Object.assign(new Error("duplicate key value violates unique constraint"), { code: "23505" })
+        );
+
+        try {
+          const res = await fetch(`${baseUrl}/auth/register-trainee`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fullName: "Concurrent Registration Candidate",
+              admissionNumber,
+              email: `race_${Date.now()}@mtti.ac.ke`,
+              password: "SecurePassword@2026!",
+            }),
+          });
+
+          expect(createUserSpy).toHaveBeenCalledOnce();
+          expect(res.status).toBe(409);
+          const data = await res.json();
+          expect(data.error).toMatch(/already registered/i);
+        } finally {
+          createUserSpy.mockRestore();
+        }
       });
 
       it("allows registration of a valid unclaimed roster candidate with profile_id set (HTTP 201)", async () => {

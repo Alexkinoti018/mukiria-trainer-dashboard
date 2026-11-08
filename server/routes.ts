@@ -763,6 +763,12 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
       res.status(503).json({ error: "Service Unavailable: Database connection failed" });
       return;
     }
+    if (err?.code === "23505") {
+      res.status(409).json({
+        error: "Conflict: A user with this email or admission number is already registered",
+      });
+      return;
+    }
     console.error("❌ [Registration Error]:", err);
     res.status(500).json({ error: "Internal server error during trainee registration" });
   }
