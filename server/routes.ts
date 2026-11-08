@@ -31,14 +31,34 @@ import {
   findUserByEmail,
   findUserByAdmissionNumber,
   findUserByEmailOrAdmission,
+  findUserByProfileId,
+  loadDatabaseTrainees,
+  DatabaseUnavailableError,
   createUser,
+  createStaffAccount,
+  updateUserPassword,
   loadPersistentUsers,
   savePersistentUsers,
 } from "./db.ts";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { randomBytes } from "node:crypto";
-import { requireRole, requireRoles as requireRoleMiddleware, authenticateToken } from "./middleware/auth.ts";
+import { randomBytes, randomUUID } from "node:crypto";
+import {
+  requireRole,
+  requireRoles,
+  authenticateUser,
+  authenticateToken,
+  isSelf,
+  isAssignedTrainer,
+  signToken,
+  getJwtSecret,
+  getAuthConfiguration,
+  verifySupabaseToken,
+  createSignedJwt,
+  invalidateUserProfileCache,
+  normalizeAdmissionIdentifier,
+  type AuthenticatedUser,
+  type AuthenticatedRequest,
+} from "./auth.ts";
 import { FBS_COHORT_SUBMISSIONS } from "../client/src/lib/fbsCohortSubmissions.ts";
 import { DIGITAL_LITERACY_EXAMS } from "../client/src/lib/digitalLiteracyExams.ts";
 import { CURRICULUM_CATS } from "../client/src/lib/curriculumContinuousAssessments.ts";
@@ -49,10 +69,7 @@ import {
   AttendanceMarkSchema,
 } from "./security.ts";
 
-export type {
-  AuthenticatedUser,
-  AuthenticatedRequest,
-} from "./auth.ts";
+export type { AuthenticatedUser, AuthenticatedRequest };
 export {
   authenticateUser,
   requireRoles,
@@ -60,15 +77,8 @@ export {
   getAuthConfiguration,
   verifySupabaseToken,
   createSignedJwt,
-} from "./auth.ts";
-import type {
-  AuthenticatedUser,
-  AuthenticatedRequest,
-} from "./auth.ts";
-import {
-  authenticateUser,
-  requireRoles,
-} from "./auth.ts";
+  getJwtSecret,
+};
 
 export const apiRouter = Router();
 
@@ -643,29 +653,69 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
       return;
     }
 
-    // Check for duplicate admission number
+    // Dual-sided exact normalization of candidate admission identifier
+    const normAdm = normalizeAdmissionIdentifier(admission_number);
+
+    // Load official institutional roster
+    const rosterTrainees = await loadDatabaseTrainees();
+
+    // Match strictly against domain admission identifiers (reg_number, adm_no, reg_code) - excluding t.id!
+    const matchingProfiles = rosterTrainees.filter((t) => {
+      const normReg = normalizeAdmissionIdentifier(t.reg_number);
+      const normNo = normalizeAdmissionIdentifier(t.adm_no);
+      const normCode = normalizeAdmissionIdentifier(t.reg_code);
+      return (
+        (normReg && normReg === normAdm) ||
+        (normNo && normNo === normAdm) ||
+        (normCode && normCode === normAdm)
+      );
+    });
+
+    if (matchingProfiles.length === 0) {
+      res.status(403).json({
+        error: "Forbidden: Admission number does not match an official institutional roster record",
+      });
+      return;
+    }
+
+    if (matchingProfiles.length > 1) {
+      res.status(403).json({
+        error: "Forbidden: Admission number is ambiguous across roster records",
+      });
+      return;
+    }
+
+    const matchedProfile = matchingProfiles[0];
+
+    // Check if this profile or admission number is already claimed by an existing user
+    const existingUserByProfile = await findUserByProfileId(matchedProfile.id);
     const existingAdm = await findUserByAdmissionNumber(admission_number);
-    if (existingAdm) {
+    if (existingUserByProfile || existingAdm) {
+      const existingUser = existingUserByProfile || existingAdm!;
       if (req.body.isActivation || req.body.reactivate) {
         const isBcryptHash = typeof password === "string" && (password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$")) && password.length === 60;
         const password_hash = isBcryptHash ? password : await bcrypt.hash(password, 10);
-        existingAdm.password_hash = password_hash;
-        if (phone_number) existingAdm.phone_number = phone_number;
-        if (full_name) existingAdm.full_name = full_name;
-        existingAdm.updated_at = new Date().toISOString();
+        existingUser.password_hash = password_hash;
+        if (phone_number) existingUser.phone_number = phone_number;
+        if (full_name) existingUser.full_name = full_name;
+        existingUser.updated_at = new Date().toISOString();
+        if (!existingUser.profile_id) {
+          existingUser.profile_id = matchedProfile.id;
+        }
         const allUsers = loadPersistentUsers();
         savePersistentUsers(allUsers);
         res.status(200).json({
           success: true,
           message: "Trainee account activated successfully",
           user: {
-            id: existingAdm.id,
-            admission_number: existingAdm.admission_number,
-            phone_number: existingAdm.phone_number,
-            full_name: existingAdm.full_name,
-            email: existingAdm.email,
-            role: "TRAINEE",
-            created_at: existingAdm.created_at,
+            id: existingUser.id,
+            admission_number: existingUser.admission_number,
+            phone_number: existingUser.phone_number,
+            full_name: existingUser.full_name,
+            email: existingUser.email,
+            role: "trainee",
+            profile_id: existingUser.profile_id,
+            created_at: existingUser.created_at,
           },
         });
         return;
@@ -681,9 +731,9 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
     const password_hash = isBcryptHash ? password : await bcrypt.hash(password, 10);
 
     // Rule 2: Privilege Escalation Prevention - Strictly force role to TRAINEE
-    const role = "TRAINEE";
+    const role = "trainee";
 
-    // Persist user record
+    // Persist user record with explicit profile_id set to matchedProfile.id at creation
     const created = await createUser({
       admission_number,
       phone_number: phone_number || null,
@@ -691,6 +741,7 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
       email,
       password_hash,
       role,
+      profile_id: matchedProfile.id,
     });
 
     res.status(201).json({
@@ -702,11 +753,22 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
         phone_number: created.phone_number,
         full_name: created.full_name,
         email: created.email,
-        role: "TRAINEE",
+        role: "trainee",
+        profile_id: created.profile_id,
         created_at: created.created_at,
       },
     });
   } catch (err: any) {
+    if (err instanceof DatabaseUnavailableError) {
+      res.status(503).json({ error: "Service Unavailable: Database connection failed" });
+      return;
+    }
+    if (err?.code === "23505") {
+      res.status(409).json({
+        error: "Conflict: A user with this email or admission number is already registered",
+      });
+      return;
+    }
     console.error("❌ [Registration Error]:", err);
     res.status(500).json({ error: "Internal server error during trainee registration" });
   }
@@ -751,33 +813,11 @@ apiRouter.post("/auth/login", async (req: Request, res: Response) => {
       return;
     }
 
-    const secret =
-      process.env.SUPABASE_JWT_SECRET ||
-      process.env.JWT_SECRET ||
-      "mtti-enterprise-jwt-secret-secure-key-2026";
-
-    const userRole = (user.role || "TRAINEE").toUpperCase();
-    const token = jwt.sign(
-      {
-        id: user.id,
-        sub: user.id,
-        email: user.email,
-        admission_number: user.admission_number,
-        reg_number: user.admission_number,
-        full_name: user.full_name,
-        name: user.full_name,
-        role: userRole,
-        department_id: user.department_id || null,
-        user_metadata: {
-          full_name: user.full_name,
-          admission_number: user.admission_number,
-          role: userRole,
-          department_id: user.department_id || null,
-        },
-      },
-      secret,
-      { expiresIn: "24h" }
-    );
+    const userRole = String(user.role || "trainee").trim().toLowerCase();
+    const token = signToken({
+      sub: user.id,
+      role: userRole,
+    });
 
     res.json({
       success: true,
@@ -785,12 +825,14 @@ apiRouter.post("/auth/login", async (req: Request, res: Response) => {
       token,
       user: {
         id: user.id,
+        profile_id: user.profile_id,
         admission_number: user.admission_number,
         phone_number: user.phone_number,
         full_name: user.full_name,
         email: user.email,
         role: userRole,
         department_id: user.department_id || null,
+        must_change_password: user.must_change_password === true,
       },
     });
   } catch (err: any) {
@@ -800,6 +842,31 @@ apiRouter.post("/auth/login", async (req: Request, res: Response) => {
 });
 
 apiRouter.use(authenticateUser);
+
+apiRouter.post("/auth/change-password", async (req: AuthenticatedRequest, res: Response) => {
+  const currentPassword = typeof req.body?.currentPassword === "string" ? req.body.currentPassword : "";
+  const newPassword = typeof req.body?.newPassword === "string" ? req.body.newPassword : "";
+  if (!req.user || !currentPassword || newPassword.length < 12) {
+    res.status(400).json({ error: "Current password and a new password of at least 12 characters are required." });
+    return;
+  }
+
+  try {
+    const user = await findUserByEmail(req.user.email || "");
+    if (!user || user.id !== req.user.id || !(await bcrypt.compare(currentPassword, user.password_hash))) {
+      res.status(401).json({ error: "Current password is incorrect." });
+      return;
+    }
+
+    await updateUserPassword(user.id, await bcrypt.hash(newPassword, 12));
+    invalidateUserProfileCache(user.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error("[Password change error]:", error);
+    const status = error instanceof DatabaseUnavailableError ? 503 : 500;
+    res.status(status).json({ error: "Could not update the password. Please try again." });
+  }
+});
 
 // ─── INSTITUTIONAL ROSTER & TRAINEE LOOKUP (ZERO-EMAIL CDACC WORKFLOW) ─────────
 export interface RosterEntry {
@@ -1039,7 +1106,7 @@ apiRouter.get("/trainees/lookup", async (req: Request, res: Response) => {
         ? req.query.admission_number
         : (typeof req.query.regNo === "string"
           ? req.query.regNo
-          : (typeof req.query.admNo === "string" ? req.query.admNo : ""))));
+          : (typeof req.query.admNo === "string" ? req.query.admNo : (typeof req.query.q === "string" ? req.query.q : "")))));
 
   const rawAdmission = queryParam.trim();
   const unitCode = typeof req.query.unitCode === "string" ? req.query.unitCode.trim() : "";
@@ -1612,8 +1679,13 @@ apiRouter.post("/attendance/mark", async (req: AuthenticatedRequest, res: Respon
       status = "present",
       hours_attended = 2.0,
       remarks = "",
-      marked_by = req.user?.id || "trainer-002",
     } = req.body;
+
+    const marked_by = req.user?.profile_id;
+    if (!marked_by) {
+      res.status(401).json({ error: "Unauthorized: Active faculty identity required to record attendance" });
+      return;
+    }
 
     if (!trainee_id) {
       res.status(400).json({ error: "Missing trainee_id parameter." });
@@ -1855,6 +1927,38 @@ apiRouter.get("/exams", async (req: AuthenticatedRequest, res: Response) => {
   const user = req.user;
   let liveExams: any[] = [];
 
+  if (user?.role === "trainer") {
+    if (pool) {
+      try {
+        const { rows } = await pool.query(
+          `SELECT e.* FROM Exams e
+           WHERE EXISTS (
+             SELECT 1 FROM Unit_Offerings uo
+             WHERE uo.unit_id = e.unit_id AND uo.trainer_id = $1
+           )
+           ORDER BY e.created_at DESC`,
+          [user.profile_id]
+        );
+        res.json(rows.map((row: any) => ({
+          ...row,
+          payload: typeof row.payload === "string" ? JSON.parse(row.payload) : row.payload,
+        })));
+        return;
+      } catch {
+        res.status(503).json({ error: "Could not load assigned trainer offerings." });
+        return;
+      }
+    }
+
+    const assignedUnitIds = new Set(
+      DB.unit_offerings
+        .filter((offering) => offering.trainer_id === user.profile_id && typeof offering.unit_id === "string")
+        .map((offering) => offering.unit_id)
+    );
+    res.json(DB.exams.filter((exam) => typeof exam.unit_id === "string" && assignedUnitIds.has(exam.unit_id)));
+    return;
+  }
+
   // 1. Transactional PostgreSQL Query if connected
   if (pool) {
     try {
@@ -1937,21 +2041,18 @@ apiRouter.post("/exams", requireRoles("trainer", "hod", "admin"), async (req: Au
 
 // ─── ENDPOINT: GET /api/departments (Live PostgreSQL & In-Memory Store) ───────
 apiRouter.get("/departments", async (_req: Request, res: Response) => {
-  let liveDepts: any[] = [];
   if (pool) {
     try {
       const { rows } = await pool.query("SELECT * FROM departments ORDER BY name ASC;");
-      if (rows && rows.length > 0) {
-        liveDepts = rows;
-      }
-    } catch (e) {
-      console.warn("PostgreSQL departments query notice:", e);
+      res.json(rows);
+      return;
+    } catch (error) {
+      console.error("PostgreSQL departments query failed:", error);
+      res.status(503).json({ error: "Could not load departments." });
+      return;
     }
   }
-  if (liveDepts.length === 0) {
-    liveDepts = DB.departments;
-  }
-  res.json(liveDepts);
+  res.json(DB.departments);
 });
 
 // ─── ENDPOINT: POST /api/departments (Add/Update Institutional Department) ────
@@ -2022,21 +2123,77 @@ apiRouter.get("/exams/:id", (req: AuthenticatedRequest, res: Response) => {
     return;
   }
 
-  // Trainee Scope: verify enrolled unit + completely shield answer columns
+  // Trainee Scope: verify enrolled unit + completely shield answer columns + verify submission lock
   if (user.role === "trainee") {
     const isEnrolled = user.enrolled_units?.includes(exam.unit_code);
     if (!isEnrolled) {
       res.status(403).json({ error: "Forbidden: Trainee cohort is not enrolled in this unit" });
       return;
     }
+
+    // Trainee Exam Locking: If the trainee has already completed or submitted this assessment,
+    // lock access so they cannot open the exam paper or view questions again.
+    const cleanUserReg = (user.reg_number || "").trim().toUpperCase();
+    const coreUserReg = cleanUserReg.match(/\b\d{4,6}\b/)?.[0] || "";
+    const cleanUserName = (user.name || "").trim().toUpperCase();
+
+    const priorSub = DB.submissions.find((s) => {
+      const subReg = (s.reg_number || "").trim().toUpperCase();
+      const subCore = subReg.match(/\b\d{4,6}\b/)?.[0] || "";
+      const isCandidateMatch =
+        isSelf(user, s.trainee_id) ||
+        (Boolean(cleanUserReg) && Boolean(subReg) && (
+          subReg === cleanUserReg ||
+          (subReg.length >= 4 && cleanUserReg.includes(subReg)) ||
+          (cleanUserReg.length >= 4 && subReg.includes(cleanUserReg))
+        )) ||
+        (Boolean(coreUserReg) && Boolean(subCore) && coreUserReg === subCore) ||
+        (Boolean(cleanUserName) && Boolean(s.student_name) && s.student_name.trim().toUpperCase() === cleanUserName);
+
+      if (!isCandidateMatch) return false;
+
+      // Strict assessment match by exam_id first
+      if (s.exam_id && exam.id) {
+        if (s.exam_id !== exam.id) return false;
+      } else {
+        const sTask = (s.task_code || "").trim().toUpperCase();
+        const examTask = (((exam.payload as any)?.task_code || (exam as any).task_code || "") as string).trim().toUpperCase();
+        if (sTask && examTask) {
+          if (sTask !== examTask) return false;
+        } else {
+          const sUnit = (s.unit_code || "").trim().toUpperCase();
+          const examUnit = (exam.unit_code || "").trim().toUpperCase();
+          if (sUnit !== examUnit) return false;
+        }
+      }
+
+      const isLockedOrSubmitted =
+        (Boolean((s as any).is_locked) || s.status === "submitted" || s.status === "graded") &&
+        s.status !== "reopened";
+
+      return isLockedOrSubmitted;
+    });
+
+    const sanitized = sanitizeExamForStudent(exam);
+    if (priorSub) {
+      res.status(200).json({
+        ...sanitized,
+        is_locked: true,
+        locked_reason: "Assessment Locked: You have already completed this assessment. Resubmission is locked.",
+        submission_id: priorSub.id,
+        status: priorSub.status,
+      });
+      return;
+    }
+
     // Return sanitized view (Column Shielding)
-    res.json(sanitizeExamForStudent(exam));
+    res.json(sanitized);
     return;
   }
 
   // Trainer Scope: verify assigned unit via FK traversal
   if (user.role === "trainer") {
-    const isAssigned = verifyTrainerSubmissionsAssigned(user.id, exam.id);
+    const isAssigned = verifyTrainerSubmissionsAssigned(user.profile_id, exam.id);
     if (!isAssigned) {
       res.status(403).json({ error: "Forbidden: Trainer is not assigned to teach this unit" });
       return;
@@ -2092,12 +2249,7 @@ apiRouter.get("/submissions", async (req: AuthenticatedRequest, res: Response) =
 
   // Trainee Scope (BOLA Protection): Trainee can ONLY view their own submissions
   if (user.role === "trainee") {
-    const userSubs = allSubs.filter(
-      (s) =>
-        (user.id && s.trainee_id === user.id) ||
-        (user.reg_number && s.reg_number === user.reg_number) ||
-        (user.name && s.student_name && s.student_name.trim().toLowerCase() === user.name.trim().toLowerCase())
-    );
+    const userSubs = allSubs.filter((s) => isSelf(user, s.trainee_id));
     res.json(userSubs);
     return;
   }
@@ -2122,7 +2274,7 @@ apiRouter.get("/submissions/:id", (req: AuthenticatedRequest, res: Response) => 
 
   // Trainee Scope (BOLA Protection): Trainee can ONLY view their own submission
   if (user.role === "trainee") {
-    const isOwner = (user.id && sub.trainee_id === user.id) || (user.reg_number && sub.reg_number === user.reg_number);
+    const isOwner = isSelf(user, sub.trainee_id) || (user.reg_number && sub.reg_number === user.reg_number);
     if (!isOwner) {
       res.status(403).json({ error: "Forbidden (BOLA): You cannot access another student's exam submission" });
       return;
@@ -2133,7 +2285,7 @@ apiRouter.get("/submissions/:id", (req: AuthenticatedRequest, res: Response) => 
 
   // Trainer Scope: verify assigned unit via FK traversal
   if (user.role === "trainer") {
-    const isAssigned = verifyTrainerSubmissionsAssigned(user.id, sub.exam_id);
+    const isAssigned = verifyTrainerSubmissionsAssigned(user.profile_id, sub.exam_id);
     if (!isAssigned) {
       res.status(403).json({ error: "Forbidden: Trainer is not assigned to this submission's unit" });
       return;
@@ -2185,7 +2337,7 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: Aut
       const userReg = (user.reg_number || (req.body as any).reg_number || "").trim().toUpperCase();
       const identityMatch =
         (Boolean(subReg) && Boolean(userReg) && (subReg === userReg || subReg.includes(userReg) || userReg.includes(subReg))) ||
-        (user.id && s.trainee_id === user.id);
+        isSelf(user, s.trainee_id);
 
       if (!identityMatch) return false;
 
@@ -2235,7 +2387,7 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: Aut
     const studentNameExisting = user.name || existingSub.student_name || "Enrolled Trainee";
     if (studentRegExisting && !DB.trainees.some(t => t.reg_number === studentRegExisting)) {
       DB.trainees.push({
-        id: user.id || `trainee-${studentRegExisting}`,
+        id: user.profile_id,
         name: studentNameExisting,
         reg_number: studentRegExisting,
         class_id: (user as any).cohort_code || "class-itech-6",
@@ -2260,7 +2412,7 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: Aut
     exam_id,
     task_code: (exam.payload as any)?.task_code || (exam as any).task_code || (req.body as any).task_code || null,
     unit_code: exam.unit_code,
-    trainee_id: user.id,
+    trainee_id: user.profile_id,
     reg_number: user.reg_number || "10525",
     student_name: user.name,
     status: "submitted",
@@ -2278,7 +2430,7 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: Aut
   const studentNameNew = user.name || newSub.student_name || "Enrolled Trainee";
   if (studentRegNew && !DB.trainees.some(t => t.reg_number === studentRegNew)) {
     DB.trainees.push({
-      id: user.id || `trainee-${studentRegNew}`,
+      id: user.profile_id,
       name: studentNameNew,
       reg_number: studentRegNew,
       class_id: (user as any).cohort_code || "class-itech-6",
@@ -2381,8 +2533,7 @@ apiRouter.put("/submissions/:id/submit", requireRoles("trainee", "admin"), (req:
   const result = atomicSubmitSubmission(
     req.params.id, 
     req.body.payload || req.body, 
-    user.role === "trainee" ? user.id : undefined,
-    user.role === "trainee" ? user.reg_number : undefined
+    user.role === "trainee" ? (user.profile_id || undefined) : undefined
   );
 
   if (!result.success) {
@@ -2405,7 +2556,7 @@ apiRouter.post("/submissions/:id/grade", requireRoles("trainer", "admin"), async
 
   // Cross-Trainer Verification via FK Traversal: Submissions -> Exams -> Unit_Offerings -> trainer_id
   if (user.role === "trainer") {
-    const isAssigned = verifyTrainerSubmissionsAssigned(user.id, sub.exam_id);
+    const isAssigned = verifyTrainerSubmissionsAssigned(user.profile_id, sub.exam_id);
     if (!isAssigned) {
       res.status(403).json({ error: "Forbidden (Cross-Trainer): You cannot grade submissions for units assigned to another trainer" });
       return;
@@ -2470,7 +2621,7 @@ apiRouter.get("/assessment-marks/:offeringId", (req: AuthenticatedRequest, res: 
   if (user.role === "trainee") {
     const marks = DB.assessment_marks.filter(
       m => m.unit_offering_id === req.params.offeringId && 
-           m.trainee_id === user.id && 
+           isSelf(user, m.trainee_id) &&
            m.is_locked === true
     );
     res.json({ marks });
@@ -2479,7 +2630,7 @@ apiRouter.get("/assessment-marks/:offeringId", (req: AuthenticatedRequest, res: 
 
   // Trainer: Only view for assigned unit offering
   if (user.role === "trainer") {
-    if (offering.trainer_id !== user.id) {
+    if (!isAssignedTrainer(user, offering)) {
       res.status(403).json({ error: "Forbidden: You are not the assigned trainer for this unit offering" });
       return;
     }
@@ -2548,7 +2699,7 @@ const handleBatchMarks = async (req: AuthenticatedRequest, res: Response) => {
       class_id: unitOfferingId.replace(/^uo-/, "").replace(/^uo_/, ""),
       unit_code: "DYNAMIC",
       unit_id: `unit-${unitOfferingId}`,
-      trainer_id: user.id || "trainer-001",
+      trainer_id: user.profile_id,
       department_id: user.department_id || "dept-ci",
     };
     DB.unit_offerings.push(offering);
@@ -2561,7 +2712,7 @@ const handleBatchMarks = async (req: AuthenticatedRequest, res: Response) => {
   }
 
   // Trainer: Must be assigned to this offering
-  if (user.role === "trainer" && offering.trainer_id !== user.id) {
+  if (user.role === "trainer" && !isAssignedTrainer(user, offering)) {
     res.status(403).json({ error: "Forbidden: You are not the assigned trainer for this unit offering" });
     return;
   }
@@ -2747,7 +2898,7 @@ const handlePedagogicalSignOff = (req: AuthenticatedRequest, res: Response) => {
   }
 
   record.approval_status = status;
-  record.hod_reviewed_by = user.id;
+  record.hod_reviewed_by = user.profile_id;
   record.hod_reviewer_name = user.name;
   record.hod_review_date = new Date().toISOString();
   record.hod_remarks = remarks || "";
@@ -2757,7 +2908,7 @@ const handlePedagogicalSignOff = (req: AuthenticatedRequest, res: Response) => {
     if (pool) {
       pool.query(
         `UPDATE session_plans SET approval_status = $1, hod_reviewed_by = $2, hod_reviewer_name = $3, hod_review_date = $4, hod_remarks = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6`,
-        [status, user.id, user.name, record.hod_review_date, record.hod_remarks, targetId]
+        [status, user.profile_id, user.name, record.hod_review_date, record.hod_remarks, targetId]
       ).catch(() => {});
     }
   } else {
@@ -3086,7 +3237,7 @@ apiRouter.post("/admin/users", requireRoles("admin"), async (req: Request, res: 
     return;
   }
 
-  if (!DB.departments.some((department) => department.id === department_id)) {
+  if (!pool && !DB.departments.some((department) => department.id === department_id)) {
     res.status(400).json({ error: "Select a valid department for this staff account." });
     return;
   }
@@ -3099,7 +3250,7 @@ apiRouter.post("/admin/users", requireRoles("admin"), async (req: Request, res: 
 
     const temporaryPassword = randomBytes(18).toString("base64url");
     const password_hash = await bcrypt.hash(temporaryPassword, 12);
-    const created = await createUser({
+    const created = await createStaffAccount({
       full_name,
       email,
       phone_number: phone_number || null,
@@ -3108,6 +3259,18 @@ apiRouter.post("/admin/users", requireRoles("admin"), async (req: Request, res: 
       role,
     });
 
+    if (!pool) {
+      const profile = DB.trainers.find((trainer) => trainer.id === created.profile_id);
+      if (!profile) {
+        DB.trainers.push({ id: created.profile_id!, name: full_name, email, assigned_units: [] });
+      }
+      if (role === "HOD") {
+        const department = DB.departments.find((item) => item.id === department_id);
+        if (department) department.hod_id = created.profile_id!;
+      }
+    }
+
+    res.setHeader("Cache-Control", "no-store");
     res.status(201).json({
       success: true,
       user: {
@@ -3116,10 +3279,20 @@ apiRouter.post("/admin/users", requireRoles("admin"), async (req: Request, res: 
         email: created.email,
         role: created.role.toLowerCase(),
         department_id: created.department_id,
+        profile_id: created.profile_id,
+        must_change_password: created.must_change_password === true,
       },
       temporaryPassword,
     });
   } catch (error: any) {
+    if (error instanceof DatabaseUnavailableError) {
+      res.status(503).json({ error: "Staff account service is temporarily unavailable." });
+      return;
+    }
+    if (error?.code === "DEPARTMENT_NOT_FOUND") {
+      res.status(400).json({ error: "Select a valid department for this staff account." });
+      return;
+    }
     if (error?.code === "23505") {
       res.status(409).json({ error: "An account with this email already exists." });
       return;
@@ -3320,7 +3493,7 @@ export function verifyEvidenceAccess(
 ): { allowed: boolean; status_code?: number; error?: string } {
   // Trainee: Only allowed to access their own evidence
   if (user.role === "trainee") {
-    if (evidence.trainee_id !== user.id) {
+    if (!isSelf(user, evidence.trainee_id)) {
       return { 
         allowed: false, 
         status_code: 403, 
@@ -3337,7 +3510,7 @@ export function verifyEvidenceAccess(
 
   // Trainer: Must be assigned to this offering
   if (user.role === "trainer") {
-    if (offering.trainer_id !== user.id) {
+    if (!isAssignedTrainer(user, offering)) {
       return { 
         allowed: false, 
         status_code: 403, 
@@ -3382,13 +3555,13 @@ apiRouter.get("/evidence", (req: AuthenticatedRequest, res: Response) => {
   }
 
   if (user.role === "trainee") {
-    const items = DB.assessment_evidence.filter(e => e.trainee_id === user.id);
+    const items = DB.assessment_evidence.filter(e => isSelf(user, e.trainee_id));
     res.json({ evidence: items });
     return;
   }
 
   if (user.role === "trainer") {
-    const myOfferings = DB.unit_offerings.filter(uo => uo.trainer_id === user.id).map(uo => uo.id);
+    const myOfferings = DB.unit_offerings.filter(uo => isAssignedTrainer(user, uo)).map(uo => uo.id);
     const items = DB.assessment_evidence.filter(e => myOfferings.includes(e.unit_offering_id));
     res.json({ evidence: items });
     return;
@@ -3501,7 +3674,7 @@ apiRouter.post("/evidence", requireRoles("trainee", "admin"), async (req: Authen
   const newEvidence = {
     id,
     unit_offering_id: unit_offering_id || "uo-1",
-    trainee_id: user.role === "trainee" ? user.id : req.body.trainee_id || "trainee-001",
+    trainee_id: user.role === "trainee" ? user.profile_id : (req.body.trainee_id ? req.body.trainee_id.trim() : (() => { throw new Error("Missing required trainee_id in request body"); })()),
     task_code: task_code || "CP1",
     title: title || filename,
     filename,

@@ -45,6 +45,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotNotice, setShowForgotNotice] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
   // Trainee Account Activation & Roster Verification State
   const [regAdmNo, setRegAdmNo] = useState("");
@@ -58,14 +60,20 @@ export default function Login() {
   const [regIsVerified, setRegIsVerified] = useState(false);
   const [regIsVerifying, setRegIsVerifying] = useState(false);
 
-  const { login, isAuthenticated, user } = useAuth();
+  const { login, changePassword, isAuthenticated, user } = useAuth();
   const [location, navigate] = useLocation();
 
   // Role-Based Redirection Helper
   const handleRoleRedirection = (role: string) => {
     const normRole = (role || "").toUpperCase();
     if (normRole === "TRAINEE") {
-      navigate("/trainee/exam");
+      const params = new URLSearchParams(window.location.search);
+      const redirectUrl = params.get("redirect") || params.get("returnTo");
+      if (redirectUrl && (redirectUrl.startsWith("/trainee/") || redirectUrl.startsWith("/candidate/"))) {
+        navigate(redirectUrl);
+      } else {
+        navigate("/trainee/dashboard");
+      }
     } else if (normRole === "ADMIN") {
       navigate("/admin/roster");
     } else if (normRole === "HOD") {
@@ -77,7 +85,7 @@ export default function Login() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user && !user.must_change_password) {
       handleRoleRedirection(user.role);
     }
   }, [isAuthenticated, user]);
@@ -239,6 +247,12 @@ export default function Login() {
       const result = await login(cleanPass, cleanId, requestedRole);
 
       if (result.success) {
+        if (result.mustChangePassword) {
+          toast.info("Password update required", {
+            description: "Choose a new password before accessing the staff portal.",
+          });
+          return;
+        }
         const resolvedRole = result.role || (mainPortal === "trainee" ? "trainee" : "trainer");
         toast.success("Authentication Successful", {
           description: "Access granted. Entering academic portal...",
@@ -263,6 +277,81 @@ export default function Login() {
       setIsSubmitting(false);
     }
   };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 12) {
+      setError("Your new password must be at least 12 characters.");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setError("The new passwords do not match.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError("");
+    const result = await changePassword(password, newPassword);
+    setIsSubmitting(false);
+    if (!result.success) {
+      setError(result.error || "Could not update your password.");
+      return;
+    }
+    setPassword("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    toast.success("Password updated", { description: "Your staff account is ready to use." });
+  };
+
+  if (user?.must_change_password) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-slate-50 to-blue-100/30 px-4 py-8">
+        <main className="w-full max-w-[490px] rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
+          <h1 className="text-xl font-bold text-[#000953]">Set a new password</h1>
+          <p className="mt-2 text-sm text-slate-600">Your administrator-issued temporary password must be changed before continuing.</p>
+          <form onSubmit={handlePasswordChange} className="mt-6 space-y-4">
+            <label className="block text-sm font-medium text-slate-700">
+              Current temporary password
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                required
+              />
+            </label>
+            <label className="block text-sm font-medium text-slate-700">
+              New password (at least 12 characters)
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                required
+              />
+            </label>
+            <label className="block text-sm font-medium text-slate-700">
+              Confirm new password
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={confirmNewPassword}
+                onChange={(event) => setConfirmNewPassword(event.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                required
+              />
+            </label>
+            {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+            <button type="submit" disabled={isSubmitting} className="w-full rounded-lg bg-[#000953] px-4 py-3 font-semibold text-white disabled:opacity-60">
+              {isSubmitting ? "Updating password..." : "Update password"}
+            </button>
+          </form>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-slate-50 to-blue-100/30 px-4 py-8">
