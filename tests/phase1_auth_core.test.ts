@@ -48,7 +48,7 @@ describe("Phase 1 Acceptance Suite: Cryptographic Auth Core, ID Mapping & RBAC",
   let testTraineeUserId: string;
 
   const testTrainerEmail = "trainer@mtti.ac.ke";
-  const testTrainerPassword = "Mtti@2026!";
+  const testTrainerPassword = "TrainerTestPassword@2026!";
   let testTrainerUserId: string;
 
   beforeAll(async () => {

@@ -339,7 +339,7 @@ describe("Unified User Management, Secure Authentication, and RBAC Suite", () =>
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           identifier: "admin@mtti.ac.ke",
-          password: "Mtti@2026!",
+          password: "AdminTestPassword@2026!",
         }),
       });
 
@@ -382,7 +382,7 @@ describe("Unified User Management, Secure Authentication, and RBAC Suite", () =>
       const admRes = await fetch(`${baseUrl}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier: "admin@mtti.ac.ke", password: "Mtti@2026!" }),
+        body: JSON.stringify({ identifier: "admin@mtti.ac.ke", password: "AdminTestPassword@2026!" }),
       });
       const admData = await admRes.json();
       adminToken = admData.token;
@@ -391,7 +391,7 @@ describe("Unified User Management, Secure Authentication, and RBAC Suite", () =>
       const tnRes = await fetch(`${baseUrl}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier: "trainer@mtti.ac.ke", password: "Mtti@2026!" }),
+        body: JSON.stringify({ identifier: "trainer@mtti.ac.ke", password: "TrainerTestPassword@2026!" }),
       });
       const tnData = await tnRes.json();
       trainerToken = tnData.token;

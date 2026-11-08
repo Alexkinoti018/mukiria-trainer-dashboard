@@ -112,7 +112,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           identifier: "admin@mtti.ac.ke",
-          password: "Mtti@2026!",
+          password: "AdminTestPassword@2026!",
         }),
       });
 
@@ -135,7 +135,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           identifier: "hod.ci@mtti.ac.ke",
-          password: "Mtti@2026!",
+          password: "HodTestPassword@2026!",
         }),
       });
 
@@ -157,7 +157,7 @@ describe("Secure Multi-Role Login & Authentication Flow Suite", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           identifier: "trainer@mtti.ac.ke",
-          password: "Mtti@2026!",
+          password: "TrainerTestPassword@2026!",
         }),
       });
 

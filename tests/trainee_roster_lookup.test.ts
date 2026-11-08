@@ -568,7 +568,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     it("PUT /api/trainees/:id rejects trainee role with HTTP 403 Forbidden", async () => {
       const traineeToken = createSignedJwt(
         {
-          sub: "usr-1793267499410-1cc05",
+          sub: "usr-trainee-01",
           email: "trainee@mtti.ac.ke",
           role: "trainee",
           app_metadata: { role: "trainee" },
@@ -594,7 +594,7 @@ describe("Trainee Intelligent Roster Lookup & Zero-Email Verification Suite", ()
     it("DELETE /api/trainees/:id rejects trainee role with HTTP 403 Forbidden", async () => {
       const traineeToken = createSignedJwt(
         {
-          sub: "usr-1793267499410-1cc05",
+          sub: "usr-trainee-01",
           email: "trainee@mtti.ac.ke",
           role: "trainee",
           app_metadata: { role: "trainee" },

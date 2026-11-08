@@ -11,16 +11,15 @@ export async function loginAs(
   const credentialsList: Record<string, Array<{ identifier: string; password: string }>> = {
     trainee: [
       { identifier: "14179/S2026", password: "TraineePassword@2026!" },
-      { identifier: "14179/S2026", password: "Mtti@2026!" },
     ],
     trainer: [
-      { identifier: "trainer@mtti.ac.ke", password: "Mtti@2026!" },
+      { identifier: "trainer@mtti.ac.ke", password: "TrainerTestPassword@2026!" },
     ],
     hod: [
-      { identifier: "hod.ci@mtti.ac.ke", password: "Mtti@2026!" },
+      { identifier: "hod.ci@mtti.ac.ke", password: "HodTestPassword@2026!" },
     ],
     admin: [
-      { identifier: "admin@mtti.ac.ke", password: "Mtti@2026!" },
+      { identifier: "admin@mtti.ac.ke", password: "AdminTestPassword@2026!" },
     ],
   };
 
