@@ -11,6 +11,7 @@
     "check": "tsc --noEmit",
     "test": "vitest run --root .",
     "db:migrate": "node database/apply_migration.mjs",
+    "db:phase1": "node database/apply_migration.mjs --phase1",
     "db:seed": "node database/apply_migration.mjs --seed",
     "sync": "node scripts/sync.mjs",
     "format": "prettier --write .",

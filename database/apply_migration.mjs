@@ -57,28 +57,38 @@ async function run() {
     await client.connect();
     console.log("Connected successfully to Supabase PostgreSQL.");
 
-    // Determine migration file to run
-    let targetFileName = "01_master_supabase_migration.sql";
+    const phase1Files = [
+      "16_staff_department_assignment.sql",
+      "17_phase1_profile_link.sql",
+    ];
+    let targetFiles = ["01_master_supabase_migration.sql"];
     const fileArg = process.argv.find(arg => arg.endsWith(".sql"));
-    if (fileArg) {
-      targetFileName = path.basename(fileArg);
+    if (process.argv.includes("--phase1")) {
+      targetFiles = phase1Files;
+    } else if (fileArg) {
+      targetFiles = [path.basename(fileArg)];
     } else if (process.argv.includes("--seed")) {
-      targetFileName = "03_seed_institutional_data.sql";
+      targetFiles = ["03_seed_institutional_data.sql"];
     }
 
-    const migrationPath = path.resolve("database", "migrations", targetFileName);
-    if (!fs.existsSync(migrationPath)) {
-      throw new Error(`Migration file not found at: ${migrationPath}`);
-    }
-
-    const migrationSql = fs.readFileSync(migrationPath, "utf-8");
-    console.log(`\nExecuting migration: database/migrations/${targetFileName} (${migrationSql.length} bytes)...`);
-
+    const migrations = targetFiles.map((targetFileName) => {
+      const migrationPath = path.resolve("database", "migrations", targetFileName);
+      if (!fs.existsSync(migrationPath)) {
+        throw new Error(`Migration file not found at: ${migrationPath}`);
+      }
+      return {
+        targetFileName,
+        sql: fs.readFileSync(migrationPath, "utf-8"),
+      };
+    });
     await client.query("BEGIN;");
-    await client.query(migrationSql);
+    for (const migration of migrations) {
+      console.log(`\nExecuting migration: database/migrations/${migration.targetFileName} (${migration.sql.length} bytes)...`);
+      await client.query(migration.sql);
+    }
     await client.query("COMMIT;");
 
-    console.log(`\n✅ Migration [${targetFileName}] applied successfully!`);
+    console.log(`\n✅ Migrations applied successfully: ${targetFiles.join(", ")}`);
   } catch (err) {
     await client.query("ROLLBACK;").catch(() => {});
     console.error("\n❌ Migration failed:");
