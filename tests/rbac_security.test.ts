@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import express from "express";
 import type { Server } from "http";
 import type { AddressInfo } from "net";
+import { loadPersistentUsers, savePersistentUsers } from "../server/db.ts";
 import { 
   apiRouter, 
   DB, 
@@ -15,6 +16,7 @@ describe("MTTI RBAC & Object Authorization Security Suite", () => {
   let app: express.Express;
   let server: Server;
   let baseUrl: string;
+  let createdStaffEmail: string | null = null;
 
   // Snapshot initial in-memory DB state for isolation
   const initialDBState = JSON.parse(JSON.stringify(DB));
@@ -37,6 +39,11 @@ describe("MTTI RBAC & Object Authorization Security Suite", () => {
     await new Promise<void>((resolve) => {
       server.close(() => resolve());
     });
+    if (createdStaffEmail) {
+      savePersistentUsers(
+        loadPersistentUsers().filter((user) => user.email !== createdStaffEmail)
+      );
+    }
   });
 
   beforeEach(() => {
@@ -160,6 +167,7 @@ describe("MTTI RBAC & Object Authorization Security Suite", () => {
     });
 
     it("should allow Administrator to create institutional users (HTTP 201)", async () => {
+      createdStaffEmail = `staff-${Date.now()}@mtti.ac.ke`;
       const res = await fetch(`${baseUrl}/admin/users`, {
         method: "POST",
         headers: {
@@ -168,8 +176,9 @@ describe("MTTI RBAC & Object Authorization Security Suite", () => {
         },
         body: JSON.stringify({
           name: "Eng. Faith Mutua",
-          email: "fmutua@mtti.ac.ke",
-          role: "trainer"
+          email: createdStaffEmail,
+          role: "trainer",
+          department_id: "dept-ci",
         })
       });
 
@@ -177,6 +186,22 @@ describe("MTTI RBAC & Object Authorization Security Suite", () => {
       const data = await res.json();
       expect(data.success).toBe(true);
       expect(data.user.role).toBe("trainer");
+      expect(data.user.department_id).toBe("dept-ci");
+      expect(data.temporaryPassword).toHaveLength(24);
+      expect(data.user.password_hash).toBeUndefined();
+
+      const loginRes = await fetch(`${baseUrl}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          identifier: createdStaffEmail,
+          password: data.temporaryPassword,
+        }),
+      });
+      expect(loginRes.status).toBe(200);
+      const loginData = await loginRes.json();
+      expect(loginData.user.role).toBe("TRAINER");
+      expect(loginData.user.department_id).toBe("dept-ci");
     });
   });
 

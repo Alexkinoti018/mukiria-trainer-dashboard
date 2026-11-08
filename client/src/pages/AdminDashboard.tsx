@@ -55,6 +55,7 @@ import {
   DatabaseUnavailableError,
 } from "@/services/TraineeService";
 import { AdminRosterManagement } from "@/components/AdminRosterManagement";
+import { AdminStaffAccountManager } from "@/components/AdminStaffAccountManager";
 import {
   Table,
   TableHeader,
@@ -872,6 +873,7 @@ export default function AdminDashboard() {
                 <Upload className="w-4 h-4" />
                 <span>Batch Roster Ingestion (CSV)</span>
               </button>
+              <AdminStaffAccountManager />
             </div>
           </div>
         </div>

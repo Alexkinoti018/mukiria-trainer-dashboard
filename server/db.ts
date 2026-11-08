@@ -200,6 +200,7 @@ export interface UserRecord {
   email: string;
   password_hash: string;
   role: "TRAINEE" | "TRAINER" | "HOD" | "ADMIN" | string;
+  department_id?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -384,6 +385,7 @@ export async function createUser(data: {
   id?: string;
   admission_number?: string | null;
   phone_number?: string | null;
+  department_id?: string | null;
   full_name: string;
   email: string;
   password_hash: string;
@@ -395,6 +397,7 @@ export async function createUser(data: {
     id: newId,
     admission_number: data.admission_number ? data.admission_number.trim() : null,
     phone_number: data.phone_number ? data.phone_number.trim() : null,
+    department_id: data.department_id || null,
     full_name: data.full_name.trim(),
     email: data.email.trim().toLowerCase(),
     password_hash: data.password_hash,
@@ -406,8 +409,8 @@ export async function createUser(data: {
   if (pool) {
     try {
       const res = await pool.query(
-        `INSERT INTO users (id, admission_number, phone_number, full_name, email, password_hash, role, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        `INSERT INTO users (id, admission_number, phone_number, full_name, email, password_hash, role, department_id, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          RETURNING *`,
         [
           userRecord.id,
@@ -417,6 +420,7 @@ export async function createUser(data: {
           userRecord.email,
           userRecord.password_hash,
           userRecord.role,
+          userRecord.department_id,
           userRecord.created_at,
           userRecord.updated_at,
         ]
@@ -428,7 +432,8 @@ export async function createUser(data: {
         return res.rows[0];
       }
     } catch (err: any) {
-      console.warn("⚠️ [PostgreSQL createUser Warning]:", err.message);
+      console.error("⚠️ [PostgreSQL createUser Error]:", err.message);
+      throw err;
     }
   }
 
@@ -1294,9 +1299,12 @@ export async function initDatabaseSchema(): Promise<void> {
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         role VARCHAR(50) NOT NULL DEFAULT 'TRAINEE',
+        department_id VARCHAR(100),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS department_id VARCHAR(100);
 
       CREATE TABLE IF NOT EXISTS assessment_evidence (
         id VARCHAR(100) PRIMARY KEY,

@@ -410,6 +410,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   phone: data.user.phone_number,
                   name: data.user.full_name || (rosterMatch ? rosterMatch.name : data.user.email),
                   role: userRole,
+                  department_id: data.user.department_id,
                   reg_number: data.user.admission_number || (rosterMatch ? rosterMatch.regCode || rosterMatch.admNo : undefined),
                   cohort_code: rosterMatch ? rosterMatch.classCode : undefined,
                   enrolled_units: defaultEnrolledUnits,

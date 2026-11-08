@@ -37,6 +37,7 @@ import {
 } from "./db.ts";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { randomBytes } from "node:crypto";
 import { requireRole, requireRoles as requireRoleMiddleware, authenticateToken } from "./middleware/auth.ts";
 import { FBS_COHORT_SUBMISSIONS } from "../client/src/lib/fbsCohortSubmissions.ts";
 import { DIGITAL_LITERACY_EXAMS } from "../client/src/lib/digitalLiteracyExams.ts";
@@ -766,10 +767,12 @@ apiRouter.post("/auth/login", async (req: Request, res: Response) => {
         full_name: user.full_name,
         name: user.full_name,
         role: userRole,
+        department_id: user.department_id || null,
         user_metadata: {
           full_name: user.full_name,
           admission_number: user.admission_number,
           role: userRole,
+          department_id: user.department_id || null,
         },
       },
       secret,
@@ -787,6 +790,7 @@ apiRouter.post("/auth/login", async (req: Request, res: Response) => {
         full_name: user.full_name,
         email: user.email,
         role: userRole,
+        department_id: user.department_id || null,
       },
     });
   } catch (err: any) {
@@ -3054,10 +3058,76 @@ apiRouter.get("/admin/overview", requireRoles("admin"), (_req: Request, res: Res
   });
 });
 
-// ─── ENDPOINT: POST /api/admin/users (Vertical Privilege Escalation Guard) ─────
-apiRouter.post("/admin/users", requireRoles("admin"), (req: Request, res: Response) => {
-  const { name, email, role } = req.body;
-  res.status(201).json({ success: true, user: { id: `user-${Date.now()}`, name, email, role } });
+// ─── ENDPOINT: POST /api/admin/users (Create staff login) ────────────────────
+apiRouter.post("/admin/users", requireRoles("admin"), async (req: Request, res: Response) => {
+  const full_name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
+  const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+  const phone_number = typeof req.body?.phone === "string" ? req.body.phone.trim() : "";
+  const department_id = typeof req.body?.department_id === "string" ? req.body.department_id.trim() : "";
+  const role = typeof req.body?.role === "string" ? req.body.role.trim().toUpperCase() : "";
+
+  if (!full_name || full_name.length > 120 || !email || email.length > 254) {
+    res.status(400).json({ error: "Enter a name and a valid email address." });
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    res.status(400).json({ error: "Enter a valid email address." });
+    return;
+  }
+
+  if (phone_number.length > 40) {
+    res.status(400).json({ error: "Phone number must be 40 characters or fewer." });
+    return;
+  }
+
+  if (role !== "TRAINER" && role !== "HOD") {
+    res.status(400).json({ error: "Staff accounts can only be created as Trainer or HOD." });
+    return;
+  }
+
+  if (!DB.departments.some((department) => department.id === department_id)) {
+    res.status(400).json({ error: "Select a valid department for this staff account." });
+    return;
+  }
+
+  try {
+    if (await findUserByEmail(email)) {
+      res.status(409).json({ error: "An account with this email already exists." });
+      return;
+    }
+
+    const temporaryPassword = randomBytes(18).toString("base64url");
+    const password_hash = await bcrypt.hash(temporaryPassword, 12);
+    const created = await createUser({
+      full_name,
+      email,
+      phone_number: phone_number || null,
+      department_id,
+      password_hash,
+      role,
+    });
+
+    res.status(201).json({
+      success: true,
+      user: {
+        id: created.id,
+        name: created.full_name,
+        email: created.email,
+        role: created.role.toLowerCase(),
+        department_id: created.department_id,
+      },
+      temporaryPassword,
+    });
+  } catch (error: any) {
+    if (error?.code === "23505") {
+      res.status(409).json({ error: "An account with this email already exists." });
+      return;
+    }
+
+    console.error("[Admin staff account creation error]:", error);
+    res.status(500).json({ error: "Could not create the staff account. Please try again." });
+  }
 });
 
 // ─── ENDPOINT: POST /api/admin/maintenance/:action (Diagnostics & System Operations) ──
@@ -3633,6 +3703,3 @@ apiRouter.delete("/evidence/:id", async (req: AuthenticatedRequest, res: Respons
 
   res.json({ success: true, deleted_id: req.params.id });
 });
-
-
-

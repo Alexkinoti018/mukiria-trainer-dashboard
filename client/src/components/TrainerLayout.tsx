@@ -32,9 +32,18 @@ import {
   Mail,
   Phone,
   Layers,
+  Search,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { syncPedagogicalDocumentsWithServer } from "@/lib/mockSessionPlans";
 import {
   getCurrentTrainerProfile,
@@ -96,6 +105,24 @@ const NAV_ITEMS: NavItem[] = [
   }
 ];
 
+const NAVIGATION_GROUPS = (() => {
+  const seenPaths = new Set<string>();
+
+  return NAV_ITEMS.flatMap((section) => {
+    const items = (section.children ?? [section]).filter(
+      (item): item is NavItem & { path: string } => {
+        if (!item.path || seenPaths.has(item.path)) return false;
+        seenPaths.add(item.path);
+        return true;
+      }
+    );
+
+    return items.length
+      ? [{ label: section.children ? section.label : "Quick access", items }]
+      : [];
+  });
+})();
+
 interface TrainerLayoutProps {
   children: React.ReactNode;
   title?: string;
@@ -129,6 +156,13 @@ const SidebarItem = ({
   // If no path is provided but it has children, clicking the row toggles accordion.
   // Otherwise, it navigates.
   const isActive = item.path ? (location === item.path || (item.path.includes('?') && location === item.path.split('?')[0])) : false;
+  const hasActiveChild = Boolean(
+    item.children?.some(
+      (child) =>
+        child.path === location ||
+        (child.path && location.startsWith(child.path.split("?")[0]))
+    )
+  );
 
   const handleClick = () => {
     if (hasChildren) {
@@ -142,9 +176,12 @@ const SidebarItem = ({
   return (
     <div className="w-full">
       <button
+        type="button"
         onClick={handleClick}
+        aria-expanded={hasChildren ? isOpen : undefined}
+        aria-current={isActive ? "page" : undefined}
         className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-          isActive
+          isActive || hasActiveChild
             ? "bg-sidebar-primary text-sidebar-primary-foreground"
             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         }`}
@@ -195,6 +232,7 @@ export default function TrainerLayout({
   const [location, navigate] = useLocation();
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
 
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [profile, setProfile] = useState<TrainerProfile>(() => getCurrentTrainerProfile(user));
@@ -210,6 +248,20 @@ export default function TrainerLayout({
     setEditPhone(current.phone);
     syncPedagogicalDocumentsWithServer().catch(() => {});
   }, [user]);
+
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setCommandOpen((open) => !open);
+      } else if (event.key === "Escape" && mobileOpen && !commandOpen) {
+        setMobileOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, [commandOpen, mobileOpen]);
 
   const handleSyncTimetable = () => {
     const updated: TrainerProfile = {
@@ -234,7 +286,7 @@ export default function TrainerLayout({
   };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-sidebar/80 backdrop-blur-xl text-sidebar-foreground">
+    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
       {/* Header */}
       <div className="px-6 py-6 border-b border-border bg-transparent">
         <div className="flex items-center gap-3">
@@ -295,7 +347,7 @@ export default function TrainerLayout({
   );
 
   return (
-    <div className="flex h-screen bg-background print:h-auto print:bg-white">
+    <div className="flex h-[100dvh] bg-background print:h-auto print:bg-white">
       {/* Desktop Sidebar */}
       <div className="hidden md:flex w-64 flex-col border-r border-border shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-20 print:hidden">
         <SidebarContent />
@@ -304,28 +356,43 @@ export default function TrainerLayout({
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden relative print:overflow-visible">
         {/* Top Bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/80 backdrop-blur-xl sticky top-0 z-10 shadow-[0_4px_24px_rgba(0,0,0,0.02)] print:hidden">
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-border bg-card/90 backdrop-blur-xl sticky top-0 z-10 shadow-[0_4px_24px_rgba(0,0,0,0.02)] print:hidden">
           <div className="flex-1">
             {title && (
               <>
-                <h1 className="text-2xl font-bold text-foreground font-display tracking-tight">{title}</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground font-display tracking-tight">{title}</h1>
                 {subtitle && (
-                  <p className="text-sm text-muted-foreground mt-1 font-medium">{subtitle}</p>
+                  <p className="hidden sm:block text-sm text-muted-foreground mt-1 font-medium">{subtitle}</p>
                 )}
               </>
             )}
           </div>
 
           {/* Top Bar Actions */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCommandOpen(true)}
+              aria-label="Search pages and tools"
+              className="inline-flex h-9 items-center gap-2 rounded-xl border border-border bg-background px-2.5 sm:px-3 text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors"
+            >
+              <Search className="h-4 w-4" />
+              <span className="hidden sm:inline text-xs font-medium">Search</span>
+              <kbd className="hidden md:inline-flex rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                Ctrl/⌘ K
+              </kbd>
+            </button>
+
             {/* Quick Profile & Timetable Sync Pill */}
             <button
+              type="button"
               onClick={() => setIsSyncModalOpen(true)}
+              aria-label={`Edit trainer profile and synchronize timetable for ${profile.name}`}
               className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary text-xs font-semibold transition-all shadow-sm cursor-pointer"
               title="Click to view and synchronize trainer profile and timetable across all professional documents"
             >
               <RefreshCw className="w-3.5 h-3.5 text-[#c48820]" />
-              <span className="truncate max-w-[130px] font-bold">{profile.name}</span>
+              <span className="hidden sm:inline truncate max-w-[130px] font-bold">{profile.name}</span>
               <span className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-primary/15 text-[10px] uppercase font-bold text-primary">
                 {profile.classes?.length || 5} Classes
               </span>
@@ -333,7 +400,10 @@ export default function TrainerLayout({
 
             {/* Mobile Menu Button */}
             <button
+              type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileOpen}
               className="md:hidden p-2 hover:bg-muted rounded-lg transition-colors print:hidden"
             >
               {mobileOpen ? (
@@ -347,7 +417,7 @@ export default function TrainerLayout({
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto print:overflow-visible">
-          <div className="p-6 max-w-7xl mx-auto w-full print:p-0 print:max-w-none">{children}</div>
+          <div className="p-4 sm:p-6 max-w-7xl mx-auto w-full print:p-0 print:max-w-none">{children}</div>
         </div>
       </div>
 
@@ -355,22 +425,25 @@ export default function TrainerLayout({
       <AnimatePresence>
         {mobileOpen && (
           <>
-            <motion.div
+            <motion.button
+              type="button"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileOpen(false)}
-              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              aria-label="Close navigation menu"
+              className="fixed inset-0 z-40 border-0 bg-black/50 p-0 md:hidden"
             />
-            <motion.div
+            <motion.aside
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", damping: 20 }}
               className="fixed left-0 top-0 bottom-0 w-64 z-50 md:hidden"
+              aria-label="Trainer navigation"
             >
               <SidebarContent />
-            </motion.div>
+            </motion.aside>
           </>
         )}
       </AnimatePresence>
@@ -495,6 +568,44 @@ export default function TrainerLayout({
           </div>
         </div>
       )}
+
+      <CommandDialog
+        open={commandOpen}
+        onOpenChange={setCommandOpen}
+        title="Search pages and tools"
+        description="Find a trainer workspace page and open it."
+        className="max-w-xl"
+      >
+        <CommandInput placeholder="Search pages, assessments, reports..." />
+        <CommandList className="max-h-[min(60vh,420px)]">
+          <CommandEmpty>No pages match your search.</CommandEmpty>
+          {NAVIGATION_GROUPS.map((group) => (
+            <CommandGroup key={group.label} heading={group.label}>
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <CommandItem
+                    key={item.path}
+                    value={`${item.label} ${item.path}`}
+                    onSelect={() => {
+                      setCommandOpen(false);
+                      setMobileOpen(false);
+                      navigate(item.path);
+                    }}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          ))}
+        </CommandList>
+        <div className="flex items-center justify-between border-t px-4 py-2 text-[11px] text-muted-foreground">
+          <span>Use the arrow keys to navigate</span>
+          <span>Enter to open · Esc to close</span>
+        </div>
+      </CommandDialog>
     </div>
   );
 }
