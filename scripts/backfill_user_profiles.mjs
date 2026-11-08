@@ -14,6 +14,8 @@ import {
   loadPersistentUsers,
   savePersistentUsers,
   loadPersistentTrainees,
+  loadDatabaseTrainers,
+  loadDatabaseDepartments,
 } from "../server/db.ts";
 
 export function normalizeAdmissionIdentifier(raw) {
@@ -39,15 +41,10 @@ export async function runBackfill() {
   const localUsers = loadPersistentUsers();
   const allUsers = dbUsers.length > 0 ? dbUsers : localUsers;
   const trainees = loadPersistentTrainees();
-
-  const mockTrainers = [
-    { id: "trainer-001", name: "Dr. J. Muriithi", email: "trainer@mtti.ac.ke" },
-    { id: "trainer-002", name: "Alexander Kinoti", email: "kinoti@mtti.ac.ke" },
-  ];
-  const mockDepts = [
-    { id: "dept-ci", hod_id: "hod-001", hod_email: "hod.ci@mtti.ac.ke" },
-    { id: "dept-ee", hod_id: "hod-002", hod_email: "hod.ee@mtti.ac.ke" },
-  ];
+  const [trainers, departments] = await Promise.all([
+    loadDatabaseTrainers(),
+    loadDatabaseDepartments(),
+  ]);
 
   let linkedCount = 0;
   let skippedCount = 0;
@@ -91,7 +88,7 @@ export async function runBackfill() {
       }
     } else if (role === "trainer") {
       const normEmail = (user.email || "").trim().toLowerCase();
-      const matches = mockTrainers.filter((t) => t.email && t.email.trim().toLowerCase() === normEmail);
+      const matches = trainers.filter((t) => t.email && t.email.trim().toLowerCase() === normEmail);
       if (matches.length === 1) {
         targetProfileId = matches[0].id;
       } else if (matches.length === 0) {
@@ -103,11 +100,15 @@ export async function runBackfill() {
       }
     } else if (role === "hod") {
       const normEmail = (user.email || "").trim().toLowerCase();
-      const matches = mockDepts.filter((d) => d.hod_email && d.hod_email.trim().toLowerCase() === normEmail);
+      const matches = departments.filter((d) => d.hod_email && d.hod_email.trim().toLowerCase() === normEmail);
       if (matches.length === 1) {
         targetProfileId = matches[0].hod_id;
+      } else if (matches.length === 0) {
+        console.warn(`[BACKFILL SKIP]: HOD user ${user.id} (${user.email}) has no matching department`);
+        skippedCount++;
       } else {
-        targetProfileId = "hod-001";
+        console.warn(`[BACKFILL AMBIGUOUS]: HOD user ${user.id} matches multiple departments:`, matches.map((m) => m.id));
+        ambiguousCount++;
       }
     }
 

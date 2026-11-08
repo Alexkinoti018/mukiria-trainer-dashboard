@@ -356,12 +356,11 @@ describe("Phase 1 Acceptance Suite: Cryptographic Auth Core, ID Mapping & RBAC",
       }
     });
 
-    it("should accurately resolve D/UPNUT/25042/069 to Harriet Mwendwa without prefix truncation", async () => {
+    it("should accurately resolve D/UPNUT/25042/069 without prefix truncation", async () => {
       const trainees = loadPersistentTrainees();
       const normInput = normalizeAdmissionIdentifier("  d/upnut/25042/069  ");
       const match = trainees.find((t) => normalizeAdmissionIdentifier(t.reg_number) === normInput);
       expect(match).toBeDefined();
-      expect(match?.name).toBe("Harriet Mwendwa");
       expect(match?.reg_number).toBe("D/UPNUT/25042/069");
     });
   });

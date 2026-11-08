@@ -4,14 +4,7 @@
  * File: scripts/rotate_staff_passwords.mjs
  *
  * Usage:
- *   # Option A: Rotate using role-specific or per-account passwords
- *   ADMIN_NEW_PASSWORD="strong-admin-pass" HOD_NEW_PASSWORD="strong-hod-pass" TRAINER_NEW_PASSWORD="strong-trainer-pass" node scripts/rotate_staff_passwords.mjs
- *
- *   # Option B: Rotate using specific per-account JSON mapping
- *   STAFF_PASSWORDS_JSON='{"admin@mtti.ac.ke":"pass1...","trainer@mtti.ac.ke":"pass2..."}' node scripts/rotate_staff_passwords.mjs
- *
- *   # Option C: Rotate all staff accounts to a new shared password
- *   STAFF_NEW_PASSWORD="your-strong-production-password" node scripts/rotate_staff_passwords.mjs
+ *   STAFF_PASSWORDS_JSON='{"staff-one@example.test":"UniquePasswordOne!","staff-two@example.test":"UniquePasswordTwo!"}' node scripts/rotate_staff_passwords.mjs
  *
  * Invariants:
  * - Reads credentials strictly from environment variables.
@@ -27,55 +20,50 @@ import pg from "pg";
 
 const { Pool } = pg;
 
-function resolvePasswordForAccount(account) {
+function parsePasswordMap() {
+  if (!process.env.STAFF_PASSWORDS_JSON) {
+    throw new Error("Provide STAFF_PASSWORDS_JSON with a distinct password for each account.");
+  }
+
+  const parsed = JSON.parse(process.env.STAFF_PASSWORDS_JSON);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("STAFF_PASSWORDS_JSON must be a JSON object keyed by account email or ID.");
+  }
+  return parsed;
+}
+
+function resolvePasswordForAccount(account, passwordMap) {
   const email = (account.email || "").toLowerCase().trim();
-  const role = (account.role || "").toLowerCase().trim();
+  return passwordMap[email] || passwordMap[account.id] || null;
+}
 
-  // 1. Check per-account JSON map if provided
-  if (process.env.STAFF_PASSWORDS_JSON) {
-    try {
-      const map = JSON.parse(process.env.STAFF_PASSWORDS_JSON);
-      if (map[email]) return map[email];
-      if (map[account.id]) return map[account.id];
-    } catch (e) {
-      console.warn("⚠️ Warning: Failed to parse STAFF_PASSWORDS_JSON environment variable.");
+function preparePasswordAssignments(accounts, passwordMap) {
+  const usedPasswords = new Set();
+  const assignments = [];
+
+  for (const account of accounts) {
+    const password = resolvePasswordForAccount(account, passwordMap);
+    if (!password) {
+      console.warn(`⚠️ Skipping account ${account.email || account.id}: No per-account password configured.`);
+      continue;
     }
+    if (typeof password !== "string" || password.length < 12) {
+      throw new Error(`Password for account ${account.email || account.id} must be a string of at least 12 characters.`);
+    }
+    if (usedPasswords.has(password)) {
+      throw new Error("Each staff account must be assigned a unique password.");
+    }
+    usedPasswords.add(password);
+    assignments.push({ account, password });
   }
 
-  // 2. Check role-specific environment variables
-  if (role === "admin" && process.env.ADMIN_NEW_PASSWORD) {
-    return process.env.ADMIN_NEW_PASSWORD;
-  }
-  if (role === "hod" && process.env.HOD_NEW_PASSWORD) {
-    return process.env.HOD_NEW_PASSWORD;
-  }
-  if (role === "trainer" && process.env.TRAINER_NEW_PASSWORD) {
-    return process.env.TRAINER_NEW_PASSWORD;
-  }
-
-  // 3. Fallback to global STAFF_NEW_PASSWORD
-  if (process.env.STAFF_NEW_PASSWORD) {
-    return process.env.STAFF_NEW_PASSWORD;
-  }
-
-  return null;
+  return assignments;
 }
 
 async function rotateStaffPasswords() {
-  const hasConfig =
-    process.env.STAFF_PASSWORDS_JSON ||
-    process.env.ADMIN_NEW_PASSWORD ||
-    process.env.HOD_NEW_PASSWORD ||
-    process.env.TRAINER_NEW_PASSWORD ||
-    process.env.STAFF_NEW_PASSWORD;
+  const passwordMap = parsePasswordMap();
 
-  if (!hasConfig) {
-    console.error("❌ Error: No rotation passwords provided.");
-    console.error("   Provide either STAFF_NEW_PASSWORD, role variables (ADMIN_NEW_PASSWORD, HOD_NEW_PASSWORD, TRAINER_NEW_PASSWORD), or STAFF_PASSWORDS_JSON.");
-    process.exit(1);
-  }
-
-  console.log("🔒 Initializing cryptographic bcrypt hash generation for staff accounts (salt rounds: 10)...");
+  console.log("🔒 Initializing cryptographic bcrypt hash generation for staff accounts (salt rounds: 12)...");
 
   let updatedDbCount = 0;
   const connectionString = process.env.DATABASE_URL;
@@ -94,25 +82,16 @@ async function rotateStaffPasswords() {
       const fetchRes = await pool.query(
         `SELECT id, role, email FROM users WHERE LOWER(role) IN ('trainer', 'hod', 'admin')`
       );
+      const assignments = preparePasswordAssignments(fetchRes.rows, passwordMap);
 
-      for (const user of fetchRes.rows) {
-        const pass = resolvePasswordForAccount(user);
-        if (!pass) {
-          console.warn(`⚠️ Skipping account ${user.email || user.id}: No password configured.`);
-          continue;
-        }
-        if (pass.length < 12) {
-          console.error(`❌ Error: Password for ${user.email || user.id} is shorter than 12 characters.`);
-          process.exit(1);
-        }
-
-        const hash = await bcrypt.hash(pass, 10);
+      for (const { account, password } of assignments) {
+        const hash = await bcrypt.hash(password, 12);
         await pool.query(
           `UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`,
-          [hash, user.id]
+          [hash, account.id]
         );
         updatedDbCount++;
-        console.log(`   - Rotated password for account: ${user.email || user.id} [Role: ${user.role}]`);
+        console.log(`   - Rotated password for account: ${account.email || account.id} [Role: ${account.role}]`);
       }
       console.log(`✅ Successfully rotated passwords for ${updatedDbCount} staff account(s) in PostgreSQL.`);
     } catch (dbErr) {
@@ -133,17 +112,13 @@ async function rotateStaffPasswords() {
   if (fs.existsSync(usersFilePath)) {
     try {
       const usersData = JSON.parse(fs.readFileSync(usersFilePath, "utf8"));
+      const staffUsers = usersData.filter((user) => ["trainer", "hod", "admin"].includes((user.role || "").toLowerCase()));
+      const assignments = preparePasswordAssignments(staffUsers, passwordMap);
       let updatedLocalCount = 0;
-      for (const u of usersData) {
-        const role = (u.role || "").toLowerCase();
-        if (role === "trainer" || role === "hod" || role === "admin") {
-          const pass = resolvePasswordForAccount(u);
-          if (pass && pass.length >= 12) {
-            u.password_hash = await bcrypt.hash(pass, 10);
-            u.updated_at = new Date().toISOString();
-            updatedLocalCount++;
-          }
-        }
+      for (const { account, password } of assignments) {
+        account.password_hash = await bcrypt.hash(password, 12);
+        account.updated_at = new Date().toISOString();
+        updatedLocalCount++;
       }
       fs.writeFileSync(usersFilePath, JSON.stringify(usersData, null, 2), "utf8");
       console.log(`✅ Successfully updated ${updatedLocalCount} staff account(s) in server/data/users.json.`);

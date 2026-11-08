@@ -14,10 +14,10 @@ describe("Trainee Exam Lockdown & Session Resilience Suite", () => {
 
   const testTrainee = {
     id: "trainee-lock-test-01",
-    email: "trainee.lock@mtti.ac.ke",
-    name: "Faith Kawira",
+    email: "exam-lock-01@example.test",
+    name: "Exam Lock Test Trainee",
     role: "trainee" as const,
-    reg_number: "FBS 5 MOD/13999/12026",
+    reg_number: "TEST-EXAM-LOCK-001",
     enrolled_units: ["061155101A", "061155101A-PRAC"],
   };
 
@@ -238,7 +238,7 @@ describe("Trainee Exam Lockdown & Session Resilience Suite", () => {
 
       expect(restoredUser).not.toBeNull();
       expect(restoredUser.role).toBe("trainee");
-      expect(restoredUser.reg_number).toBe("FBS 5 MOD/13999/12026");
+      expect(restoredUser.reg_number).toBe(testTrainee.reg_number);
     });
   });
 });
