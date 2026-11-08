@@ -2671,8 +2671,8 @@
       }
     ],
     "section_b": [],
-    "created_at": "2026-11-04T00:25:51.595Z",
-    "submitted_at": "2026-11-04T00:25:51.600Z",
+    "created_at": "2026-10-24T14:27:50.792Z",
+    "submitted_at": "2026-10-24T14:27:50.797Z",
     "payload": {
       "answers": {
         "q1": "0"
@@ -2694,8 +2694,7 @@
     "student_name": "Alex Kinoti",
     "status": "submitted",
     "total_score": 5,
-    "created_at": "2026-11-04T00:25:58.824Z",
-    "submitted_at": "2026-11-04T00:25:58.825Z",
+    "created_at": "2026-10-20T21:56:00.435Z",
     "payload": {
       "section_a": [
         {
@@ -2707,37 +2706,9 @@
     "section_a": [
       {
         "question_id": "q1",
-        "answer": "0",
-        "marks_awarded": 5
-      }
-    ]
-  },
-  {
-    "id": "sub-1793751991521",
-    "exam_id": "exam-lock-unit-01",
-    "task_code": "CT1",
-    "unit_code": "061155101A",
-    "trainee_id": "trainee-lock-test-01",
-    "reg_number": "FBS 5 MOD/13999/12026",
-    "student_name": "Faith Kawira",
-    "status": "submitted",
-    "is_locked": true,
-    "attempt_count": 1,
-    "locked_at": "2026-11-04T00:26:31.521Z",
-    "total_score": 0,
-    "section_a": [
-      {
-        "question_id": "q1",
-        "answer": "Hazard Analysis",
-        "marks_awarded": 0
+        "answer": "0"
       }
     ],
-    "section_b": [
-      {
-        "question_id": "q2",
-        "answer": "Keep below 5 degrees C"
-      }
-    ],
-    "created_at": "2026-11-04T00:26:31.521Z"
+    "submitted_at": "2026-10-24T14:28:01.378Z"
   }
 ]
