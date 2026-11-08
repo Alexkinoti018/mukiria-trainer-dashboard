@@ -160,6 +160,10 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     );
   }
 
+  if (isAuthenticated && user?.must_change_password) {
+    return <Redirect to="/login" />;
+  }
+
   const evaluation = evaluateProtectedRouteAccess({
     isAuthenticated,
     user: user ? { role: user.role } : null,

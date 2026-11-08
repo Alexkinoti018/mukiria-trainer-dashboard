@@ -10,6 +10,7 @@ import pg from "pg";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { randomUUID } from "node:crypto";
 
 const { Pool } = pg;
 
@@ -221,6 +222,8 @@ export interface UserRecord {
   password_hash: string;
   role: "TRAINEE" | "TRAINER" | "HOD" | "ADMIN" | string;
   profile_id?: string | null;
+  department_id?: string | null;
+  must_change_password?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -231,6 +234,8 @@ export interface UserRecord {
 // retaining an in-memory runtime cache for non-destructive local/offline access.
 
 let memoryUsers: UserRecord[] | null = null;
+const memoryStaffTrainers: Array<{ id: string; name: string; email: string; department?: string; assigned_units?: string[] }> = [];
+const memoryStaffDepartmentHeads: Array<{ department_id: string; hod_id: string; hod_email: string }> = [];
 let memoryAttendance: AttendanceRecord[] | null = null;
 let memoryTrainees: TraineeRecord[] | null = null;
 let memorySessionPlans: any[] | null = null;
@@ -261,6 +266,7 @@ const DEFAULT_STAFF_USERS: UserRecord[] = [
     email: "hod.ci@mtti.ac.ke",
     password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry",
     role: "HOD",
+    department_id: "dept-ci",
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
   },
@@ -272,6 +278,7 @@ const DEFAULT_STAFF_USERS: UserRecord[] = [
     email: "trainer@mtti.ac.ke",
     password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry",
     role: "TRAINER",
+    department_id: "dept-ci",
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
   },
@@ -283,6 +290,7 @@ const DEFAULT_STAFF_USERS: UserRecord[] = [
     email: "kinoti@mtti.ac.ke",
     password_hash: "$2b$10$pBeCI1vflmGBcyhGlLc93.mjXqq6yEO7S/aVwvwTvNDVSnFcwq3ry",
     role: "TRAINER",
+    department_id: "dept-ci",
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
   },
@@ -295,6 +303,12 @@ export function loadPersistentUsers(): UserRecord[] {
       const data = fs.readFileSync(USERS_FILE, "utf-8");
       memoryUsers = JSON.parse(data);
       if (Array.isArray(memoryUsers) && memoryUsers.length > 0) {
+        for (const defaultUser of DEFAULT_STAFF_USERS) {
+          const user = memoryUsers.find((record) => record.email?.trim().toLowerCase() === defaultUser.email);
+          if (user && !user.department_id && defaultUser.department_id) {
+            user.department_id = defaultUser.department_id;
+          }
+        }
         return memoryUsers;
       }
     }
@@ -318,6 +332,43 @@ export function savePersistentUsers(records: UserRecord[]): void {
   }
 }
 
+export function removeInMemoryStaffProfile(profileId: string): void {
+  const trainerIndex = memoryStaffTrainers.findIndex((trainer) => trainer.id === profileId);
+  if (trainerIndex >= 0) memoryStaffTrainers.splice(trainerIndex, 1);
+  const departmentIndex = memoryStaffDepartmentHeads.findIndex((department) => department.hod_id === profileId);
+  if (departmentIndex >= 0) memoryStaffDepartmentHeads.splice(departmentIndex, 1);
+}
+
+async function addInMemoryStaffProfile(
+  role: "TRAINER" | "HOD",
+  profileId: string,
+  name: string,
+  email: string,
+  departmentId: string
+): Promise<void> {
+  const department = (await loadDatabaseDepartments()).find((item) => item.id === departmentId);
+  if (!department) {
+    throw Object.assign(new Error("The selected department does not exist."), { code: "DEPARTMENT_NOT_FOUND" });
+  }
+
+  if (role === "TRAINER") {
+    const trainers = await loadDatabaseTrainers();
+    if (trainers.some((trainer) => trainer.email?.trim().toLowerCase() === email)) {
+      throw Object.assign(new Error("A trainer profile with this email already exists."), { code: "23505" });
+    }
+    memoryStaffTrainers.push({ id: profileId, name, email, department: department.name });
+    return;
+  }
+
+  const existing = memoryStaffDepartmentHeads.find((department) => department.department_id === departmentId);
+  if (existing) {
+    existing.hod_id = profileId;
+    existing.hod_email = email;
+  } else {
+    memoryStaffDepartmentHeads.push({ department_id: departmentId, hod_id: profileId, hod_email: email });
+  }
+}
+
 
 export async function findUserById(id: string): Promise<UserRecord | null> {
   const normId = (id || "").trim();
@@ -327,7 +378,7 @@ export async function findUserById(id: string): Promise<UserRecord | null> {
   if (pool) {
     try {
       const res = await pool.query(
-        `SELECT id, email, phone_number, full_name, admission_number, password_hash, role, profile_id, created_at, updated_at
+        `SELECT id, email, phone_number, full_name, admission_number, password_hash, role, profile_id, department_id, must_change_password, created_at, updated_at
          FROM users WHERE id = $1 LIMIT 1`,
         [normId]
       );
@@ -356,7 +407,7 @@ export async function findUserByProfileId(profileId: string): Promise<UserRecord
   if (pool) {
     try {
       const res = await pool.query(
-        `SELECT id, email, phone_number, full_name, admission_number, password_hash, role, profile_id, created_at, updated_at
+        `SELECT id, email, phone_number, full_name, admission_number, password_hash, role, profile_id, department_id, must_change_password, created_at, updated_at
          FROM users WHERE profile_id = $1 LIMIT 1`,
         [norm]
       );
@@ -399,14 +450,12 @@ export async function updateUserProfileId(userId: string, profileId: string): Pr
   }
 }
 
-export async function loadDatabaseTrainers(): Promise<Array<{ id: string; name: string; email?: string; assigned_units?: string[] }>> {
+export async function loadDatabaseTrainers(): Promise<Array<{ id: string; name: string; email?: string; department?: string; assigned_units?: string[] }>> {
   ensurePoolAvailable();
   if (pool) {
     try {
-      const res = await pool.query("SELECT id, name, email FROM Trainers");
-      if (res.rows.length > 0) {
-        return res.rows;
-      }
+      const res = await pool.query("SELECT id, name, email, department FROM Trainers");
+      return res.rows;
     } catch (err: any) {
       if (isSecureProductionRuntime()) {
         throw new DatabaseUnavailableError("PostgreSQL Trainers table unavailable in production mode");
@@ -417,8 +466,9 @@ export async function loadDatabaseTrainers(): Promise<Array<{ id: string; name: 
     throw new DatabaseUnavailableError("PostgreSQL connection unavailable for Trainers query in production mode");
   }
   return [
-    { id: "trainer-001", name: "Dr. J. Muriithi", email: "trainer@mtti.ac.ke", assigned_units: ["ICT/CU/IT/CR/6/6", "061155101A"] },
-    { id: "trainer-002", name: "Alexander Kinoti", email: "kinoti@mtti.ac.ke", assigned_units: ["ICT/OS/IT/CR/1/6"] },
+    { id: "trainer-001", name: "Dr. J. Muriithi", email: "trainer@mtti.ac.ke", department: "Computing & Informatics", assigned_units: ["ICT/CU/IT/CR/6/6", "061155101A"] },
+    { id: "trainer-002", name: "Alexander Kinoti", email: "kinoti@mtti.ac.ke", department: "Computing & Informatics", assigned_units: ["ICT/OS/IT/CR/1/6"] },
+    ...memoryStaffTrainers,
   ];
 }
 
@@ -427,9 +477,7 @@ export async function loadDatabaseDepartments(): Promise<Array<{ id: string; nam
   if (pool) {
     try {
       const res = await pool.query("SELECT id, name, code, hod_id, hod_email FROM Departments");
-      if (res.rows.length > 0) {
-        return res.rows;
-      }
+      return res.rows;
     } catch (err: any) {
       if (isSecureProductionRuntime()) {
         throw new DatabaseUnavailableError("PostgreSQL Departments table unavailable in production mode");
@@ -442,7 +490,10 @@ export async function loadDatabaseDepartments(): Promise<Array<{ id: string; nam
   return [
     { id: "dept-ci", name: "Computing & Informatics", code: "CI", hod_id: "hod-001", hod_email: "hod.ci@mtti.ac.ke" },
     { id: "dept-ee", name: "Electrical & Electronics", code: "EE", hod_id: "hod-002", hod_email: "hod.ee@mtti.ac.ke" },
-  ];
+  ].map((department) => {
+    const head = memoryStaffDepartmentHeads.find((item) => item.department_id === department.id);
+    return head ? { ...department, hod_id: head.hod_id, hod_email: head.hod_email } : department;
+  });
 }
 
 export async function loadDatabaseTrainees(): Promise<TraineeRecord[]> {
@@ -582,11 +633,13 @@ export async function createUser(data: {
   id?: string;
   admission_number?: string | null;
   phone_number?: string | null;
+  department_id?: string | null;
   full_name: string;
   email: string;
   password_hash: string;
   role: "TRAINEE" | "TRAINER" | "HOD" | "ADMIN" | string;
   profile_id?: string | null;
+  must_change_password?: boolean;
 }): Promise<UserRecord> {
   const newId = data.id || `usr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const now = new Date().toISOString();
@@ -631,11 +684,13 @@ export async function createUser(data: {
     id: newId,
     admission_number: data.admission_number ? data.admission_number.trim() : null,
     phone_number: data.phone_number ? data.phone_number.trim() : null,
+    department_id: data.department_id || null,
     full_name: data.full_name.trim(),
     email: data.email.trim().toLowerCase(),
     password_hash: data.password_hash,
     role: normRole,
     profile_id: resolvedProfileId,
+    must_change_password: data.must_change_password ?? false,
     created_at: now,
     updated_at: now,
   };
@@ -643,9 +698,9 @@ export async function createUser(data: {
   if (pool) {
     try {
       const res = await pool.query(
-        `INSERT INTO users (id, admission_number, phone_number, full_name, email, password_hash, role, profile_id, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-         RETURNING *`,
+        `INSERT INTO users (id, admission_number, phone_number, full_name, email, password_hash, role, profile_id, department_id, must_change_password, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING *`,
         [
           userRecord.id,
           userRecord.admission_number,
@@ -655,6 +710,8 @@ export async function createUser(data: {
           userRecord.password_hash,
           userRecord.role,
           userRecord.profile_id,
+          userRecord.department_id,
+          userRecord.must_change_password ?? false,
           userRecord.created_at,
           userRecord.updated_at,
         ]
@@ -666,7 +723,8 @@ export async function createUser(data: {
         return res.rows[0];
       }
     } catch (err: any) {
-      console.warn("⚠️ [PostgreSQL createUser Warning]:", err.message);
+      console.error("⚠️ [PostgreSQL createUser Error]:", err.message);
+      throw err;
     }
   }
 
@@ -674,6 +732,99 @@ export async function createUser(data: {
   users.push(userRecord);
   savePersistentUsers(users);
   return userRecord;
+}
+
+export async function createStaffAccount(data: {
+  full_name: string;
+  email: string;
+  phone_number?: string | null;
+  department_id: string;
+  password_hash: string;
+  role: "TRAINER" | "HOD";
+}): Promise<UserRecord> {
+  const userId = randomUUID();
+  const profileId = randomUUID();
+  const now = new Date().toISOString();
+  const normalizedEmail = data.email.trim().toLowerCase();
+  const normalizedName = data.full_name.trim();
+
+  const persisted = await withTransaction(async (client) => {
+    const department = await client.query(
+      "SELECT id, name FROM Departments WHERE id = $1 FOR UPDATE",
+      [data.department_id]
+    );
+    if (department.rowCount !== 1) {
+      throw Object.assign(new Error("The selected department does not exist."), { code: "DEPARTMENT_NOT_FOUND" });
+    }
+
+    const userResult = await client.query(
+      `INSERT INTO users (
+        id, full_name, email, phone_number, password_hash, role, profile_id,
+        department_id, must_change_password, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE, $9, $9)
+      RETURNING *`,
+      [userId, normalizedName, normalizedEmail, data.phone_number || null, data.password_hash, data.role, profileId, data.department_id, now]
+    );
+
+    await client.query(
+      "INSERT INTO Trainers (id, name, email, department) VALUES ($1, $2, $3, $4)",
+      [profileId, normalizedName, normalizedEmail, department.rows[0].name]
+    );
+
+    if (data.role === "HOD") {
+      const update = await client.query(
+        "UPDATE Departments SET hod_id = $1, hod_email = $2 WHERE id = $3",
+        [profileId, normalizedEmail, data.department_id]
+      );
+      if (update.rowCount !== 1) {
+        throw Object.assign(new Error("The selected department could not be linked to this HOD."), { code: "DEPARTMENT_NOT_FOUND" });
+      }
+    }
+
+    return userResult.rows[0] as UserRecord;
+  });
+  if (persisted) return persisted;
+
+  const previousUsers = [...loadPersistentUsers()];
+  const userRecord = await createUser({
+    id: userId,
+    full_name: normalizedName,
+    email: normalizedEmail,
+    phone_number: data.phone_number || null,
+    password_hash: data.password_hash,
+    role: data.role,
+    profile_id: profileId,
+    department_id: data.department_id,
+    must_change_password: true,
+  });
+
+  try {
+    await addInMemoryStaffProfile(data.role, profileId, normalizedName, normalizedEmail, data.department_id);
+    return userRecord;
+  } catch (error) {
+    savePersistentUsers(previousUsers);
+    removeInMemoryStaffProfile(profileId);
+    throw error;
+  }
+}
+
+export async function updateUserPassword(userId: string, passwordHash: string): Promise<void> {
+  ensurePoolAvailable();
+  if (pool) {
+    const result = await pool.query(
+      "UPDATE users SET password_hash = $1, must_change_password = FALSE, updated_at = NOW() WHERE id = $2",
+      [passwordHash, userId]
+    );
+    if (result.rowCount !== 1) throw new Error("User account no longer exists.");
+  } else {
+    const users = loadPersistentUsers();
+    const user = users.find((record) => record.id === userId);
+    if (!user) throw new Error("User account no longer exists.");
+    user.password_hash = passwordHash;
+    user.must_change_password = false;
+    user.updated_at = new Date().toISOString();
+    savePersistentUsers(users);
+  }
 }
 
 export function loadPersistentAttendance(): AttendanceRecord[] {
@@ -1532,9 +1683,12 @@ export async function initDatabaseSchema(): Promise<void> {
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         role VARCHAR(50) NOT NULL DEFAULT 'TRAINEE',
+        department_id VARCHAR(100),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS department_id VARCHAR(100);
 
       CREATE TABLE IF NOT EXISTS assessment_evidence (
         id VARCHAR(100) PRIMARY KEY,

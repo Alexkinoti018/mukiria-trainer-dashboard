@@ -22,10 +22,10 @@ To maintain absolute database and session integrity, all production and preview 
 
 1. **Step 1: Configure Secrets in Vercel**
    Set `JWT_SECRET` ($\ge 32$ characters, cryptographically random) in Vercel environment variables for **BOTH Production and Preview environments**. Module boot check in `server/auth.ts` will immediately reject startups if missing or using test/placeholder keys.
-2. **Step 2: Apply Database Schema Migration**
-   Execute `database/migrations/16_phase1_profile_link.sql` to add the `profile_id` column and indexes to `users` (contains zero automated data rewrites):
+2. **Step 2: Apply Staff Department and Phase 1 Profile Migrations**
+   On a fresh database, first apply the baseline migrations through 15. Then run the ordered Phase 1 migrations below. This applies `16_staff_department_assignment.sql` before `17_phase1_profile_link.sql`; both are idempotent, so it is safe if migration 16 has already been applied:
    ```bash
-   npm run db:migrate
+   npm run db:phase1
    ```
 3. **Step 3: Rotate Seeded Staff Account Passwords in Production**
    Prior to production rollout, all default and seeded staff passwords (trainers, HODs, administrators) must be rotated using a cryptographically strong credential ($\ge 12$ chars) read strictly from the execution environment without logging or persistent plaintext storage:
@@ -48,13 +48,15 @@ To maintain absolute database and session integrity, all production and preview 
 7. **Step 7: Production Merge & Promotion**
    Only after the preview deployment passes all security and RBAC verification checks, merge the branch into `main`.
 
+New Trainer and HOD accounts receive a one-time temporary password. They must change it at first sign-in before accessing protected features; the password-change endpoint verifies the temporary password and clears `must_change_password`.
+
 ### 3. Local Development & Testing
 ```bash
 # Install dependencies
 npm install
 
-# Run database migrations
-npm run db:migrate
+# Apply department/profile migrations in order (after baseline migrations 01-15)
+npm run db:phase1
 
 # Test profile backfill dry run
 npx tsx scripts/backfill_user_profiles.mjs --dry-run

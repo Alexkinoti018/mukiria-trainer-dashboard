@@ -29,6 +29,7 @@ export interface AuthenticatedUser {
   admission_number?: string | null;
   reg_number?: string | null;
   department_id?: string;
+  must_change_password?: boolean;
   assigned_units?: string[];
   enrolled_units?: string[];
   [key: string]: any;
@@ -488,12 +489,24 @@ export async function hydrateUserProfile(
   } else if (dbRole === "trainer") {
     const trainers = await loadDatabaseTrainers();
     const matchedTrainer = trainers.find((t) => t.id === profileId);
-    departmentId = "dept-ci";
+    departmentId = userRec.department_id?.trim() || undefined;
+    const departments = await loadDatabaseDepartments();
+    const matchedDepartment = departments.find((department) => department.id === departmentId);
+    if (
+      !departmentId ||
+      !matchedDepartment ||
+      (matchedTrainer?.department && matchedTrainer.department.trim().toLowerCase() !== matchedDepartment.name.trim().toLowerCase())
+    ) {
+      return { error: "Forbidden: Staff department assignment is missing or invalid", status: 403 };
+    }
     assignedUnits = matchedTrainer?.assigned_units || (profileId === "trainer-002" ? ["ICT/OS/IT/CR/1/6"] : ["ICT/CU/IT/CR/6/6", "061155101A"]);
   } else if (dbRole === "hod") {
     const depts = await loadDatabaseDepartments();
     const matchedDept = depts.find((d) => d.hod_id === profileId);
-    departmentId = matchedDept?.id || "dept-ci";
+    departmentId = userRec.department_id?.trim() || undefined;
+    if (!departmentId || !depts.some((department) => department.id === departmentId) || matchedDept?.id !== departmentId) {
+      return { error: "Forbidden: Staff department assignment does not match the department record", status: 403 };
+    }
   }
 
   const authUser: AuthenticatedUser = {
@@ -505,6 +518,7 @@ export async function hydrateUserProfile(
     admission_number: admNo,
     reg_number: admNo,
     department_id: departmentId,
+    must_change_password: userRec.must_change_password === true,
     assigned_units: assignedUnits,
     enrolled_units: enrolledUnits,
   };
@@ -611,6 +625,14 @@ export async function authenticateToken(
       const hydration = await hydrateUserProfile(verified.sub, verified.role);
       if (hydration.error || !hydration.user) {
         res.status(hydration.status || 401).json({ error: hydration.error });
+        return;
+      }
+      const cleanPath = (req.path || req.url || "").split("?")[0];
+      if (hydration.user.must_change_password && cleanPath !== "/auth/change-password") {
+        res.status(428).json({
+          error: "A password change is required before accessing the system.",
+          code: "PASSWORD_CHANGE_REQUIRED",
+        });
         return;
       }
       req.user = hydration.user;

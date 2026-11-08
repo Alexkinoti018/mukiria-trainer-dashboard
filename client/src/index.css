@@ -148,10 +148,19 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: "Inter", "Outfit", system-ui, -apple-system, sans-serif;
     font-size: 14px;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -189,6 +198,21 @@
   /* Links */
   a {
     @apply text-primary hover:underline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -573,4 +597,3 @@
     break-inside: avoid !important;
   }
 }
-

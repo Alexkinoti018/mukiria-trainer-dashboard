@@ -33,6 +33,7 @@ export interface AuthUser {
   reg_number?: string;
   cohort_code?: string;
   department_id?: string;
+  must_change_password?: boolean;
   enrolled_units?: string[];
   assigned_units?: string[];
 }
@@ -45,7 +46,8 @@ interface AuthContextValue {
     pin: string,
     identifier?: string,
     requestedRole?: "trainer" | "admin" | "hod" | "trainee"
-  ) => Promise<{ success: boolean; error?: string; role?: string; token?: string }>;
+  ) => Promise<{ success: boolean; error?: string; role?: string; token?: string; mustChangePassword?: boolean }>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   registerTrainer: (data: {
     name: string;
     email: string;
@@ -389,7 +391,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       pin: string,
       identifier?: string,
       requestedRole?: "trainer" | "admin" | "hod" | "trainee"
-    ): Promise<{ success: boolean; error?: string; role?: string; token?: string }> => {
+    ): Promise<{ success: boolean; error?: string; role?: string; token?: string; mustChangePassword?: boolean }> => {
       setIsLoading(true);
       try {
         const cleanPin = (pin || "").trim();
@@ -433,6 +435,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   phone: data.user.phone_number,
                   name: data.user.full_name || (rosterMatch ? rosterMatch.name : data.user.email),
                   role: userRole,
+                  department_id: data.user.department_id,
+                  must_change_password: data.user.must_change_password === true,
                   reg_number: data.user.admission_number || (rosterMatch ? rosterMatch.regCode || rosterMatch.admNo : undefined),
                   cohort_code: rosterMatch ? rosterMatch.classCode : undefined,
                   enrolled_units: defaultEnrolledUnits,
@@ -440,7 +444,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 setUser(authUser);
                 localStorage.setItem("mtti_demo_session", JSON.stringify(authUser));
-                return { success: true, role: userRole, token: data.token };
+                return {
+                  success: true,
+                  role: userRole,
+                  token: data.token,
+                  mustChangePassword: authUser.must_change_password === true,
+                };
               }
             } else if (resp.status === 401) {
               // Only fail immediately if the user is attempting a password-backed login and not demo PIN fallback
@@ -692,6 +701,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
+      try {
+        const token = localStorage.getItem("mtti_auth_token") || localStorage.getItem("token");
+        const response = await fetch("/api/auth/change-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ currentPassword, newPassword }),
+        });
+        const data = await response.json();
+        if (!response.ok) return { success: false, error: data.error || "Could not update your password." };
+        if (user) {
+          const updatedUser = { ...user, must_change_password: false };
+          setUser(updatedUser);
+          localStorage.setItem("mtti_demo_session", JSON.stringify(updatedUser));
+        }
+        return { success: true };
+      } catch {
+        return { success: false, error: "Could not reach the server. Please try again." };
+      }
+    },
+    [user]
+  );
+
   // ── Register Trainer with Timetable Synchronization ───────
   const registerTrainer = useCallback(
     async (data: {
@@ -777,6 +813,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         login,
+        changePassword,
         registerTrainer,
         logout,
       }}

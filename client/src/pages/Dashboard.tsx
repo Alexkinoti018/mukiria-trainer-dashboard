@@ -25,7 +25,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import TrainerLayout from "@/components/TrainerLayout";
-import { supabase, isSupabaseConfigured, verifyDatabaseState } from "@/lib/supabase";
+import { isSupabaseConfigured, verifyDatabaseState } from "@/lib/supabase";
 import { useExam } from "@/contexts/ExamContext";
 import type { Exam, Submission } from "@/lib/supabase";
 import { format } from "date-fns";
@@ -52,7 +52,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { exams, submissions, refreshExamsAndSubmissions } = useExam();
   const { trainees, refreshRoster } = useTrainees();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [now, setNow] = useState(new Date());
 
@@ -62,11 +62,33 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    verifyDatabaseState();
-    refreshExamsAndSubmissions().catch(() => {});
-    refreshRoster().catch(() => {});
+    let isMounted = true;
+    const loadDashboard = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          verifyDatabaseState(),
+          refreshExamsAndSubmissions(),
+          refreshRoster(),
+        ]);
+      } catch (error) {
+        if (isMounted) {
+          toast.error("Some dashboard data could not be refreshed", {
+            description:
+              error instanceof Error ? error.message : "Please try syncing again.",
+          });
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    void loadDashboard();
     const interval = setInterval(() => setNow(new Date()), 10000);
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const handleSyncLive = async () => {
@@ -81,7 +103,12 @@ export default function Dashboard() {
         description: "Exam submissions, active papers, and trainee rosters updated from Supabase.",
       });
     } catch (err) {
-      toast.error("Synchronization Notice", { description: "Retrying local connection..." });
+      toast.error("Could not synchronize dashboard data", {
+        description:
+          err instanceof Error
+            ? err.message
+            : "Your saved data is still available. Please try again.",
+      });
     } finally {
       setIsSyncing(false);
     }
@@ -91,6 +118,7 @@ export default function Dashboard() {
   const trainerName = trainerProfile.name || user?.name || "Alexander Kinoti";
   const liveStatus = useMemo(() => getTrainerLiveStatus(trainerName, now), [trainerName, now]);
   const { context } = liveStatus;
+  const cloudConfigured = isSupabaseConfigured();
 
   // Normalized assigned classes and units for the active trainer
   const trainerClasses = useMemo(() => {
@@ -302,11 +330,36 @@ export default function Dashboard() {
               <span className="text-xs font-mono font-semibold text-slate-700 px-2.5 py-1 rounded bg-slate-100 border border-slate-300">
                 {context.formattedDate} · {context.timeFormatted}
               </span>
+              <span
+                title={
+                  cloudConfigured
+                    ? "Cloud database settings are available"
+                    : "Showing locally available data"
+                }
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                    cloudConfigured
+                    ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                    : "bg-slate-100 text-slate-600 border-slate-300"
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    cloudConfigured ? "bg-emerald-600" : "bg-slate-400"
+                  }`}
+                />
+                {cloudConfigured ? "Cloud configured" : "Local data"}
+              </span>
               {/* Scope Switcher: My Classes vs Institutional */}
-              <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-300 text-xs font-bold">
+              <div
+                role="group"
+                aria-label="Dashboard data scope"
+                className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-300 text-xs font-bold"
+              >
                 <button
                   type="button"
                   onClick={() => setScopeMode("my_classes")}
+                  aria-pressed={scopeMode === "my_classes"}
                   className={`px-2.5 py-0.5 rounded-md transition-all ${
                     scopeMode === "my_classes"
                       ? "bg-[#000953] text-white shadow-sm"
@@ -318,6 +371,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setScopeMode("institutional")}
+                  aria-pressed={scopeMode === "institutional"}
                   className={`px-2.5 py-0.5 rounded-md transition-all ${
                     scopeMode === "institutional"
                       ? "bg-[#000953] text-white shadow-sm"
@@ -337,8 +391,10 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={handleSyncLive}
               disabled={isSyncing}
+              aria-busy={isSyncing}
               title="Synchronize live submissions and exams from Supabase"
               className="px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-white border border-slate-300 text-[#000953] hover:bg-slate-50 transition shadow-sm disabled:opacity-60"
             >
@@ -346,6 +402,7 @@ export default function Dashboard() {
               <span>{isSyncing ? "Syncing..." : "Live Sync"}</span>
             </button>
             <button
+              type="button"
               onClick={() => navigate("/trainer/timetable")}
               className="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 bg-white border border-slate-300 text-[#000953] hover:bg-slate-50 transition shadow-sm"
             >
@@ -353,6 +410,7 @@ export default function Dashboard() {
               Master Timetable
             </button>
             <button
+              type="button"
               onClick={() => navigate("/trainer/exam-builder")}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#000953] hover:bg-[#000e7a] text-white transition shadow-sm"
             >
@@ -416,6 +474,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
             <button
+              type="button"
               onClick={() => navigate("/trainer/timetable")}
               className="text-xs font-bold px-3.5 py-2 rounded-lg bg-[#000953] hover:bg-[#000e7a] text-white flex items-center gap-1.5 transition shadow-sm"
             >
@@ -437,6 +496,16 @@ export default function Dashboard() {
             onClick={() => stat.path && navigate(stat.path)}
             role={stat.path ? "button" : undefined}
             tabIndex={stat.path ? 0 : undefined}
+            aria-label={
+              stat.path
+                ? `${stat.label}: ${stat.value}${stat.change ? `. ${stat.change}` : ""}. Open ${stat.label.toLowerCase()}.`
+                : undefined
+            }
+            onKeyDown={(event) => {
+              if (!stat.path || (event.key !== "Enter" && event.key !== " ")) return;
+              event.preventDefault();
+              navigate(stat.path);
+            }}
             className={`bg-white border border-slate-300 rounded-xl shadow-sm p-4 sm:p-5 relative overflow-hidden transition-all duration-200 ${
               stat.path
                 ? "cursor-pointer hover:border-[#000953] hover:shadow-md hover:-translate-y-0.5 group"
@@ -493,6 +562,7 @@ export default function Dashboard() {
               Recent Submissions
             </h3>
             <button
+              type="button"
               onClick={() => navigate("/trainer/grading")}
               className="flex items-center gap-1 text-xs font-bold text-[#000953] hover:text-[#c48820] transition-colors"
             >
@@ -516,10 +586,12 @@ export default function Dashboard() {
               </div>
             ) : (
               recentSubs.map((sub) => (
-                <div
+                <button
+                  type="button"
                   key={sub.id}
                   onClick={() => navigate(`/trainer/grading?search=${encodeURIComponent(sub.reg_number || sub.student_name)}`)}
-                  className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer group"
+                  aria-label={`Review ${sub.student_name}'s ${sub.unit_code} submission`}
+                  className="w-full text-left px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer group"
                   title={`Open grading details for ${sub.student_name}`}
                 >
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-[#000953]/10 text-[#000953] group-hover:bg-[#000953] group-hover:text-white transition-colors">
@@ -548,7 +620,7 @@ export default function Dashboard() {
                     </span>
                     <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#000953] group-hover:translate-x-0.5 transition-all" />
                   </div>
-                </div>
+                </button>
               ))
             )}
           </div>
@@ -579,15 +651,25 @@ export default function Dashboard() {
               ))
             ) : exams.length === 0 ? (
               <div className="py-8 text-center text-sm text-slate-500">
-                No exams created yet
+                <p>No exams created yet</p>
+                <button
+                  type="button"
+                  onClick={() => navigate("/trainer/exam-builder")}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#000953] px-3 py-2 text-xs font-semibold text-white hover:bg-[#000e7a] transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Create your first exam
+                </button>
               </div>
             ) : (
               scopedExams.slice(0, 5).map((exam) => {
                 const examSubs = scopedSubmissions.filter((s) => s.unit_code === exam.unit_code);
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={exam.id}
-                    className="p-3 rounded-xl cursor-pointer transition-all bg-slate-50 hover:bg-slate-100 border border-slate-200"
+                    aria-label={`Open grading for ${exam.course_name || exam.unit_code}, ${examSubs.length} submissions`}
+                    className="w-full text-left p-3 rounded-xl cursor-pointer transition-all bg-slate-50 hover:bg-slate-100 border border-slate-200"
                     onClick={() => navigate("/trainer/grading")}
                   >
                     <div className="flex items-start gap-2.5">
@@ -608,7 +690,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 );
               })
             )}
@@ -633,6 +715,7 @@ export default function Dashboard() {
         ].map((action) => (
           <button
             key={action.path}
+            type="button"
             onClick={() => navigate(action.path)}
             className="bg-white border border-slate-300 hover:border-[#000953] rounded-xl shadow-sm p-4 flex flex-col items-center gap-2 text-center transition-all hover:scale-[1.02]"
           >
@@ -651,5 +734,3 @@ export default function Dashboard() {
     </TrainerLayout>
   );
 }
-
-
