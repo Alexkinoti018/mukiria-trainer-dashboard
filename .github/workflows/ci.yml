@@ -37,3 +37,30 @@ jobs:
 
       - name: Run RBAC & Authorization Security Tests (Vitest)
         run: npm test
+
+      - name: Reject generated backups or data changes
+        if: always()
+        run: |
+          failed=0
+
+          for path in backup reports; do
+            if [ -e "$path" ]; then
+              echo "::error::$path must not be generated in the repository"
+              failed=1
+            fi
+          done
+
+          if ! git diff --quiet -- server/data database/seeds; then
+            echo "::error::Tests or scripts modified repository data"
+            git status --short -- server/data database/seeds
+            failed=1
+          fi
+
+          generated_data="$(git ls-files --others --ignored --exclude-standard -- server/data database/seeds)"
+          if [ -n "$generated_data" ]; then
+            echo "::error::Tests or scripts created untracked data in the repository"
+            printf '%s\n' "$generated_data"
+            failed=1
+          fi
+
+          exit "$failed"

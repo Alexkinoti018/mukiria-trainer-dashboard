@@ -46,6 +46,11 @@ pids
 *.seed
 *.pid.lock
 
+# Generated snapshots and audit outputs must stay outside the repository
+/backup/
+/reports/
+/server/data/*.json
+
 # Coverage directory used by tools like istanbul
 coverage/
 *.lcov
