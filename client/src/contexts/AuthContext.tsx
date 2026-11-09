@@ -46,8 +46,17 @@ interface AuthContextValue {
     pin: string,
     identifier?: string,
     requestedRole?: "trainer" | "admin" | "hod" | "trainee"
-  ) => Promise<{ success: boolean; error?: string; role?: string; token?: string; mustChangePassword?: boolean }>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+    role?: string;
+    token?: string;
+    mustChangePassword?: boolean;
+  }>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string
+  ) => Promise<{ success: boolean; error?: string }>;
   registerTrainer: (data: {
     name: string;
     email: string;
@@ -123,7 +132,7 @@ export function findRosterTraineeByIdentifier(rawIdentifier: string) {
   const coreDigits = clean.match(/\b\d{4,6}\b/)?.[0] || "";
 
   // 1. Match from official in-memory institutional roster
-  const foundOfficial = OFFICIAL_MTTI_TRAINEES.find((t) => {
+  const foundOfficial = OFFICIAL_MTTI_TRAINEES.find(t => {
     const adm = (t.admNo || "").trim().toUpperCase();
     const reg = (t.regCode || "").trim().toUpperCase();
     const name = (t.name || "").trim().toUpperCase();
@@ -136,8 +145,12 @@ export function findRosterTraineeByIdentifier(rawIdentifier: string) {
     if (adm === clean || reg === clean || name === clean) return true;
     if (admNoSpace === noSpace || regNoSpace === noSpace) return true;
     if (coreDigits && tDigits && coreDigits === tDigits) return true;
-    const normSlash = clean.replace(/\/12026/, "/J2026").replace(/\/52026/, "/S2026");
-    const regSlash = reg.replace(/\/12026/, "/J2026").replace(/\/52026/, "/S2026");
+    const normSlash = clean
+      .replace(/\/12026/, "/J2026")
+      .replace(/\/52026/, "/S2026");
+    const regSlash = reg
+      .replace(/\/12026/, "/J2026")
+      .replace(/\/52026/, "/S2026");
     if (normSlash === regSlash) return true;
     return false;
   });
@@ -152,7 +165,9 @@ export function findRosterTraineeByIdentifier(rawIdentifier: string) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
           const found = parsed.find((t: any) => {
-            const adm = (t.admNo || t.regCode || t.reg_number || "").trim().toUpperCase();
+            const adm = (t.admNo || t.regCode || t.reg_number || "")
+              .trim()
+              .toUpperCase();
             const reg = (t.regCode || t.admNo || "").trim().toUpperCase();
             const name = (t.name || "").trim().toUpperCase();
             const email = (t.email || "").trim().toUpperCase();
@@ -170,7 +185,8 @@ export function findRosterTraineeByIdentifier(rawIdentifier: string) {
               phone: found.phone,
               admNo: found.admNo || found.reg_number,
               regCode: found.regCode || found.admNo || found.reg_number,
-              classCode: found.classCode || found.cohortCode || "FBS 5 MOD/J/2026",
+              classCode:
+                found.classCode || found.cohortCode || "FBS 5 MOD/J/2026",
               department: found.department || "FBS Hospitality",
             };
           }
@@ -184,21 +200,32 @@ export function findRosterTraineeByIdentifier(rawIdentifier: string) {
 
 function getBearerTokenForUser(user: AuthUser): string {
   if (user.role === "admin") return "token-admin";
-  if (user.role === "hod") return user.department_id === "dept-ee" ? "token-hod-ee" : "token-hod-ci";
-  if (user.role === "trainer") return user.id === "trainer-002" ? "token-trainer-002" : "token-trainer-001";
+  if (user.role === "hod")
+    return user.department_id === "dept-ee" ? "token-hod-ee" : "token-hod-ci";
+  if (user.role === "trainer")
+    return user.id === "trainer-002"
+      ? "token-trainer-002"
+      : "token-trainer-001";
   return "token-trainee-001";
 }
 
 // Install global browser fetch interceptor once to attach RBAC headers to /api/* calls
 let fetchInterceptorInstalled = false;
 function installApiAuthFetchBridge() {
-  if (fetchInterceptorInstalled || typeof window === "undefined" || typeof window.fetch !== "function") {
+  if (
+    fetchInterceptorInstalled ||
+    typeof window === "undefined" ||
+    typeof window.fetch !== "function"
+  ) {
     return;
   }
   fetchInterceptorInstalled = true;
   const originalFetch = window.fetch.bind(window);
 
-  window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  window.fetch = async (
+    input: RequestInfo | URL,
+    init?: RequestInit
+  ): Promise<Response> => {
     try {
       const urlStr =
         typeof input === "string"
@@ -207,20 +234,28 @@ function installApiAuthFetchBridge() {
             ? input.toString()
             : input.url;
 
-      const isInternalApi = urlStr.startsWith("/api/") || urlStr.includes("/api/");
+      const isInternalApi =
+        urlStr.startsWith("/api/") || urlStr.includes("/api/");
       if (isInternalApi) {
         const rawSession = window.localStorage.getItem("mtti_demo_session");
         if (rawSession) {
           const activeUser = JSON.parse(rawSession) as AuthUser;
           if (activeUser && activeUser.role) {
             const headers = new Headers(init?.headers || {});
-            const realToken = window.localStorage.getItem("mtti_auth_token") || window.localStorage.getItem("token");
+            const realToken =
+              window.localStorage.getItem("mtti_auth_token") ||
+              window.localStorage.getItem("token");
             if (!headers.has("Authorization")) {
               const tokenToUse = realToken || getBearerTokenForUser(activeUser);
               headers.set("Authorization", `Bearer ${tokenToUse}`);
             }
             // Stop sending unverified x-user-* headers when a real token exists
-            if (!realToken) {
+            if (realToken) {
+              headers.delete("x-user-role");
+              headers.delete("x-user-id");
+              headers.delete("x-user-reg");
+              headers.delete("x-user-dept");
+            } else {
               if (!headers.has("x-user-role")) {
                 headers.set("x-user-role", activeUser.role);
               }
@@ -264,7 +299,7 @@ export function purgeMTTISessionCache(): void {
       "mukiria_exams",
       "mtti_attendance_all",
     ];
-    sensitiveKeys.forEach((k) => localStorage.removeItem(k));
+    sensitiveKeys.forEach(k => localStorage.removeItem(k));
 
     const prefixKeys = [
       "mtti_class_register_",
@@ -282,20 +317,24 @@ export function purgeMTTISessionCache(): void {
     ];
 
     const keysToRemove: string[] = [];
-    const len = typeof localStorage.length === "number" ? localStorage.length : 0;
+    const len =
+      typeof localStorage.length === "number" ? localStorage.length : 0;
     for (let i = 0; i < len; i++) {
       const k = localStorage.key(i);
-      if (k && prefixKeys.some((prefix) => k.startsWith(prefix))) {
+      if (k && prefixKeys.some(prefix => k.startsWith(prefix))) {
         keysToRemove.push(k);
       }
     }
-    Object.keys(localStorage).forEach((k) => {
-      if (prefixKeys.some((prefix) => k.startsWith(prefix)) && !keysToRemove.includes(k)) {
+    Object.keys(localStorage).forEach(k => {
+      if (
+        prefixKeys.some(prefix => k.startsWith(prefix)) &&
+        !keysToRemove.includes(k)
+      ) {
         keysToRemove.push(k);
       }
     });
 
-    keysToRemove.forEach((k) => localStorage.removeItem(k));
+    keysToRemove.forEach(k => localStorage.removeItem(k));
   } catch (err) {
     console.error("❌ [MTTI Auth] Cache purge error:", err);
   }
@@ -324,10 +363,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               data: { session },
             } = await supabase.auth.getSession();
             if (session?.user) {
-              const restoredRole = session.user.user_metadata?.role ?? "trainer";
+              const restoredRole =
+                session.user.user_metadata?.role ?? "trainer";
               restoredUser = {
                 id: session.user.id,
-                email: restoredRole === "trainee" ? undefined : (session.user.email ?? ""),
+                email:
+                  restoredRole === "trainee"
+                    ? undefined
+                    : (session.user.email ?? ""),
                 name: session.user.user_metadata?.name ?? "User",
                 role: restoredRole,
               };
@@ -391,14 +434,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       pin: string,
       identifier?: string,
       requestedRole?: "trainer" | "admin" | "hod" | "trainee"
-    ): Promise<{ success: boolean; error?: string; role?: string; token?: string; mustChangePassword?: boolean }> => {
+    ): Promise<{
+      success: boolean;
+      error?: string;
+      role?: string;
+      token?: string;
+      mustChangePassword?: boolean;
+    }> => {
       setIsLoading(true);
       try {
         const cleanPin = (pin || "").trim();
         const cleanId = (identifier || "").trim();
 
         // 0. Primary Centralized Backend Authentication Endpoint (/api/auth/login)
-        if (cleanId && cleanPin && cleanPin !== "@Race5778") {
+        if (cleanId && cleanPin) {
           try {
             const resp = await fetch("/api/auth/login", {
               method: "POST",
@@ -412,38 +461,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (resp.ok) {
               const data = await resp.json();
               if (data.success && data.token && data.user) {
-                const userRole = (data.user.role || requestedRole || "trainee").toLowerCase() as any;
+                const userRole = (
+                  data.user.role ||
+                  requestedRole ||
+                  "trainee"
+                ).toLowerCase() as any;
                 localStorage.setItem("mtti_auth_token", data.token);
                 localStorage.setItem("token", data.token);
 
-                const rosterMatch = cleanId ? findRosterTraineeByIdentifier(cleanId) : null;
+                const rosterMatch = cleanId
+                  ? findRosterTraineeByIdentifier(cleanId)
+                  : null;
                 const defaultEnrolledUnits = rosterMatch
-                  ? (rosterMatch.classCode.includes("FBS") || rosterMatch.classCode.includes("FBP") || rosterMatch.department?.includes("FBS"))
+                  ? rosterMatch.classCode.includes("FBS") ||
+                    rosterMatch.classCode.includes("FBP") ||
+                    rosterMatch.department?.includes("FBS")
                     ? ["061155101A", "061155101A-PRAC"]
-                    : (rosterMatch.classCode.includes("ADMIN") || rosterMatch.department?.includes("Business"))
-                    ? ["0415-451-21A", "0415-451-21A-PRAC"]
-                    : (rosterMatch.classCode.includes("LS") || rosterMatch.department?.includes("Civil"))
-                    ? ["061155101A", "061155101A-PRAC"]
-                    : rosterMatch.classCode.includes("ITECH")
-                    ? ["IT/CU/ICTA/CR/01/6/MA", "ICT/CU/IT/CR/6/6"]
-                    : ["IT/CU/ICTA/CR/01/4/MA"]
+                    : rosterMatch.classCode.includes("ADMIN") ||
+                        rosterMatch.department?.includes("Business")
+                      ? ["0415-451-21A", "0415-451-21A-PRAC"]
+                      : rosterMatch.classCode.includes("LS") ||
+                          rosterMatch.department?.includes("Civil")
+                        ? ["061155101A", "061155101A-PRAC"]
+                        : rosterMatch.classCode.includes("ITECH")
+                          ? ["IT/CU/ICTA/CR/01/6/MA", "ICT/CU/IT/CR/6/6"]
+                          : ["IT/CU/ICTA/CR/01/4/MA"]
                   : undefined;
 
                 const authUser: AuthUser = {
                   id: data.user.id,
                   email: userRole === "trainee" ? undefined : data.user.email,
                   phone: data.user.phone_number,
-                  name: data.user.full_name || (rosterMatch ? rosterMatch.name : data.user.email),
+                  name:
+                    data.user.full_name ||
+                    (rosterMatch ? rosterMatch.name : data.user.email),
                   role: userRole,
                   department_id: data.user.department_id,
                   must_change_password: data.user.must_change_password === true,
-                  reg_number: data.user.admission_number || (rosterMatch ? rosterMatch.regCode || rosterMatch.admNo : undefined),
+                  reg_number:
+                    data.user.admission_number ||
+                    (rosterMatch
+                      ? rosterMatch.regCode || rosterMatch.admNo
+                      : undefined),
                   cohort_code: rosterMatch ? rosterMatch.classCode : undefined,
                   enrolled_units: defaultEnrolledUnits,
                 };
 
                 setUser(authUser);
-                localStorage.setItem("mtti_demo_session", JSON.stringify(authUser));
+                localStorage.setItem(
+                  "mtti_demo_session",
+                  JSON.stringify(authUser)
+                );
                 return {
                   success: true,
                   role: userRole,
@@ -453,12 +521,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             } else if (resp.status === 401) {
               // Only fail immediately if the user is attempting a password-backed login and not demo PIN fallback
-              const isCommonDemoPin = ["1234", "0000", "5678", "9012", "2026"].includes(cleanPin);
+              const isCommonDemoPin = [
+                "1234",
+                "0000",
+                "5678",
+                "9012",
+                "2026",
+                "@Race5778",
+              ].includes(cleanPin);
               if (!isCommonDemoPin) {
                 const errData = await resp.json().catch(() => ({}));
                 return {
                   success: false,
-                  error: errData.error || "Invalid credentials. Please verify your identifier and password.",
+                  error:
+                    errData.error ||
+                    "Invalid credentials. Please verify your identifier and password.",
                 };
               }
             }
@@ -468,9 +545,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         // 1. Trainee Roster-Backed Authentication
-        if (requestedRole === "trainee" || (!requestedRole && cleanPin === DEMO_TRAINEE_PIN)) {
-          const rosterMatch = cleanId ? findRosterTraineeByIdentifier(cleanId) : null;
-          const activatedMatch = cleanId ? findLocalActivatedTrainee(cleanId) : null;
+        if (
+          requestedRole === "trainee" ||
+          (!requestedRole && cleanPin === DEMO_TRAINEE_PIN)
+        ) {
+          const rosterMatch = cleanId
+            ? findRosterTraineeByIdentifier(cleanId)
+            : null;
+          const activatedMatch = cleanId
+            ? findLocalActivatedTrainee(cleanId)
+            : null;
 
           if (cleanId && !rosterMatch && !activatedMatch) {
             return {
@@ -483,16 +567,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           let isPasswordMatch = false;
           if (activatedMatch?.passwordHash) {
             try {
-              isPasswordMatch = bcrypt.compareSync(cleanPin, activatedMatch.passwordHash);
+              isPasswordMatch = bcrypt.compareSync(
+                cleanPin,
+                activatedMatch.passwordHash
+              );
             } catch {
               isPasswordMatch = false;
             }
           }
 
           const coreDigits =
-            (rosterMatch ? `${rosterMatch.admNo} ${rosterMatch.regCode}` : (activatedMatch ? activatedMatch.admissionNumber : cleanId)).match(
-              /\b\d{4,6}\b/
-            )?.[0] || "";
+            (rosterMatch
+              ? `${rosterMatch.admNo} ${rosterMatch.regCode}`
+              : activatedMatch
+                ? activatedMatch.admissionNumber
+                : cleanId
+            ).match(/\b\d{4,6}\b/)?.[0] || "";
 
           const isValidTraineePin =
             isPasswordMatch ||
@@ -504,7 +594,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             (rosterMatch &&
               (cleanPin.toUpperCase() === rosterMatch.admNo.toUpperCase() ||
                 cleanPin.toUpperCase() === rosterMatch.regCode.toUpperCase() ||
-                (rosterMatch.admNo.match(/\b\d{4,6}\b/)?.[0] && cleanPin === rosterMatch.admNo.match(/\b\d{4,6}\b/)?.[0])));
+                (rosterMatch.admNo.match(/\b\d{4,6}\b/)?.[0] &&
+                  cleanPin === rosterMatch.admNo.match(/\b\d{4,6}\b/)?.[0])));
 
           if (!isValidTraineePin) {
             return {
@@ -515,15 +606,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           const defaultEnrolledUnits = rosterMatch
-            ? (rosterMatch.classCode.includes("FBS") || rosterMatch.classCode.includes("FBP") || rosterMatch.department?.includes("FBS"))
+            ? rosterMatch.classCode.includes("FBS") ||
+              rosterMatch.classCode.includes("FBP") ||
+              rosterMatch.department?.includes("FBS")
               ? ["061155101A", "061155101A-PRAC"]
-              : (rosterMatch.classCode.includes("ADMIN") || rosterMatch.department?.includes("Business"))
-              ? ["0415-451-21A", "0415-451-21A-PRAC"]
-              : (rosterMatch.classCode.includes("LS") || rosterMatch.department?.includes("Civil"))
-              ? ["061155101A", "061155101A-PRAC"]
-              : rosterMatch.classCode.includes("ITECH")
-              ? ["IT/CU/ICTA/CR/01/6/MA", "ICT/CU/IT/CR/6/6"]
-              : ["IT/CU/ICTA/CR/01/4/MA"]
+              : rosterMatch.classCode.includes("ADMIN") ||
+                  rosterMatch.department?.includes("Business")
+                ? ["0415-451-21A", "0415-451-21A-PRAC"]
+                : rosterMatch.classCode.includes("LS") ||
+                    rosterMatch.department?.includes("Civil")
+                  ? ["061155101A", "061155101A-PRAC"]
+                  : rosterMatch.classCode.includes("ITECH")
+                    ? ["IT/CU/ICTA/CR/01/6/MA", "ICT/CU/IT/CR/6/6"]
+                    : ["IT/CU/ICTA/CR/01/4/MA"]
             : undefined;
 
           const traineeUser: AuthUser = rosterMatch
@@ -542,7 +637,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               };
 
           setUser(traineeUser);
-          localStorage.setItem("mtti_demo_session", JSON.stringify(traineeUser));
+          localStorage.setItem(
+            "mtti_demo_session",
+            JSON.stringify(traineeUser)
+          );
           return { success: true, role: "trainee" };
         }
 
@@ -560,18 +658,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else if (
           requestedRole === "admin" ||
           cleanPin === DEMO_ADMIN_PIN ||
-          (cleanId.toLowerCase().includes("admin") && (cleanPin === "0000" || cleanPin === "1234" || cleanPin === "Mtti@2026!"))
+          (cleanId.toLowerCase().includes("admin") &&
+            (cleanPin === "0000" ||
+              cleanPin === "1234" ||
+              cleanPin === "Mtti@2026!"))
         ) {
           resolvedUser = DEMO_USERS[DEMO_ADMIN_PIN];
         } else if (
           requestedRole === "hod" ||
           cleanPin === DEMO_HOD_PIN ||
-          (cleanId.toLowerCase().includes("hod") && (cleanPin === "5678" || cleanPin === "1234" || cleanPin === "Mtti@2026!"))
+          (cleanId.toLowerCase().includes("hod") &&
+            (cleanPin === "5678" ||
+              cleanPin === "1234" ||
+              cleanPin === "Mtti@2026!"))
         ) {
           resolvedUser = DEMO_USERS[DEMO_HOD_PIN];
         } else if (
           requestedRole === "trainer" ||
-          (!requestedRole && (cleanPin === "1234" || cleanId.toLowerCase().includes("trainer") || cleanPin === "Mtti@2026!"))
+          (!requestedRole &&
+            (cleanPin === "1234" ||
+              cleanId.toLowerCase().includes("trainer") ||
+              cleanPin === "Mtti@2026!"))
         ) {
           // 1. Check registered trainers store
           if (typeof localStorage !== "undefined") {
@@ -626,9 +733,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             !cleanId.toLowerCase().includes("alexander")
           ) {
             const facultyMatch = findFacultyInTimetable(cleanId);
-            if (facultyMatch && (cleanPin === "1234" || cleanPin === "@Race5778")) {
-              const canonicalName = facultyMatch.name.replace(/^(mr|md|ms|mrs)\.?\s+/i, (m: string) =>
-                m.toUpperCase()
+            if (
+              facultyMatch &&
+              (cleanPin === "1234" || cleanPin === "@Race5778")
+            ) {
+              const canonicalName = facultyMatch.name.replace(
+                /^(mr|md|ms|mrs)\.?\s+/i,
+                (m: string) => m.toUpperCase()
               );
               resolvedUser = {
                 id: `trainer-${facultyMatch.id}`,
@@ -644,7 +755,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           // 3. Fallback / Default demo trainer: Alexander Kinoti
           // Triggered by PIN 1234 when cleanId is empty, "1234", "trainer", "MTTI-EMP-042", "Alexander Kinoti", etc.
-          if (!resolvedUser && (cleanPin === "1234" || cleanPin === "@Race5778")) {
+          if (
+            !resolvedUser &&
+            (cleanPin === "1234" || cleanPin === "@Race5778")
+          ) {
             resolvedUser = DEMO_USERS[DEMO_TRAINER_PIN];
           }
         } else {
@@ -654,7 +768,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!resolvedUser) {
           return {
             success: false,
-            error: "Invalid credentials. Please verify your institutional identifier and security PIN.",
+            error:
+              "Invalid credentials. Please verify your institutional identifier and security PIN.",
           };
         }
 
@@ -669,19 +784,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (resolvedUser.role === "trainer") {
           const facultyMatch = findFacultyInTimetable(resolvedUser.name);
           const timetableTrainerId =
-            facultyMatch?.id || (resolvedUser as any).timetableTrainerId || "mr-alexander-kinoti";
+            facultyMatch?.id ||
+            (resolvedUser as any).timetableTrainerId ||
+            "mr-alexander-kinoti";
           const trainerClasses =
             facultyMatch?.classes && facultyMatch.classes.length > 0
               ? facultyMatch.classes
               : resolvedUser.assigned_units || [];
-          const trainerUnits = facultyMatch?.units && facultyMatch.units.length > 0 ? facultyMatch.units : [];
+          const trainerUnits =
+            facultyMatch?.units && facultyMatch.units.length > 0
+              ? facultyMatch.units
+              : [];
 
           syncTrainerToProfessionalDocuments({
             id: resolvedUser.id,
             name: resolvedUser.name,
             email: resolvedUser.email || `${timetableTrainerId}@mtti.ac.ke`,
             phone: resolvedUser.phone || "+254 722 000 000",
-            department: resolvedUser.department_id || facultyMatch?.department || "Computing & Informatics",
+            department:
+              resolvedUser.department_id ||
+              facultyMatch?.department ||
+              "Computing & Informatics",
             classes: trainerClasses,
             units: trainerUnits,
             timetableTrainerId,
@@ -702,9 +825,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const changePassword = useCallback(
-    async (currentPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
+    async (
+      currentPassword: string,
+      newPassword: string
+    ): Promise<{ success: boolean; error?: string }> => {
       try {
-        const token = localStorage.getItem("mtti_auth_token") || localStorage.getItem("token");
+        const token =
+          localStorage.getItem("mtti_auth_token") ||
+          localStorage.getItem("token");
         const response = await fetch("/api/auth/change-password", {
           method: "POST",
           headers: {
@@ -714,15 +842,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({ currentPassword, newPassword }),
         });
         const data = await response.json();
-        if (!response.ok) return { success: false, error: data.error || "Could not update your password." };
+        if (!response.ok)
+          return {
+            success: false,
+            error: data.error || "Could not update your password.",
+          };
         if (user) {
           const updatedUser = { ...user, must_change_password: false };
           setUser(updatedUser);
-          localStorage.setItem("mtti_demo_session", JSON.stringify(updatedUser));
+          localStorage.setItem(
+            "mtti_demo_session",
+            JSON.stringify(updatedUser)
+          );
         }
         return { success: true };
       } catch {
-        return { success: false, error: "Could not reach the server. Please try again." };
+        return {
+          success: false,
+          error: "Could not reach the server. Please try again.",
+        };
       }
     },
     [user]
@@ -737,7 +875,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       department?: string;
       pin?: string;
       timetableTrainerId?: string;
-    }): Promise<{ success: boolean; error?: string; syncSummary?: SyncResult }> => {
+    }): Promise<{
+      success: boolean;
+      error?: string;
+      syncSummary?: SyncResult;
+    }> => {
       setIsLoading(true);
       try {
         const cleanName = data.name.trim();
@@ -748,7 +890,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!cleanName || !cleanEmail || !cleanPhone) {
           return {
             success: false,
-            error: "Please provide your Full Name, Email Address, and Phone Number.",
+            error:
+              "Please provide your Full Name, Email Address, and Phone Number.",
           };
         }
 
@@ -774,12 +917,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         setUser(newTrainerUser);
-        localStorage.setItem("mtti_demo_session", JSON.stringify(newTrainerUser));
+        localStorage.setItem(
+          "mtti_demo_session",
+          JSON.stringify(newTrainerUser)
+        );
         return { success: true, syncSummary };
       } catch (err: any) {
         return {
           success: false,
-          error: err?.message || "Failed to register trainer and synchronize timetable.",
+          error:
+            err?.message ||
+            "Failed to register trainer and synchronize timetable.",
         };
       } finally {
         setIsLoading(false);
