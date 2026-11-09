@@ -8374,6 +8374,17 @@
             "trainer": "MR EDDY NJUE"
           },
           {
+            "period": 1,
+            "periodName": "Period 1",
+            "timeRange": "8:00 - 10:00",
+            "startTime": "08:00",
+            "endTime": "10:00",
+            "classCode": "ITECH5/6/M/26/ ICT4/M/26",
+            "unitTitle": "NETWORK SETUP",
+            "venue": "LAB1B",
+            "trainer": "MR EDDY NJUE"
+          },
+          {
             "period": 2,
             "periodName": "Period 2",
             "timeRange": "10:30 - 12:30",
@@ -8440,6 +8451,17 @@
             "classCode": "ITECH5/S/25 MOD 4",
             "unitTitle": "EP",
             "venue": "H1",
+            "trainer": "MD JACKLINE COMBA"
+          },
+          {
+            "period": 2,
+            "periodName": "Period 2",
+            "timeRange": "10:30 - 12:30",
+            "startTime": "10:30",
+            "endTime": "12:30",
+            "classCode": "ITECH5/S/26 MOD1",
+            "unitTitle": "REPAIR & MAINT",
+            "venue": "LAB2",
             "trainer": "MD JACKLINE COMBA"
           },
           {
@@ -8927,7 +8949,8 @@
         "AUT6/S/25 MOD IV",
         "COSME5/6/J/26",
         "ITECH5/6/M/26/ ICT4/M/26",
-        "ITECH5/S/25 MOD 4"
+        "ITECH5/S/25 MOD 4",
+        "ITECH5/S/26 MOD1"
       ],
       "units": [
         "COMPUTER ESSENTIALS",
@@ -8994,6 +9017,17 @@
             "trainer": "MD MARY WANGUI"
           },
           {
+            "period": 2,
+            "periodName": "Period 2",
+            "timeRange": "10:30 - 12:30",
+            "startTime": "10:30",
+            "endTime": "12:30",
+            "classCode": "ITECH5/S/26 MOD1",
+            "unitTitle": "COMPUTER ESSENTIALS",
+            "venue": "LAB1A",
+            "trainer": "MD MARY WANGUI"
+          },
+          {
             "period": 3,
             "periodName": "Period 3",
             "timeRange": "13:30 - 15:30",
@@ -9002,6 +9036,17 @@
             "classCode": "COSME5/6/J/26",
             "unitTitle": "DIGITAL LITERACY",
             "venue": "LAB1B",
+            "trainer": "MD MARY WANGUI"
+          },
+          {
+            "period": 3,
+            "periodName": "Period 3",
+            "timeRange": "13:30 - 15:30",
+            "startTime": "13:30",
+            "endTime": "15:30",
+            "classCode": "ITECH5/S/26 MOD1",
+            "unitTitle": "COMPUTER ESSENTIALS",
+            "venue": "LAB1A",
             "trainer": "MD MARY WANGUI"
           },
           {
@@ -16704,6 +16749,7 @@
       "name": "MD PAULINE KIMATHI",
       "department": "Electrical & Electronics Engineering",
       "classes": [
+        "WEF4/M/26 MOD I/ WEF4/5/S/26",
         "WEF4/M/26 MOD I/WEF4/5/S/ 26",
         "WEF5/J/26 MOD III"
       ],
@@ -16726,6 +16772,17 @@
             "trainer": "MD PAULINE KIMATHI"
           },
           {
+            "period": 1,
+            "periodName": "Period 1",
+            "timeRange": "8:00 - 10:00",
+            "startTime": "08:00",
+            "endTime": "10:00",
+            "classCode": "WEF4/M/26 MOD I/ WEF4/5/S/26",
+            "unitTitle": "ARC WELDING PROCESSES",
+            "venue": "WE/W",
+            "trainer": "MD PAULINE KIMATHI"
+          },
+          {
             "period": 2,
             "periodName": "Period 2",
             "timeRange": "10:30 - 12:30",
@@ -16733,6 +16790,17 @@
             "endTime": "12:30",
             "classCode": "WEF5/J/26 MOD III",
             "unitTitle": "ARC WELDING PROCESSES II",
+            "venue": "WE/W",
+            "trainer": "MD PAULINE KIMATHI"
+          },
+          {
+            "period": 2,
+            "periodName": "Period 2",
+            "timeRange": "10:30 - 12:30",
+            "startTime": "10:30",
+            "endTime": "12:30",
+            "classCode": "WEF4/M/26 MOD I/ WEF4/5/S/26",
+            "unitTitle": "ARC WELDING PROCESSES",
             "venue": "WE/W",
             "trainer": "MD PAULINE KIMATHI"
           }
