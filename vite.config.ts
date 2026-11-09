@@ -274,6 +274,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          if (id.includes("curriculum_database.json")) {
+            return "data-curriculum";
+          }
+          if (id.includes("timetableData.json")) {
+            return "data-timetable";
+          }
           if (id.includes("node_modules")) {
             if (
               id.includes("react-dom") ||
