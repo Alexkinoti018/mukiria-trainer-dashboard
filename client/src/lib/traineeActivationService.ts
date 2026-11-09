@@ -13,7 +13,10 @@
  */
 
 import bcrypt from "bcryptjs";
-import { verifyTraineeAdmission, type VerifiedTraineeProfile } from "./traineeVerificationService";
+import {
+  verifyTraineeAdmission,
+  type VerifiedTraineeProfile,
+} from "./traineeVerificationService";
 
 export interface TraineeActivationPayload {
   admissionNumber: string;
@@ -68,12 +71,14 @@ export function getLocalActivatedTrainees(): ActivatedTraineeRecord[] {
 /**
  * Stores an activated trainee in the high-availability client cache.
  */
-export function saveLocalActivatedTrainee(record: ActivatedTraineeRecord): void {
+export function saveLocalActivatedTrainee(
+  record: ActivatedTraineeRecord
+): void {
   try {
     if (typeof localStorage === "undefined") return;
     const existing = getLocalActivatedTrainees();
     const updated = existing.filter(
-      (t) =>
+      t =>
         t.admissionNumber.trim().toUpperCase() !==
         record.admissionNumber.trim().toUpperCase()
     );
@@ -87,14 +92,16 @@ export function saveLocalActivatedTrainee(record: ActivatedTraineeRecord): void 
 /**
  * Finds a locally activated trainee by admission number (supports variations & formatting).
  */
-export function findLocalActivatedTrainee(admissionNumber: string): ActivatedTraineeRecord | null {
+export function findLocalActivatedTrainee(
+  admissionNumber: string
+): ActivatedTraineeRecord | null {
   const norm = (admissionNumber || "").trim().toUpperCase();
   if (!norm) return null;
   const cleanNorm = norm.replace(/[^A-Z0-9]/g, "");
 
   const trainees = getLocalActivatedTrainees();
   return (
-    trainees.find((t) => {
+    trainees.find(t => {
       const tNorm = t.admissionNumber.trim().toUpperCase();
       const tClean = tNorm.replace(/[^A-Z0-9]/g, "");
       return tNorm === norm || tClean === cleanNorm;
@@ -128,57 +135,61 @@ export async function activateTraineeAccount(
 
   let backendUser: any = null;
 
-  // 3. Attempt Authoritative Backend Registration
-  try {
-    const res = await fetch("/api/auth/register-trainee", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        fullName: profile.fullName,
-        admissionNumber: profile.admissionNumber,
-        phoneNumber: payload.phoneNumber ? payload.phoneNumber.trim() : null,
-        email: internalEmail,
-        password: passwordHash,
-        isActivation: true,
-      }),
-    });
-
-    const text = await res.text();
-    let data: any = null;
+  // 3. Attempt Authoritative Backend Registration (in browser)
+  if (typeof window !== "undefined") {
     try {
-      data = JSON.parse(text);
-    } catch {
-      data = null;
-    }
+      const res = await fetch("/api/auth/register-trainee", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: profile.fullName,
+          admissionNumber: profile.admissionNumber,
+          phoneNumber: payload.phoneNumber ? payload.phoneNumber.trim() : null,
+          email: internalEmail,
+          password: passwordHash,
+          isActivation: true,
+        }),
+      });
 
-    if (res.ok && data?.user) {
-      backendUser = data.user;
-    } else if (res.status === 409) {
-      // Trainee record already registered on backend — reuse identity
-      backendUser = {
-        id: `usr_${profile.admissionNumber.replace(/[^A-Za-z0-9]/g, "")}`,
-        admission_number: profile.admissionNumber,
-        full_name: profile.fullName,
-        email: internalEmail,
-        role: "trainee",
-        phone_number: payload.phoneNumber ? payload.phoneNumber.trim() : null,
-      };
-    } else {
+      const text = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = null;
+      }
+
+      if (res.ok && data?.user) {
+        backendUser = data.user;
+      } else if (res.status === 409) {
+        // Trainee record already registered on backend — reuse identity
+        backendUser = {
+          id: `usr_${profile.admissionNumber.replace(/[^A-Za-z0-9]/g, "")}`,
+          admission_number: profile.admissionNumber,
+          full_name: profile.fullName,
+          email: internalEmail,
+          role: "trainee",
+          phone_number: payload.phoneNumber ? payload.phoneNumber.trim() : null,
+        };
+      } else {
+        console.warn(
+          "[TraineeActivation]: Remote gateway notice, activating with high-availability client fallback:",
+          data?.error || `HTTP ${res.status}`
+        );
+      }
+    } catch (err) {
       console.warn(
-        "[TraineeActivation]: Remote gateway notice, activating with high-availability client fallback:",
-        data?.error || `HTTP ${res.status}`
+        "[TraineeActivation]: Remote network notice, activating with high-availability client fallback:",
+        err
       );
     }
-  } catch (err) {
-    console.warn(
-      "[TraineeActivation]: Remote network notice, activating with high-availability client fallback:",
-      err
-    );
   }
 
   // 4. Client-Side High-Availability Persistence Layer
   const activatedRecord: ActivatedTraineeRecord = {
-    id: backendUser?.id || `tr_act_${profile.admissionNumber.replace(/[^A-Za-z0-9]/g, "")}`,
+    id:
+      backendUser?.id ||
+      `tr_act_${profile.admissionNumber.replace(/[^A-Za-z0-9]/g, "")}`,
     admissionNumber: profile.admissionNumber,
     fullName: profile.fullName,
     department: profile.department,

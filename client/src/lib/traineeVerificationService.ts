@@ -10,7 +10,10 @@
  */
 
 import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
-import { normalizeAdmissionNumber, matchAdmissionNumbers } from "@shared/const.ts";
+import {
+  normalizeAdmissionNumber,
+  matchAdmissionNumbers,
+} from "@shared/const.ts";
 import { getDepartmentForCohort } from "@shared/cohortRegistry.ts";
 
 export interface VerifiedTraineeProfile {
@@ -21,42 +24,53 @@ export interface VerifiedTraineeProfile {
   classCode: string;
 }
 
-export async function verifyTraineeAdmission(admissionNo: string): Promise<VerifiedTraineeProfile> {
+export async function verifyTraineeAdmission(
+  admissionNo: string
+): Promise<VerifiedTraineeProfile> {
   const cleanAdm = (admissionNo || "").trim();
   if (!cleanAdm) {
     throw new Error("Admission / Registration number is required.");
   }
 
-  // 1. Attempt authoritative backend lookup with safe non-JSON error handling
-  try {
-    const res = await fetch(`/api/trainees/lookup?admission_no=${encodeURIComponent(cleanAdm)}`);
-    const text = await res.text();
-    let data: any = null;
+  // 1. Attempt authoritative backend lookup with safe non-JSON error handling (in browser)
+  if (typeof window !== "undefined") {
     try {
-      data = JSON.parse(text);
-    } catch {
-      data = null;
-    }
+      const res = await fetch(
+        `/api/trainees/lookup?admission_no=${encodeURIComponent(cleanAdm)}`
+      );
+      const text = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = null;
+      }
 
-    if (res.ok && data && (data.fullName || data.full_name)) {
-      const studentName = data.fullName || data.full_name || "";
-      const classCode = data.classCode || data.class_code || data.cohortCode || "";
-      const department = data.department || getDepartmentForCohort(classCode);
-      return {
-        id: data.id || "tr_verified",
-        admissionNumber: data.admissionNumber || data.admission_no || cleanAdm,
-        fullName: studentName,
-        department,
-        classCode,
-      };
+      if (res.ok && data && (data.fullName || data.full_name)) {
+        const studentName = data.fullName || data.full_name || "";
+        const classCode =
+          data.classCode || data.class_code || data.cohortCode || "";
+        const department = data.department || getDepartmentForCohort(classCode);
+        return {
+          id: data.id || "tr_verified",
+          admissionNumber:
+            data.admissionNumber || data.admission_no || cleanAdm,
+          fullName: studentName,
+          department,
+          classCode,
+        };
+      }
+    } catch (netErr) {
+      console.warn(
+        "[TraineeVerification]: Remote lookup notice, checking institutional roster fallback:",
+        netErr
+      );
     }
-  } catch (netErr) {
-    console.warn("[TraineeVerification]: Remote lookup notice, checking institutional roster fallback:", netErr);
   }
 
   // 2. High-availability client-side Institutional SSOT Roster matching
   const normClean = normalizeAdmissionNumber(cleanAdm);
-  const match = OFFICIAL_MTTI_TRAINEES.find((t) => {
+  const match = OFFICIAL_MTTI_TRAINEES.find(t => {
     return (
       (normClean && normalizeAdmissionNumber(t.admNo) === normClean) ||
       (normClean && normalizeAdmissionNumber(t.regCode) === normClean) ||
@@ -77,5 +91,7 @@ export async function verifyTraineeAdmission(admissionNo: string): Promise<Verif
     };
   }
 
-  throw new Error("Admission number not found in institutional roster. Please contact your department.");
+  throw new Error(
+    "Admission number not found in institutional roster. Please contact your department."
+  );
 }

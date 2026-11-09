@@ -6,7 +6,6 @@ import path from "node:path";
 import { defineConfig, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 import express from "express";
-import { apiRouter } from "./server/routes.ts";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
@@ -58,7 +57,7 @@ function writeToLogFile(source: LogSource, entries: unknown[]) {
   const logPath = path.join(LOG_DIR, `${source}.log`);
 
   // Format entries with timestamps
-  const lines = entries.map((entry) => {
+  const lines = entries.map(entry => {
     const ts = new Date().toISOString();
     return `[${ts}] ${JSON.stringify(entry)}`;
   });
@@ -134,7 +133,7 @@ function vitePluginManusDebugCollector(): Plugin {
         }
 
         let body = "";
-        req.on("data", (chunk) => {
+        req.on("data", chunk => {
           body += chunk.toString();
         });
 
@@ -164,7 +163,10 @@ function vitePluginStorageProxy(): Plugin {
           return;
         }
 
-        const forgeBaseUrl = (process.env.BUILT_IN_FORGE_API_URL || "").replace(/\/+$/, "");
+        const forgeBaseUrl = (process.env.BUILT_IN_FORGE_API_URL || "").replace(
+          /\/+$/,
+          ""
+        );
         const forgeKey = process.env.BUILT_IN_FORGE_API_KEY;
 
         if (!forgeBaseUrl || !forgeKey) {
@@ -174,7 +176,10 @@ function vitePluginStorageProxy(): Plugin {
         }
 
         try {
-          const forgeUrl = new URL("v1/storage/presign/get", forgeBaseUrl + "/");
+          const forgeUrl = new URL(
+            "v1/storage/presign/get",
+            forgeBaseUrl + "/"
+          );
           forgeUrl.searchParams.set("path", key);
 
           const forgeResp = await fetch(forgeUrl, {
@@ -212,9 +217,13 @@ function vitePluginEnvInjector(): Plugin {
   return {
     name: "manus-env-injector",
     transformIndexHtml(html) {
-      const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://bzlnpywjyhhrqapsvczf.supabase.co";
-      const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6bG5weXdqeWhocnFhcHN2Y3pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5MzA1NTgsImV4cCI6MjA5ODUwNjU1OH0.PrO9bbrhcsU0vFK0lU9Mdw0HYixxt9zL4opHq5QnEjw";
-      
+      const supabaseUrl =
+        process.env.VITE_SUPABASE_URL ||
+        "https://bzlnpywjyhhrqapsvczf.supabase.co";
+      const supabaseAnonKey =
+        process.env.VITE_SUPABASE_ANON_KEY ||
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6bG5weXdqeWhocnFhcHN2Y3pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5MzA1NTgsImV4cCI6MjA5ODUwNjU1OH0.PrO9bbrhcsU0vFK0lU9Mdw0HYixxt9zL4opHq5QnEjw";
+
       return html
         .replace("__VITE_SUPABASE_URL__", supabaseUrl)
         .replace("__VITE_SUPABASE_ANON_KEY__", supabaseAnonKey);
@@ -225,7 +234,8 @@ function vitePluginEnvInjector(): Plugin {
 function vitePluginExpressApi(): Plugin {
   return {
     name: "vite-express-api",
-    configureServer(server: ViteDevServer) {
+    async configureServer(server: ViteDevServer) {
+      const { apiRouter } = await import("./server/routes.ts");
       const app = express();
       app.use(express.json({ limit: "50mb" }));
       app.use(express.urlencoded({ extended: true, limit: "50mb" }));
@@ -265,7 +275,11 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes("node_modules")) {
-            if (id.includes("react-dom") || id.includes("react/") || id.includes("wouter")) {
+            if (
+              id.includes("react-dom") ||
+              id.includes("react/") ||
+              id.includes("wouter")
+            ) {
               return "vendor-react";
             }
             if (id.includes("@radix-ui")) {

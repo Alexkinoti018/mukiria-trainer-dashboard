@@ -16,16 +16,30 @@ import { resolveCanonicalCohortKey } from "../../../shared/cohortRegistry";
 
 // ─── Environment Validation & Boot Guard ──────────────────────────────────────
 export const clientEnvValidation = validateClientEnv();
-if (!clientEnvValidation.valid && typeof import.meta !== "undefined" && (import.meta as any).env?.PROD) {
-  console.error("❌ [MTTI Client Environment Failure]:\n" + clientEnvValidation.errors.join("\n"));
-} else if (clientEnvValidation.warnings.length > 0) {
-  clientEnvValidation.warnings.forEach((w) => console.warn(w));
+if (
+  !clientEnvValidation.valid &&
+  typeof import.meta !== "undefined" &&
+  (import.meta as any).env?.PROD
+) {
+  console.error(
+    "❌ [MTTI Client Environment Failure]:\n" +
+      clientEnvValidation.errors.join("\n")
+  );
+} else if (
+  clientEnvValidation.warnings.length > 0 &&
+  process.env.NODE_ENV !== "test"
+) {
+  clientEnvValidation.warnings.forEach(w => console.warn(w));
 }
 
 // ─── Environment Variables ───────────────────────────────────────────────────
 // Try to load from import.meta.env first, then fall back to window.__SUPABASE_CONFIG__
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || (typeof window !== 'undefined' && (window as any).__SUPABASE_CONFIG__?.url)) as string;
-const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || (typeof window !== 'undefined' && (window as any).__SUPABASE_CONFIG__?.anonKey)) as string;
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL ||
+  (typeof window !== "undefined" &&
+    (window as any).__SUPABASE_CONFIG__?.url)) as string;
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  (typeof window !== "undefined" &&
+    (window as any).__SUPABASE_CONFIG__?.anonKey)) as string;
 
 // ─── Database Type Definitions ───────────────────────────────────────────────
 
@@ -33,7 +47,14 @@ export interface ExamQuestion {
   id: string;
   q_num?: number;
   text: string;
-  type: "mcq" | "short_answer" | "true_false" | "practical" | "essay" | "structured" | "oral";
+  type:
+    | "mcq"
+    | "short_answer"
+    | "true_false"
+    | "practical"
+    | "essay"
+    | "structured"
+    | "oral";
   options?: string[];
   correct_answer?: string | number;
   marks: number;
@@ -53,7 +74,8 @@ export interface ExamSection {
   total_marks: number;
 }
 
-export type AssessmentCategory = "CAT" | "Exam" | "Practical" | "Assignment" | "Project";
+export type AssessmentCategory =
+  "CAT" | "Exam" | "Practical" | "Assignment" | "Project";
 
 export interface ExamPayload {
   institution?: string;
@@ -93,9 +115,24 @@ export interface ExamPayload {
   section_b?: ExamSection;
   project_brief?: string;
   elements_covered?: string[];
-  tasks?: Array<{ id: string; title: string; marks: number; details: string[] }>;
-  rubric?: Array<{ category: string; max_marks: number; criteria: Array<{ description: string; marks: number }> }>;
-  checklist_items?: Array<{ id: string; task: string; criteria: string; marks: number; critical_aspect?: string }>;
+  tasks?: Array<{
+    id: string;
+    title: string;
+    marks: number;
+    details: string[];
+  }>;
+  rubric?: Array<{
+    category: string;
+    max_marks: number;
+    criteria: Array<{ description: string; marks: number }>;
+  }>;
+  checklist_items?: Array<{
+    id: string;
+    task: string;
+    criteria: string;
+    marks: number;
+    critical_aspect?: string;
+  }>;
 }
 
 export interface PortalAvailabilityStatus {
@@ -123,13 +160,21 @@ export function cleanCohortIdentifier(raw?: string): string {
  * Returns true if a trainee's cohort matches an exam's target cohort tag or class code.
  * Handles combined cohorts (e.g. FBS5/6/J/26, ADMIN5/6/J/26, LS5/6/S/26, ICT4/ITECH6/S/26).
  */
-export function doesCohortTagMatch(traineeCohort?: string, targetTag?: string): boolean {
+export function doesCohortTagMatch(
+  traineeCohort?: string,
+  targetTag?: string
+): boolean {
   const tCohort = (traineeCohort || "").trim().toUpperCase();
   const tTag = (targetTag || "").trim().toUpperCase();
   if (!tCohort || !tTag) return false;
 
   // Wildcards
-  if (tTag === "ALL" || tTag === "ALL COHORTS" || tTag === "CAMPUS-WIDE" || tTag === "ANY") {
+  if (
+    tTag === "ALL" ||
+    tTag === "ALL COHORTS" ||
+    tTag === "CAMPUS-WIDE" ||
+    tTag === "ANY"
+  ) {
     return true;
   }
 
@@ -138,7 +183,8 @@ export function doesCohortTagMatch(traineeCohort?: string, targetTag?: string): 
 
   // Exact or cleaned equality
   if (tCohort === tTag || cleanTrainee === cleanTarget) return true;
-  if (cleanTrainee.includes(cleanTarget) || cleanTarget.includes(cleanTrainee)) return true;
+  if (cleanTrainee.includes(cleanTarget) || cleanTarget.includes(cleanTrainee))
+    return true;
 
   // Master Institutional Cohort Registry resolution (cross-level TVET modular alignment)
   const canonTrainee = resolveCanonicalCohortKey(tCohort);
@@ -183,23 +229,37 @@ export function doesCohortTagMatch(traineeCohort?: string, targetTag?: string): 
 
   // 2. Business / Office Administration Department:
   // Combined Institutional Cohort: "ADMIN5/6/J/26"
-  const isTraineeAdmin = cleanTrainee.includes("ADMIN") || cleanTrainee.includes("BUS");
-  const isTargetAdmin = cleanTarget.includes("ADMIN") || cleanTarget.includes("BUS");
+  const isTraineeAdmin =
+    cleanTrainee.includes("ADMIN") || cleanTrainee.includes("BUS");
+  const isTargetAdmin =
+    cleanTarget.includes("ADMIN") || cleanTarget.includes("BUS");
   if (isTraineeAdmin && isTargetAdmin) {
     return true;
   }
 
   // 3. Building & Civil / Land Survey:
   // Combined Institutional Cohort: "LS5/6/S/26"
-  const isTraineeLS = cleanTrainee.includes("LS") || cleanTrainee.includes("SURVEY") || cleanTrainee.includes("CIVIL");
-  const isTargetLS = cleanTarget.includes("LS") || cleanTarget.includes("SURVEY") || cleanTarget.includes("CIVIL");
+  const isTraineeLS =
+    cleanTrainee.includes("LS") ||
+    cleanTrainee.includes("SURVEY") ||
+    cleanTrainee.includes("CIVIL");
+  const isTargetLS =
+    cleanTarget.includes("LS") ||
+    cleanTarget.includes("SURVEY") ||
+    cleanTarget.includes("CIVIL");
   if (isTraineeLS && isTargetLS) {
     return true;
   }
 
   // 4. Computing & Informatics (ITECH 6 vs ICT 4):
-  const isTraineeICT = cleanTrainee.includes("ITECH") || cleanTrainee.includes("ICT") || cleanTrainee.includes("CSDP");
-  const isTargetICT = cleanTarget.includes("ITECH") || cleanTarget.includes("ICT") || cleanTarget.includes("CSDP");
+  const isTraineeICT =
+    cleanTrainee.includes("ITECH") ||
+    cleanTrainee.includes("ICT") ||
+    cleanTrainee.includes("CSDP");
+  const isTargetICT =
+    cleanTarget.includes("ITECH") ||
+    cleanTarget.includes("ICT") ||
+    cleanTarget.includes("CSDP");
   if (isTraineeICT && isTargetICT) {
     if (
       (cleanTarget.includes("4") && cleanTarget.includes("6")) ||
@@ -220,22 +280,31 @@ export function doesCohortTagMatch(traineeCohort?: string, targetTag?: string): 
   return false;
 }
 
-export function doesExamMatchTraineeCohort(exam: Exam, cohortCode?: string, enrolledUnits?: string[]): boolean {
-  const normUnit = (s: string) => (s || "").replace(/[\s\-_]/g, "").toUpperCase();
+export function doesExamMatchTraineeCohort(
+  exam: Exam,
+  cohortCode?: string,
+  enrolledUnits?: string[]
+): boolean {
+  const normUnit = (s: string) =>
+    (s || "").replace(/[\s\-_]/g, "").toUpperCase();
   const unitUpper = (exam.unit_code || "").trim().toUpperCase();
   const unitNorm = normUnit(exam.unit_code || "");
 
   // 1. Direct Enrolled Units Match
   if (enrolledUnits && enrolledUnits.length > 0) {
     if (
-      enrolledUnits.some((u) => {
+      enrolledUnits.some(u => {
         const uUpper = u.trim().toUpperCase();
         const uNorm = normUnit(u);
         return (
           unitUpper === uUpper ||
           unitUpper.startsWith(uUpper) ||
           uUpper.startsWith(unitUpper) ||
-          (Boolean(unitNorm) && Boolean(uNorm) && (unitNorm === uNorm || unitNorm.startsWith(uNorm) || uNorm.startsWith(unitNorm)))
+          (Boolean(unitNorm) &&
+            Boolean(uNorm) &&
+            (unitNorm === uNorm ||
+              unitNorm.startsWith(uNorm) ||
+              uNorm.startsWith(unitNorm)))
         );
       })
     ) {
@@ -249,15 +318,18 @@ export function doesExamMatchTraineeCohort(exam: Exam, cohortCode?: string, enro
   // 2. Custom Target Cohorts (explicit tags set by Trainer in ExamBuilder)
   const customCohorts = exam.payload?.target_cohorts;
   if (customCohorts && customCohorts.length > 0) {
-    return customCohorts.some((tag) => doesCohortTagMatch(upperCohort, tag));
+    return customCohorts.some(tag => doesCohortTagMatch(upperCohort, tag));
   }
 
   // 3. Class Field on Exam Payload (e.g. "FBS5/6/J/26", "FBS5/6/J/25, LS5/6/S/25", "ADMIN5/6/J/26")
   const examClass = (exam.payload?.class || "").trim().toUpperCase();
   if (examClass) {
     // If comma-separated or slash-separated classes, check each token
-    const classTokens = examClass.split(/[,;]+/).map((s) => s.trim()).filter(Boolean);
-    if (classTokens.some((tok) => doesCohortTagMatch(upperCohort, tok))) {
+    const classTokens = examClass
+      .split(/[,;]+/)
+      .map(s => s.trim())
+      .filter(Boolean);
+    if (classTokens.some(tok => doesCohortTagMatch(upperCohort, tok))) {
       return true;
     }
     if (doesCohortTagMatch(upperCohort, examClass)) {
@@ -271,23 +343,36 @@ export function doesExamMatchTraineeCohort(exam: Exam, cohortCode?: string, enro
   const isFBS = upperCohort.includes("FBS") || upperCohort.includes("FBP");
   if (
     isFBS &&
-    (courseUpper.includes("FOOD") || courseUpper.includes("BEVERAGE") || deptUpper.includes("HOSPITALITY"))
+    (courseUpper.includes("FOOD") ||
+      courseUpper.includes("BEVERAGE") ||
+      deptUpper.includes("HOSPITALITY"))
   ) {
     return true;
   }
   const isAdmin = upperCohort.includes("ADMIN") || upperCohort.includes("BUS");
-  if (isAdmin && (courseUpper.includes("OFFICE ADMIN") || deptUpper.includes("BUSINESS"))) {
+  if (
+    isAdmin &&
+    (courseUpper.includes("OFFICE ADMIN") || deptUpper.includes("BUSINESS"))
+  ) {
     return true;
   }
   const isLS = upperCohort.includes("LS") || upperCohort.includes("SURVEY");
-  if (isLS && (courseUpper.includes("LAND SURVEY") || deptUpper.includes("BUILDING"))) {
+  if (
+    isLS &&
+    (courseUpper.includes("LAND SURVEY") || deptUpper.includes("BUILDING"))
+  ) {
     return true;
   }
 
   // 5. Institutional Common Curriculum Mapping
   if (unitUpper.startsWith("061155101A") || unitNorm.startsWith("061155101A")) {
     // Apply Digital Literacy is common to FBS (Food & Beverage), LS (Land Survey), and CSDP
-    return isFBS || isLS || upperCohort.includes("CSDP") || upperCohort.includes("ADMIN");
+    return (
+      isFBS ||
+      isLS ||
+      upperCohort.includes("CSDP") ||
+      upperCohort.includes("ADMIN")
+    );
   }
   if (
     unitUpper.startsWith("0415-451-21A") ||
@@ -298,11 +383,23 @@ export function doesExamMatchTraineeCohort(exam: Exam, cohortCode?: string, enro
   ) {
     return isAdmin;
   }
-  if (unitUpper.startsWith("IT/CU/ICTA/CR/01/4/MA") || (unitNorm && unitNorm.startsWith("ITCU/ICTA/CR/01/4/MA".replace(/[\s\-_]/g, "")))) {
+  if (
+    unitUpper.startsWith("IT/CU/ICTA/CR/01/4/MA") ||
+    (unitNorm &&
+      unitNorm.startsWith("ITCU/ICTA/CR/01/4/MA".replace(/[\s\-_]/g, "")))
+  ) {
     return upperCohort.includes("ICT4") || upperCohort.includes("ICTT");
   }
-  if (unitUpper.startsWith("IT/CU/ICTA/CR/01/6/MA") || (unitNorm && unitNorm.startsWith("ITCU/ICTA/CR/01/6/MA".replace(/[\s\-_]/g, "")))) {
-    return upperCohort.includes("ITECH 6") || upperCohort.includes("ICT6") || upperCohort.includes("CSDP");
+  if (
+    unitUpper.startsWith("IT/CU/ICTA/CR/01/6/MA") ||
+    (unitNorm &&
+      unitNorm.startsWith("ITCU/ICTA/CR/01/6/MA".replace(/[\s\-_]/g, "")))
+  ) {
+    return (
+      upperCohort.includes("ITECH 6") ||
+      upperCohort.includes("ICT6") ||
+      upperCohort.includes("CSDP")
+    );
   }
 
   return false;
@@ -315,7 +412,8 @@ export function evaluateExamPortalAvailability(
   // STRICT ANTI-LEAKAGE POLICY: Assessments are hidden from trainees unless explicitly allocated (portal_visible === true)
   const isVisible = payload.portal_visible === true;
   const latePolicy = payload.late_submission_policy || "strict_lock";
-  const maxAttempts = payload.max_attempts && payload.max_attempts > 0 ? payload.max_attempts : 1;
+  const maxAttempts =
+    payload.max_attempts && payload.max_attempts > 0 ? payload.max_attempts : 1;
 
   const formatDt = (raw?: string): string | null => {
     if (!raw || !raw.trim()) return null;
@@ -332,7 +430,9 @@ export function evaluateExamPortalAvailability(
 
   const availableFromRaw = payload.available_from || payload.start_time;
   const dueAtRaw = payload.due_at || payload.end_time;
-  const availableFromDate = availableFromRaw ? new Date(availableFromRaw) : null;
+  const availableFromDate = availableFromRaw
+    ? new Date(availableFromRaw)
+    : null;
   const dueAtDate = dueAtRaw ? new Date(dueAtRaw) : null;
 
   const derivedCategory: AssessmentCategory =
@@ -340,13 +440,15 @@ export function evaluateExamPortalAvailability(
     (payload.type === "practical"
       ? "Practical"
       : (payload.title || "").toUpperCase().includes("CAT") ||
-        (payload.task_code || "").toUpperCase().startsWith("CAT")
-      ? "CAT"
-      : (payload.task_code || "").toUpperCase().startsWith("CT") ||
-        (payload.title || "").toUpperCase().includes("WRITTEN ASSESSMENT") ||
-        (payload.title || "").toUpperCase().includes("EXAM")
-      ? "Exam"
-      : "Exam");
+          (payload.task_code || "").toUpperCase().startsWith("CAT")
+        ? "CAT"
+        : (payload.task_code || "").toUpperCase().startsWith("CT") ||
+            (payload.title || "")
+              .toUpperCase()
+              .includes("WRITTEN ASSESSMENT") ||
+            (payload.title || "").toUpperCase().includes("EXAM")
+          ? "Exam"
+          : "Exam");
 
   if (!isVisible) {
     return {
@@ -362,7 +464,11 @@ export function evaluateExamPortalAvailability(
     };
   }
 
-  if (availableFromDate && !isNaN(availableFromDate.getTime()) && now < availableFromDate) {
+  if (
+    availableFromDate &&
+    !isNaN(availableFromDate.getTime()) &&
+    now < availableFromDate
+  ) {
     return {
       isVisible: true,
       state: "scheduled",
@@ -407,7 +513,9 @@ export function evaluateExamPortalAvailability(
     isVisible: true,
     state: "open",
     canStart: true,
-    statusLabel: dueAtRaw ? `Open • Due ${formatDt(dueAtRaw)}` : "Open on Trainee Portal",
+    statusLabel: dueAtRaw
+      ? `Open • Due ${formatDt(dueAtRaw)}`
+      : "Open on Trainee Portal",
     availableFromFormatted: formatDt(availableFromRaw),
     dueAtFormatted: formatDt(dueAtRaw),
     categoryLabel: derivedCategory,
@@ -435,14 +543,7 @@ export interface StudentAnswer {
 }
 
 export type AssessmentTaskSlot =
-  | "CT1"
-  | "CT2"
-  | "CT3"
-  | "CP1"
-  | "CP2"
-  | "CP3"
-  | "Project"
-  | "Assignment";
+  "CT1" | "CT2" | "CT3" | "CP1" | "CP2" | "CP3" | "Project" | "Assignment";
 
 export function normalizeAssessmentTaskSlot(
   rawTaskCode?: string,
@@ -451,16 +552,59 @@ export function normalizeAssessmentTaskSlot(
   examType?: string
 ): AssessmentTaskSlot {
   const code = (rawTaskCode || "").trim().toUpperCase();
-  if (code === "CT1" || code === "CAT1" || code === "CAT 1" || code === "EXAM 1" || code === "WA1") return "CT1";
-  if (code === "CT2" || code === "CAT2" || code === "CAT 2" || code === "CAT" || code === "CATS" || code === "EXAM 2" || code === "WA2") return "CT2";
-  if (code === "CT3" || code === "CAT3" || code === "CAT 3" || code === "EXAM 3" || code === "WA3") return "CT3";
-  if (code === "CP1" || code === "PRAC 1" || code === "PRACTICAL 1" || code === "PA1" || code === "OBSERVATION CHECKLIST") return "CP1";
-  if (code === "CP2" || code === "PRAC 2" || code === "PRACTICAL 2" || code === "PA2") return "CP2";
-  if (code === "CP3" || code === "PRAC 3" || code === "PRACTICAL 3" || code === "PA3") return "CP3";
+  if (
+    code === "CT1" ||
+    code === "CAT1" ||
+    code === "CAT 1" ||
+    code === "EXAM 1" ||
+    code === "WA1"
+  )
+    return "CT1";
+  if (
+    code === "CT2" ||
+    code === "CAT2" ||
+    code === "CAT 2" ||
+    code === "CAT" ||
+    code === "CATS" ||
+    code === "EXAM 2" ||
+    code === "WA2"
+  )
+    return "CT2";
+  if (
+    code === "CT3" ||
+    code === "CAT3" ||
+    code === "CAT 3" ||
+    code === "EXAM 3" ||
+    code === "WA3"
+  )
+    return "CT3";
+  if (
+    code === "CP1" ||
+    code === "PRAC 1" ||
+    code === "PRACTICAL 1" ||
+    code === "PA1" ||
+    code === "OBSERVATION CHECKLIST"
+  )
+    return "CP1";
+  if (
+    code === "CP2" ||
+    code === "PRAC 2" ||
+    code === "PRACTICAL 2" ||
+    code === "PA2"
+  )
+    return "CP2";
+  if (
+    code === "CP3" ||
+    code === "PRAC 3" ||
+    code === "PRACTICAL 3" ||
+    code === "PA3"
+  )
+    return "CP3";
   if (code.includes("PROJ")) return "Project";
   if (code.includes("ASSIGN")) return "Assignment";
 
-  const combined = `${unitCode || ""} ${title || ""} ${rawTaskCode || ""}`.toUpperCase();
+  const combined =
+    `${unitCode || ""} ${title || ""} ${rawTaskCode || ""}`.toUpperCase();
   if (combined.includes("PROJECT")) return "Project";
   if (combined.includes("ASSIGNMENT")) return "Assignment";
 
@@ -476,13 +620,39 @@ export function normalizeAssessmentTaskSlot(
     combined.includes("CP3");
 
   if (isPractical) {
-    if (combined.includes("3") || combined.includes("THREE") || combined.includes("CP3") || combined.includes("PA3")) return "CP3";
-    if (combined.includes("2") || combined.includes("TWO") || combined.includes("CP2") || combined.includes("PA2")) return "CP2";
+    if (
+      combined.includes("3") ||
+      combined.includes("THREE") ||
+      combined.includes("CP3") ||
+      combined.includes("PA3")
+    )
+      return "CP3";
+    if (
+      combined.includes("2") ||
+      combined.includes("TWO") ||
+      combined.includes("CP2") ||
+      combined.includes("PA2")
+    )
+      return "CP2";
     return "CP1";
   }
 
-  if (combined.includes("WA3") || combined.includes("ASSESSMENT 3") || combined.includes("EXAM 3") || combined.includes("CAT 3") || combined.includes("CT3")) return "CT3";
-  if (combined.includes("WA2") || combined.includes("ASSESSMENT 2") || combined.includes("EXAM 2") || combined.includes("CAT 2") || combined.includes("CT2")) return "CT2";
+  if (
+    combined.includes("WA3") ||
+    combined.includes("ASSESSMENT 3") ||
+    combined.includes("EXAM 3") ||
+    combined.includes("CAT 3") ||
+    combined.includes("CT3")
+  )
+    return "CT3";
+  if (
+    combined.includes("WA2") ||
+    combined.includes("ASSESSMENT 2") ||
+    combined.includes("EXAM 2") ||
+    combined.includes("CAT 2") ||
+    combined.includes("CT2")
+  )
+    return "CT2";
   return "CT1";
 }
 
@@ -497,7 +667,13 @@ export interface Submission {
   reg_number: string;
   section_a: StudentAnswer[];
   section_b: StudentAnswer[];
-  status: "pending" | "graded" | "reviewed" | "submitted" | "in_progress" | "reopened";
+  status:
+    | "pending"
+    | "graded"
+    | "reviewed"
+    | "submitted"
+    | "in_progress"
+    | "reopened";
   total_score: number | null;
   trainer_comments?: string;
   submitted_at?: string;
@@ -771,11 +947,13 @@ export interface Database {
 // ─── Client Instance ─────────────────────────────────────────────────────────
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    "⚠️ [MTTI] Supabase credentials not configured. " +
-      "Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file. " +
-      "The app will run in demo mode with mock data."
-  );
+  if (process.env.NODE_ENV !== "test") {
+    console.warn(
+      "⚠️ [MTTI] Supabase credentials not configured. " +
+        "Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file. " +
+        "The app will run in demo mode with mock data."
+    );
+  }
 }
 
 if (typeof globalThis.WebSocket === "undefined") {
