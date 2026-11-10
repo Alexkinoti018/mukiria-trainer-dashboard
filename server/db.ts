@@ -38,6 +38,7 @@ const ASSESSMENT_MARKS_FILE = getFixturePath("assessment_marks.json");
 const SUBMISSIONS_FILE = getFixturePath("submissions.json");
 const ASSESSMENT_EVIDENCE_FILE = getFixturePath("assessment_evidence.json");
 const USERS_FILE = getFixturePath("users.json");
+const COHORTS_FILE = getFixturePath("cohorts.json");
 
 export class DatabaseUnavailableError extends Error {
   status: number;
@@ -437,7 +438,15 @@ export async function loadDatabaseDepartments(): Promise<Array<{ id: string; nam
   }
   return [
     { id: "dept-ci", name: "Computing & Informatics", code: "CI", hod_id: "hod-001", hod_email: "hod.ci@mtti.ac.ke" },
-    { id: "dept-ee", name: "Electrical & Electronics", code: "EE", hod_id: "hod-002", hod_email: "hod.ee@mtti.ac.ke" },
+    { id: "dept-ee", name: "Electrical & Electronics Engineering", code: "EEE", hod_id: "hod-002", hod_email: "hod.ee@mtti.ac.ke" },
+    { id: "dept-bce", name: "Building & Civil Engineering", code: "BCE", hod_id: "hod-003", hod_email: "hod.bce@mtti.ac.ke" },
+    { id: "dept-him", name: "Hospitality & Institutional Management", code: "HIM", hod_id: "hod-004", hod_email: "hod.him@mtti.ac.ke" },
+    { id: "dept-ia", name: "Institutional Academics", code: "IA", hod_id: "hod-005", hod_email: "hod.ia@mtti.ac.ke" },
+    { id: "dept-aes", name: "Agriculture & Environmental Studies", code: "AES", hod_id: "hod-006", hod_email: "hod.aes@mtti.ac.ke" },
+    { id: "dept-ch", name: "Cosmetology & Hairdressing", code: "CH", hod_id: "hod-007", hod_email: "hod.ch@mtti.ac.ke" },
+    { id: "dept-sg", name: "Surveying & Geomatics", code: "SG", hod_id: "hod-008", hod_email: "hod.sg@mtti.ac.ke" },
+    { id: "dept-mae", name: "Mechanical & Automotive Engineering", code: "MAE", hod_id: "hod-009", hod_email: "hod.mae@mtti.ac.ke" },
+    { id: "dept-business", name: "Business Studies", code: "BUS", hod_id: "hod-010", hod_email: "hod.business@mtti.ac.ke" },
   ].map((department) => {
     const head = memoryStaffDepartmentHeads.find((item) => item.department_id === department.id);
     return head ? { ...department, hod_id: head.hod_id, hod_email: head.hod_email } : department;
@@ -773,6 +782,227 @@ export async function updateUserPassword(userId: string, passwordHash: string): 
     user.updated_at = new Date().toISOString();
     savePersistentUsers(users);
   }
+}
+
+export async function resetUserPassword(userId: string, passwordHash: string): Promise<void> {
+  ensurePoolAvailable();
+  if (pool) {
+    const result = await pool.query(
+      "UPDATE users SET password_hash = $1, must_change_password = TRUE, updated_at = NOW() WHERE id = $2",
+      [passwordHash, userId]
+    );
+    if (result.rowCount !== 1) throw new Error("User account no longer exists.");
+  } else {
+    const users = loadPersistentUsers();
+    const user = users.find((record) => record.id === userId);
+    if (!user) throw new Error("User account no longer exists.");
+    user.password_hash = passwordHash;
+    user.must_change_password = true;
+    user.updated_at = new Date().toISOString();
+    savePersistentUsers(users);
+  }
+}
+
+export async function createTraineeAccount(data: {
+  full_name: string;
+  admission_number: string;
+  class_code: string;
+  department_id: string;
+  phone_number?: string | null;
+  password_hash: string;
+  email?: string | null;
+}): Promise<{ user: UserRecord; trainee: TraineeRecord }> {
+  const normAdm = data.admission_number.trim().toUpperCase();
+  const normName = data.full_name.trim();
+  const normClass = data.class_code.trim();
+  const normDept = data.department_id.trim();
+  const email = (data.email && data.email.trim())
+    ? data.email.trim().toLowerCase()
+    : `${normAdm.toLowerCase().replace(/[^a-z0-9]/g, "")}@trainee.mtti.ac.ke`;
+  const userId = randomUUID();
+  const profileId = `trainee-${normAdm.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+  const now = new Date().toISOString();
+
+  // Check uniqueness of admission number
+  const existingUser = await findUserByAdmissionNumber(normAdm);
+  if (existingUser) {
+    throw Object.assign(new Error(`An account with admission number '${normAdm}' already exists.`), { code: "23505" });
+  }
+
+  // Persist trainee in trainees list
+  const trainees = loadPersistentTrainees();
+  let existingIndex = trainees.findIndex(
+    (t) => (t.reg_number || t.adm_no || "").trim().toUpperCase() === normAdm
+  );
+  const traineeRecord: TraineeRecord = {
+    id: existingIndex >= 0 ? trainees[existingIndex].id : profileId,
+    name: normName,
+    reg_number: normAdm,
+    adm_no: normAdm,
+    reg_code: normAdm,
+    class_id: normClass,
+    class_code: normClass,
+    department: normDept,
+    phone: data.phone_number || undefined,
+    created_at: existingIndex >= 0 ? (trainees[existingIndex].created_at || now) : now,
+    updated_at: now,
+  };
+
+  if (existingIndex >= 0) {
+    trainees[existingIndex] = traineeRecord;
+  } else {
+    trainees.push(traineeRecord);
+  }
+  savePersistentTrainees(trainees);
+
+  if (pool) {
+    try {
+      await pool.query(
+        `INSERT INTO trainees (id, name, reg_number, adm_no, reg_code, class_id, class_code, department, phone, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)
+         ON CONFLICT (id) DO UPDATE SET
+           name = EXCLUDED.name,
+           class_id = EXCLUDED.class_id,
+           class_code = EXCLUDED.class_code,
+           department = EXCLUDED.department,
+           phone = EXCLUDED.phone,
+           updated_at = CURRENT_TIMESTAMP`,
+        [
+          traineeRecord.id,
+          traineeRecord.name,
+          traineeRecord.reg_number,
+          traineeRecord.adm_no,
+          traineeRecord.reg_code,
+          traineeRecord.class_id,
+          traineeRecord.class_code,
+          traineeRecord.department,
+          traineeRecord.phone,
+        ]
+      );
+    } catch (e: any) {
+      console.warn("⚠️ [PostgreSQL createTraineeAccount Trainees Table Warning]:", e.message);
+    }
+  }
+
+  // Create user
+  const userRecord = await createUser({
+    id: userId,
+    full_name: normName,
+    email,
+    admission_number: normAdm,
+    phone_number: data.phone_number || null,
+    password_hash: data.password_hash,
+    role: "TRAINEE",
+    profile_id: traineeRecord.id,
+    department_id: normDept,
+    must_change_password: true,
+  });
+
+  return { user: userRecord, trainee: traineeRecord };
+}
+
+export interface CohortRecord {
+  code: string;
+  name: string;
+  department_id: string;
+  level?: string;
+  term?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+let memoryCohorts: CohortRecord[] | null = null;
+
+export function loadPersistentCohorts(): CohortRecord[] {
+  if (memoryCohorts !== null) return memoryCohorts;
+  try {
+    if (fs.existsSync(COHORTS_FILE)) {
+      const data = fs.readFileSync(COHORTS_FILE, "utf-8");
+      memoryCohorts = JSON.parse(data);
+      return memoryCohorts!;
+    }
+  } catch (e) {
+    console.warn("Could not read cohorts JSON file:", e);
+  }
+  memoryCohorts = [
+    { code: "class-itech-6", name: "ICT Technician Level 6", department_id: "dept-ci", level: "Level 6", term: "Term 3 2026" },
+    { code: "ICT4 MOD/S/2026", name: "ICT 4 Modular Sept 2026", department_id: "dept-ci", level: "Level 4", term: "Term 3 2026" },
+    { code: "ICT4/ITECH6/S/26 MOD 1", name: "ICT 4 / ITECH 6 Modular 1", department_id: "dept-ci", level: "Level 4 & 6", term: "Term 3 2026" },
+    { code: "FBS 5 MOD/J/2026", name: "Food & Beverage 5 Modular Jan 2026", department_id: "dept-him", level: "Level 5", term: "Term 3 2026" },
+    { code: "ADMIN5/6/J/26 MOD 3", name: "Administration Level 5 & 6 Mod 3", department_id: "dept-business", level: "Level 5 & 6", term: "Term 3 2026" },
+    { code: "EE 6 MOD/S/2026", name: "Electrical Engineering Level 6", department_id: "dept-ee", level: "Level 6", term: "Term 3 2026" },
+    { code: "BCE 6 MOD/S/2026", name: "Building & Civil Engineering Level 6", department_id: "dept-bce", level: "Level 6", term: "Term 3 2026" },
+  ];
+  return memoryCohorts;
+}
+
+export function savePersistentCohorts(cohorts: CohortRecord[]): void {
+  memoryCohorts = [...cohorts];
+  try {
+    const filePath = path.join(DATA_DIR, "cohorts.json");
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify(cohorts, null, 2), "utf-8");
+  } catch (e) {
+    console.warn("Could not write cohorts JSON file:", e);
+  }
+}
+
+export async function createCohort(data: {
+  code: string;
+  name?: string;
+  department_id: string;
+  level?: string;
+  term?: string;
+}): Promise<CohortRecord> {
+  const normCode = data.code.trim();
+  const cohorts = loadPersistentCohorts();
+  const existing = cohorts.find(c => c.code.toLowerCase() === normCode.toLowerCase());
+  if (existing) {
+    throw Object.assign(new Error(`Cohort with code '${normCode}' already exists.`), { code: "COHORT_EXISTS" });
+  }
+
+  const now = new Date().toISOString();
+  const newCohort: CohortRecord = {
+    code: normCode,
+    name: (data.name && data.name.trim()) ? data.name.trim() : normCode,
+    department_id: data.department_id.trim(),
+    level: data.level || "Level 6",
+    term: data.term || "Term 3 2026",
+    created_at: now,
+    updated_at: now,
+  };
+
+  cohorts.push(newCohort);
+  savePersistentCohorts(cohorts);
+
+  if (pool) {
+    try {
+      await pool.query(
+        `INSERT INTO classes (code, name, department_id, level, term, updated_at)
+         VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+         ON CONFLICT (code) DO UPDATE SET
+           name = EXCLUDED.name,
+           department_id = EXCLUDED.department_id,
+           level = EXCLUDED.level,
+           term = EXCLUDED.term,
+           updated_at = CURRENT_TIMESTAMP`,
+        [newCohort.code, newCohort.name, newCohort.department_id, newCohort.level, newCohort.term]
+      );
+    } catch (e: any) {
+      console.warn("⚠️ [PostgreSQL createCohort Warning]:", e.message);
+    }
+  }
+
+  return newCohort;
+}
+
+export async function listCohorts(departmentId?: string): Promise<CohortRecord[]> {
+  const cohorts = loadPersistentCohorts();
+  if (departmentId && departmentId !== "all") {
+    return cohorts.filter(c => c.department_id === departmentId);
+  }
+  return cohorts;
 }
 
 export function loadPersistentAttendance(): AttendanceRecord[] {
@@ -1510,6 +1740,16 @@ export async function initDatabaseSchema(): Promise<void> {
         gender VARCHAR(10),
         phone VARCHAR(50),
         remarks TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS classes (
+        code VARCHAR(100) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        department_id VARCHAR(100) NOT NULL,
+        level VARCHAR(100),
+        term VARCHAR(100),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );

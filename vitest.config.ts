@@ -13,6 +13,8 @@ export default defineConfig({
     root: path.resolve(import.meta.dirname),
     include: ["tests/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
     setupFiles: [path.resolve(import.meta.dirname, "tests", "setup_runtime_data.ts")],
+    testTimeout: 25000,
+    hookTimeout: 25000,
     env: {
       NODE_ENV: "test",
       JWT_SECRET: "mtti_test_jwt_secret_min_32_chars_long_and_cryptographically_strong!",

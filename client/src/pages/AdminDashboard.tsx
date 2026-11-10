@@ -56,6 +56,7 @@ import {
 } from "@/services/TraineeService";
 import { AdminRosterManagement } from "@/components/AdminRosterManagement";
 import { AdminStaffAccountManager } from "@/components/AdminStaffAccountManager";
+import { AcademicGovernanceManager } from "@/components/AcademicGovernanceManager";
 import {
   Table,
   TableHeader,
@@ -877,6 +878,11 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+
+        {/* ── ACADEMIC GOVERNANCE & AUTHORITY MANAGER ──────────────────────── */}
+        <section className="space-y-4">
+          <AcademicGovernanceManager />
+        </section>
 
         {/* ── SECTION 1: DIRECT DIAGNOSTIC ACTION CARDS ────────────────────── */}
         <section className="space-y-4">

@@ -32,11 +32,19 @@ import {
   findUserByAdmissionNumber,
   findUserByEmailOrAdmission,
   findUserByProfileId,
+  findUserById,
   loadDatabaseTrainees,
+  loadDatabaseTrainers,
+  loadDatabaseDepartments,
   DatabaseUnavailableError,
   createUser,
   createStaffAccount,
+  createTraineeAccount,
+  createCohort,
+  listCohorts,
+  loadPersistentCohorts,
   updateUserPassword,
+  resetUserPassword,
   loadPersistentUsers,
   savePersistentUsers,
 } from "./db.ts";
@@ -87,7 +95,15 @@ export const apiRouter = Router();
 export const DB = {
   departments: [
     { id: "dept-ci", name: "Computing & Informatics", code: "CI", hod_id: "hod-001" },
-    { id: "dept-ee", name: "Electrical & Electronics", code: "EE", hod_id: "hod-002" },
+    { id: "dept-ee", name: "Electrical & Electronics Engineering", code: "EEE", hod_id: "hod-002" },
+    { id: "dept-bce", name: "Building & Civil Engineering", code: "BCE", hod_id: "hod-003" },
+    { id: "dept-him", name: "Hospitality & Institutional Management", code: "HIM", hod_id: "hod-004" },
+    { id: "dept-ia", name: "Institutional Academics", code: "IA", hod_id: "hod-005" },
+    { id: "dept-aes", name: "Agriculture & Environmental Studies", code: "AES", hod_id: "hod-006" },
+    { id: "dept-ch", name: "Cosmetology & Hairdressing", code: "CH", hod_id: "hod-007" },
+    { id: "dept-sg", name: "Surveying & Geomatics", code: "SG", hod_id: "hod-008" },
+    { id: "dept-mae", name: "Mechanical & Automotive Engineering", code: "MAE", hod_id: "hod-009" },
+    { id: "dept-business", name: "Business Studies", code: "BUS", hod_id: "hod-010" },
   ],
   trainers: [
     { id: "trainer-001", name: "Dr. J. Muriithi", email: "trainer@mtti.ac.ke", assigned_units: ["ICT/CU/IT/CR/6/6", "061155101A"] },
@@ -2056,7 +2072,7 @@ apiRouter.get("/departments", async (_req: Request, res: Response) => {
 });
 
 // ─── ENDPOINT: POST /api/departments (Add/Update Institutional Department) ────
-apiRouter.post("/departments", requireRoles("trainer", "hod", "admin"), async (req: AuthenticatedRequest, res: Response) => {
+apiRouter.post("/departments", requireRoles("admin", "hod"), async (req: AuthenticatedRequest, res: Response) => {
   const { id, name, code, hod_name, trainers, active_units } = req.body;
   if (!name || !code) {
     res.status(400).json({ error: "Missing required fields: name and code" });
@@ -2951,6 +2967,508 @@ apiRouter.put("/pedagogy/record-of-work/:id", (req: AuthenticatedRequest, res: R
   savePersistentRecordsOfWork(DB.record_of_work);
   res.json({ success: true, record });
 });
+
+// ─── ACADEMIC GOVERNANCE & HOD/ADMIN AUTHORITY HANDLERS ───────────────────
+
+async function handleCreateStaff(req: AuthenticatedRequest, res: Response) {
+  const caller = req.user;
+  if (!caller || (caller.role !== "admin" && caller.role !== "hod")) {
+    res.status(403).json({ error: "Forbidden: Only Admin and HOD can create staff accounts." });
+    return;
+  }
+
+  const full_name = typeof req.body?.name === "string" ? req.body.name.trim() : (typeof req.body?.full_name === "string" ? req.body.full_name.trim() : "");
+  const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+  const phone_number = typeof req.body?.phone === "string" ? req.body.phone.trim() : (typeof req.body?.phone_number === "string" ? req.body.phone_number.trim() : "");
+  let department_id = typeof req.body?.department_id === "string" ? req.body.department_id.trim() : "";
+  let role = typeof req.body?.role === "string" ? req.body.role.trim().toUpperCase() : "TRAINER";
+
+  if (!full_name || full_name.length > 120 || !email || email.length > 254) {
+    res.status(400).json({ error: "Enter a name and a valid email address." });
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    res.status(400).json({ error: "Enter a valid email address." });
+    return;
+  }
+
+  // HOD Scoping Guard
+  if (caller.role === "hod") {
+    if (role !== "TRAINER") {
+      res.status(403).json({ error: "Forbidden: HOD can only create Trainer staff accounts." });
+      return;
+    }
+    if (department_id && department_id !== caller.department_id) {
+      res.status(403).json({ error: "Forbidden: HOD cannot create staff accounts outside their assigned department." });
+      return;
+    }
+    department_id = caller.department_id || "dept-ci";
+  } else {
+    // Admin caller
+    if (role !== "TRAINER" && role !== "HOD") {
+      res.status(400).json({ error: "Staff accounts can only be created as Trainer or HOD." });
+      return;
+    }
+    if (!department_id) {
+      department_id = "dept-ci";
+    }
+  }
+
+  const depts = await loadDatabaseDepartments();
+  if (!depts.some((d) => d.id === department_id)) {
+    res.status(400).json({ error: "Select a valid department for this staff account." });
+    return;
+  }
+
+  try {
+    if (await findUserByEmail(email)) {
+      res.status(409).json({ error: "An account with this email already exists." });
+      return;
+    }
+
+    const temporaryPassword = randomBytes(18).toString("base64url");
+    const password_hash = await bcrypt.hash(temporaryPassword, 12);
+    const created = await createStaffAccount({
+      full_name,
+      email,
+      phone_number: phone_number || null,
+      department_id,
+      password_hash,
+      role: role as "TRAINER" | "HOD",
+    });
+
+    if (!pool) {
+      const profile = DB.trainers.find((trainer) => trainer.id === created.profile_id);
+      if (!profile) {
+        DB.trainers.push({ id: created.profile_id!, name: full_name, email, assigned_units: [] });
+      }
+      if (role === "HOD") {
+        const department = DB.departments.find((item) => item.id === department_id);
+        if (department) department.hod_id = created.profile_id!;
+      }
+    }
+
+    res.setHeader("Cache-Control", "no-store");
+    res.status(201).json({
+      success: true,
+      user: {
+        id: created.id,
+        name: created.full_name,
+        email: created.email,
+        role: created.role.toLowerCase(),
+        department_id: created.department_id,
+        profile_id: created.profile_id,
+        must_change_password: created.must_change_password === true,
+      },
+      temporaryPassword,
+    });
+  } catch (error: any) {
+    if (error instanceof DatabaseUnavailableError) {
+      res.status(503).json({ error: "Staff account service is temporarily unavailable." });
+      return;
+    }
+    if (error?.code === "DEPARTMENT_NOT_FOUND") {
+      res.status(400).json({ error: "Select a valid department for this staff account." });
+      return;
+    }
+    if (error?.code === "23505") {
+      res.status(409).json({ error: "An account with this email already exists." });
+      return;
+    }
+    console.error("[Staff account creation error]:", error);
+    res.status(500).json({ error: "Could not create the staff account. Please try again." });
+  }
+}
+
+async function handleCreateTrainee(req: AuthenticatedRequest, res: Response) {
+  const caller = req.user;
+  if (!caller || (caller.role !== "admin" && caller.role !== "hod")) {
+    res.status(403).json({ error: "Forbidden: Only Admin and HOD can create trainee accounts." });
+    return;
+  }
+
+  const full_name = typeof req.body?.name === "string" ? req.body.name.trim() : (typeof req.body?.full_name === "string" ? req.body.full_name.trim() : "");
+  const admission_number = typeof req.body?.adm_no === "string" ? req.body.adm_no.trim() : (typeof req.body?.admission_number === "string" ? req.body.admission_number.trim() : (typeof req.body?.reg_number === "string" ? req.body.reg_number.trim() : ""));
+  const class_code = typeof req.body?.class_code === "string" ? req.body.class_code.trim() : (typeof req.body?.class_id === "string" ? req.body.class_id.trim() : (typeof req.body?.cohort === "string" ? req.body.cohort.trim() : ""));
+  let department_id = typeof req.body?.department_id === "string" ? req.body.department_id.trim() : "";
+  const phone_number = typeof req.body?.phone === "string" ? req.body.phone.trim() : (typeof req.body?.phone_number === "string" ? req.body.phone_number.trim() : "");
+  const explicitPassword = typeof req.body?.password === "string" ? req.body.password : (typeof req.body?.temporary_password === "string" ? req.body.temporary_password : "");
+
+  if (!full_name || !admission_number || !class_code) {
+    res.status(400).json({ error: "Validation Error: Full name, admission number, and cohort class code are required." });
+    return;
+  }
+
+  // HOD Scoping Guard
+  if (caller.role === "hod") {
+    if (department_id && department_id !== caller.department_id) {
+      res.status(403).json({ error: "Forbidden: HOD cannot create trainees outside their assigned department." });
+      return;
+    }
+    department_id = caller.department_id || "dept-ci";
+  } else {
+    // Admin caller
+    if (!department_id) {
+      department_id = "dept-ci";
+    }
+  }
+
+  try {
+    const existing = await findUserByAdmissionNumber(admission_number);
+    if (existing) {
+      res.status(409).json({ error: `An account with admission number '${admission_number}' already exists.` });
+      return;
+    }
+
+    const temporaryPassword = explicitPassword || randomBytes(9).toString("base64url");
+    const password_hash = await bcrypt.hash(temporaryPassword, 12);
+
+    const { user, trainee } = await createTraineeAccount({
+      full_name,
+      admission_number,
+      class_code,
+      department_id,
+      phone_number: phone_number || null,
+      password_hash,
+    });
+
+    // In-memory sync to DB.trainees
+    const existingMemIdx = DB.trainees.findIndex(t => t.id === trainee.id || t.reg_number === admission_number);
+    const memItem = {
+      id: trainee.id,
+      name: trainee.name,
+      reg_number: trainee.reg_number,
+      class_id: trainee.class_id || class_code,
+      enrolled_units: ["061155101A", "ICT/CU/IT/CR/6/6"],
+    };
+    if (existingMemIdx >= 0) {
+      DB.trainees[existingMemIdx] = memItem;
+    } else {
+      DB.trainees.push(memItem);
+    }
+
+    res.setHeader("Cache-Control", "no-store");
+    res.status(201).json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.full_name,
+        admission_number: user.admission_number,
+        email: user.email,
+        role: "trainee",
+        department_id: user.department_id,
+        profile_id: user.profile_id,
+        must_change_password: user.must_change_password === true,
+      },
+      trainee,
+      temporaryPassword,
+    });
+  } catch (error: any) {
+    if (error?.code === "23505") {
+      res.status(409).json({ error: `An account with admission number '${admission_number}' already exists.` });
+      return;
+    }
+    console.error("[Trainee creation error]:", error);
+    res.status(500).json({ error: "Could not provision trainee account. Please try again." });
+  }
+}
+
+async function handleCreateCohort(req: AuthenticatedRequest, res: Response) {
+  const caller = req.user;
+  if (!caller || (caller.role !== "admin" && caller.role !== "hod")) {
+    res.status(403).json({ error: "Forbidden: Only Admin and HOD can create cohorts." });
+    return;
+  }
+
+  const code = typeof req.body?.code === "string" ? req.body.code.trim() : "";
+  const name = typeof req.body?.name === "string" ? req.body.name.trim() : code;
+  let department_id = typeof req.body?.department_id === "string" ? req.body.department_id.trim() : "";
+  const level = typeof req.body?.level === "string" ? req.body.level.trim() : "Level 6";
+  const term = typeof req.body?.term === "string" ? req.body.term.trim() : "Term 3 2026";
+
+  if (!code) {
+    res.status(400).json({ error: "Validation Error: Cohort code is required." });
+    return;
+  }
+
+  // HOD Scoping Guard
+  if (caller.role === "hod") {
+    if (department_id && department_id !== caller.department_id) {
+      res.status(403).json({ error: "Forbidden: HOD cannot create cohorts outside their assigned department." });
+      return;
+    }
+    department_id = caller.department_id || "dept-ci";
+  } else {
+    if (!department_id) department_id = "dept-ci";
+  }
+
+  try {
+    const cohort = await createCohort({
+      code,
+      name,
+      department_id,
+      level,
+      term,
+    });
+    res.status(201).json({ success: true, cohort });
+  } catch (error: any) {
+    if (error?.code === "COHORT_EXISTS") {
+      res.status(409).json({ error: error.message });
+      return;
+    }
+    console.error("[Cohort creation error]:", error);
+    res.status(500).json({ error: "Could not create cohort. Please try again." });
+  }
+}
+
+async function handleListCohorts(req: AuthenticatedRequest, res: Response) {
+  const caller = req.user;
+  if (!caller || (caller.role !== "admin" && caller.role !== "hod")) {
+    res.status(403).json({ error: "Forbidden: Only Admin and HOD can list cohorts." });
+    return;
+  }
+
+  const deptFilter = caller.role === "hod"
+    ? caller.department_id
+    : (typeof req.query.department_id === "string" ? req.query.department_id : undefined);
+
+  const cohorts = await listCohorts(deptFilter);
+  res.json({ success: true, cohorts });
+}
+
+async function handleAssignUnit(req: AuthenticatedRequest, res: Response) {
+  const caller = req.user;
+  if (!caller || (caller.role !== "admin" && caller.role !== "hod")) {
+    res.status(403).json({ error: "Forbidden: Only Admin and HOD can assign units of competence." });
+    return;
+  }
+
+  const trainer_id = typeof req.body?.trainer_id === "string" ? req.body.trainer_id.trim() : "";
+  const unit_code = typeof req.body?.unit_code === "string" ? req.body.unit_code.trim() : "";
+  const unit_name = typeof req.body?.unit_name === "string" ? req.body.unit_name.trim() : (typeof req.body?.unit_title === "string" ? req.body.unit_title.trim() : unit_code);
+  const class_id = typeof req.body?.class_id === "string" ? req.body.class_id.trim() : (typeof req.body?.class_code === "string" ? req.body.class_code.trim() : (typeof req.body?.cohort === "string" ? req.body.cohort.trim() : ""));
+  let department_id = typeof req.body?.department_id === "string" ? req.body.department_id.trim() : "";
+  const term_id = typeof req.body?.term_id === "string" ? req.body.term_id.trim() : "term-2026";
+
+  if (!trainer_id || !unit_code || !class_id) {
+    res.status(400).json({ error: "Validation Error: Trainer ID, Unit code, and Cohort/Class ID are required." });
+    return;
+  }
+
+  // HOD Scoping Guard
+  if (caller.role === "hod") {
+    if (department_id && department_id !== caller.department_id) {
+      res.status(403).json({ error: "Forbidden: HOD can only assign units within their assigned department." });
+      return;
+    }
+    department_id = caller.department_id || "dept-ci";
+
+    // Validate that trainer belongs to HOD's department
+    const users = loadPersistentUsers();
+    const trainerUser = users.find(u => u.profile_id === trainer_id || u.id === trainer_id);
+    const trainerProfile = (await loadDatabaseTrainers()).find(t => t.id === trainer_id);
+    const trainerDept = trainerUser?.department_id || (trainerProfile?.department && DB.departments.find(d => d.name.toLowerCase() === trainerProfile.department?.toLowerCase())?.id);
+    if (trainerDept && trainerDept !== caller.department_id) {
+      res.status(403).json({ error: "Forbidden: HOD can only assign units to faculty within their assigned department." });
+      return;
+    }
+  } else {
+    if (!department_id) department_id = "dept-ci";
+  }
+
+  // Check if offering already exists
+  const existingOffering = DB.unit_offerings.find(
+    uo => uo.class_id === class_id && uo.unit_code === unit_code && uo.trainer_id === trainer_id
+  );
+  if (existingOffering) {
+    res.json({ success: true, unit_offering: existingOffering, message: "Unit already assigned" });
+    return;
+  }
+
+  const offeringId = req.body?.id || `uo-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+  const newOffering = {
+    id: offeringId,
+    term_id,
+    class_id,
+    unit_code,
+    unit_id: unit_name || unit_code,
+    trainer_id,
+    department_id,
+  };
+
+  DB.unit_offerings.push(newOffering);
+
+  // Update trainer's assigned_units
+  const trainer = DB.trainers.find(t => t.id === trainer_id);
+  if (trainer) {
+    if (!trainer.assigned_units) trainer.assigned_units = [];
+    if (!trainer.assigned_units.includes(unit_code)) {
+      trainer.assigned_units.push(unit_code);
+    }
+  }
+
+  if (pool) {
+    try {
+      await pool.query(
+        `INSERT INTO Unit_Offerings (id, term_id, class_id, unit_code, trainer_id, department_id)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT DO NOTHING`,
+        [offeringId, term_id, class_id, unit_code, trainer_id, department_id]
+      );
+    } catch (e: any) {
+      console.warn("⚠️ [PostgreSQL Unit_Offerings Warning]:", e.message);
+    }
+  }
+
+  res.status(201).json({ success: true, unit_offering: newOffering });
+}
+
+async function handleListOfferings(req: AuthenticatedRequest, res: Response) {
+  const caller = req.user;
+  if (!caller) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
+  let offerings = [...DB.unit_offerings];
+
+  if (caller.role === "trainer") {
+    offerings = offerings.filter(uo => uo.trainer_id === caller.profile_id);
+  } else if (caller.role === "hod") {
+    offerings = offerings.filter(uo => uo.department_id === caller.department_id);
+  } else if (caller.role === "admin") {
+    if (req.query.department_id) {
+      offerings = offerings.filter(uo => uo.department_id === req.query.department_id);
+    }
+    if (req.query.trainer_id) {
+      offerings = offerings.filter(uo => uo.trainer_id === req.query.trainer_id);
+    }
+  }
+
+  res.json({ success: true, offerings });
+}
+
+async function handleDeleteOffering(req: AuthenticatedRequest, res: Response) {
+  const caller = req.user;
+  if (!caller || (caller.role !== "admin" && caller.role !== "hod")) {
+    res.status(403).json({ error: "Forbidden: Only Admin and HOD can revoke unit assignments." });
+    return;
+  }
+
+  const { id } = req.params;
+  const index = DB.unit_offerings.findIndex(uo => uo.id === id);
+  if (index === -1) {
+    res.status(404).json({ error: "Unit offering not found" });
+    return;
+  }
+
+  const offering = DB.unit_offerings[index];
+  if (caller.role === "hod" && offering.department_id !== caller.department_id) {
+    res.status(403).json({ error: "Forbidden: HOD cannot revoke unit assignments outside their department." });
+    return;
+  }
+
+  DB.unit_offerings.splice(index, 1);
+  res.json({ success: true, message: "Unit assignment revoked successfully" });
+}
+
+async function handleListStaff(req: AuthenticatedRequest, res: Response) {
+  const caller = req.user;
+  if (!caller || (caller.role !== "admin" && caller.role !== "hod")) {
+    res.status(403).json({ error: "Forbidden: Only Admin and HOD can view staff directory." });
+    return;
+  }
+
+  const users = loadPersistentUsers();
+  const dbTrainers = await loadDatabaseTrainers();
+
+  let staffList = dbTrainers.map(t => {
+    const user = users.find(u => u.profile_id === t.id || (u.email && u.email.toLowerCase() === t.email?.toLowerCase()));
+    const deptObj = DB.departments.find(d => d.name.toLowerCase() === t.department?.toLowerCase() || d.id === user?.department_id);
+    return {
+      id: t.id,
+      userId: user?.id,
+      name: t.name,
+      email: t.email || user?.email,
+      department: t.department || deptObj?.name || "Computing & Informatics",
+      department_id: user?.department_id || deptObj?.id || "dept-ci",
+      role: user?.role ? user.role.toLowerCase() : "trainer",
+      assigned_units: t.assigned_units || [],
+    };
+  });
+
+  if (caller.role === "hod") {
+    staffList = staffList.filter(s => s.department_id === caller.department_id);
+  } else if (req.query.department_id) {
+    staffList = staffList.filter(s => s.department_id === req.query.department_id);
+  }
+
+  res.json({ success: true, staff: staffList });
+}
+
+async function handleResetUserPassword(req: AuthenticatedRequest, res: Response) {
+  const caller = req.user;
+  if (!caller || (caller.role !== "admin" && caller.role !== "hod")) {
+    res.status(403).json({ error: "Forbidden: Only Admin and HOD can reset user credentials." });
+    return;
+  }
+
+  const { id } = req.params;
+  const users = loadPersistentUsers();
+  const targetUser = users.find(u => u.id === id || u.admission_number === id || u.profile_id === id);
+
+  if (!targetUser) {
+    res.status(404).json({ error: "User account not found." });
+    return;
+  }
+
+  // HOD Scoping Guard
+  if (caller.role === "hod") {
+    if (targetUser.department_id !== caller.department_id) {
+      res.status(403).json({ error: "Forbidden: HOD can only reset credentials for users within their assigned department." });
+      return;
+    }
+    const targetRole = String(targetUser.role || "").toUpperCase();
+    if (targetRole === "ADMIN" || targetRole === "HOD") {
+      res.status(403).json({ error: "Forbidden: HOD cannot reset credentials for administrative heads or peer HODs." });
+      return;
+    }
+  }
+
+  try {
+    const temporaryPassword = randomBytes(12).toString("base64url");
+    const passwordHash = await bcrypt.hash(temporaryPassword, 12);
+    await resetUserPassword(targetUser.id, passwordHash);
+
+    res.setHeader("Cache-Control", "no-store");
+    res.json({
+      success: true,
+      message: `Password reset successfully for ${targetUser.full_name}`,
+      temporaryPassword,
+    });
+  } catch (error: any) {
+    console.error("[Administrative reset-password error]:", error);
+    res.status(500).json({ error: "Could not reset password. Please try again." });
+  }
+}
+
+// ─── ROUTE REGISTRATIONS: HOD & ACADEMIC GOVERNANCE ────────────────────────
+apiRouter.post("/hod/staff", requireRoles("admin", "hod"), handleCreateStaff);
+apiRouter.post("/hod/trainees", requireRoles("admin", "hod"), handleCreateTrainee);
+apiRouter.post("/hod/cohorts", requireRoles("admin", "hod"), handleCreateCohort);
+apiRouter.get("/hod/cohorts", requireRoles("admin", "hod"), handleListCohorts);
+apiRouter.post("/hod/assign-unit", requireRoles("admin", "hod"), handleAssignUnit);
+
+apiRouter.post("/academic/staff", requireRoles("admin", "hod"), handleCreateStaff);
+apiRouter.get("/academic/staff", requireRoles("admin", "hod"), handleListStaff);
+apiRouter.post("/academic/trainees", requireRoles("admin", "hod"), handleCreateTrainee);
+apiRouter.post("/academic/cohorts", requireRoles("admin", "hod"), handleCreateCohort);
+apiRouter.get("/academic/cohorts", requireRoles("admin", "hod"), handleListCohorts);
+apiRouter.post("/academic/assign-unit", requireRoles("admin", "hod"), handleAssignUnit);
+apiRouter.get("/academic/offerings", requireRoles("admin", "hod", "trainer"), handleListOfferings);
+apiRouter.delete("/academic/assign-unit/:id", requireRoles("admin", "hod"), handleDeleteOffering);
+apiRouter.post("/academic/users/:id/reset-password", requireRoles("admin", "hod"), handleResetUserPassword);
 
 // ─── CENTRALIZED PHYSICAL DATABASE & PERSISTENCE DOCUMENT ENDPOINTS ─────────
 

@@ -28,6 +28,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import HODLayout from "@/components/HODLayout";
+import { AcademicGovernanceManager } from "@/components/AcademicGovernanceManager";
 import { useExam } from "@/contexts/ExamContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -498,6 +499,9 @@ export default function HODDashboard() {
             </button>
           ))}
         </div>
+
+        {/* Academic Governance & Department Authority */}
+        <AcademicGovernanceManager />
 
         {/* Departmental Compliance Matrix */}
         <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
