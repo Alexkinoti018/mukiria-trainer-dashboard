@@ -6,9 +6,9 @@
   "termStartDate": "2026-08-31",
   "termEndDate": "2026-11-13",
   "termTotalWeeks": 10,
-  "currentReferenceDate": "2026-10-07",
-  "currentDay": "Monday",
-  "currentWeek": 6,
+  "currentReferenceDate": "2026-11-10",
+  "currentDay": "Tuesday",
+  "currentWeek": 10,
   "periods": [
     {
       "period": 1,

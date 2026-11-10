@@ -51,10 +51,10 @@ export const TERM_CONFIG = {
   termStartDate: new Date(2026, 7, 31),  // 31 August 2026 (Month is 0-indexed: 7 is August)
   termEndDate: new Date(2026, 10, 13),  // 13 November 2026 (Month 10 is November)
   totalWeeks: 10,
-  referenceDate: "2026-10-07",          // Fixed reference anchor for system synchronization
-  referenceDay: "Monday",
-  referenceFormattedDate: "Monday, 07 October 2026",
-  referenceShortDate: "07/10/2026",
+  referenceDate: "2026-11-10",          // Current calendar date: Tuesday, 10 November 2026 (Week 10 of 10)
+  referenceDay: "Tuesday",
+  referenceFormattedDate: "Tuesday, 10 November 2026",
+  referenceShortDate: "10/11/2026",
   termDuration: "31 Aug 2026 – 13 Nov 2026",
 };
 
@@ -71,7 +71,7 @@ export const MTTI_PERIODS: PeriodSlot[] = [
 /**
  * Calculates current Academic Week relative to Term 3 start date (31 August 2026)
  */
-export function calculateAcademicWeek(currentDate: Date = new Date(2026, 9, 7)): number {
+export function calculateAcademicWeek(currentDate: Date = new Date()): number {
   const diffTime = currentDate.getTime() - TERM_CONFIG.termStartDate.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   if (diffDays < 0) return 1;
@@ -122,31 +122,20 @@ export function getAcademicContext(customDate?: Date): AcademicContext {
   const hours12 = hours % 12 || 12;
   const timeFormatted = `${hours12}:${mins} ${ampm}`;
 
-  const isCustom = Boolean(customDate);
-  const targetDate = isCustom 
-    ? customDate! 
-    : new Date(2026, 9, 7, hours, now.getMinutes(), now.getSeconds());
+  const targetDate = customDate || new Date();
 
-  const dayName = isCustom
-    ? ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][targetDate.getDay()]
-    : TERM_CONFIG.referenceDay;
+  const dayName = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][targetDate.getDay()];
 
-  const formattedDate = isCustom
-    ? targetDate.toLocaleDateString("en-GB", {
-        weekday: "long",
-        day: "2-digit",
-        month: "long",
-        year: "numeric"
-      })
-    : TERM_CONFIG.referenceFormattedDate;
+  const formattedDate = targetDate.toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  });
 
-  const shortDate = isCustom
-    ? `${String(targetDate.getDate()).padStart(2, "0")}/${String(targetDate.getMonth() + 1).padStart(2, "0")}/${targetDate.getFullYear()}`
-    : TERM_CONFIG.referenceShortDate;
+  const shortDate = `${String(targetDate.getDate()).padStart(2, "0")}/${String(targetDate.getMonth() + 1).padStart(2, "0")}/${targetDate.getFullYear()}`;
 
-  const dateIso = isCustom
-    ? `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, "0")}-${String(targetDate.getDate()).padStart(2, "0")}`
-    : TERM_CONFIG.referenceDate;
+  const dateIso = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, "0")}-${String(targetDate.getDate()).padStart(2, "0")}`;
 
   const currentWeek = calculateAcademicWeek(targetDate);
   const activeSlot = getActivePeriodSlot(time24);
