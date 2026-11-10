@@ -4,7 +4,7 @@
  * Features: Faculty preparation ledger, RoW sign-off workflow, curriculum coverage tracking
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import HODLayout from "@/components/HODLayout";
 import { toast } from "sonner";
+import { getAllTimetableFaculty } from "@/lib/timetableSyncService";
 
 interface TrainerComplianceRecord {
   id: string;
@@ -46,104 +47,35 @@ interface TrainerComplianceRecord {
   overallScore: number;
 }
 
-const INITIAL_TRAINERS: TrainerComplianceRecord[] = [
-  {
-    id: "tr-1",
-    name: "Alexander Kinoti",
-    staffId: "MTTI/EMP/042",
-    department: "Computing & Informatics",
-    unitCode: "061155101A",
-    unitTitle: "Apply Digital Literacy (CT1-3)",
-    learningPlanStatus: "Approved",
-    sessionPlansCount: 12,
-    sessionPlansTotal: 12,
-    qrCodesActive: true,
-    classRegisterUpdated: true,
-    rowStatus: "Ready for Sign-off",
-    assessmentGradedRate: 100,
-    overallScore: 98,
-  },
-  {
-    id: "tr-2",
-    name: "Alexander Kinoti",
-    staffId: "MTTI/EMP/042",
-    department: "Computing & Informatics",
-    unitCode: "0415 451 21A",
-    unitTitle: "Apply Digital Literacy (Level 4)",
-    learningPlanStatus: "Approved",
-    sessionPlansCount: 12,
-    sessionPlansTotal: 12,
-    qrCodesActive: true,
-    classRegisterUpdated: true,
-    rowStatus: "Ready for Sign-off",
-    assessmentGradedRate: 95,
-    overallScore: 96,
-  },
-  {
-    id: "tr-3",
-    name: "Mary Wambui",
-    staffId: "MTTI/EMP/033",
-    department: "Computing & Informatics",
-    unitCode: "ICT/OS/CS/CR/04/6",
-    unitTitle: "Database Management Systems",
-    learningPlanStatus: "Approved",
-    sessionPlansCount: 11,
-    sessionPlansTotal: 12,
-    qrCodesActive: true,
-    classRegisterUpdated: true,
-    rowStatus: "Signed & Verified",
-    assessmentGradedRate: 100,
-    overallScore: 96,
-  },
-  {
-    id: "tr-4",
-    name: "Peter Ochieng",
-    staffId: "MTTI/EMP/055",
-    department: "Electrical & Electronics",
-    unitCode: "EE/OS/PE/CR/01/6",
-    unitTitle: "Electrical Circuit Analysis",
-    learningPlanStatus: "Approved",
-    sessionPlansCount: 9,
-    sessionPlansTotal: 12,
-    qrCodesActive: false,
-    classRegisterUpdated: false,
-    rowStatus: "Ready for Sign-off",
-    assessmentGradedRate: 85,
-    overallScore: 82,
-  },
-  {
-    id: "tr-5",
-    name: "Sarah Chebet",
-    staffId: "MTTI/EMP/061",
-    department: "Business & Management",
-    unitCode: "BM/OS/HR/CR/02/5",
-    unitTitle: "Workplace Communication & Ethics",
-    learningPlanStatus: "Approved",
-    sessionPlansCount: 12,
-    sessionPlansTotal: 12,
-    qrCodesActive: true,
-    classRegisterUpdated: true,
-    rowStatus: "Signed & Verified",
-    assessmentGradedRate: 100,
-    overallScore: 99,
-  },
-  {
-    id: "tr-6",
-    name: "David Kiprono",
-    staffId: "MTTI/EMP/074",
-    department: "Mechanical & Automotive",
-    unitCode: "ME/OS/WS/CR/03/5",
-    unitTitle: "Engineering Drawing & CAD",
-    learningPlanStatus: "Under Review",
-    sessionPlansCount: 8,
-    sessionPlansTotal: 12,
-    qrCodesActive: false,
-    classRegisterUpdated: true,
-    rowStatus: "Incomplete",
-    assessmentGradedRate: 70,
-    overallScore: 74,
-  },
-];
+const buildInitialComplianceTrainers = (): TrainerComplianceRecord[] => {
+  const faculty = getAllTimetableFaculty();
+  return faculty.map((f, idx) => {
+    const primaryUnit = f.units && f.units.length > 0 ? f.units[0] : "General Competency";
+    const primaryClass = f.classes && f.classes.length > 0 ? f.classes[0] : "Cohort 1";
+    const unitCode = `CU/${(primaryClass.split("/")[0] || "MTTI").trim().replace(/[^a-zA-Z0-9]/g, "")}/01`;
+    const isApproved = idx % 5 !== 0;
+    const isReady = idx % 3 !== 0;
+
+    return {
+      id: `tr-${f.id || idx + 1}`,
+      name: f.name,
+      staffId: `MTTI/EMP/${String(idx + 101).padStart(3, "0")}`,
+      department: f.department || "Institutional Academics",
+      unitCode: unitCode,
+      unitTitle: primaryUnit,
+      learningPlanStatus: isApproved ? ("Approved" as const) : ("Under Review" as const),
+      sessionPlansCount: isApproved ? 12 : 9,
+      sessionPlansTotal: 12,
+      qrCodesActive: idx % 4 !== 0,
+      classRegisterUpdated: idx % 6 !== 0,
+      rowStatus: isReady ? ("Ready for Sign-off" as const) : ("Signed & Verified" as const),
+      assessmentGradedRate: Math.max(75, 100 - (idx % 20)),
+      overallScore: Math.min(100, Math.max(80, 95 - (idx % 12) + (isApproved ? 3 : 0))),
+    };
+  });
+};
+
+const INITIAL_TRAINERS: TrainerComplianceRecord[] = buildInitialComplianceTrainers();
 
 export default function HODCompliance() {
   const [, navigate] = useLocation();
@@ -152,7 +84,13 @@ export default function HODCompliance() {
       const saved = localStorage.getItem("mtti_hod_compliance_trainers");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (
+          Array.isArray(parsed) &&
+          parsed.length > 0 &&
+          !parsed.some((t: any) => t.name === "Mary Wambui" || t.name === "Peter Ochieng" || t.name === "Sarah Chebet" || t.name === "David Kiprono")
+        ) {
+          return parsed;
+        }
       }
     } catch (e) {}
     return INITIAL_TRAINERS;
@@ -160,6 +98,14 @@ export default function HODCompliance() {
   const [searchQuery, setSearchQuery] = useState("");
   const [deptFilter, setDeptFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  const availableDepartments = useMemo(() => {
+    const depts = new Set<string>();
+    trainers.forEach((t) => {
+      if (t.department) depts.add(t.department);
+    });
+    return Array.from(depts).sort();
+  }, [trainers]);
 
   // Dynamic Add / Edit Trainer Modal State
   const [showAddTrainerModal, setShowAddTrainerModal] = useState(false);
@@ -327,10 +273,11 @@ export default function HODCompliance() {
               className="text-xs bg-muted/60 border border-border rounded-xl px-3 py-2 text-foreground font-medium outline-none"
             >
               <option value="all">All Departments</option>
-              <option value="Computing & Informatics">Computing & Informatics</option>
-              <option value="Electrical & Electronics">Electrical & Electronics</option>
-              <option value="Business & Management">Business & Management</option>
-              <option value="Mechanical & Automotive">Mechanical & Automotive</option>
+              {availableDepartments.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
             </select>
 
             <select
@@ -564,12 +511,11 @@ export default function HODCompliance() {
                       onChange={(e) => setTrainerForm({ ...trainerForm, department: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-foreground font-medium outline-none focus:ring-1 focus:ring-primary"
                     >
-                      <option value="Computing & Informatics">Computing & Informatics</option>
-                      <option value="Electrical & Electronics">Electrical & Electronics</option>
-                      <option value="Business & Management">Business & Management</option>
-                      <option value="Mechanical & Automotive">Mechanical & Automotive</option>
-                      <option value="Building & Civil Engineering">Building & Civil Engineering</option>
-                      <option value="Hospitality Management">Hospitality Management</option>
+                      {availableDepartments.map((dept) => (
+                        <option key={dept} value={dept}>
+                          {dept}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>

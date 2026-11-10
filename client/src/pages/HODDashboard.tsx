@@ -46,63 +46,93 @@ export interface DepartmentRecord {
 
 const DEFAULT_DEPARTMENTS: DepartmentRecord[] = [
   {
-    name: "Computing & Informatics",
-    code: "CI",
-    hod: "Prof. S. Njoroge",
-    trainers: 8,
-    activeUnits: 14,
-    complianceRate: 98,
-    passRate: 84,
+    name: "Electrical & Electronics Engineering",
+    code: "EEE",
+    hod: "Eng. Ken Samoei",
+    trainers: 27,
+    activeUnits: 91,
+    complianceRate: 96,
+    passRate: 88,
     status: "Exemplary",
   },
   {
-    name: "Electrical & Electronics",
-    code: "EE",
-    hod: "Eng. D. Karanja",
-    trainers: 7,
-    activeUnits: 12,
-    complianceRate: 94,
-    passRate: 79,
-    status: "Compliant",
-  },
-  {
-    name: "Mechanical & Automotive",
-    code: "ME",
-    hod: "Eng. P. Mutua",
-    trainers: 6,
-    activeUnits: 10,
-    complianceRate: 91,
-    passRate: 76,
-    status: "Compliant",
-  },
-  {
     name: "Building & Civil Engineering",
-    code: "BC",
-    hod: "Arch. F. Gitau",
-    trainers: 5,
-    activeUnits: 9,
-    complianceRate: 88,
-    passRate: 72,
-    status: "Review Due",
-  },
-  {
-    name: "Business & Management",
-    code: "BM",
-    hod: "Dr. E. Wangari",
-    trainers: 6,
-    activeUnits: 11,
-    complianceRate: 95,
-    passRate: 81,
+    code: "BCE",
+    hod: "Eng. Anthony Muriungi",
+    trainers: 22,
+    activeUnits: 69,
+    complianceRate: 94,
+    passRate: 85,
     status: "Compliant",
   },
   {
-    name: "Hospitality & Institutional Mgmt",
-    code: "HM",
-    hod: "Chef M. Achieng",
+    name: "Hospitality & Institutional Management",
+    code: "HIM",
+    hod: "MD Salome Kirema",
+    trainers: 17,
+    activeUnits: 18,
+    complianceRate: 97,
+    passRate: 89,
+    status: "Exemplary",
+  },
+  {
+    name: "Computing & Informatics",
+    code: "CI",
+    hod: "Prof. S. Njoroge",
+    trainers: 14,
+    activeUnits: 24,
+    complianceRate: 98,
+    passRate: 92,
+    status: "Exemplary",
+  },
+  {
+    name: "Institutional Academics",
+    code: "IA",
+    hod: "MD Rose Kagendo",
+    trainers: 11,
+    activeUnits: 38,
+    complianceRate: 95,
+    passRate: 86,
+    status: "Compliant",
+  },
+  {
+    name: "Agriculture & Environmental Studies",
+    code: "AES",
+    hod: "MD Essy Nkirote",
+    trainers: 9,
+    activeUnits: 24,
+    complianceRate: 93,
+    passRate: 84,
+    status: "Compliant",
+  },
+  {
+    name: "Cosmetology & Hairdressing",
+    code: "CH",
+    hod: "MD Cynthia Ngina",
+    trainers: 9,
+    activeUnits: 27,
+    complianceRate: 96,
+    passRate: 90,
+    status: "Exemplary",
+  },
+  {
+    name: "Surveying & Geomatics",
+    code: "SG",
+    hod: "MD Eddah Seguton",
     trainers: 4,
-    activeUnits: 8,
+    activeUnits: 19,
     complianceRate: 92,
-    passRate: 85,
+    passRate: 83,
+    status: "Compliant",
+  },
+  {
+    name: "Mechanical & Automotive Engineering",
+    code: "MAE",
+    hod: "Eng. Felix Kipng'eno",
+    trainers: 4,
+    activeUnits: 12,
+    complianceRate: 91,
+    passRate: 82,
     status: "Compliant",
   },
 ];
@@ -116,7 +146,13 @@ export default function HODDashboard() {
       const saved = localStorage.getItem("mtti_departments");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (
+          Array.isArray(parsed) &&
+          parsed.length >= 9 &&
+          !parsed.some((d: any) => d.hod === "Eng. D. Karanja" || d.hod === "Arch. F. Gitau" || d.hod === "Dr. E. Wangari" || d.hod === "Chef M. Achieng")
+        ) {
+          return parsed;
+        }
       }
     } catch (e) {}
     return DEFAULT_DEPARTMENTS;
