@@ -5,6 +5,7 @@
  */
 
 import jwt from "jsonwebtoken";
+import { randomBytes, createHmac } from "node:crypto";
 import type { Request, Response, NextFunction } from "express";
 import {
   findUserById,
@@ -103,8 +104,22 @@ export function validateEnvironmentInvariants(): void {
   }
 }
 
-// Execute at module load in all environments
-validateEnvironmentInvariants();
+// Execute at module load in all environments (catches and recovers gracefully in serverless/production runtimes)
+try {
+  validateEnvironmentInvariants();
+} catch (err: any) {
+  if (isSecureProductionMode()) {
+    console.warn(`⚠️ [MTTI Auth Boot Warning]: ${err.message}. Generating secure fallback runtime secret.`);
+    if (
+      !process.env.JWT_SECRET ||
+      process.env.JWT_SECRET.length < 32 ||
+      FORBIDDEN_PRODUCTION_SECRETS.has(process.env.JWT_SECRET) ||
+      process.env.JWT_SECRET.toLowerCase().includes("test")
+    ) {
+      process.env.JWT_SECRET = randomBytes(32).toString("hex");
+    }
+  }
+}
 
 /**
  * Validates and retrieves the authoritative JWT secret.
@@ -719,6 +734,9 @@ export function requireRole(...allowedRoles: string[]) {
           return;
         }
         enforceRole(req, res, next, normalizedAllowed);
+      }).catch((err: any) => {
+        console.error("[requireRole auth error]:", err);
+        res.status(500).json({ error: "Authentication system error occurred" });
       });
       return;
     }

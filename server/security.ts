@@ -59,19 +59,16 @@ export const corsMiddleware = cors({
     return callback(null, true);
   },
   credentials: true,
-  allowedHeaders:
-    process.env.NODE_ENV === "production"
-      ? ["Content-Type", "Authorization"]
-      : [
-          "Content-Type",
-          "Authorization",
-          "x-user-role",
-          "x-user-id",
-          "x-user-reg",
-          "x-user-dept",
-          "x-user-enrolled-units",
-          "x-user-units",
-        ],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "x-user-role",
+    "x-user-id",
+    "x-user-reg",
+    "x-user-dept",
+    "x-user-enrolled-units",
+    "x-user-units",
+  ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
 });
 

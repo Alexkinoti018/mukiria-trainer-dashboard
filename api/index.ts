@@ -6,6 +6,14 @@ import {
   apiRateLimiter,
 } from "../server/security.ts";
 
+// Guard against unhandled process crashes in serverless environment
+process.on("unhandledRejection", (reason) => {
+  console.error("[API Serverless Unhandled Rejection]:", reason);
+});
+process.on("uncaughtException", (error) => {
+  console.error("[API Serverless Uncaught Exception]:", error);
+});
+
 const app = express();
 
 // Apply Enterprise Security Layer
@@ -19,7 +27,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // Normalize request URL if rewritten by Vercel serverless layer
 app.use((req, res, next) => {
   const matchedPath = (req.headers["x-matched-path"] || req.headers["x-now-route-matches"]) as string;
-  if (matchedPath && req.url.includes("index.ts")) {
+  if (matchedPath && (req.url.includes("index.ts") || req.url === "/" || req.url === "/api")) {
     const qIdx = req.url.indexOf("?");
     const query = qIdx >= 0 ? req.url.slice(qIdx) : "";
     req.url = matchedPath + query;

@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { safeParseJson } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -170,16 +171,16 @@ export function AcademicGovernanceManager() {
       ]);
 
       if (staffRes.ok) {
-        const sData = await staffRes.json();
-        setStaffList(sData.staff || []);
+        const parsedStaff = await safeParseJson(staffRes);
+        if (parsedStaff.data?.staff) setStaffList(parsedStaff.data.staff);
       }
       if (cohortsRes.ok) {
-        const cData = await cohortsRes.json();
-        setCohortList(cData.cohorts || []);
+        const parsedCohorts = await safeParseJson(cohortsRes);
+        if (parsedCohorts.data?.cohorts) setCohortList(parsedCohorts.data.cohorts);
       }
       if (offeringsRes.ok) {
-        const oData = await offeringsRes.json();
-        setOfferingsList(oData.offerings || []);
+        const parsedOfferings = await safeParseJson(offeringsRes);
+        if (parsedOfferings.data?.offerings) setOfferingsList(parsedOfferings.data.offerings);
       }
     } catch (err) {
       console.error("Governance fetch error:", err);
@@ -212,8 +213,9 @@ export function AcademicGovernanceManager() {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create staff account");
+      const parsed = await safeParseJson(res, "Failed to create staff account");
+      if (!parsed.ok || !parsed.data) throw new Error(parsed.error || "Failed to create staff account");
+      const data = parsed.data;
 
       const deptName =
         INSTITUTIONAL_DEPARTMENTS.find((d) => d.id === targetDept)?.name || targetDept;
@@ -261,8 +263,9 @@ export function AcademicGovernanceManager() {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to provision trainee account");
+      const parsed = await safeParseJson(res, "Failed to provision trainee account");
+      if (!parsed.ok || !parsed.data) throw new Error(parsed.error || "Failed to provision trainee account");
+      const data = parsed.data;
 
       const deptName =
         INSTITUTIONAL_DEPARTMENTS.find((d) => d.id === targetDept)?.name || targetDept;
@@ -311,8 +314,9 @@ export function AcademicGovernanceManager() {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create cohort");
+      const parsed = await safeParseJson(res, "Failed to create cohort");
+      if (!parsed.ok || !parsed.data) throw new Error(parsed.error || "Failed to create cohort");
+      const data = parsed.data;
 
       toast.success("Cohort Created", {
         description: `Cohort ${data.cohort.code} added to academic registry`,
@@ -346,8 +350,9 @@ export function AcademicGovernanceManager() {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to assign unit of competence");
+      const parsed = await safeParseJson(res, "Failed to assign unit of competence");
+      if (!parsed.ok || !parsed.data) throw new Error(parsed.error || "Failed to assign unit of competence");
+      const data = parsed.data;
 
       toast.success("Unit of Competence Assigned", {
         description: `${allocUnitCode} assigned to trainer for ${allocCohort}`,
@@ -369,8 +374,8 @@ export function AcademicGovernanceManager() {
       const res = await fetch(`/api/academic/assign-unit/${offeringId}`, {
         method: "DELETE",
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to revoke assignment");
+      const parsed = await safeParseJson(res, "Failed to revoke assignment");
+      if (!parsed.ok) throw new Error(parsed.error || "Failed to revoke assignment");
 
       toast.success("Assignment Revoked", {
         description: "The unit allocation has been removed from active teaching schedule.",
@@ -389,8 +394,9 @@ export function AcademicGovernanceManager() {
       const res = await fetch(`/api/academic/users/${resetModalUser.id}/reset-password`, {
         method: "POST",
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to reset password");
+      const parsed = await safeParseJson(res, "Failed to reset password");
+      if (!parsed.ok || !parsed.data) throw new Error(parsed.error || "Failed to reset password");
+      const data = parsed.data;
 
       setCreatedAccount({
         type: "staff",
@@ -406,7 +412,7 @@ export function AcademicGovernanceManager() {
       });
       setResetModalUser(null);
     } catch (err: any) {
-      toast.error("Password Reset Failed", { description: err.message });
+      toast.error("Reset Failed", { description: err.message });
     } finally {
       setIsResetting(false);
     }

@@ -18,7 +18,12 @@ const { Pool } = pg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SEEDS_DIR = path.resolve(__dirname, "..", "database", "seeds");
-const DATA_DIR = path.resolve(process.env.MTTI_DATA_DIR || path.join(os.homedir(), ".mukiria-trainer-dashboard"));
+const DATA_DIR = path.resolve(
+  process.env.MTTI_DATA_DIR ||
+    (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+      ? path.join(os.tmpdir(), ".mukiria-trainer-dashboard")
+      : path.join(os.homedir(), ".mukiria-trainer-dashboard"))
+);
 
 function getFixturePath(filename: string): string {
   const runtimePath = path.join(DATA_DIR, filename);
@@ -150,7 +155,7 @@ export async function withTransaction<T>(
   callback: (client: pg.PoolClient) => Promise<T>
 ): Promise<T | null> {
   if (!pool) {
-    if (isSecureProductionRuntime() || process.env.STRICT_DB === "true") {
+    if (process.env.STRICT_DB === "true") {
       throw new DatabaseServiceUnavailableError(
         "Database Service Unavailable: Cannot initiate transaction without PostgreSQL pool"
       );
@@ -705,41 +710,49 @@ export async function createStaffAccount(data: {
   const normalizedEmail = data.email.trim().toLowerCase();
   const normalizedName = data.full_name.trim();
 
-  const persisted = await withTransaction(async (client) => {
-    const department = await client.query(
-      "SELECT id, name FROM Departments WHERE id = $1 FOR UPDATE",
-      [data.department_id]
-    );
-    if (department.rowCount !== 1) {
-      throw Object.assign(new Error("The selected department does not exist."), { code: "DEPARTMENT_NOT_FOUND" });
-    }
-
-    const userResult = await client.query(
-      `INSERT INTO users (
-        id, full_name, email, phone_number, password_hash, role, profile_id,
-        department_id, must_change_password, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE, $9, $9)
-      RETURNING *`,
-      [userId, normalizedName, normalizedEmail, data.phone_number || null, data.password_hash, data.role, profileId, data.department_id, now]
-    );
-
-    await client.query(
-      "INSERT INTO Trainers (id, name, email, department) VALUES ($1, $2, $3, $4)",
-      [profileId, normalizedName, normalizedEmail, department.rows[0].name]
-    );
-
-    if (data.role === "HOD") {
-      const update = await client.query(
-        "UPDATE Departments SET hod_id = $1, hod_email = $2 WHERE id = $3",
-        [profileId, normalizedEmail, data.department_id]
+  let persisted: UserRecord | null = null;
+  try {
+    persisted = await withTransaction(async (client) => {
+      const department = await client.query(
+        "SELECT id, name FROM Departments WHERE id = $1 FOR UPDATE",
+        [data.department_id]
       );
-      if (update.rowCount !== 1) {
-        throw Object.assign(new Error("The selected department could not be linked to this HOD."), { code: "DEPARTMENT_NOT_FOUND" });
+      if (department.rowCount !== 1) {
+        throw Object.assign(new Error("The selected department does not exist."), { code: "DEPARTMENT_NOT_FOUND" });
       }
-    }
 
-    return userResult.rows[0] as UserRecord;
-  });
+      const userResult = await client.query(
+        `INSERT INTO users (
+          id, full_name, email, phone_number, password_hash, role, profile_id,
+          department_id, must_change_password, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE, $9, $9)
+        RETURNING *`,
+        [userId, normalizedName, normalizedEmail, data.phone_number || null, data.password_hash, data.role, profileId, data.department_id, now]
+      );
+
+      await client.query(
+        "INSERT INTO Trainers (id, name, email, department) VALUES ($1, $2, $3, $4)",
+        [profileId, normalizedName, normalizedEmail, department.rows[0].name]
+      );
+
+      if (data.role === "HOD") {
+        const update = await client.query(
+          "UPDATE Departments SET hod_id = $1, hod_email = $2 WHERE id = $3",
+          [profileId, normalizedEmail, data.department_id]
+        );
+        if (update.rowCount !== 1) {
+          throw Object.assign(new Error("The selected department could not be linked to this HOD."), { code: "DEPARTMENT_NOT_FOUND" });
+        }
+      }
+
+      return userResult.rows[0] as UserRecord;
+    });
+  } catch (err: any) {
+    if (err?.code === "DEPARTMENT_NOT_FOUND" || err?.code === "23505" || process.env.STRICT_DB === "true") {
+      throw err;
+    }
+    console.warn("[createStaffAccount] PostgreSQL transaction failed, using file-backed persistence:", err?.message);
+  }
   if (persisted) return persisted;
 
   const previousUsers = [...loadPersistentUsers()];

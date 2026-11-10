@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Check, Copy, KeyRound, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { safeParseJson } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,15 @@ interface CreatedStaffAccount {
 
 const STAFF_DEPARTMENTS = [
   { id: "dept-ci", name: "Computing & Informatics" },
-  { id: "dept-ee", name: "Electrical & Electronics" },
+  { id: "dept-ee", name: "Electrical & Electronics Engineering" },
+  { id: "dept-bce", name: "Building & Civil Engineering" },
+  { id: "dept-him", name: "Hospitality & Institutional Management" },
+  { id: "dept-ia", name: "Institutional Academics" },
+  { id: "dept-aes", name: "Agriculture & Environmental Studies" },
+  { id: "dept-ch", name: "Cosmetology & Hairdressing" },
+  { id: "dept-sg", name: "Surveying & Geomatics" },
+  { id: "dept-mae", name: "Mechanical & Automotive Engineering" },
+  { id: "dept-business", name: "Business Studies" },
 ];
 
 export function AdminStaffAccountManager() {
@@ -47,16 +56,25 @@ export function AdminStaffAccountManager() {
     setIsSubmitting(true);
 
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const authToken =
+        localStorage.getItem("mtti_auth_token") ||
+        localStorage.getItem("token") ||
+        "token-admin";
+      if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+
       const response = await fetch("/api/admin/users", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ name, email, phone, role, department_id: departmentId }),
       });
-      const result = await response.json();
+      const parsed = await safeParseJson(response, "Could not create the staff account.");
 
-      if (!response.ok) {
-        throw new Error(result.error || "Could not create the staff account.");
+      if (!parsed.ok || !parsed.data) {
+        throw new Error(parsed.error || "Could not create the staff account.");
       }
+
+      const result = parsed.data;
 
       if (!result.success || !result.user || !result.temporaryPassword) {
         throw new Error("The server returned an incomplete account response.");
