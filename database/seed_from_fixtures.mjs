@@ -38,7 +38,7 @@ async function seed() {
 
   let connectionString = process.env.DATABASE_URL || process.argv[2];
   if (!connectionString && process.env.SUPABASE_DB_PASSWORD) {
-    const projectRef = process.env.SUPABASE_PROJECT_REF || "bzlnpywjyhhrqapsvczf";
+    const projectRef = process.env.SUPABASE_PROJECT_REF || "tkwgsmtpuyacblcvstcm";
     connectionString = `postgresql://postgres:${encodeURIComponent(process.env.SUPABASE_DB_PASSWORD)}@db.${projectRef}.supabase.co:5432/postgres`;
   }
 

@@ -219,10 +219,10 @@ function vitePluginEnvInjector(): Plugin {
     transformIndexHtml(html) {
       const supabaseUrl =
         process.env.VITE_SUPABASE_URL ||
-        "https://bzlnpywjyhhrqapsvczf.supabase.co";
+        "https://tkwgsmtpuyacblcvstcm.supabase.co";
       const supabaseAnonKey =
         process.env.VITE_SUPABASE_ANON_KEY ||
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6bG5weXdqeWhocnFhcHN2Y3pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5MzA1NTgsImV4cCI6MjA5ODUwNjU1OH0.PrO9bbrhcsU0vFK0lU9Mdw0HYixxt9zL4opHq5QnEjw";
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrd2dzbXRwdXlhY2JsY3ZzdGNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMDEwNzUsImV4cCI6MjA5ODY3NzA3NX0.VF6-rOA-FvO9PyKMaNmCNa2DtAqTsVqkkZzp3BjOzew";
 
       return html
         .replace("__VITE_SUPABASE_URL__", supabaseUrl)

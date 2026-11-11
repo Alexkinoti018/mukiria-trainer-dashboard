@@ -15,7 +15,7 @@ import pg from "pg";
 
 const { Client } = pg;
 
-const PROJECT_REF = "bzlnpywjyhhrqapsvczf";
+const PROJECT_REF = process.env.SUPABASE_PROJECT_REF || "tkwgsmtpuyacblcvstcm";
 const DEFAULT_HOST = `db.${PROJECT_REF}.supabase.co`;
 const DEFAULT_PORT = 5432;
 const DEFAULT_USER = "postgres";
@@ -36,7 +36,7 @@ async function run() {
     console.error("\n❌ Missing Database Connection Details.\n");
     console.log("To apply migrations directly to your Supabase instance, either:");
     console.log("1. Provide DATABASE_URL as an environment variable or argument:");
-    console.log("   node database/apply_migration.mjs \"postgresql://postgres:[PASSWORD]@db.bzlnpywjyhhrqapsvczf.supabase.co:5432/postgres\"\n");
+    console.log(`   node database/apply_migration.mjs "postgresql://postgres:[PASSWORD]@db.${PROJECT_REF}.supabase.co:5432/postgres"\n`);
     console.log("2. Or set the password environment variable:");
     console.log("   $env:SUPABASE_DB_PASSWORD=\"[YOUR_DB_PASSWORD]\"");
     console.log("   node database/apply_migration.mjs\n");
