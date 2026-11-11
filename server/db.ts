@@ -68,7 +68,7 @@ export class DatabaseServiceUnavailableError extends DatabaseUnavailableError {
 // Connection parameters
 const PROJECT_REF = process.env.SUPABASE_PROJECT_REF || "bzlnpywjyhhrqapsvczf";
 const DEFAULT_HOST = `db.${PROJECT_REF}.supabase.co`;
-const DEFAULT_PORT = 5432;
+const DEFAULT_PORT = process.env.SUPABASE_DB_PORT ? parseInt(process.env.SUPABASE_DB_PORT, 10) : 5432;
 const DEFAULT_USER = "postgres";
 const DEFAULT_DATABASE = "postgres";
 
@@ -88,14 +88,18 @@ export function isSecureProductionRuntime(): boolean {
 
 const isProduction = isSecureProductionRuntime();
 const rejectUnauthorized = process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false" && isProduction;
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
 export const pool = connectionString
   ? new Pool({
       connectionString,
       ssl: { rejectUnauthorized },
       connectionTimeoutMillis: 5000,
-      idleTimeoutMillis: 30000,
-      max: 10,
+      idleTimeoutMillis: isServerless ? 1500 : 30000,
+      max: isServerless
+        ? (process.env.PG_POOL_MAX ? parseInt(process.env.PG_POOL_MAX, 10) : 3)
+        : (process.env.PG_POOL_MAX ? parseInt(process.env.PG_POOL_MAX, 10) : 10),
+      allowExitOnIdle: isServerless,
     })
   : null;
 
