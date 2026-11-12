@@ -48,7 +48,16 @@ import {
   resetUserPassword,
   loadPersistentUsers,
   savePersistentUsers,
+  loadComplianceRulesets,
+  loadAuditLogs,
+  recordAuditLog,
 } from "./db.ts";
+import {
+  DEFAULT_COMPLIANCE_RULESETS,
+  getActiveRuleset,
+  calculateContinuousTheoryAverage,
+  type ComplianceRulesetRecord,
+} from "../shared/complianceRulesets.ts";
 import bcrypt from "bcryptjs";
 import { randomBytes, randomUUID } from "node:crypto";
 import {
@@ -544,6 +553,8 @@ export const DB = {
     ];
   })(),
   class_registers: loadPersistentClassRegisters(),
+  compliance_rulesets: [...DEFAULT_COMPLIANCE_RULESETS],
+  audit_logs: [] as any[],
 };
 
 // ─── AUTHENTICATION & CONTEXT EXTRACTION MIDDLEWARE ──────────────────────────
@@ -2607,6 +2618,14 @@ apiRouter.post("/submissions/:id/grade", requireRoles("trainer", "admin"), async
   sub.status = "graded";
   try {
     await saveExamSubmission(sub, DB.submissions);
+    recordAuditLog({
+      table_name: "submissions",
+      record_id: sub.id,
+      action: "UPDATE",
+      actor_id: user.id,
+      actor_role: user.role,
+      new_data: sub,
+    });
   } catch (err: any) {
     console.error("❌ [PostgreSQL grade submission error]:", err.message);
     const status = err?.status || err?.statusCode || 500;
@@ -2816,6 +2835,14 @@ const handleBatchMarks = async (req: AuthenticatedRequest, res: Response) => {
     // Continuous Score = (CP * 0.4) + (CT * 0.2) + (Project * 0.4), rounded to one decimal place
     markEntry.weighted_mark = calculateCDACCBatchWeightedScore(cp, ct, project);
     updatedMarks.push(markEntry);
+    recordAuditLog({
+      table_name: "assessment_marks",
+      record_id: markEntry.id,
+      action: "UPDATE",
+      actor_id: user.id,
+      actor_role: user.role,
+      new_data: markEntry,
+    });
   }
 
   // Atomically persist marks to PostgreSQL and runtime state
@@ -4074,17 +4101,67 @@ export function verifyEvidenceAccess(
   return { allowed: true };
 }
 
-export function calculateServerWeightedMark(ctAvg: number, cpAvg: number, level: number = 6): number {
-  let raw = 0;
-  switch (level) {
-    case 6: raw = ctAvg * 0.5 + cpAvg * 0.5; break;
-    case 5: raw = ctAvg * 0.4 + cpAvg * 0.6; break;
-    case 4: raw = ctAvg * 0.3 + cpAvg * 0.7; break;
-    case 3: raw = ctAvg * 0.2 + cpAvg * 0.8; break;
-    default: raw = ctAvg * 0.5 + cpAvg * 0.5; break;
-  }
+export function calculateServerWeightedMark(
+  ctAvg: number,
+  cpAvg: number,
+  levelOrRuleset: number | ComplianceRulesetRecord = 6,
+  versionTag?: string
+): number {
+  const ruleset =
+    typeof levelOrRuleset === "object"
+      ? levelOrRuleset
+      : getActiveRuleset(levelOrRuleset, versionTag, DB.compliance_rulesets);
+  const raw = (ctAvg || 0) * ruleset.ct_weight + (cpAvg || 0) * ruleset.cp_weight;
   return Math.round(raw);
 }
+
+// ─── ENDPOINTS: /api/compliance/rulesets (Versioned Compliance Rulesets) ────────
+apiRouter.get("/compliance/rulesets", async (_req: Request, res: Response) => {
+  try {
+    const rulesets = await loadComplianceRulesets();
+    res.json(rulesets);
+  } catch (err: any) {
+    res.json(DB.compliance_rulesets);
+  }
+});
+
+apiRouter.get("/compliance/rulesets/:versionTag", async (req: Request, res: Response) => {
+  try {
+    const all = await loadComplianceRulesets();
+    const filtered = all.filter(
+      (r) => r.version_tag.toUpperCase() === req.params.versionTag.trim().toUpperCase()
+    );
+    res.json(filtered.length > 0 ? filtered : all);
+  } catch (err: any) {
+    res.json(DB.compliance_rulesets);
+  }
+});
+
+// ─── ENDPOINTS: /api/audit-logs (Immutable Append-Only Audit Inspection) ───────
+apiRouter.get("/audit-logs", requireRoles("hod", "admin"), async (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user!;
+  const tableName = typeof req.query.table_name === "string" ? req.query.table_name : undefined;
+  const limit = req.query.limit ? Math.min(200, parseInt(String(req.query.limit), 10) || 50) : 50;
+  const offset = req.query.offset ? parseInt(String(req.query.offset), 10) || 0 : 0;
+
+  try {
+    const logs = await loadAuditLogs({ table_name: tableName, limit, offset });
+    res.json({
+      success: true,
+      count: logs.length,
+      actor_role: user.role,
+      audit_logs: logs,
+    });
+  } catch (err: any) {
+    const memLogs = DB.audit_logs.filter((l: any) => !tableName || l.table_name === tableName);
+    res.json({
+      success: true,
+      count: memLogs.length,
+      actor_role: user.role,
+      audit_logs: memLogs.slice(offset, offset + limit),
+    });
+  }
+});
 
 // ─── ENDPOINTS: /api/evidence (Assessment Evidence Pipeline) ──────────────────
 
@@ -4362,6 +4439,22 @@ apiRouter.put("/evidence/:id/grade", requireRoles("trainer", "hod", "admin"), as
   try {
     await saveAssessmentEvidence(item, DB.assessment_evidence);
     await saveAssessmentMarksBatch(DB.assessment_marks);
+    recordAuditLog({
+      table_name: "assessment_evidence",
+      record_id: item.id,
+      action: "UPDATE",
+      actor_id: user.id,
+      actor_role: user.role,
+      new_data: item,
+    });
+    recordAuditLog({
+      table_name: "assessment_marks",
+      record_id: markEntry.id,
+      action: "UPDATE",
+      actor_id: user.id,
+      actor_role: user.role,
+      new_data: markEntry,
+    });
   } catch (err: any) {
     console.error("❌ [PostgreSQL grade evidence error]:", err.message);
     const status = err?.status || err?.statusCode || 500;

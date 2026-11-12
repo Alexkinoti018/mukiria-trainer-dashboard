@@ -8,6 +8,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentTrainerProfile } from "@/lib/timetableSyncService";
 import ObservationChecklistMarkingModal from "./ObservationChecklistMarkingModal";
 import { calculateCdaccWeightedMark } from "@/lib/assessmentTaxonomy";
+import {
+  calculateContinuousTheoryAverage,
+  calculateWeightedMarkWithRuleset,
+  getActiveRuleset,
+  DEFAULT_COMPLIANCE_RULESETS,
+  type ComplianceRulesetRecord,
+} from "@shared/complianceRulesets.ts";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -27,6 +34,7 @@ interface AssessmentRow {
   passedPracticalHurdle: boolean;
   isCompetent: boolean;
   gradeBand: "Distinction" | "Credit" | "Pass" | "Refer";
+  resitPending?: boolean;
 }
 
 const DEFAULT_LS_CT1_MARKS: Record<string, number> = {
@@ -55,6 +63,8 @@ const DEFAULT_LS_CT1_MARKS: Record<string, number> = {
 export function AssessmentMarksSheet() {
   const [centerCode, setCenterCode] = useState("01200004");
   const [level, setLevel] = useState<number>(4);
+  const [rulesets, setRulesets] = useState<ComplianceRulesetRecord[]>(DEFAULT_COMPLIANCE_RULESETS);
+  const [rulesetVersion, setRulesetVersion] = useState<string>("KNQF_2026_T3");
   const [courseCode, setCourseCode] = useState("061004T4ICT");
   const [courseTitle, setCourseTitle] = useState("ICT 4 / ICT Technician Level 5 & 6");
   const [unitCode, setUnitCode] = useState("IT/CU/ICTA/CR/01/4/MA");
@@ -155,6 +165,18 @@ export function AssessmentMarksSheet() {
     return () => window.removeEventListener("mtti-marks-updated", handleMarksUpdated);
   }, []);
 
+  // Fetch active compliance rulesets from backend or fallback to deterministic offline rulesets
+  useEffect(() => {
+    fetch("/api/compliance/rulesets")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setRulesets(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Distinct classes available from trainees roster (scoped to this trainer's teaching cohorts if in trainer portal)
   const availableClasses = useMemo(() => {
     const rawClasses = Array.from(new Set(trainees.map(t => t.classCode).filter(Boolean)))
@@ -183,17 +205,15 @@ export function AssessmentMarksSheet() {
     return Math.round(sum / validScores.length);
   };
 
-  // TVET CDACC Official Weight Formula per Level
+  // TVET CDACC Official Weight Formula using Versioned Compliance Rulesets
   const calculateWeighted = (ctAvg: number, cpAvg: number, currentLevel: number): number => {
-    let raw = 0;
-    switch (currentLevel) {
-      case 6: raw = (ctAvg * 0.5) + (cpAvg * 0.5); break;
-      case 5: raw = (ctAvg * 0.4) + (cpAvg * 0.6); break;
-      case 4: raw = (ctAvg * 0.3) + (cpAvg * 0.7); break;
-      case 3: raw = (ctAvg * 0.2) + (cpAvg * 0.8); break;
-      default: raw = (ctAvg * 0.5) + (cpAvg * 0.5); break;
-    }
-    return Math.round(raw);
+    return calculateWeightedMarkWithRuleset(ctAvg, cpAvg, currentLevel, rulesetVersion, rulesets);
+  };
+
+  // TVET CDACC Institutional 3-Exam Theory Hurdle Engine
+  const calculateCtAverage = (scores: any[], resitPending?: boolean): number => {
+    const activeRuleset = getActiveRuleset(level, rulesetVersion, rulesets);
+    return calculateContinuousTheoryAverage(scores, { resit_pending: resitPending, ruleset: activeRuleset });
   };
 
   // Auto-populate and synchronize based on selected class, trainees, graded submissions, graded uploads, and saved marks
@@ -386,9 +406,10 @@ export function AssessmentMarksSheet() {
           }
         }
 
-        const ctAvg = calculateAverages(initCtScores);
+        const isResit = Boolean(savedEntry?.resit_pending || savedEntry?.resitPending);
+        const ctAvg = calculateCtAverage(initCtScores, isResit);
         const cpAvg = calculateAverages(initCpScores);
-        const cdacc = calculateCdaccWeightedMark(ctAvg, cpAvg, targetLevel);
+        const cdacc = calculateCdaccWeightedMark(ctAvg, cpAvg, targetLevel, rulesetVersion, rulesets);
 
         return {
           id: t.id,
@@ -406,18 +427,19 @@ export function AssessmentMarksSheet() {
           passedPracticalHurdle: cdacc.passedPracticalHurdle,
           isCompetent: cdacc.isCompetent,
           gradeBand: cdacc.gradeBand,
+          resitPending: isResit,
         };
       })
     );
-  }, [selectedClass, trainees, uploads, submissions, exams, ctCount, cpCount, syncVersion]);
+  }, [selectedClass, trainees, uploads, submissions, exams, ctCount, cpCount, syncVersion, rulesets, rulesetVersion]);
 
-  // Recalculate CDACC double-hurdle weighting and 60% internal certification contribution when scores or level change
+  // Recalculate CDACC double-hurdle weighting and 60% internal certification contribution when scores, level, or ruleset changes
   useEffect(() => {
     setRows((prev) =>
       prev.map((row) => {
-        const ctAvg = calculateAverages(row.ctScores);
+        const ctAvg = calculateCtAverage(row.ctScores, row.resitPending);
         const cpAvg = calculateAverages(row.cpScores);
-        const cdacc = calculateCdaccWeightedMark(ctAvg, cpAvg, level);
+        const cdacc = calculateCdaccWeightedMark(ctAvg, cpAvg, level, rulesetVersion, rulesets);
         return {
           ...row,
           ctAvg,
@@ -431,7 +453,35 @@ export function AssessmentMarksSheet() {
         };
       })
     );
-  }, [level]);
+  }, [level, rulesets, rulesetVersion]);
+
+  const toggleResitPending = (rowId: string) => {
+    if (isLocked) {
+      toast.warning("Assessment sheet is locked. Unlock first to edit marks.");
+      return;
+    }
+    setRows((prev) =>
+      prev.map((row) => {
+        if (row.id !== rowId) return row;
+        const newResit = !row.resitPending;
+        const ctAvg = calculateCtAverage(row.ctScores, newResit);
+        const cpAvg = calculateAverages(row.cpScores);
+        const cdacc = calculateCdaccWeightedMark(ctAvg, cpAvg, level, rulesetVersion, rulesets);
+        return {
+          ...row,
+          resitPending: newResit,
+          ctAvg,
+          cpAvg,
+          weightedMark: cdacc.weightedMark,
+          internalContribution: cdacc.internalCertificationContribution,
+          passedTheoryHurdle: cdacc.passedTheoryHurdle,
+          passedPracticalHurdle: cdacc.passedPracticalHurdle,
+          isCompetent: cdacc.isCompetent,
+          gradeBand: cdacc.gradeBand,
+        };
+      })
+    );
+  };
 
   const handleScoreChange = (rowId: string, type: 'ct' | 'cp', index: number, value: string) => {
     if (isLocked) {
@@ -451,9 +501,9 @@ export function AssessmentMarksSheet() {
           newRow.cpScores = [...row.cpScores];
           newRow.cpScores[index] = value;
         }
-        newRow.ctAvg = calculateAverages(newRow.ctScores);
+        newRow.ctAvg = calculateCtAverage(newRow.ctScores, newRow.resitPending);
         newRow.cpAvg = calculateAverages(newRow.cpScores);
-        const cdacc = calculateCdaccWeightedMark(newRow.ctAvg, newRow.cpAvg, level);
+        const cdacc = calculateCdaccWeightedMark(newRow.ctAvg, newRow.cpAvg, level, rulesetVersion, rulesets);
         newRow.weightedMark = cdacc.weightedMark;
         newRow.internalContribution = cdacc.internalCertificationContribution;
         newRow.passedTheoryHurdle = cdacc.passedTheoryHurdle;
@@ -1231,6 +1281,21 @@ export function AssessmentMarksSheet() {
                     {/* Action buttons (print:hidden) */}
                     <td className="p-1 border-none text-center print:hidden">
                       <div className="flex items-center gap-1 justify-center">
+                        <button
+                          onClick={() => toggleResitPending(row.id)}
+                          className={`font-bold px-1.5 py-0.5 rounded text-[10px] transition ${
+                            row.resitPending
+                              ? "bg-amber-500 text-white shadow-sm"
+                              : "text-slate-500 hover:bg-slate-200 border border-slate-300"
+                          }`}
+                          title={
+                            row.resitPending
+                              ? "Resit Pending: 3-exam hurdle waived"
+                              : "Toggle Resit Pending (Waives 3-exam hurdle if candidate has pending exam)"
+                          }
+                        >
+                          {row.resitPending ? "RP ✓" : "RP"}
+                        </button>
                         <button
                           onClick={() => {
                             setSelectedCandidateForPractical(row);

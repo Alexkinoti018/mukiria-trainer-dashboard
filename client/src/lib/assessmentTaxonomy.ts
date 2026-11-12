@@ -13,6 +13,11 @@
  * TYPE 6: Course Projects -> Discretionary portfolio/group project, feeds into CP1/CP2/CP3
  */
 
+import {
+  type ComplianceRulesetRecord,
+  getActiveRuleset,
+} from "@shared/complianceRulesets.ts";
+
 export type CanonicalAssessmentType =
   | "WRITTEN_ASSESSMENT_1"
   | "WRITTEN_ASSESSMENT_2"
@@ -311,36 +316,20 @@ export interface CdaccDoubleHurdleResult {
 export function calculateCdaccWeightedMark(
   ctAvg: number,
   cpAvg: number,
-  level: number = 6
+  levelOrRuleset: number | ComplianceRulesetRecord = 6,
+  versionTag?: string,
+  rulesetPool?: ComplianceRulesetRecord[]
 ): CdaccDoubleHurdleResult {
   const roundCt = Math.round(ctAvg || 0);
   const roundCp = Math.round(cpAvg || 0);
 
-  let ctWeight = 0.5;
-  let cpWeight = 0.5;
+  const ruleset =
+    typeof levelOrRuleset === "object"
+      ? levelOrRuleset
+      : getActiveRuleset(levelOrRuleset, versionTag, rulesetPool);
 
-  switch (level) {
-    case 6:
-      ctWeight = 0.5;
-      cpWeight = 0.5;
-      break;
-    case 5:
-      ctWeight = 0.4;
-      cpWeight = 0.6;
-      break;
-    case 4:
-      ctWeight = 0.3;
-      cpWeight = 0.7;
-      break;
-    case 3:
-      ctWeight = 0.2;
-      cpWeight = 0.8;
-      break;
-    default:
-      ctWeight = 0.5;
-      cpWeight = 0.5;
-      break;
-  }
+  const ctWeight = ruleset.ct_weight;
+  const cpWeight = ruleset.cp_weight;
 
   const rawWeighted = roundCt * ctWeight + roundCp * cpWeight;
   const weightedMark = Math.round(rawWeighted);

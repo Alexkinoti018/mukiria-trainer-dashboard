@@ -1,4 +1,12 @@
 import { describe, it, expect } from "vitest";
+import {
+  DEFAULT_COMPLIANCE_RULESETS,
+  getActiveRuleset,
+  calculateContinuousTheoryAverage,
+  calculateWeightedMarkWithRuleset,
+  validateExamStructureWithRuleset,
+  type ComplianceRulesetRecord,
+} from "../shared/complianceRulesets.ts";
 
 /**
  * TVET CDACC Continuous Assessment Calculation Engine
@@ -126,6 +134,157 @@ describe("TVET CDACC Continuous Assessment Weighting Engine (Levels 3–6)", () 
       expect(getCDACCGrade(50)).toBe("Pass");
       expect(getCDACCGrade(49)).toBe("Refer");
       expect(getCDACCGrade(20)).toBe("Refer");
+    });
+  });
+
+  // ─── 4. VERSIONED COMPLIANCE RULESETS (KNQF STANDARDS & OVERRIDES) ───────────
+  describe("4. Versioned Compliance Rulesets (KNQF Standards & Overrides)", () => {
+    it("should retrieve default KNQF_2026_T3 ruleset for all levels (3–6)", () => {
+      const r3 = getActiveRuleset(3);
+      const r4 = getActiveRuleset(4);
+      const r5 = getActiveRuleset(5);
+      const r6 = getActiveRuleset(6);
+
+      expect(r3.version_tag).toBe("KNQF_2026_T3");
+      expect(r3.ct_weight).toBe(0.2);
+      expect(r3.cp_weight).toBe(0.8);
+      expect(r3.min_attendance_pct).toBe(75);
+      expect(r3.required_theory_exams).toBe(3);
+
+      expect(r4.version_tag).toBe("KNQF_2026_T3");
+      expect(r4.ct_weight).toBe(0.3);
+      expect(r4.cp_weight).toBe(0.7);
+
+      expect(r5.version_tag).toBe("KNQF_2026_T3");
+      expect(r5.ct_weight).toBe(0.4);
+      expect(r5.cp_weight).toBe(0.6);
+
+      expect(r6.version_tag).toBe("KNQF_2026_T3");
+      expect(r6.ct_weight).toBe(0.5);
+      expect(r6.cp_weight).toBe(0.5);
+    });
+
+    it("should allow version tag filtering and custom ruleset overrides", () => {
+      const customPool: ComplianceRulesetRecord[] = [
+        ...DEFAULT_COMPLIANCE_RULESETS,
+        {
+          id: "custom-knqf-2027",
+          version_tag: "KNQF_2027_PILOT",
+          effective_from: "2027-01-01T00:00:00Z",
+          level: 6,
+          ct_weight: 0.45,
+          cp_weight: 0.55,
+          min_attendance_pct: 80,
+          required_theory_exams: 3,
+          missing_exam_policy: "zero_if_incomplete",
+          exam_structure_rules: { allow_true_false: false },
+        },
+      ];
+
+      const rPilot = getActiveRuleset(6, "KNQF_2027_PILOT", customPool);
+      expect(rPilot.version_tag).toBe("KNQF_2027_PILOT");
+      expect(rPilot.ct_weight).toBe(0.45);
+      expect(rPilot.cp_weight).toBe(0.55);
+      expect(rPilot.min_attendance_pct).toBe(80);
+
+      // Calculates weighted mark using the active versioned ruleset
+      const weighted = calculateWeightedMarkWithRuleset(80, 90, rPilot);
+      // 80 * 0.45 + 90 * 0.55 = 36 + 49.5 = 85.5 -> 86
+      expect(weighted).toBe(86);
+    });
+
+    it("should fall back to default rulesets when requesting unknown version tag or level", () => {
+      const fallback = getActiveRuleset(4, "NON_EXISTENT_TAG");
+      expect(fallback.level).toBe(4);
+      expect(fallback.version_tag).toBe("KNQF_2026_T3");
+
+      const outOfBounds = getActiveRuleset(10);
+      expect(outOfBounds.level).toBe(6);
+    });
+  });
+
+  // ─── 5. STRICT INSTITUTIONAL 3-EXAM THEORY HURDLE ENGINE ────────────────────
+  describe("5. Strict Institutional 3-Exam Theory Hurdle Engine", () => {
+    it("should compute arithmetic mean when all 3 required theory exams are recorded", () => {
+      const scores = [70, 80, 90];
+      expect(calculateContinuousTheoryAverage(scores)).toBe(80); // (70 + 80 + 90) / 3 = 80
+    });
+
+    it("should strictly return 0% when fewer than 3 exams are available (incomplete assessment)", () => {
+      // 2 exams: must return 0%
+      expect(calculateContinuousTheoryAverage([75, 85])).toBe(0);
+      expect(calculateContinuousTheoryAverage([70, "", 80])).toBe(0);
+      expect(calculateContinuousTheoryAverage([90, null, 95])).toBe(0);
+
+      // 1 exam: must return 0%
+      expect(calculateContinuousTheoryAverage([85])).toBe(0);
+      expect(calculateContinuousTheoryAverage(["90", "", ""])).toBe(0);
+
+      // 0 exams: must return 0%
+      expect(calculateContinuousTheoryAverage([])).toBe(0);
+      expect(calculateContinuousTheoryAverage(["", null, undefined])).toBe(0);
+    });
+
+    it("should waive 0% hurdle and compute average when resit_pending is true", () => {
+      // Trainee with 2 completed exams and approved pending resit
+      const twoExams = [70, 80];
+      expect(calculateContinuousTheoryAverage(twoExams, { resit_pending: true })).toBe(75);
+
+      // Trainee with 1 completed exam and approved pending resit
+      const oneExam = [85];
+      expect(calculateContinuousTheoryAverage(oneExam, { resit_pending: true })).toBe(85);
+
+      // Trainee with 0 exams still receives 0 even if resit pending
+      expect(calculateContinuousTheoryAverage([], { resit_pending: true })).toBe(0);
+    });
+
+    it("should normalize string-encoded and out-of-bounds theory marks to 100% scale", () => {
+      const scores = ["70", "80", 90];
+      expect(calculateContinuousTheoryAverage(scores)).toBe(80);
+
+      // Clamps marks between 0 and 100
+      const extremeScores = [-10, 105, 80];
+      // Clamped to [0, 100, 80] -> (0 + 100 + 80) / 3 = 60
+      expect(calculateContinuousTheoryAverage(extremeScores)).toBe(60);
+    });
+  });
+
+  // ─── 6. EXAM STRUCTURE COMPLIANCE RULES ──────────────────────────────────────
+  describe("6. Exam Structure Compliance Rules (True/False & Checklist Limits)", () => {
+    it("Level 4: should strictly prohibit True/False and Matching question types", () => {
+      const level4ExamWithTF = {
+        type: "theory",
+        section_a: {
+          questions: [
+            { id: "q1", marks: 5, type: "mcq" },
+            { id: "q2", marks: 5, type: "true_false" },
+          ],
+        },
+        section_b: {
+          questions: [
+            { id: "q3", marks: 40, type: "essay" },
+          ],
+        },
+      };
+
+      const errors = validateExamStructureWithRuleset(level4ExamWithTF, 4);
+      expect(errors.some((e) => e.includes("True/False and Matching questions are strictly prohibited"))).toBe(true);
+    });
+
+    it("Practical: should enforce 10 to 25 items on Observation Checklists", () => {
+      const tooFewItems = {
+        type: "practical",
+        checklist_items: Array(8).fill({ id: "item", criteria: "Test" }),
+      };
+      const errorsFew = validateExamStructureWithRuleset(tooFewItems, 4);
+      expect(errorsFew.some((e) => e.includes("must contain between 10 and 25 items"))).toBe(true);
+
+      const validItems = {
+        type: "practical",
+        checklist_items: Array(15).fill({ id: "item", criteria: "Test" }),
+      };
+      const errorsValid = validateExamStructureWithRuleset(validItems, 4);
+      expect(errorsValid.length).toBe(0);
     });
   });
 });

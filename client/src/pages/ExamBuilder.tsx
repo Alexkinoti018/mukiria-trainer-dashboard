@@ -29,6 +29,11 @@ import {
 } from "lucide-react";
 import TrainerLayout from "@/components/TrainerLayout";
 import { AssessmentMarksSheet } from "@/components/AssessmentMarksSheet";
+import {
+  type ComplianceRulesetRecord,
+  DEFAULT_COMPLIANCE_RULESETS,
+  getActiveRuleset,
+} from "@shared/complianceRulesets.ts";
 import { useExam } from "@/contexts/ExamContext";
 import {
   evaluateExamPortalAvailability,
@@ -54,13 +59,25 @@ const getLevelFromUnitCode = (code: string): number => {
   return 6;
 };
 
-export const validateExamCompliance = (level: number, payload: ExamPayload): string[] => {
+export const validateExamCompliance = (
+  levelOrRuleset: number | ComplianceRulesetRecord,
+  payload: ExamPayload,
+  rulesetPool?: ComplianceRulesetRecord[]
+): string[] => {
+  const ruleset =
+    typeof levelOrRuleset === "object"
+      ? levelOrRuleset
+      : getActiveRuleset(levelOrRuleset, undefined, rulesetPool);
+  const level = ruleset.level;
+  const structRules = ruleset.exam_structure_rules || {};
   const errors: string[] = [];
 
   if (payload.type === "practical") {
     const checklistCount = (payload as any).checklist_items?.length || 0;
-    if (checklistCount < 10 || checklistCount > 25) {
-      errors.push(`Practical Observation Checklist must contain between 10 and 25 items (currently: ${checklistCount}).`);
+    const minItems = structRules.min_checklist_items ?? 10;
+    const maxItems = structRules.max_checklist_items ?? 25;
+    if (checklistCount < minItems || checklistCount > maxItems) {
+      errors.push(`Practical Observation Checklist must contain between ${minItems} and ${maxItems} items (currently: ${checklistCount}).`);
     }
     return errors;
   }
@@ -82,9 +99,13 @@ export const validateExamCompliance = (level: number, payload: ExamPayload): str
   }
 
   if (level === 3) {
-    if (sectionATotal !== 20) errors.push(`Level 3 Section A must total exactly 20 marks (currently: ${sectionATotal}).`);
-    if (sectionBTotal !== 30) errors.push(`Level 3 Section B must total exactly 30 marks (currently: ${sectionBTotal}).`);
-    if (overallTotal !== 50) errors.push(`Level 3 Total marks must be exactly 50 (currently: ${overallTotal}).`);
+    const expA = structRules.section_a_marks ?? 20;
+    const expB = structRules.section_b_marks ?? 30;
+    const expTotal = structRules.total_marks ?? 50;
+
+    if (sectionATotal !== expA) errors.push(`Level 3 Section A must total exactly ${expA} marks (currently: ${sectionATotal}).`);
+    if (sectionBTotal !== expB) errors.push(`Level 3 Section B must total exactly ${expB} marks (currently: ${sectionBTotal}).`);
+    if (overallTotal !== expTotal) errors.push(`Level 3 Total marks must be exactly ${expTotal} (currently: ${overallTotal}).`);
 
     const invalidSectionB = sectionBQuestions.filter(
       (q: ExamQuestion) => (q as any).type !== "essay" && (q as any).type !== "structured"
@@ -93,9 +114,13 @@ export const validateExamCompliance = (level: number, payload: ExamPayload): str
       errors.push("Level 3 Section B must contain only Extended Essay / Structured questions (not short answer).");
     }
   } else if (level === 4) {
-    if (sectionATotal !== 10) errors.push(`Level 4 Section A must total exactly 10 marks (currently: ${sectionATotal}).`);
-    if (sectionBTotal !== 40) errors.push(`Level 4 Section B must total exactly 40 marks (currently: ${sectionBTotal}).`);
-    if (overallTotal !== 50) errors.push(`Level 4 Total marks must be exactly 50 (currently: ${overallTotal}).`);
+    const expA = structRules.section_a_marks ?? 10;
+    const expB = structRules.section_b_marks ?? 40;
+    const expTotal = structRules.total_marks ?? 50;
+
+    if (sectionATotal !== expA) errors.push(`Level 4 Section A must total exactly ${expA} marks (currently: ${sectionATotal}).`);
+    if (sectionBTotal !== expB) errors.push(`Level 4 Section B must total exactly ${expB} marks (currently: ${sectionBTotal}).`);
+    if (overallTotal !== expTotal) errors.push(`Level 4 Total marks must be exactly ${expTotal} (currently: ${overallTotal}).`);
 
     const nonMCQInA = sectionAQuestions.filter((q: ExamQuestion) => (q as any).type !== "mcq");
     if (nonMCQInA.length > 0) {
@@ -109,14 +134,18 @@ export const validateExamCompliance = (level: number, payload: ExamPayload): str
       errors.push("Level 4 Section B must contain only Extended Essay / Structured questions (not short answer).");
     }
 
-    const hasProhibitedTypes = [...sectionAQuestions, ...sectionBQuestions].some(
-      (q: ExamQuestion) => (q as any).type === "true_false" || (q as any).type === "matching"
-    );
-    if (hasProhibitedTypes) {
-      errors.push("CRITICAL: True/False and Matching questions are strictly prohibited for Level 4 written assessments.");
+    const prohibitTF = structRules.prohibit_true_false ?? (structRules.allow_true_false === false || level === 4);
+    if (prohibitTF) {
+      const hasProhibitedTypes = [...sectionAQuestions, ...sectionBQuestions].some(
+        (q: ExamQuestion) => (q as any).type === "true_false" || (q as any).type === "matching"
+      );
+      if (hasProhibitedTypes) {
+        errors.push("CRITICAL: True/False and Matching questions are strictly prohibited for Level 4 written assessments.");
+      }
     }
   } else if (level === 5 || level === 6) {
-    if (sectionATotal !== 40) errors.push(`Level ${level} Section A must total exactly 40 marks (currently: ${sectionATotal}).`);
+    const expA = structRules.section_a_marks ?? 40;
+    if (sectionATotal !== expA) errors.push(`Level ${level} Section A must total exactly ${expA} marks (currently: ${sectionATotal}).`);
     if (sectionBTotal !== 60 && sectionBTotal !== 80) {
       errors.push(`Level ${level} Section B must total 60 marks (3 questions of 20m) or 80 marks (4 questions of 20m for 'Choose 3 of 4'). Currently: ${sectionBTotal}.`);
     }

@@ -2044,6 +2044,118 @@ export async function initDatabaseSchema(): Promise<void> {
   }
 }
 
+import {
+  type ComplianceRulesetRecord,
+  DEFAULT_COMPLIANCE_RULESETS,
+  getActiveRuleset,
+} from "../shared/complianceRulesets.ts";
+
+export {
+  type ComplianceRulesetRecord,
+  DEFAULT_COMPLIANCE_RULESETS,
+  getActiveRuleset,
+};
+
+export interface AuditLogRecord {
+  id: string;
+  table_name: string;
+  record_id: string;
+  action: "INSERT" | "UPDATE" | "DELETE" | string;
+  actor_id?: string | null;
+  actor_role?: string | null;
+  old_data?: any;
+  new_data?: any;
+  created_at: string;
+}
+
+const memoryAuditLogs: AuditLogRecord[] = [];
+
+export function recordAuditLog(log: {
+  table_name: string;
+  record_id: string;
+  action: "INSERT" | "UPDATE" | "DELETE" | string;
+  actor_id?: string | null;
+  actor_role?: string | null;
+  old_data?: any;
+  new_data?: any;
+}): AuditLogRecord {
+  const entry: AuditLogRecord = {
+    id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    table_name: log.table_name,
+    record_id: log.record_id,
+    action: log.action,
+    actor_id: log.actor_id || null,
+    actor_role: log.actor_role || null,
+    old_data: log.old_data || null,
+    new_data: log.new_data || null,
+    created_at: new Date().toISOString(),
+  };
+  memoryAuditLogs.unshift(entry);
+  return entry;
+}
+
+export async function loadComplianceRulesets(): Promise<ComplianceRulesetRecord[]> {
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      const res = await pool.query(
+        "SELECT id, version_tag, effective_from, level, ct_weight, cp_weight, min_attendance_pct, required_theory_exams, missing_exam_policy, exam_structure_rules, created_at, updated_at FROM compliance_rulesets ORDER BY level ASC"
+      );
+      if (res.rows && res.rows.length > 0) {
+        return res.rows.map((r: any) => ({
+          ...r,
+          ct_weight: parseFloat(r.ct_weight),
+          cp_weight: parseFloat(r.cp_weight),
+          min_attendance_pct: parseFloat(r.min_attendance_pct),
+          required_theory_exams: parseInt(r.required_theory_exams, 10),
+          exam_structure_rules: typeof r.exam_structure_rules === "string" ? JSON.parse(r.exam_structure_rules) : r.exam_structure_rules,
+        }));
+      }
+    } catch (err: any) {
+      console.warn("⚠️ [PostgreSQL loadComplianceRulesets Warning]:", err.message);
+    }
+  }
+  return DEFAULT_COMPLIANCE_RULESETS;
+}
+
+export async function loadAuditLogs(filter?: {
+  table_name?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<AuditLogRecord[]> {
+  ensurePoolAvailable();
+  if (pool) {
+    try {
+      let query = "SELECT id, table_name, record_id, action, actor_id, actor_role, old_data, new_data, created_at FROM audit_logs";
+      const params: any[] = [];
+      if (filter?.table_name) {
+        params.push(filter.table_name);
+        query += ` WHERE table_name = $${params.length}`;
+      }
+      query += " ORDER BY created_at DESC";
+      if (filter?.limit) {
+        params.push(filter.limit);
+        query += ` LIMIT $${params.length}`;
+      }
+      if (filter?.offset) {
+        params.push(filter.offset);
+        query += ` OFFSET $${params.length}`;
+      }
+      const res = await pool.query(query, params);
+      return res.rows;
+    } catch (err: any) {
+      console.warn("⚠️ [PostgreSQL loadAuditLogs Warning]:", err.message);
+    }
+  }
+  let results = [...memoryAuditLogs];
+  if (filter?.table_name) {
+    results = results.filter((r) => r.table_name === filter.table_name);
+  }
+  const offset = filter?.offset || 0;
+  const limit = filter?.limit || 100;
+  return results.slice(offset, offset + limit);
+}
+
 if (pool) {
   initDatabaseSchema().catch(() => {});
 }
