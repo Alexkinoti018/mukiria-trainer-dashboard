@@ -66,10 +66,32 @@ export interface SyncQueueItem {
   created_at: number;
   last_attempt_at?: number;
   error?: string;
+  version?: number;
+  server_updated_at?: string;
+}
+
+export type OfflineQueueItem = SyncQueueItem;
+
+export interface FailedSyncItem extends SyncQueueItem {
+  failed_at: number;
+  error_reason: string;
+  status_code?: number;
+  entity_id: string;
+}
+
+export function extractEntityId(item: SyncQueueItem): string {
+  const p = item.payload;
+  if (!p) return item.id;
+  if (p.id) return String(p.id);
+  if (p.unit_code && p.reg_number) return `${p.unit_code} / ${p.reg_number}`;
+  if (p.session_id && p.adm) return `${p.session_id} / ${p.adm}`;
+  if (p.unit_code) return String(p.unit_code);
+  if (p.adm) return String(p.adm);
+  return item.id;
 }
 
 const DB_NAME = "mtti_offline_db";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -121,6 +143,13 @@ export function openOfflineDB(): Promise<IDBDatabase> {
         const queueStore = db.createObjectStore("sync_queue", { keyPath: "id" });
         queueStore.createIndex("by_status", "status", { unique: false });
         queueStore.createIndex("by_created", "created_at", { unique: false });
+      }
+
+      // 6. Dead-Letter Queue (failed_sync_items)
+      if (!db.objectStoreNames.contains("failed_sync_items")) {
+        const failedStore = db.createObjectStore("failed_sync_items", { keyPath: "id" });
+        failedStore.createIndex("by_action", "action_type", { unique: false });
+        failedStore.createIndex("by_failed_at", "failed_at", { unique: false });
       }
     };
 
@@ -409,18 +438,160 @@ export async function getSyncQueueStats(): Promise<{
   processing: number;
   failed: number;
   synced: number;
+  failed_dlq: number;
 }> {
   try {
     const store = await getStore("sync_queue", "readonly");
     const all = await reqToPromise<SyncQueueItem[]>(store.getAll());
+
+    let dlqCount = 0;
+    try {
+      const dlqStore = await getStore("failed_sync_items", "readonly");
+      const dlqAll = await reqToPromise<FailedSyncItem[]>(dlqStore.getAll());
+      dlqCount = dlqAll ? dlqAll.length : 0;
+    } catch {
+      dlqCount = 0;
+    }
+
     return {
       total: all.length,
       pending: all.filter((i) => i.status === "pending").length,
       processing: all.filter((i) => i.status === "processing").length,
       failed: all.filter((i) => i.status === "failed").length,
       synced: all.filter((i) => i.status === "synced").length,
+      failed_dlq: dlqCount,
     };
   } catch (err) {
-    return { total: 0, pending: 0, processing: 0, failed: 0, synced: 0 };
+    return { total: 0, pending: 0, processing: 0, failed: 0, synced: 0, failed_dlq: 0 };
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 6. Dead-Letter Queue (DLQ) Isolation & Management API
+ * ───────────────────────────────────────────────────────────── */
+
+/**
+ * Move a permanently failed queue item into the Dead-Letter Queue (failed_sync_items)
+ * and remove it from the active sync queue so subsequent valid items are not blocked.
+ */
+export async function moveToDeadLetterQueue(
+  item: SyncQueueItem,
+  errorReason: string,
+  statusCode?: number
+): Promise<FailedSyncItem> {
+  const failedItem: FailedSyncItem = {
+    ...item,
+    status: "failed",
+    failed_at: Date.now(),
+    error_reason: errorReason,
+    status_code: statusCode,
+    entity_id: extractEntityId(item),
+  };
+
+  try {
+    const db = await openOfflineDB();
+    const tx = db.transaction(["sync_queue", "failed_sync_items"], "readwrite");
+    const queueStore = tx.objectStore("sync_queue");
+    const failedStore = tx.objectStore("failed_sync_items");
+
+    await Promise.all([
+      reqToPromise(queueStore.delete(item.id)),
+      reqToPromise(failedStore.put(failedItem)),
+    ]);
+  } catch (err) {
+    console.warn("[OfflineStore] Failed to route item to Dead-Letter Queue:", err);
+  }
+
+  return failedItem;
+}
+
+/**
+ * Retrieve all items currently residing in the Dead-Letter Queue
+ */
+export async function getFailedSyncItems(): Promise<FailedSyncItem[]> {
+  try {
+    const store = await getStore("failed_sync_items", "readonly");
+    const all = await reqToPromise<FailedSyncItem[]>(store.getAll());
+    return (all || []).sort((a, b) => (b.failed_at || 0) - (a.failed_at || 0));
+  } catch (err) {
+    console.warn("[OfflineStore] Failed to get items from DLQ:", err);
+    return [];
+  }
+}
+
+/**
+ * Retry a failed item: move it back from failed_sync_items into sync_queue with attempts reset to 0
+ */
+export async function retryFailedSyncItem(id: string): Promise<SyncQueueItem | null> {
+  try {
+    const db = await openOfflineDB();
+    const tx = db.transaction(["sync_queue", "failed_sync_items"], "readwrite");
+    const queueStore = tx.objectStore("sync_queue");
+    const failedStore = tx.objectStore("failed_sync_items");
+
+    const failedItem = await reqToPromise<FailedSyncItem>(failedStore.get(id));
+    if (!failedItem) return null;
+
+    const restoredItem: SyncQueueItem = {
+      id: failedItem.id,
+      action_type: failedItem.action_type,
+      payload: failedItem.payload,
+      attempts: 0,
+      max_attempts: failedItem.max_attempts,
+      status: "pending",
+      created_at: failedItem.created_at || Date.now(),
+      last_attempt_at: undefined,
+      error: undefined,
+    };
+
+    await Promise.all([
+      reqToPromise(failedStore.delete(id)),
+      reqToPromise(queueStore.put(restoredItem)),
+    ]);
+
+    return restoredItem;
+  } catch (err) {
+    console.warn("[OfflineStore] Failed to retry item from DLQ:", err);
+    return null;
+  }
+}
+
+/**
+ * Retry all failed items in the DLQ: move all back to sync_queue
+ */
+export async function retryAllFailedSyncItems(): Promise<number> {
+  try {
+    const items = await getFailedSyncItems();
+    for (const item of items) {
+      await retryFailedSyncItem(item.id);
+    }
+    return items.length;
+  } catch (err) {
+    console.warn("[OfflineStore] Failed to retry all items from DLQ:", err);
+    return 0;
+  }
+}
+
+/**
+ * Permanently dismiss/clear a failed item from the DLQ
+ */
+export async function clearFailedSyncItem(id: string): Promise<void> {
+  try {
+    const store = await getStore("failed_sync_items", "readwrite");
+    await reqToPromise(store.delete(id));
+  } catch (err) {
+    console.warn("[OfflineStore] Failed to clear item from DLQ:", err);
+  }
+}
+
+/**
+ * Clear all items from the DLQ
+ */
+export async function clearAllFailedSyncItems(): Promise<void> {
+  try {
+    const store = await getStore("failed_sync_items", "readwrite");
+    await reqToPromise(store.clear());
+  } catch (err) {
+    console.warn("[OfflineStore] Failed to clear all items from DLQ:", err);
   }
 }

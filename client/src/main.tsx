@@ -9,12 +9,12 @@ if (typeof document !== "undefined") {
   localStorage.removeItem("theme");
 }
 
-// Register Service Worker & purge legacy stale caches (mtti-pwa-v1/v2/v3/v4)
+// Register Service Worker & purge legacy stale caches (mtti-pwa-v1 through v10)
 if ("serviceWorker" in navigator) {
   if ("caches" in window) {
     caches.keys().then((names) => {
       names.forEach((name) => {
-        if (name !== "mtti-pwa-v10") {
+        if (name !== "mtti-pwa-v11") {
           caches.delete(name);
         }
       });

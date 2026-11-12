@@ -1,19 +1,28 @@
 /**
  * Mukiria Technical Training Institute (MTTI) Service Worker
+ * Institutional PWA Offline Shell & Asset Cache Engine
+ *
  * Cache Strategy:
- * - App Shell & Static Assets: Network-First with Cache Fallback for offline resilience
- * - Guarantees hot-reloads and institutional theme updates apply immediately when online
+ * 1. App Shell & Static Assets: Cache-First for content-hashed assets, Network-First for navigation
+ *    ensuring Labs 1A–3 can open and operate the dashboard even with intermittent or zero campus Wi-Fi.
+ * 2. Strict /api/* Bypass: NEVER cache authenticated /api/* JSON responses in Service Worker HTTP cache;
+ *    keeps API data strictly in IndexedDB/React state so purgeMTTISessionCache() on logout remains airtight.
+ * 3. Typography: Caches Google Fonts stylesheets and font binaries for offline lab typography.
+ * 4. Hot-reloads & version updates take immediate effect via skipWaiting & clients.claim.
  */
 
-const CACHE_NAME = "mtti-pwa-v10";
+const CACHE_NAME = "mtti-pwa-v11";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
   "/manifest.json",
   "/mtti-logo.jpg",
+  "/tvet-cdacc-logo.png",
 ];
 
-// 1. Install event: Cache critical app shell and activate immediately
+const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
+
+// 1. Install event: Precache core app shell and activate immediately
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
@@ -33,7 +42,7 @@ self.addEventListener("activate", (event) => {
         cacheNames
           .filter((name) => name !== CACHE_NAME)
           .map((name) => {
-            console.log("[MTTI SW] Deleting obsolete cache:", name);
+            console.log("[MTTI SW] Purging obsolete cache:", name);
             return caches.delete(name);
           })
       );
@@ -41,10 +50,18 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// 3. Fetch event: Always Network-First so code/style updates reflect immediately
+// 3. Fetch event:
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
+
+  // STRICT SECURITY INVARIANT:
+  // Never intercept or cache authenticated /api/* JSON responses in Service Worker HTTP cache.
+  // All API data remains strictly in React memory or IndexedDB, ensuring purgeMTTISessionCache()
+  // on logout or terminal idle timeout remains 100% airtight.
+  if (url.pathname.startsWith("/api/")) {
+    return;
+  }
 
   // Skip non-GET requests or Vite HMR / dev endpoints
   if (
@@ -54,6 +71,24 @@ self.addEventListener("fetch", (event) => {
     url.search.includes("t=") ||
     url.search.includes("v=")
   ) {
+    return;
+  }
+
+  // Font caching for offline typography
+  if (FONT_HOSTS.includes(url.hostname)) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then((cache) => {
+        return cache.match(request).then((cached) => {
+          if (cached) return cached;
+          return fetch(request).then((networkRes) => {
+            if (networkRes && networkRes.status === 200) {
+              cache.put(request, networkRes.clone());
+            }
+            return networkRes;
+          }).catch(() => cached);
+        });
+      })
+    );
     return;
   }
 
@@ -79,7 +114,24 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Network-First with Cache Fallback for all other GET requests
+  // Immutable content-hashed static assets (/assets/*): Cache-First for instant offline loading
+  if (url.pathname.startsWith("/assets/")) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // Network-First with Cache Fallback for all other static GET requests
   event.respondWith(
     fetch(request)
       .then((networkResponse) => {

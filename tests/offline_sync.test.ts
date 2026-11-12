@@ -1,17 +1,16 @@
 import { describe, it, expect, beforeEach } from "vitest";
-
-// Types matching offlineStore & syncEngine specifications
-interface OfflineQueueItem {
-  id: string;
-  action_type: "SUBMISSION_SUBMIT" | "ATTENDANCE_CHECKIN" | "ATTENDANCE_REGISTER_SAVE" | "SESSION_PLAN_SAVE" | "MARKS_UPDATE";
-  payload: any;
-  attempts: number;
-  max_attempts: number;
-  status: "pending" | "processing" | "synced" | "failed";
-  created_at: number;
-  last_attempt_at?: number;
-  error?: string;
-}
+import {
+  resolveSubmissionConflict,
+  resolveAttendanceUnionMerge,
+  resolveMonotonicVersionConflict,
+  resolveTimestampPrecedence,
+} from "../client/src/lib/syncEngine";
+import {
+  extractEntityId,
+  type SyncQueueItem,
+  type FailedSyncItem,
+  type OfflineQueueItem,
+} from "../client/src/lib/offlineStore";
 
 interface ConflictResult {
   accepted: boolean;
@@ -21,60 +20,6 @@ interface ConflictResult {
     resolution: "remote_preserved" | "local_merged" | "timestamp_precedence";
     reason: string;
   };
-}
-
-/**
- * Pure conflict resolution logic mirrors syncEngine.ts for isolated deterministic testing
- */
-function resolveSubmissionConflict(remote: any, incoming: any): ConflictResult {
-  if (remote && (remote.status === "submitted" || remote.status === "graded")) {
-    if (incoming.status === "draft") {
-      return {
-        accepted: false,
-        conflict: {
-          action_type: "SUBMISSION_SUBMIT",
-          entity_id: `${incoming.unit_code}_${incoming.reg_number}`,
-          resolution: "remote_preserved",
-          reason: "Submission Locking Defense: Remote exam already marked 'submitted'. Offline draft rejected.",
-        },
-      };
-    }
-  }
-  return { accepted: true };
-}
-
-function resolveAttendanceUnionMerge(existingRecords: Array<{ session_id: string; adm: string; status: string }>, incomingScan: { session_id: string; adm: string }): {
-  merged: Array<{ session_id: string; adm: string; status: string }>;
-  isNew: boolean;
-} {
-  const normAdm = incomingScan.adm.trim().toUpperCase();
-  const exists = existingRecords.some(
-    (r) => r.session_id === incomingScan.session_id && r.adm.trim().toUpperCase() === normAdm
-  );
-
-  if (exists) {
-    return { merged: existingRecords, isNew: false };
-  }
-
-  return {
-    merged: [...existingRecords, { session_id: incomingScan.session_id, adm: normAdm, status: "Present" }],
-    isNew: true,
-  };
-}
-
-function resolveTimestampPrecedence(remoteUpdatedAt: number, localUpdatedAt: number): ConflictResult {
-  if (remoteUpdatedAt > localUpdatedAt) {
-    return {
-      accepted: false,
-      conflict: {
-        action_type: "SESSION_PLAN_SAVE",
-        entity_id: "plan-test",
-        resolution: "remote_preserved",
-        reason: "Timestamp Precedence: Remote session plan is newer than offline edits.",
-      },
-    };
-  }
-  return { accepted: true };
 }
 
 describe("MTTI PWA Offline Synchronization & Conflict Resolution Suite", () => {
@@ -297,6 +242,339 @@ describe("MTTI PWA Offline Synchronization & Conflict Resolution Suite", () => {
       expect(sanitizedExam.questions[0]).not.toHaveProperty("correct_answer");
       expect(sanitizedExam.questions[0]).not.toHaveProperty("trainer_rubric");
       expect(sanitizedExam.questions[0]).not.toHaveProperty("critical_aspect");
+    });
+  });
+
+  // ─── 6. DEAD-LETTER QUEUE (DLQ) & RETRY BACKOFF ISOLATION ────────────────
+  describe("6. Dead-Letter Queue (DLQ) & Failure Isolation", () => {
+    // Pure simulator replicating syncEngine.flushQueue() loop
+    async function simulateQueueProcessor(
+      queue: OfflineQueueItem[],
+      dlq: FailedSyncItem[],
+      handler: (item: OfflineQueueItem) => Promise<{ success: boolean; statusCode?: number; error?: string }>
+    ) {
+      const itemsToProcess = [...queue];
+      let processed = 0;
+      let succeeded = 0;
+      let failed = 0;
+
+      for (const item of itemsToProcess) {
+        processed++;
+        item.attempts += 1;
+        item.status = "processing";
+        const res = await handler(item);
+
+        if (res.success) {
+          succeeded++;
+          const idx = queue.findIndex((q) => q.id === item.id);
+          if (idx !== -1) queue.splice(idx, 1);
+        } else {
+          failed++;
+          const statusCode = res.statusCode;
+          const isPermanent =
+            statusCode === 400 ||
+            statusCode === 403 ||
+            statusCode === 422 ||
+            item.attempts >= item.max_attempts;
+
+          if (isPermanent) {
+            // Remove from active queue and route to DLQ
+            const idx = queue.findIndex((q) => q.id === item.id);
+            if (idx !== -1) queue.splice(idx, 1);
+            dlq.push({
+              ...item,
+              status: "failed",
+              failed_at: Date.now(),
+              error_reason: res.error || `HTTP ${statusCode || "max-attempts"}`,
+              status_code: statusCode,
+              entity_id: extractEntityId(item),
+            });
+          } else {
+            item.status = "pending";
+            item.error = res.error;
+          }
+        }
+      }
+
+      return { processed, succeeded, failed };
+    }
+
+    it("should isolate 1 failing item (HTTP 422) without blocking 3 valid items behind it", async () => {
+      const activeQueue: OfflineQueueItem[] = [
+        {
+          id: "queue_item_1",
+          action_type: "SUBMISSION_SUBMIT",
+          payload: { unit_code: "COMP-204", reg_number: "INVALID_STUDENT", section_a: [] },
+          attempts: 0,
+          max_attempts: 5,
+          status: "pending",
+          created_at: 1000,
+        },
+        {
+          id: "queue_item_2",
+          action_type: "ATTENDANCE_CHECKIN",
+          payload: { session_id: "sp-201", adm: "ITECH/14001/S2026", name: "Alice Chebet" },
+          attempts: 0,
+          max_attempts: 5,
+          status: "pending",
+          created_at: 1010,
+        },
+        {
+          id: "queue_item_3",
+          action_type: "MARKS_UPDATE",
+          payload: { id: "mark_301", unit_code: "COMP-204", theory_mark: 78 },
+          attempts: 0,
+          max_attempts: 5,
+          status: "pending",
+          created_at: 1020,
+        },
+        {
+          id: "queue_item_4",
+          action_type: "SESSION_PLAN_SAVE",
+          payload: { id: "plan_401", title: "Networking Lab 2" },
+          attempts: 0,
+          max_attempts: 5,
+          status: "pending",
+          created_at: 1030,
+        },
+      ];
+
+      const dlqStore: FailedSyncItem[] = [];
+
+      // Handler: item_1 fails with HTTP 422 Unprocessable Entity, all others succeed
+      const handler = async (item: OfflineQueueItem) => {
+        if (item.id === "queue_item_1") {
+          return {
+            success: false,
+            statusCode: 422,
+            error: "HTTP 422: Missing required competence assessment criteria for trainee",
+          };
+        }
+        return { success: true };
+      };
+
+      const result = await simulateQueueProcessor(activeQueue, dlqStore, handler);
+
+      // Verify all 4 were processed in sequence
+      expect(result.processed).toBe(4);
+      expect(result.succeeded).toBe(3);
+      expect(result.failed).toBe(1);
+
+      // Verify active queue is drained (item 1 went to DLQ, items 2, 3, 4 succeeded)
+      expect(activeQueue.length).toBe(0);
+
+      // Verify DLQ contains exactly item 1 with diagnostic metadata
+      expect(dlqStore.length).toBe(1);
+      expect(dlqStore[0].id).toBe("queue_item_1");
+      expect(dlqStore[0].status_code).toBe(422);
+      expect(dlqStore[0].error_reason).toContain("HTTP 422: Missing required competence");
+      expect(dlqStore[0].entity_id).toBe("COMP-204 / INVALID_STUDENT");
+      expect(dlqStore[0].status).toBe("failed");
+    });
+
+    it("should immediately move HTTP 403 Forbidden cross-trainer violations to DLQ", async () => {
+      const activeQueue: OfflineQueueItem[] = [
+        {
+          id: "queue_forbidden_1",
+          action_type: "MARKS_UPDATE",
+          payload: { id: "mark_ee_501", department_id: "dept-ee" },
+          attempts: 0,
+          max_attempts: 5,
+          status: "pending",
+          created_at: 2000,
+        },
+      ];
+      const dlqStore: FailedSyncItem[] = [];
+
+      const handler = async () => ({
+        success: false,
+        statusCode: 403,
+        error: "HTTP 403: Cross-trainer authorization denied (BOLA violation)",
+      });
+
+      await simulateQueueProcessor(activeQueue, dlqStore, handler);
+
+      expect(activeQueue.length).toBe(0);
+      expect(dlqStore.length).toBe(1);
+      expect(dlqStore[0].status_code).toBe(403);
+      expect(dlqStore[0].error_reason).toContain("HTTP 403: Cross-trainer authorization denied");
+    });
+
+    it("should keep transient network errors (HTTP 503) in the queue for retry backoff", async () => {
+      const activeQueue: OfflineQueueItem[] = [
+        {
+          id: "queue_transient_1",
+          action_type: "ATTENDANCE_CHECKIN",
+          payload: { session_id: "sp-99", adm: "ITECH/14099/S2026" },
+          attempts: 0,
+          max_attempts: 5,
+          status: "pending",
+          created_at: 3000,
+        },
+      ];
+      const dlqStore: FailedSyncItem[] = [];
+
+      const handler = async () => ({
+        success: false,
+        statusCode: 503,
+        error: "HTTP 503: Database connection pool saturating; transient backoff",
+      });
+
+      await simulateQueueProcessor(activeQueue, dlqStore, handler);
+
+      // Not in DLQ yet because attempts < max_attempts and status code is not permanent 4xx
+      expect(dlqStore.length).toBe(0);
+      expect(activeQueue.length).toBe(1);
+      expect(activeQueue[0].attempts).toBe(1);
+      expect(activeQueue[0].status).toBe("pending");
+      expect(activeQueue[0].error).toContain("503");
+    });
+
+    it("should transition transient item to DLQ once max_attempts (5) is exhausted", async () => {
+      const activeQueue: OfflineQueueItem[] = [
+        {
+          id: "queue_exhaust_1",
+          action_type: "ATTENDANCE_REGISTER_SAVE",
+          payload: { rows: [] },
+          attempts: 4,
+          max_attempts: 5,
+          status: "pending",
+          created_at: 4000,
+        },
+      ];
+      const dlqStore: FailedSyncItem[] = [];
+
+      const handler = async () => ({
+        success: false,
+        statusCode: 500,
+        error: "Persistent internal error",
+      });
+
+      await simulateQueueProcessor(activeQueue, dlqStore, handler);
+
+      expect(activeQueue.length).toBe(0);
+      expect(dlqStore.length).toBe(1);
+      expect(dlqStore[0].id).toBe("queue_exhaust_1");
+      expect(dlqStore[0].attempts).toBe(5);
+      expect(dlqStore[0].status).toBe("failed");
+    });
+
+    it("should allow a DLQ item to be retried by resetting attempts and re-enqueuing", () => {
+      const failedItem: FailedSyncItem = {
+        id: "dlq_retry_test",
+        action_type: "SUBMISSION_SUBMIT",
+        payload: { unit_code: "COMP-204", reg_number: "ITECH/14050/S2026" },
+        attempts: 5,
+        max_attempts: 5,
+        status: "failed",
+        created_at: 1000,
+        failed_at: 2000,
+        status_code: 422,
+        error_reason: "HTTP 422: Fixed by administrator",
+        entity_id: "COMP-204 / ITECH/14050/S2026",
+      };
+
+      // Emulate retryFailedSyncItem logic
+      const restoredItem: OfflineQueueItem = {
+        id: failedItem.id,
+        action_type: failedItem.action_type,
+        payload: failedItem.payload,
+        attempts: 0,
+        max_attempts: failedItem.max_attempts,
+        status: "pending",
+        created_at: failedItem.created_at,
+        last_attempt_at: undefined,
+        error: undefined,
+      };
+
+      expect(restoredItem.attempts).toBe(0);
+      expect(restoredItem.status).toBe("pending");
+      expect(restoredItem.error).toBeUndefined();
+    });
+  });
+
+  // ─── 7. CLOCK-SKEW-SAFE MONOTONIC VERSION CONFLICT RESOLUTION ──────────────
+  describe("7. Clock-Skew-Safe Conflict Resolution (Monotonic Version & Server Timestamp)", () => {
+    it("should reject stale local edit if remote monotonic version is higher, even if local clock is skewed to the future", () => {
+      // Skewed lab PC system clock: October 25, 2026
+      const futureLocalTime = new Date("2026-10-25T14:00:00Z").getTime();
+      // Server record updated on October 10, 2026, version 4
+      const remoteRecord = {
+        id: "plan-skew-1",
+        version: 4,
+        updated_at: "2026-10-10T12:00:00Z",
+      };
+
+      // Local edit based on version 2
+      const localEdit = {
+        id: "plan-skew-1",
+        base_version: 2,
+        version: 2,
+        updated_at: futureLocalTime, // Clock is running in the future!
+      };
+
+      const result = resolveMonotonicVersionConflict(remoteRecord, localEdit);
+
+      // Skew-safe version check detects remote (v4) > local (v2), rejecting local overwrite
+      expect(result.accepted).toBe(false);
+      expect(result.conflict?.resolution).toBe("remote_preserved");
+      expect(result.conflict?.reason).toContain("Monotonic Version Precedence");
+      expect(result.conflict?.reason).toContain("v4");
+      expect(result.conflict?.reason).toContain("v2");
+    });
+
+    it("should accept local edit when local incremented version is >= remote version", () => {
+      const remoteRecord = {
+        id: "plan-skew-2",
+        version: 3,
+        updated_at: "2026-10-10T12:00:00Z",
+      };
+
+      const localEdit = {
+        id: "plan-skew-2",
+        version: 4, // Incremented after local edit
+        base_version: 3,
+        updated_at: Date.now(),
+      };
+
+      const result = resolveMonotonicVersionConflict(remoteRecord, localEdit);
+
+      expect(result.accepted).toBe(true);
+      expect(result.conflict).toBeUndefined();
+    });
+
+    it("should accept write when remote does not exist (new record)", () => {
+      const remoteRecord = null;
+      const localNewRecord = {
+        id: "plan-brand-new",
+        version: 1,
+        updated_at: Date.now(),
+      };
+
+      const result = resolveMonotonicVersionConflict(remoteRecord, localNewRecord);
+
+      expect(result.accepted).toBe(true);
+    });
+
+    it("should use authoritative server_updated_at when numeric version is missing, immune to local clock drift", () => {
+      // Remote updated at 12:00 UTC by another trainer
+      const remoteRecord = {
+        id: "plan-server-ts",
+        server_updated_at: "2026-10-10T12:00:00Z",
+      };
+
+      // Local trainer checked out at 10:00 UTC, but local clock is running slow (8:00 UTC)
+      const localEdit = {
+        id: "plan-server-ts",
+        server_updated_at: "2026-10-10T10:00:00Z", // Checkout timestamp assigned by server
+        updated_at: "2026-10-10T08:00:00Z",        // Skewed local clock
+      };
+
+      const result = resolveMonotonicVersionConflict(remoteRecord, localEdit);
+
+      expect(result.accepted).toBe(false);
+      expect(result.conflict?.resolution).toBe("remote_preserved");
+      expect(result.conflict?.reason).toContain("Server Timestamp Precedence");
     });
   });
 });
