@@ -22,10 +22,12 @@ async function startServer() {
   // Apply Enterprise Security Layer
   app.use(securityHeaders);
   app.use(corsMiddleware);
-  app.use(apiRateLimiter);
 
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+  // Global lab-safe rate limiter (runs after body parsers so identity payload can be resolved)
+  app.use(apiRateLimiter);
 
   app.use("/api", apiRouter);
 

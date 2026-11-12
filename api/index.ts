@@ -19,10 +19,12 @@ const app = express();
 // Apply Enterprise Security Layer
 app.use(securityHeaders);
 app.use(corsMiddleware);
-app.use(apiRateLimiter);
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Lab-safe identity-based rate limiter (runs after body parsers so candidate identity can be resolved)
+app.use(apiRateLimiter);
 
 // Normalize request URL if rewritten by Vercel serverless layer
 app.use((req, res, next) => {
@@ -47,7 +49,10 @@ app.use((req, res) => {
 // Global error handler (always returns valid JSON, preventing unexpected token errors)
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error("[API Serverless Error]:", err);
-  res.status(500).json({ error: err?.message || "Internal server error" });
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(err?.status || 500).json({ error: err?.message || "Internal server error" });
 });
 
 export default app;

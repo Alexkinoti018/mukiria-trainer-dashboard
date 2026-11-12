@@ -85,8 +85,11 @@ export function AdminStaffAccountManager() {
         email: result.user.email,
         role: result.user.role,
         department:
-          STAFF_DEPARTMENTS.find((department) => department.id === result.user.department_id)?.name ??
-          "Department",
+          STAFF_DEPARTMENTS.find(
+            (department) =>
+              department.id === result.user.department_id ||
+              department.id === departmentId
+          )?.name ?? "Department",
         temporaryPassword: result.temporaryPassword,
       });
       toast.success("Staff login created", {

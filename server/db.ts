@@ -719,6 +719,21 @@ export async function createUser(data: {
 
   if (pool) {
     try {
+      let resolvedDeptId: string | null = userRecord.department_id ? String(userRecord.department_id).trim() : null;
+      if (resolvedDeptId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(resolvedDeptId)) {
+        try {
+          const depts = await loadDatabaseDepartments();
+          const matched = depts.find((d) => matchesDepartment(d, resolvedDeptId!));
+          if (matched && matched.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(matched.id)) {
+            resolvedDeptId = matched.id;
+          } else {
+            resolvedDeptId = null;
+          }
+        } catch {
+          resolvedDeptId = null;
+        }
+      }
+
       const res = await pool.query(
         `INSERT INTO users (id, admission_number, phone_number, full_name, email, password_hash, role, profile_id, department_id, must_change_password, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
@@ -732,7 +747,7 @@ export async function createUser(data: {
           userRecord.password_hash,
           userRecord.role,
           userRecord.profile_id,
-          userRecord.department_id,
+          resolvedDeptId,
           userRecord.must_change_password ?? false,
           userRecord.created_at,
           userRecord.updated_at,
@@ -817,7 +832,7 @@ export async function createStaffAccount(data: {
           department_id, must_change_password, created_at, updated_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE, $9, $9)
         RETURNING *`,
-        [userId, normalizedName, normalizedEmail, data.phone_number || null, data.password_hash, data.role, profileId, data.department_id, now]
+        [userId, normalizedName, normalizedEmail, data.phone_number || null, data.password_hash, data.role, profileId, realDeptId, now]
       );
 
       try {

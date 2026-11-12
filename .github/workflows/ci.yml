@@ -32,6 +32,18 @@ jobs:
       - name: TypeScript Typecheck (tsc --noEmit)
         run: npm run check
 
+      - name: Production Dependency Security Audit
+        run: npm audit --audit-level=high --omit=dev
+
+      - name: Client Secret Scanning (Zero Leaked Service Keys)
+        run: |
+          echo "Scanning client code for leaked secrets or service-role keys..."
+          if grep -rnEi "(SUPABASE_SERVICE_ROLE_KEY|DOCUMENT_SIGNING_SECRET|service_role)" client/; then
+            echo "::error::Prohibited secret or service-role credential detected in client bundle!"
+            exit 1
+          fi
+          echo "Client bundle clean: No server secrets or service-role keys detected."
+
       - name: Build Production Client & Server Bundles
         run: npm run build
 

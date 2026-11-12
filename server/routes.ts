@@ -85,7 +85,16 @@ import {
   TraineeCreateSchema,
   TraineeUpdateSchema,
   AttendanceMarkSchema,
+  authRateLimiter,
+  submissionsRateLimiter,
+  examsRateLimiter,
+  getLabSafeRateLimitKey,
 } from "./security.ts";
+import {
+  signDocumentPayload,
+  verifyDocumentToken,
+  type DocumentMetadata,
+} from "./documentSigner.ts";
 
 export type { AuthenticatedUser, AuthenticatedRequest };
 export {
@@ -96,9 +105,17 @@ export {
   verifySupabaseToken,
   createSignedJwt,
   getJwtSecret,
+  signDocumentPayload,
+  verifyDocumentToken,
 };
 
 export const apiRouter = Router();
+
+// Lab-safe identity-based rate limiters for core subsystems:
+// Keys by user_id/reg_number with generous institutional NAT thresholds so Mukiria labs never stall.
+apiRouter.use("/auth", authRateLimiter);
+apiRouter.use("/submissions", submissionsRateLimiter);
+apiRouter.use("/exams", examsRateLimiter);
 
 // ─── IN-MEMORY DEMO/SEED REPOSITORY WITH SERVICE-ROLE INTEGRITY ───────────────
 // In production, queries traverse PostgreSQL with RLS. Here we mirror identical relational constraints.
@@ -642,6 +659,76 @@ apiRouter.get("/health", async (_req: Request, res: Response) => {
   });
 });
 
+// ─── DOCUMENT AUTHENTICITY & QR VERIFICATION (Public, Read-Only) ────────────
+apiRouter.get("/verify-document", async (req: Request, res: Response) => {
+  const token = typeof req.query.token === "string" ? req.query.token : "";
+  if (!token) {
+    res.status(400).json({
+      valid: false,
+      verified: false,
+      error: "Missing required 'token' query parameter for document verification.",
+    });
+    return;
+  }
+
+  const result = verifyDocumentToken(token);
+  if (!result.valid || !result.docMetadata) {
+    res.status(400).json({
+      valid: false,
+      verified: false,
+      error: result.error || "Cryptographic verification failed: Document has been altered or tampered with.",
+    });
+    return;
+  }
+
+  const doc = result.docMetadata;
+  let canonicalMatched = true;
+  let canonicalNotes = "Cryptographically authenticated against MTTI Institutional Authority.";
+
+  // Optional canonical database integrity cross-check
+  if (pool) {
+    try {
+      if (doc.doc_type === "broadsheet" || doc.doc_type === "assessment_marks") {
+        const queryRes = await pool.query(
+          `SELECT COUNT(*)::int as count, AVG(final_score)::numeric as avg_score 
+           FROM assessment_marks 
+           WHERE UPPER(unit_code) = UPPER($1)`,
+          [doc.unit_code]
+        );
+        if (queryRes.rows.length > 0 && queryRes.rows[0].count > 0) {
+          const dbCount = queryRes.rows[0].count;
+          if (doc.total_candidates > 0 && Math.abs(dbCount - doc.total_candidates) > 5) {
+            canonicalNotes = `Snapshot verified; live database has ${dbCount} candidate records.`;
+          }
+        }
+      }
+    } catch {
+      // Graceful fallback to cryptographic verification if DB connection is unavailable
+    }
+  }
+
+  res.json({
+    valid: true,
+    verified: true,
+    document_type: doc.doc_type,
+    unit_code: doc.unit_code,
+    term: doc.term,
+    academic_year: doc.academic_year || "2026",
+    total_candidates: doc.total_candidates,
+    competent_count: doc.competent_count ?? 0,
+    nyc_count: doc.nyc_count ?? 0,
+    average_mark: doc.average_mark ?? 0,
+    hod_signoff: doc.hod_signoff,
+    hod_name: doc.hod_name || "Head of Department",
+    short_hash: result.short_hash,
+    issued_at: doc.issued_at,
+    issuer: "Mukiria Technical Training Institute (MTTI)",
+    canonical_status: "CANONICAL_AUTHENTIC",
+    verification_notes: canonicalNotes,
+    verification_timestamp: new Date().toISOString(),
+  });
+});
+
 // ─── UNIFIED USER AUTHENTICATION & MANAGEMENT ENDPOINTS (Public) ─────────────
 
 /**
@@ -894,6 +981,59 @@ apiRouter.post("/auth/change-password", async (req: AuthenticatedRequest, res: R
     const status = error instanceof DatabaseUnavailableError ? 503 : 500;
     res.status(status).json({ error: "Could not update the password. Please try again." });
   }
+});
+
+// ─── DOCUMENT CRYPTOGRAPHIC SIGNING ENDPOINT (Authenticated) ─────────────────
+apiRouter.post("/documents/sign", async (req: AuthenticatedRequest, res: Response) => {
+  const {
+    doc_type,
+    unit_code,
+    term,
+    academic_year,
+    cohort_id,
+    total_candidates,
+    competent_count,
+    nyc_count,
+    average_mark,
+    hod_name,
+    hod_signoff,
+  } = req.body || {};
+
+  if (!unit_code || !term) {
+    res.status(400).json({ error: "unit_code and term are required to sign an academic document." });
+    return;
+  }
+
+  const docMetadata: DocumentMetadata = {
+    doc_type: doc_type || "broadsheet",
+    unit_code: String(unit_code).trim().toUpperCase(),
+    term: String(term).trim(),
+    academic_year: academic_year || "2026",
+    cohort_id: cohort_id || undefined,
+    total_candidates: Number(total_candidates || 0),
+    competent_count: Number(competent_count || 0),
+    nyc_count: Number(nyc_count || 0),
+    average_mark: Number(average_mark || 0),
+    hod_name: hod_name || req.user?.name || "Head of Department",
+    hod_signoff: Boolean(hod_signoff ?? (req.user?.role === "hod" || req.user?.role === "admin")),
+    issued_at: new Date().toISOString(),
+  };
+
+  const signed = signDocumentPayload(docMetadata);
+  const host = req.get("host") || "nolimit.co.ke";
+  const protocol = req.protocol === "https" || req.get("x-forwarded-proto") === "https" ? "https" : "http";
+  const verify_url = `${protocol}://${host}/verify-document?token=${signed.token}`;
+  const qr_data_url = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verify_url)}`;
+
+  res.json({
+    success: true,
+    token: signed.token,
+    signature: signed.signature,
+    short_hash: signed.short_hash,
+    verify_url,
+    qr_data_url,
+    doc_metadata: docMetadata,
+  });
 });
 
 // ─── INSTITUTIONAL ROSTER & TRAINEE LOOKUP (ZERO-EMAIL CDACC WORKFLOW) ─────────

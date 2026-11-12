@@ -96,6 +96,7 @@ const StudentSessionView = lazyWithRetry(() => import("./pages/StudentSessionVie
 // Admin & Developer Command Center
 const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"));
 const RegisterTrainee = lazyWithRetry(() => import("./pages/RegisterTrainee"));
+const VerifyDocumentPage = lazyWithRetry(() => import("./pages/VerifyDocumentPage"));
 
 function Router() {
   return (
@@ -104,6 +105,7 @@ function Router() {
       {/* Public routes */}
       <Route path="/" component={Login} />
       <Route path="/login" component={Login} />
+      <Route path="/verify-document" component={VerifyDocumentPage} />
       <Route path="/register-trainee" component={RegisterTrainee} />
       <Route path="/trainee/activate" component={RegisterTrainee} />
       <Route path="/trainee/register" component={RegisterTrainee} />

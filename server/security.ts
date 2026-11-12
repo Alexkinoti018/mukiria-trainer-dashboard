@@ -12,6 +12,7 @@
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import jwt from "jsonwebtoken";
 import { z } from "zod";
 import type { Request, Response, NextFunction } from "express";
 
@@ -68,23 +69,177 @@ export const corsMiddleware = cors({
     "x-user-dept",
     "x-user-enrolled-units",
     "x-user-units",
+    "x-test-rate-limit",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
 });
 
-// ─── 3. RATE LIMITING ────────────────────────────────────────────────────────
+// ─── 3. LAB-SAFE IDENTITY-BASED RATE LIMITING ───────────────────────────────
+
+/**
+ * Lab-Safe Key Generator:
+ * Identifies users by authenticated user ID or trainee admission/registration number.
+ * Only falls back to client IP for unauthenticated anonymous attempts with generous
+ * institutional NAT gateway thresholds.
+ *
+ * Guarantees that 60+ trainees sitting in Mukiria Lab 1 submitting simultaneously
+ * over the same lab public IP address each have an isolated rate limit quota and are
+ * never throttled or blocked by their classmates' traffic.
+ */
+export function getLabSafeRateLimitKey(req: Request): string {
+  // 1. Authenticated user object populated by authenticateToken middleware
+  const user = (req as any).user;
+  if (user) {
+    if (user.id) return `user:${user.id}`;
+    if (user.user_id) return `user:${user.user_id}`;
+    if (user.reg_number) return `trainee:${String(user.reg_number).trim().toUpperCase()}`;
+    if (user.adm_no) return `trainee:${String(user.adm_no).trim().toUpperCase()}`;
+  }
+
+  // 2. Client header identifiers (e.g. from authenticated client fetches)
+  const headerUserId = req.headers["x-user-id"];
+  if (typeof headerUserId === "string" && headerUserId.trim()) {
+    return `user:${headerUserId.trim()}`;
+  }
+  const headerReg = req.headers["x-user-reg"];
+  if (typeof headerReg === "string" && headerReg.trim()) {
+    return `trainee:${headerReg.trim().toUpperCase()}`;
+  }
+
+  // 3. Authorization Bearer Token peek (without throwing on expired/invalid)
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const rawToken = authHeader.slice(7).trim();
+    if (rawToken) {
+      if (rawToken.startsWith("token-")) {
+        return `demo:${rawToken}`;
+      }
+      try {
+        const decoded = jwt.decode(rawToken) as any;
+        if (decoded && typeof decoded === "object") {
+          const id = decoded.id || decoded.sub || decoded.user_id || decoded.reg_number || decoded.adm_no;
+          if (id) return `token:${String(id).trim().toUpperCase()}`;
+        }
+      } catch {
+        // Ignore JWT decode errors, fall back to next strategy
+      }
+    }
+  }
+
+  // 4. Request body identity parameter (for login/registration or submissions)
+  if (req.body && typeof req.body === "object") {
+    const candidateId =
+      req.body.reg_number ||
+      req.body.regNumber ||
+      req.body.adm_no ||
+      req.body.admNo ||
+      req.body.admission_number ||
+      req.body.admissionNumber;
+    if (typeof candidateId === "string" && candidateId.trim()) {
+      return `trainee-payload:${candidateId.trim().toUpperCase()}`;
+    }
+    if (typeof req.body.email === "string" && req.body.email.trim()) {
+      return `email:${req.body.email.trim().toLowerCase()}`;
+    }
+  }
+
+  // 5. Fallback to client IP (Generous institutional NAT gateway mode)
+  const ip =
+    (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+    req.ip ||
+    req.socket.remoteAddress ||
+    "127.0.0.1";
+  return `ip:${ip}`;
+}
+
+export function shouldSkipRateLimit(req: Request): boolean {
+  if (req.headers["x-test-rate-limit"] === "true" || process.env.ENABLE_RATE_LIMIT_TEST === "true") {
+    return false;
+  }
+  return process.env.NODE_ENV === "test" || process.env.DISABLE_RATE_LIMIT === "true";
+}
+
+/**
+ * Global API rate limiter with lab-safe identity resolution
+ */
 export const apiRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.RATE_LIMIT_MAX ? parseInt(process.env.RATE_LIMIT_MAX, 10) : 1000,
+  max: (req: Request) => {
+    const key = getLabSafeRateLimitKey(req);
+    return key.startsWith("ip:") ? 1000 : 300;
+  },
+  keyGenerator: (req: Request) => getLabSafeRateLimitKey(req),
   standardHeaders: true,
   legacyHeaders: false,
-  skip: () =>
-    process.env.NODE_ENV === "test" ||
-    process.env.DISABLE_RATE_LIMIT === "true",
+  skip: shouldSkipRateLimit,
   message: {
-    error: "Too many requests from this IP address, please try again after 15 minutes.",
+    error: "Too many requests. Please try again after a few minutes.",
     service_status: "rate_limited",
     retry_after_minutes: 15,
+  },
+});
+
+/**
+ * Authentication rate limiter for /api/auth/*
+ * Generous NAT threshold for campus labs, per-identity throttling for brute-force defense
+ */
+export const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: (req: Request) => {
+    const key = getLabSafeRateLimitKey(req);
+    // Institutional NAT allows up to 1000 login/token attempts; individual identity is limited to 120
+    return key.startsWith("ip:") ? 1000 : 120;
+  },
+  keyGenerator: (req: Request) => getLabSafeRateLimitKey(req),
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: shouldSkipRateLimit,
+  message: {
+    error: "Too many authentication requests. Institutional rate limit exceeded. Please wait 15 minutes.",
+    service_status: "rate_limited",
+    retry_after_minutes: 15,
+  },
+});
+
+/**
+ * Submissions rate limiter for /api/submissions/*
+ * High throughput per trainee (autosaves + submit), isolated per candidate so lab peers never collide
+ */
+export const submissionsRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: (req: Request) => {
+    const key = getLabSafeRateLimitKey(req);
+    // 60 requests per minute per trainee (300 per 5 min)
+    return key.startsWith("ip:") ? 3000 : 300;
+  },
+  keyGenerator: (req: Request) => getLabSafeRateLimitKey(req),
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: shouldSkipRateLimit,
+  message: {
+    error: "Submission rate limit exceeded. Offline buffer is active; queued items will sync automatically.",
+    service_status: "rate_limited",
+    retry_after_minutes: 5,
+  },
+});
+
+/**
+ * Exams rate limiter for /api/exams/*
+ */
+export const examsRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: (req: Request) => {
+    const key = getLabSafeRateLimitKey(req);
+    return key.startsWith("ip:") ? 3000 : 300;
+  },
+  keyGenerator: (req: Request) => getLabSafeRateLimitKey(req),
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: shouldSkipRateLimit,
+  message: {
+    error: "Exam query rate limit exceeded. Please wait a moment.",
+    service_status: "rate_limited",
+    retry_after_minutes: 5,
   },
 });
 
