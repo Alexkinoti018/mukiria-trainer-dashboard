@@ -36,6 +36,7 @@ import {
   loadDatabaseTrainees,
   loadDatabaseTrainers,
   loadDatabaseDepartments,
+  matchesDepartment,
   DatabaseUnavailableError,
   createUser,
   createStaffAccount,
@@ -1997,8 +1998,19 @@ apiRouter.get("/exams", async (req: AuthenticatedRequest, res: Response) => {
 
   // Column Shielding: If user is a trainee, sanitize answer keys
   if (user && user.role === "trainee") {
+    const clean = (code?: string) => (code || "").trim().toUpperCase().replace(/-(WA[1-9]|PRAC|PAPER[1-9]).*$/i, "");
+    const enrolledNormalized = (user.enrolled_units || []).map((u) => clean(u));
+
     const userExams = liveExams
-      .filter((e) => user.enrolled_units?.includes(e.unit_code))
+      .filter((e) => {
+        if (!user.enrolled_units || user.enrolled_units.length === 0) return true;
+        const examUnit = clean(e.unit_code);
+        return (
+          user.enrolled_units.includes(e.unit_code) ||
+          enrolledNormalized.includes(examUnit) ||
+          (user.enrolled_units || []).some((u) => clean(u) === examUnit || examUnit.includes(clean(u)) || clean(u).includes(examUnit))
+        );
+      })
       .map((e) => sanitizeExamForStudent(e));
     res.json(userExams);
     return;
@@ -2386,7 +2398,12 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: Aut
   if (existingSub) {
     const isAlreadyLocked = Boolean((existingSub as any).is_locked) || existingSub.status === "submitted" || existingSub.status === "graded";
     if (isAlreadyLocked && existingSub.status !== "reopened" && existingSub.status !== "in_progress") {
-      res.status(400).json({ error: "Locked: Submission has already been completed and cannot be modified without trainer authorization" });
+      res.status(400).json({
+        error: "Locked: Submission has already been completed and cannot be modified without trainer authorization",
+        already_submitted: true,
+        submission_id: existingSub.id,
+        score: existingSub.total_score,
+      });
       return;
     }
     existingSub.status = "submitted";
@@ -2479,7 +2496,7 @@ export function atomicSubmitSubmission(
   payload: any, 
   userId?: string, 
   regNumber?: string
-): { success: boolean; id?: string; error?: string; status_code: number } {
+): { success: boolean; id?: string; error?: string; status_code: number; already_submitted?: boolean } {
   // Find submission by ID - check from latest to earliest in case test pushed an override
   const sub = [...DB.submissions].reverse().find(s => s.id === submissionId);
   if (!sub) {
@@ -2499,7 +2516,9 @@ export function atomicSubmitSubmission(
     return { 
       success: false, 
       error: "Locked: Submission has already been completed or is not in progress", 
-      status_code: 400 
+      status_code: 400,
+      already_submitted: sub.status === "submitted" || sub.status === "graded",
+      id: sub.id,
     };
   }
 
@@ -2553,7 +2572,11 @@ apiRouter.put("/submissions/:id/submit", requireRoles("trainee", "admin"), (req:
   );
 
   if (!result.success) {
-    res.status(result.status_code).json({ error: result.error });
+    res.status(result.status_code).json({
+      error: result.error,
+      already_submitted: (result as any).already_submitted,
+      id: (result as any).id,
+    });
     return;
   }
 
@@ -3016,7 +3039,7 @@ async function handleCreateStaff(req: AuthenticatedRequest, res: Response) {
   }
 
   const depts = await loadDatabaseDepartments();
-  if (!depts.some((d) => d.id === department_id)) {
+  if (!depts.some((d) => matchesDepartment(d, department_id))) {
     res.status(400).json({ error: "Select a valid department for this staff account." });
     return;
   }
@@ -3755,7 +3778,8 @@ apiRouter.post("/admin/users", requireRoles("admin"), async (req: Request, res: 
     return;
   }
 
-  if (!pool && !DB.departments.some((department) => department.id === department_id)) {
+  const adminDepts = await loadDatabaseDepartments();
+  if (!adminDepts.some((d) => matchesDepartment(d, department_id))) {
     res.status(400).json({ error: "Select a valid department for this staff account." });
     return;
   }

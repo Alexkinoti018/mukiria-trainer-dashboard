@@ -671,7 +671,18 @@ export default function CandidatePortal() {
 
             if (!apiRes.ok) {
               const errData = await apiRes.json().catch(() => ({}));
-              if (apiRes.status === 400) {
+              const isAlreadyLocked =
+                errData.already_submitted ||
+                (typeof errData.error === "string" &&
+                  (errData.error.includes("Locked: Submission has already been completed") ||
+                    errData.error.includes("already been completed")));
+
+              if (isAlreadyLocked) {
+                // Network retry or double-click on already-submitted exam: treat as idempotent success
+                if (typeof errData.score === "number") {
+                  serverScore = errData.score;
+                }
+              } else if (apiRes.status === 400) {
                 throw new Error(errData.error || "400 Bad Request: Locked: Submission has already been completed and cannot be modified");
               } else if (apiRes.status === 403) {
                 throw new Error(errData.error || "403 Forbidden: Exam submission window has expired");
@@ -913,7 +924,9 @@ export default function CandidatePortal() {
       setVerificationError(null);
 
       const normReg = regNo.toUpperCase();
-      const cleanReg = normReg.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD|FBS\s*[56]\s*MOD|FBP\s*6\s*MOD|LS\s*[56]\s*MOD|ADMIN\s*[56]\/?[56]?)\//i, "").trim();
+      const cleanReg = normReg
+        .replace(/^(ITECH\s*[456]\s*MOD|ICT[456]\s*MOD|FBS\s*[456]\s*MOD|FBP\s*[456]\s*MOD|LS\s*[456]\s*MOD|ADMIN\s*[456]\/?[456]?|EE\s*[456]\s*MOD)\//i, "")
+        .trim();
       const coreMatch = normReg.match(/\b\d{4,6}\b/);
       const coreReg = coreMatch ? coreMatch[0] : "";
       const currentUnit = (exam?.unit_code || unitCode || "").trim().toUpperCase();
@@ -945,7 +958,9 @@ export default function CandidatePortal() {
               if (Array.isArray(parsed)) {
                 const found = parsed.find((t: any) => {
                   const adm = (t.admNo || t.admissionNumber || t.reg_number || t.regCode || "").trim().toUpperCase();
-                  const cleanAdm = adm.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD|FBS\s*[56]\s*MOD|FBP\s*6\s*MOD|LS\s*[56]\s*MOD|ADMIN\s*[56]\/?[56]?)\//i, "").trim();
+                  const cleanAdm = adm
+                    .replace(/^(ITECH\s*[456]\s*MOD|ICT[456]\s*MOD|FBS\s*[456]\s*MOD|FBP\s*[456]\s*MOD|LS\s*[456]\s*MOD|ADMIN\s*[456]\/?[456]?|EE\s*[456]\s*MOD)\//i, "")
+                    .trim();
                   const admCore = (adm + " " + (t.regCode || "")).match(/\b\d{4,6}\b/)?.[0] || "";
                   const matchesCore = coreReg && admCore && coreReg === admCore;
                   return adm === normReg || cleanAdm === cleanReg || cleanAdm === normReg || adm === cleanReg || matchesCore;
@@ -969,7 +984,9 @@ export default function CandidatePortal() {
         if (!offlineMatch && OFFICIAL_MTTI_TRAINEES) {
           const found = OFFICIAL_MTTI_TRAINEES.find((t) => {
             const adm = (t.admNo || t.regCode || "").trim().toUpperCase();
-            const cleanAdm = adm.replace(/^(ITECH\s*6\s*MOD|ICT4\s*MOD|FBS\s*[56]\s*MOD|FBP\s*6\s*MOD|LS\s*[56]\s*MOD|ADMIN\s*[56]\/?[56]?)\//i, "").trim();
+            const cleanAdm = adm
+              .replace(/^(ITECH\s*[456]\s*MOD|ICT[456]\s*MOD|FBS\s*[456]\s*MOD|FBP\s*[456]\s*MOD|LS\s*[456]\s*MOD|ADMIN\s*[456]\/?[456]?|EE\s*[456]\s*MOD)\//i, "")
+              .trim();
             const admCore = (adm + " " + t.regCode).match(/\b\d{4,6}\b/)?.[0] || "";
             const matchesCore = coreReg && admCore && coreReg === admCore;
             return adm === normReg || cleanAdm === cleanReg || cleanAdm === normReg || adm === cleanReg || matchesCore;

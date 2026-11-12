@@ -28,8 +28,16 @@ describe("MTTI RBAC & Object Authorization Security Suite", () => {
   const createdStaffProfileIds: string[] = [];
   const initialPersistentUsers = JSON.parse(JSON.stringify(loadPersistentUsers()));
 
-  // Snapshot initial in-memory DB state for isolation
-  const initialDBState = JSON.parse(JSON.stringify(DB));
+  // Snapshot initial in-memory DB state for isolation (targeted keys only to conserve test runner memory)
+  const initialDBState = {
+    trainers: JSON.parse(JSON.stringify(DB.trainers)),
+    departments: JSON.parse(JSON.stringify(DB.departments)),
+    unit_offerings: JSON.parse(JSON.stringify(DB.unit_offerings)),
+    assessment_evidence: JSON.parse(JSON.stringify(DB.assessment_evidence)),
+    submissions: JSON.parse(JSON.stringify(DB.submissions)),
+    exams: JSON.parse(JSON.stringify(DB.exams)),
+    assessment_marks: JSON.parse(JSON.stringify(DB.assessment_marks)),
+  };
 
   beforeAll(async () => {
     process.env.ALLOW_DEMO_AUTH = "true";

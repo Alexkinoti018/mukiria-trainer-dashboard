@@ -498,9 +498,24 @@ export async function hydrateUserProfile(
 
   if (dbRole === "trainee") {
     const trainees = await loadDatabaseTrainees();
-    const matchedTrainee = trainees.find((t) => t.id === profileId);
+    const matchedTrainee = trainees.find((t) => t.id === profileId || (admNo && (t.adm_no === admNo || t.reg_number === admNo)));
     departmentId = matchedTrainee?.department || "dept-ci";
-    enrolledUnits = ["061155101A", "ICT/CU/IT/CR/6/6"];
+    if (matchedTrainee?.enrolled_units && matchedTrainee.enrolled_units.length > 0) {
+      enrolledUnits = matchedTrainee.enrolled_units;
+    } else {
+      const cohortCode = (matchedTrainee?.class_code || matchedTrainee?.class_id || "").toUpperCase();
+      if (cohortCode.includes("EE") || cohortCode.includes("ELECT")) {
+        enrolledUnits = ["EE/CU/PO/CR/1/6", "EE/CU/01/4", "061155101A"];
+      } else if (cohortCode.includes("FBS") || cohortCode.includes("HOSP")) {
+        enrolledUnits = ["101355101A", "061155101A"];
+      } else if (cohortCode.includes("ADMIN") || cohortCode.includes("BUS")) {
+        enrolledUnits = ["0415-451-21A", "061155101A"];
+      } else if (cohortCode.includes("ICT4") || cohortCode.includes("MOD 1")) {
+        enrolledUnits = ["IT/CU/ICTA/CR/01/4/MA", "061155101A", "ICT/CU/IT/CR/6/6"];
+      } else {
+        enrolledUnits = ["061155101A", "ICT/CU/IT/CR/6/6", "IT/CU/ICTA/CR/01/4/MA", "0415-451-21A", "EE/CU/PO/CR/1/6"];
+      }
+    }
   } else if (dbRole === "trainer") {
     const trainers = await loadDatabaseTrainers();
     const matchedTrainer = trainers.find((t) => t.id === profileId);
