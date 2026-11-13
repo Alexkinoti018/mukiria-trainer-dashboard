@@ -7,6 +7,7 @@ import {
 } from "./security.ts";
 import { initServerSentry, sentryContextMiddleware, captureServerException } from "./sentry.ts";
 import { logger } from "./logger.ts";
+import { ensureSchemaInitialized } from "./db.ts";
 
 // Initialize Sentry for serverless functions (no-op if SENTRY_DSN unset)
 initServerSentry();
@@ -44,6 +45,14 @@ app.use((req, res, next) => {
     const query = qIdx >= 0 ? req.url.slice(qIdx) : "";
     req.url = matchedPath + query;
   }
+  next();
+});
+
+// Ensure database schema and authoritative seed records exist on connected instance
+app.use(async (_req, _res, next) => {
+  try {
+    await ensureSchemaInitialized();
+  } catch {}
   next();
 });
 

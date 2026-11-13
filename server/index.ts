@@ -11,6 +11,7 @@ import {
 } from "./security.ts";
 import { initServerSentry, sentryContextMiddleware } from "./sentry.ts";
 import { logger } from "./logger.ts";
+import { ensureSchemaInitialized } from "./db.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +21,9 @@ async function startServer() {
 
   // Initialize Sentry SDK for production exception tracking (no-op if SENTRY_DSN unset)
   initServerSentry();
+
+  // Ensure database schema and seed accounts exist
+  ensureSchemaInitialized().catch(() => {});
 
   const app = express();
   const server = createServer(app);

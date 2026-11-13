@@ -2015,12 +2015,18 @@ export async function initDatabaseSchema(): Promise<void> {
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         role VARCHAR(50) NOT NULL DEFAULT 'TRAINEE',
+        profile_id VARCHAR(100),
         department_id VARCHAR(100),
+        must_change_password BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
       ALTER TABLE users ADD COLUMN IF NOT EXISTS department_id VARCHAR(100);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_id VARCHAR(100);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT false;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS admission_number VARCHAR(100);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number VARCHAR(50);
 
       CREATE TABLE IF NOT EXISTS assessment_evidence (
         id VARCHAR(100) PRIMARY KEY,
@@ -2052,11 +2058,47 @@ export async function initDatabaseSchema(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_evidence_unit_trainee ON assessment_evidence (unit_offering_id, trainee_id);
       CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
       CREATE INDEX IF NOT EXISTS idx_users_admission_number ON users (admission_number);
+
+      GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
+      GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+      GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO postgres, anon, authenticated, service_role;
     `);
+
+    // Ensure initial authoritative seed users exist in PostgreSQL if empty
+    const userCount = await pool.query("SELECT COUNT(*) AS count FROM users");
+    if (parseInt(userCount.rows[0]?.count || "0", 10) === 0) {
+      await pool.query(`
+        INSERT INTO users (id, email, full_name, admission_number, phone_number, password_hash, role, profile_id, department_id, must_change_password)
+        VALUES 
+          ('usr-admin-001', 'admin@mtti.ac.ke', 'Mukiria System Administrator', NULL, '+254700000001', '$2b$10$gb4klncmWcm5DZ4aGkaoR.l5GFlan.e8cshxW9eGcbP6GwGhk9kAS', 'ADMIN', 'profile-admin-001', 'dept-ia', false),
+          ('usr-trainer-001', 'trainer@mtti.ac.ke', 'Dr. J. Muriithi', NULL, '+254700000002', '$2b$10$l5sLxKIWxeV3A7w42XzqpO9sISryDMFRb.wzKVGKffXgLeReVD7K2', 'TRAINER', 'trainer-001', 'dept-ci', false),
+          ('usr-hod-001', 'hod.ci@mtti.ac.ke', 'Head of Computing & Informatics', NULL, '+254700000003', '$2b$10$tLOT8cQlzSDNVsWG9vKtyOfBLk5p5fm/ePCeGspWKqAMtdytjXSte', 'HOD', 'hod-ci', 'dept-ci', false),
+          ('usr-trainee-001', 'trainee@mtti.ac.ke', 'Nthiga Gakii Doris', '14179/S2026', '+254700000004', '$2b$10$ruK0K2v30dyg2ZZWT032DuoczCiuulqmIt0PjdZmlzyXq2G2c5bvW', 'TRAINEE', 'trainee-001', 'dept-ci', false)
+        ON CONFLICT (id) DO NOTHING;
+      `);
+      console.log("✅ [MTTI PostgreSQL]: Initial seed users provisioned.");
+    }
+
     console.log("✅ [MTTI PostgreSQL]: Centralized institutional tables verified.");
   } catch (err: any) {
     console.warn("⚠️ [PostgreSQL Init Warning]:", err.message);
   }
+}
+
+let schemaInitPromise: Promise<void> | null = null;
+export function ensureSchemaInitialized(): Promise<void> {
+  if (!pool) return Promise.resolve();
+  if (!schemaInitPromise) {
+    schemaInitPromise = initDatabaseSchema().catch((err) => {
+      console.warn("⚠️ [PostgreSQL Init Warning]:", err.message);
+      schemaInitPromise = null;
+    });
+  }
+  return schemaInitPromise;
+}
+
+if (pool) {
+  ensureSchemaInitialized().catch(() => {});
 }
 
 import {
