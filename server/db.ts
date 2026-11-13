@@ -269,7 +269,7 @@ const DEFAULT_SYSTEM_USERS: UserRecord[] = [
     phone_number: "+254700000001",
     password_hash: "$2b$10$KFipQHl93nhwMbAB7dDKA.TGKg/MXjtk2pOYAVLoEvm6IpA/Elr2G",
     role: "ADMIN",
-    profile_id: "profile-admin-001",
+    profile_id: "usr-admin-001",
     department_id: "dept-ia",
     must_change_password: false,
     created_at: "2026-01-01T00:00:00.000Z",

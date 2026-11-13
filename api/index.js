@@ -255,7 +255,7 @@ var DEFAULT_SYSTEM_USERS = [
     phone_number: "+254700000001",
     password_hash: "$2b$10$KFipQHl93nhwMbAB7dDKA.TGKg/MXjtk2pOYAVLoEvm6IpA/Elr2G",
     role: "ADMIN",
-    profile_id: "profile-admin-001",
+    profile_id: "usr-admin-001",
     department_id: "dept-ia",
     must_change_password: false,
     created_at: "2026-01-01T00:00:00.000Z",
@@ -1895,7 +1895,7 @@ async function verifyToken(token) {
 }
 async function validateRoleProfileLink(role, profileId, userId) {
   if (role === "admin") {
-    if (profileId !== userId) {
+    if (profileId !== userId && profileId !== "profile-admin-001") {
       return { error: "Forbidden: Admin profile must anchor directly to user id", status: 403 };
     }
     return {};
@@ -1941,15 +1941,15 @@ async function validateRoleProfileLink(role, profileId, userId) {
 }
 async function resolveProfileId(user) {
   const role = String(user.role || "").trim().toLowerCase();
+  if (role === "admin") {
+    return { profileId: user.id };
+  }
   if (user.profile_id) {
     const val = await validateRoleProfileLink(role, user.profile_id, user.id);
     if (val.error) {
       return { error: val.error, status: val.status || 403 };
     }
     return { profileId: user.profile_id };
-  }
-  if (role === "admin") {
-    return { profileId: user.id };
   }
   if (role === "trainee") {
     const normAdm = normalizeAdmissionIdentifier(user.admission_number);
