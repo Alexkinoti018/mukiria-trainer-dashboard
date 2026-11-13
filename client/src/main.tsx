@@ -2,6 +2,10 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import { syncEngine } from "./lib/syncEngine";
+import { initClientSentry } from "./lib/sentry";
+
+// Initialize Sentry error observability (graceful no-op if VITE_SENTRY_DSN unset)
+initClientSentry();
 
 // Ensure light institutional theme is active on root HTML element
 if (typeof document !== "undefined") {
@@ -9,12 +13,12 @@ if (typeof document !== "undefined") {
   localStorage.removeItem("theme");
 }
 
-// Register Service Worker & purge legacy stale caches (mtti-pwa-v1 through v10)
+// Register Service Worker & purge legacy stale caches (mtti-pwa-v1 through v11)
 if ("serviceWorker" in navigator) {
   if ("caches" in window) {
     caches.keys().then((names) => {
       names.forEach((name) => {
-        if (name !== "mtti-pwa-v11") {
+        if (name !== "mtti-pwa-v12") {
           caches.delete(name);
         }
       });

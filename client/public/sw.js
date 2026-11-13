@@ -11,7 +11,7 @@
  * 4. Hot-reloads & version updates take immediate effect via skipWaiting & clients.claim.
  */
 
-const CACHE_NAME = "mtti-pwa-v11";
+const CACHE_NAME = "mtti-pwa-v12";
 const STATIC_ASSETS = [
   "/",
   "/index.html",

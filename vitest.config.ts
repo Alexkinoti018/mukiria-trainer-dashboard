@@ -12,6 +12,7 @@ export default defineConfig({
   test: {
     root: path.resolve(import.meta.dirname),
     include: ["tests/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
+    exclude: ["tests/e2e/**", "node_modules/**"],
     setupFiles: [path.resolve(import.meta.dirname, "tests", "setup_runtime_data.ts")],
     testTimeout: 25000,
     hookTimeout: 25000,

@@ -1,0 +1,99 @@
+name: Supabase Keepalive & Automated Offsite Encrypted Backup
+
+on:
+  schedule:
+    # Keepalive heartbeat ping every 12 hours (prevents Supabase project inactivity pausing)
+    - cron: '0 */12 * * *'
+    # Daily full database backup at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - keepalive
+          - backup
+
+jobs:
+  # ─── 1. SUPABASE KEEPALIVE HEARTBEAT ──────────────────────────────────────────
+  supabase-keepalive:
+    name: Supabase Health & Keepalive Heartbeat
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Mukiria Production Backend & Supabase
+        run: |
+          echo "Pinging production health endpoint to keep Supabase pool and serverless warm..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "https://nolimit.co.ke/api/health" || echo "000")
+          echo "Production Healthcheck HTTP Status: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            echo "✅ Supabase and Mukiria Production API are operational."
+          else
+            echo "::warning::Healthcheck responded with non-200 status ($STATUS). Triggering retry..."
+            RETRY_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "https://nolimit.co.ke/api/health" || echo "000")
+            if [ "$RETRY_STATUS" -ge 200 ] && [ "$RETRY_STATUS" -lt 400 ]; then
+              echo "✅ Supabase operational after retry ($RETRY_STATUS)."
+            else
+              echo "::error::Production endpoint or Supabase database unavailable ($RETRY_STATUS)!"
+              exit 1
+            fi
+          fi
+
+  # ─── 2. DAILY ENCRYPTED PG_DUMP OFFSITE BACKUP ────────────────────────────────
+  database-backup:
+    name: Daily Encrypted Database Backup (pg_dump + AES-256-CBC)
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 0 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Install PostgreSQL Client Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client openssl
+
+      - name: Execute pg_dump & Apply AES-256 Encryption
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::warning::SUPABASE_DB_URL secret is not configured. Skipping pg_dump backup."
+            exit 0
+          fi
+
+          TIMESTAMP=$(date -u +"%Y%m%d_%H%M%SZ")
+          BACKUP_DIR="database_backups"
+          mkdir -p "$BACKUP_DIR"
+
+          RAW_DUMP="$BACKUP_DIR/mukiria_db_${TIMESTAMP}.sql"
+          ENCRYPTED_DUMP="$BACKUP_DIR/mukiria_db_${TIMESTAMP}.sql.enc"
+
+          echo "[*] Extracting schema and institutional datasets via pg_dump..."
+          pg_dump "$SUPABASE_DB_URL" \
+            --clean \
+            --if-exists \
+            --no-owner \
+            --no-privileges \
+            --exclude-table-data="audit_logs" \
+            -f "$RAW_DUMP"
+
+          echo "[*] Applying AES-256-CBC envelope encryption..."
+          KEY="${BACKUP_ENCRYPTION_KEY:-mtti_default_secure_passphrase_2026}"
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 -in "$RAW_DUMP" -out "$ENCRYPTED_DUMP" -k "$KEY"
+
+          # Shred unencrypted plaintext dump immediately
+          shred -u "$RAW_DUMP"
+
+          # Record SHA-256 cryptographic verification checksum
+          sha256sum "$ENCRYPTED_DUMP" > "$ENCRYPTED_DUMP.sha256"
+          echo "Encrypted backup ready:"
+          ls -lh "$BACKUP_DIR"
+
+      - name: Store Encrypted Backup as Workflow Artifact (Retained 90 Days)
+        uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-database-backup
+          path: database_backups/*.enc*
+          retention-days: 90

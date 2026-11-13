@@ -1,0 +1,50 @@
+[
+  {
+    "id": "usr-admin-001",
+    "email": "admin@mtti.ac.ke",
+    "full_name": "Mukiria System Administrator",
+    "admission_number": null,
+    "phone_number": "+254700000001",
+    "password_hash": "$2b$10$gb4klncmWcm5DZ4aGkaoR.l5GFlan.e8cshxW9eGcbP6GwGhk9kAS",
+    "role": "ADMIN",
+    "profile_id": "profile-admin-001",
+    "department_id": "dept-ia",
+    "must_change_password": false
+  },
+  {
+    "id": "usr-trainer-001",
+    "email": "trainer@mtti.ac.ke",
+    "full_name": "Dr. J. Muriithi",
+    "admission_number": null,
+    "phone_number": "+254700000002",
+    "password_hash": "$2b$10$l5sLxKIWxeV3A7w42XzqpO9sISryDMFRb.wzKVGKffXgLeReVD7K2",
+    "role": "TRAINER",
+    "profile_id": "trainer-001",
+    "department_id": "dept-ci",
+    "must_change_password": false
+  },
+  {
+    "id": "usr-hod-001",
+    "email": "hod.ci@mtti.ac.ke",
+    "full_name": "Head of Computing & Informatics",
+    "admission_number": null,
+    "phone_number": "+254700000003",
+    "password_hash": "$2b$10$tLOT8cQlzSDNVsWG9vKtyOfBLk5p5fm/ePCeGspWKqAMtdytjXSte",
+    "role": "HOD",
+    "profile_id": "hod-ci",
+    "department_id": "dept-ci",
+    "must_change_password": false
+  },
+  {
+    "id": "usr-trainee-001",
+    "email": "trainee@mtti.ac.ke",
+    "full_name": "Nthiga Gakii Doris",
+    "admission_number": "14179/S2026",
+    "phone_number": "+254700000004",
+    "password_hash": "$2b$10$ruK0K2v30dyg2ZZWT032DuoczCiuulqmIt0PjdZmlzyXq2G2c5bvW",
+    "role": "TRAINEE",
+    "profile_id": "trainee-001",
+    "department_id": "dept-ci",
+    "must_change_password": false
+  }
+]

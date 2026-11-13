@@ -48,6 +48,8 @@ pids
 
 # Generated snapshots and audit outputs must stay outside the repository
 /backup/
+test-results/
+playwright-report/
 /reports/
 /server/data/*.json
 

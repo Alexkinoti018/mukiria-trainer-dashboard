@@ -23,6 +23,7 @@ import {
   findFacultyInTimetable,
   type SyncResult,
 } from "@/lib/timetableSyncService";
+import { setSentryUserContext } from "@/lib/sentry";
 
 export interface AuthUser {
   id: string;
@@ -354,6 +355,19 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Synchronize non-PII user role & cohort context with Sentry observability
+  useEffect(() => {
+    if (user) {
+      setSentryUserContext({
+        id: user.id,
+        role: user.role,
+        cohort: user.cohort_code || user.reg_number || user.department_id,
+      });
+    } else {
+      setSentryUserContext(null);
+    }
+  }, [user]);
 
   // ── Restore session on mount ──────────────────────────────
   useEffect(() => {

@@ -9,12 +9,17 @@ import {
   corsMiddleware,
   apiRateLimiter,
 } from "./security.ts";
+import { initServerSentry, sentryContextMiddleware } from "./sentry.ts";
+import { logger } from "./logger.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
   assertBootEnvironment();
+
+  // Initialize Sentry SDK for production exception tracking (no-op if SENTRY_DSN unset)
+  initServerSentry();
 
   const app = express();
   const server = createServer(app);
@@ -25,6 +30,9 @@ async function startServer() {
 
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+  // Attach safe non-PII Sentry scope context
+  app.use(sentryContextMiddleware);
 
   // Global lab-safe rate limiter (runs after body parsers so identity payload can be resolved)
   app.use(apiRateLimiter);
@@ -46,8 +54,15 @@ async function startServer() {
   const port = serverConfig.PORT;
 
   server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
+    logger.info("Server started", {
+      event: "server_boot",
+      port,
+      environment: serverConfig.isProduction ? "production" : "development",
+    });
   });
 }
 
-startServer().catch(console.error);
+startServer().catch((err) => {
+  logger.error("Fatal server boot failure", { error: err });
+  process.exit(1);
+});

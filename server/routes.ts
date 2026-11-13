@@ -95,6 +95,8 @@ import {
   verifyDocumentToken,
   type DocumentMetadata,
 } from "./documentSigner.ts";
+import { logger } from "./logger.ts";
+import { captureServerException } from "./sentry.ts";
 
 export type { AuthenticatedUser, AuthenticatedRequest };
 export {
@@ -884,7 +886,8 @@ apiRouter.post("/auth/register-trainee", async (req: Request, res: Response) => 
       });
       return;
     }
-    console.error("❌ [Registration Error]:", err);
+    logger.error("Trainee registration error", { event: "registration_error", error: err });
+    captureServerException(err, { event: "registration_error" });
     res.status(500).json({ error: "Internal server error during trainee registration" });
   }
 });
@@ -951,7 +954,8 @@ apiRouter.post("/auth/login", async (req: Request, res: Response) => {
       },
     });
   } catch (err: any) {
-    console.error("❌ [Login Error]:", err);
+    logger.error("Authentication error", { event: "login_error", error: err });
+    captureServerException(err, { event: "login_error" });
     res.status(500).json({ error: "Internal server error during authentication" });
   }
 });
@@ -977,7 +981,8 @@ apiRouter.post("/auth/change-password", async (req: AuthenticatedRequest, res: R
     invalidateUserProfileCache(user.id);
     res.json({ success: true });
   } catch (error) {
-    console.error("[Password change error]:", error);
+    logger.error("Password change error", { event: "change_password_error", error });
+    captureServerException(error, { event: "change_password_error" });
     const status = error instanceof DatabaseUnavailableError ? 503 : 500;
     res.status(status).json({ error: "Could not update the password. Please try again." });
   }
@@ -1313,7 +1318,7 @@ apiRouter.get("/trainees/lookup", async (req: Request, res: Response) => {
         };
       }
     } catch (err: any) {
-      console.warn("PostgreSQL trainees lookup notice:", err.message);
+      logger.warn("PostgreSQL trainees lookup notice", { event: "trainee_lookup_notice", error: err?.message });
     }
   }
 
@@ -1353,7 +1358,8 @@ apiRouter.get("/trainees/lookup", async (req: Request, res: Response) => {
     cohortCode: trainee.cohortCode,
   });
   } catch (err: any) {
-    console.error("[Trainee Lookup Error]:", err);
+    logger.error("Trainee lookup error", { event: "trainee_lookup_error", error: err });
+    captureServerException(err, { event: "trainee_lookup_error" });
     res.status(500).json({ error: "Failed to verify trainee admission number." });
   }
 });
@@ -1412,7 +1418,7 @@ apiRouter.get("/trainees", async (req: AuthenticatedRequest, res: Response) => {
           });
         });
       } catch (err: any) {
-        console.warn("PostgreSQL read trainees notice:", err.message);
+        logger.warn("PostgreSQL read trainees notice", { event: "read_trainees_notice", error: err.message });
         if (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true" || err?.status === 503 || err?.statusCode === 503) {
           res.status(503).json({
             error: `Database Service Unavailable: Failed to load trainees from PostgreSQL: ${err.message}`,
@@ -1537,7 +1543,8 @@ apiRouter.post("/trainees", validateBody(TraineeCreateSchema), async (req: Authe
           pgPersisted = true;
         }
       } catch (err: any) {
-        console.error("❌ [PostgreSQL insert trainee error]:", err.message);
+        logger.error("PostgreSQL insert trainee error", { event: "insert_trainee_error", error: err.message });
+        captureServerException(err, { event: "insert_trainee_error" });
         const status = err?.status || err?.statusCode || 500;
         res.status(status).json({ error: `Supabase database error creating trainee: ${err.message}` });
         return;
@@ -1625,7 +1632,8 @@ apiRouter.put(
             pgPersisted = true;
           }
         } catch (err: any) {
-          console.error("❌ [PostgreSQL update trainee error]:", err.message);
+          logger.error("PostgreSQL update trainee error", { event: "update_trainee_error", error: err.message });
+          captureServerException(err, { event: "update_trainee_error" });
           const status = err?.status || err?.statusCode || 500;
           res.status(status).json({
             error: `Supabase database error updating trainee: ${err.message}`,
@@ -1692,7 +1700,8 @@ apiRouter.delete(
             pgDeleted = true;
           }
         } catch (err: any) {
-          console.error("❌ [PostgreSQL delete trainee error]:", err.message);
+          logger.error("PostgreSQL delete trainee error", { event: "delete_trainee_error", error: err.message });
+          captureServerException(err, { event: "delete_trainee_error" });
           const status = err?.status || err?.statusCode || 500;
           res.status(status).json({
             error: `Supabase database error deleting trainee: ${err.message}`,
@@ -1792,7 +1801,7 @@ apiRouter.get("/attendance", async (req: AuthenticatedRequest, res: Response) =>
           }));
         }
       } catch (err: any) {
-        console.warn("PostgreSQL fetch attendance warning:", err.message);
+        logger.warn("PostgreSQL fetch attendance warning", { event: "fetch_attendance_warning", error: err.message });
       }
     }
 
@@ -1892,7 +1901,8 @@ apiRouter.post("/attendance/mark", async (req: AuthenticatedRequest, res: Respon
         ]);
         if (result.rowCount > 0) pgPersisted = true;
       } catch (err: any) {
-        console.error("❌ [PostgreSQL attendance mark error]:", err.message);
+        logger.error("PostgreSQL attendance mark error", { event: "attendance_mark_error", error: err.message });
+        captureServerException(err, { event: "attendance_mark_error" });
         const status = err?.status || err?.statusCode || 500;
         res.status(status).json({ error: `Supabase database error recording attendance: ${err.message}` });
         return;
@@ -2038,7 +2048,8 @@ apiRouter.post("/attendance/bulk", async (req: AuthenticatedRequest, res: Respon
           }
         });
       } catch (err: any) {
-        console.error("❌ [PostgreSQL bulk attendance error]:", err.message);
+        logger.error("PostgreSQL bulk attendance error", { event: "bulk_attendance_error", error: err.message });
+        captureServerException(err, { event: "bulk_attendance_error" });
         const status = err?.status || err?.statusCode || 500;
         res.status(status).json({ error: `Supabase database error during bulk attendance upsert: ${err.message}` });
         return;
@@ -2138,7 +2149,7 @@ apiRouter.get("/exams", async (req: AuthenticatedRequest, res: Response) => {
         }));
       }
     } catch (e) {
-      console.warn("PostgreSQL exams query notice:", e);
+      logger.warn("PostgreSQL exams query notice", { event: "exams_query_notice", error: e });
     }
   }
 
@@ -2211,7 +2222,7 @@ apiRouter.post("/exams", requireRoles("trainer", "hod", "admin"), async (req: Au
         [targetExam.id, targetExam.unit_code, targetExam.course_name || "", JSON.stringify(targetExam.payload || {})]
       );
     } catch (e) {
-      console.warn("PostgreSQL exam upsert notice:", e);
+      logger.warn("PostgreSQL exam upsert notice", { event: "exam_upsert_notice", error: e });
     }
   }
 
@@ -2226,7 +2237,8 @@ apiRouter.get("/departments", async (_req: Request, res: Response) => {
       res.json(rows);
       return;
     } catch (error) {
-      console.error("PostgreSQL departments query failed:", error);
+      logger.error("PostgreSQL departments query failed", { event: "departments_query_failed", error });
+      captureServerException(error, { event: "departments_query_failed" });
       res.status(503).json({ error: "Could not load departments." });
       return;
     }
@@ -2281,7 +2293,7 @@ apiRouter.post("/departments", requireRoles("admin", "hod"), async (req: Authent
         [targetDept.id, targetDept.name, targetDept.code]
       );
     } catch (e) {
-      console.warn("PostgreSQL department upsert notice:", e);
+      logger.warn("PostgreSQL department upsert notice", { event: "department_upsert_notice", error: e });
     }
   }
 
@@ -2582,7 +2594,8 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: Aut
     try {
       await saveExamSubmission(existingSub, DB.submissions);
     } catch (err: any) {
-      console.error("❌ [PostgreSQL save exam submission error]:", err.message);
+      logger.error("PostgreSQL save exam submission error", { event: "save_exam_submission_error", error: err.message });
+      captureServerException(err, { event: "save_exam_submission_error" });
       const status = err?.status || err?.statusCode || 500;
       res.status(status).json({ error: `Supabase database error saving submission: ${err.message}` });
       return;
@@ -2626,7 +2639,8 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: Aut
   try {
     await saveExamSubmission(newSub, DB.submissions);
   } catch (err: any) {
-    console.error("❌ [PostgreSQL save new exam submission error]:", err.message);
+    logger.error("PostgreSQL save new exam submission error", { event: "save_new_exam_submission_error", error: err.message });
+    captureServerException(err, { event: "save_new_exam_submission_error" });
     const status = err?.status || err?.statusCode || 500;
     res.status(status).json({ error: `Supabase database error saving submission: ${err.message}` });
     return;
@@ -2767,7 +2781,8 @@ apiRouter.post("/submissions/:id/grade", requireRoles("trainer", "admin"), async
       new_data: sub,
     });
   } catch (err: any) {
-    console.error("❌ [PostgreSQL grade submission error]:", err.message);
+    logger.error("PostgreSQL grade submission error", { event: "grade_submission_error", error: err.message });
+    captureServerException(err, { event: "grade_submission_error" });
     const status = err?.status || err?.statusCode || 500;
     res.status(status).json({ error: `Supabase database error saving grade: ${err.message}` });
     return;
@@ -2793,7 +2808,8 @@ apiRouter.post("/submissions/:id/reopen", requireRoles("trainer", "admin"), asyn
   try {
     await saveExamSubmission(sub, DB.submissions);
   } catch (err: any) {
-    console.error("❌ [PostgreSQL reopen submission error]:", err.message);
+    logger.error("PostgreSQL reopen submission error", { event: "reopen_submission_error", error: err.message });
+    captureServerException(err, { event: "reopen_submission_error" });
     const status = err?.status || err?.statusCode || 500;
     res.status(status).json({ error: `Supabase database error reopening submission: ${err.message}` });
     return;
@@ -2989,7 +3005,8 @@ const handleBatchMarks = async (req: AuthenticatedRequest, res: Response) => {
   try {
     await saveAssessmentMarksBatch(DB.assessment_marks);
   } catch (err: any) {
-    console.error("❌ [PostgreSQL batch marks error]:", err.message);
+    logger.error("PostgreSQL batch marks error", { event: "batch_marks_error", error: err.message });
+    captureServerException(err, { event: "batch_marks_error" });
     const status = err?.status || err?.statusCode || 500;
     res.status(status).json({ error: `Supabase database error saving assessment marks: ${err.message}` });
     return;
@@ -3266,7 +3283,8 @@ async function handleCreateStaff(req: AuthenticatedRequest, res: Response) {
       res.status(409).json({ error: "An account with this email already exists." });
       return;
     }
-    console.error("[Staff account creation error]:", error);
+    logger.error("Staff account creation error", { event: "staff_creation_error", error });
+    captureServerException(error, { event: "staff_creation_error" });
     res.status(500).json({ error: "Could not create the staff account. Please try again." });
   }
 }
@@ -3359,7 +3377,8 @@ async function handleCreateTrainee(req: AuthenticatedRequest, res: Response) {
       res.status(409).json({ error: `An account with admission number '${admission_number}' already exists.` });
       return;
     }
-    console.error("[Trainee creation error]:", error);
+    logger.error("Trainee creation error", { event: "trainee_creation_error", error });
+    captureServerException(error, { event: "trainee_creation_error" });
     res.status(500).json({ error: "Could not provision trainee account. Please try again." });
   }
 }
@@ -3407,7 +3426,8 @@ async function handleCreateCohort(req: AuthenticatedRequest, res: Response) {
       res.status(409).json({ error: error.message });
       return;
     }
-    console.error("[Cohort creation error]:", error);
+    logger.error("Cohort creation error", { event: "cohort_creation_error", error });
+    captureServerException(error, { event: "cohort_creation_error" });
     res.status(500).json({ error: "Could not create cohort. Please try again." });
   }
 }
@@ -3507,7 +3527,7 @@ async function handleAssignUnit(req: AuthenticatedRequest, res: Response) {
         [offeringId, term_id, class_id, unit_code, trainer_id, department_id]
       );
     } catch (e: any) {
-      console.warn("⚠️ [PostgreSQL Unit_Offerings Warning]:", e.message);
+      logger.warn("PostgreSQL Unit_Offerings warning", { event: "unit_offerings_warning", error: e.message });
     }
   }
 
@@ -3638,7 +3658,8 @@ async function handleResetUserPassword(req: AuthenticatedRequest, res: Response)
       temporaryPassword,
     });
   } catch (error: any) {
-    console.error("[Administrative reset-password error]:", error);
+    logger.error("Administrative reset-password error", { event: "admin_reset_password_error", error });
+    captureServerException(error, { event: "admin_reset_password_error" });
     res.status(500).json({ error: "Could not reset password. Please try again." });
   }
 }
@@ -3719,7 +3740,8 @@ apiRouter.post("/documents/session-plans/batch", requireRoles("trainer", "hod", 
         }
       });
     } catch (err: any) {
-      console.error("❌ [PostgreSQL session plans sync error]:", err.message);
+      logger.error("PostgreSQL session plans sync error", { event: "session_plans_sync_error", error: err.message });
+      captureServerException(err, { event: "session_plans_sync_error" });
       const status = err?.status || err?.statusCode || 500;
       res.status(status).json({ error: `Supabase database error synchronizing session plans: ${err.message}` });
       return;
@@ -3779,7 +3801,8 @@ apiRouter.post("/documents/learning-plans/batch", requireRoles("trainer", "hod",
         }
       });
     } catch (err: any) {
-      console.error("❌ [PostgreSQL learning plans sync error]:", err.message);
+      logger.error("PostgreSQL learning plans sync error", { event: "learning_plans_sync_error", error: err.message });
+      captureServerException(err, { event: "learning_plans_sync_error" });
       const status = err?.status || err?.statusCode || 500;
       res.status(status).json({ error: `Supabase database error synchronizing learning plans: ${err.message}` });
       return;
@@ -3843,7 +3866,8 @@ apiRouter.post("/documents/records-of-work/batch", requireRoles("trainer", "hod"
         }
       });
     } catch (err: any) {
-      console.error("❌ [PostgreSQL records of work sync error]:", err.message);
+      logger.error("PostgreSQL records of work sync error", { event: "records_of_work_sync_error", error: err.message });
+      captureServerException(err, { event: "records_of_work_sync_error" });
       const status = err?.status || err?.statusCode || 500;
       res.status(status).json({ error: `Supabase database error synchronizing records of work: ${err.message}` });
       return;
@@ -3890,7 +3914,8 @@ async function handlePostClassRegister(req: AuthenticatedRequest, res: Response)
         [code, payload.lecturer || payload.lecturer_name || "", payload.subject || "", payload.department || "", payload.duration || "", payload.level || "", payload.lecturerComment || "", payload.hodComment || "", JSON.stringify(payload.weeklyLecturerComments || {}), JSON.stringify(payload.weeklyHodComments || {})]
       );
     } catch (err: any) {
-      console.error("❌ [PostgreSQL class register metadata error]:", err.message);
+      logger.error("PostgreSQL class register metadata error", { event: "class_register_metadata_error", error: err.message });
+      captureServerException(err, { event: "class_register_metadata_error" });
       const status = err?.status || err?.statusCode || 500;
       res.status(status).json({ error: `Supabase database error saving class register metadata: ${err.message}` });
       return;
@@ -4007,7 +4032,8 @@ apiRouter.post("/admin/users", requireRoles("admin"), async (req: Request, res: 
       return;
     }
 
-    console.error("[Admin staff account creation error]:", error);
+    logger.error("Admin staff account creation error", { event: "admin_staff_creation_error", error });
+    captureServerException(error, { event: "admin_staff_creation_error" });
     res.status(500).json({ error: "Could not create the staff account. Please try again." });
   }
 });
@@ -4171,7 +4197,7 @@ apiRouter.post("/trainees/batch", async (req: Request, res: Response) => {
       try {
         await saveTraineeBatch(inserted);
       } catch (e: any) {
-        console.warn("Batch PG insert warning:", e.message);
+        logger.warn("Batch PG insert warning", { event: "batch_pg_insert_warning", error: e.message });
       }
     }
 
@@ -4453,7 +4479,8 @@ apiRouter.post("/evidence", requireRoles("trainee", "admin"), async (req: Authen
   try {
     await saveAssessmentEvidence(newEvidence, DB.assessment_evidence);
   } catch (err: any) {
-    console.error("❌ [PostgreSQL upload evidence error]:", err.message);
+    logger.error("PostgreSQL upload evidence error", { event: "upload_evidence_error", error: err.message });
+    captureServerException(err, { event: "upload_evidence_error" });
     const status = err?.status || err?.statusCode || 500;
     res.status(status).json({ error: `Supabase database error saving evidence: ${err.message}` });
     return;
@@ -4482,7 +4509,8 @@ apiRouter.put("/evidence/:id/verify", requireRoles("trainer", "hod", "admin"), a
   try {
     await saveAssessmentEvidence(item, DB.assessment_evidence);
   } catch (err: any) {
-    console.error("❌ [PostgreSQL verify evidence error]:", err.message);
+    logger.error("PostgreSQL verify evidence error", { event: "verify_evidence_error", error: err.message });
+    captureServerException(err, { event: "verify_evidence_error" });
     const status = err?.status || err?.statusCode || 500;
     res.status(status).json({ error: `Supabase database error verifying evidence: ${err.message}` });
     return;
@@ -4596,7 +4624,8 @@ apiRouter.put("/evidence/:id/grade", requireRoles("trainer", "hod", "admin"), as
       new_data: markEntry,
     });
   } catch (err: any) {
-    console.error("❌ [PostgreSQL grade evidence error]:", err.message);
+    logger.error("PostgreSQL grade evidence error", { event: "grade_evidence_error", error: err.message });
+    captureServerException(err, { event: "grade_evidence_error" });
     const status = err?.status || err?.statusCode || 500;
     res.status(status).json({ error: `Supabase database error grading evidence: ${err.message}` });
     return;
@@ -4641,7 +4670,8 @@ apiRouter.delete("/evidence/:id", async (req: AuthenticatedRequest, res: Respons
       try {
         await pool.query("DELETE FROM assessment_evidence WHERE id = $1", [req.params.id]);
       } catch (err: any) {
-        console.error("❌ [PostgreSQL delete evidence error]:", err.message);
+        logger.error("PostgreSQL delete evidence error", { event: "delete_evidence_error", error: err.message });
+        captureServerException(err, { event: "delete_evidence_error" });
         const status = err?.status || err?.statusCode || 500;
         res.status(status).json({ error: `Supabase database error deleting evidence: ${err.message}` });
         return;
