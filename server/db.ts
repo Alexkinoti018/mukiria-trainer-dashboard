@@ -638,7 +638,7 @@ export async function findUserByEmailOrAdmission(identifier: string): Promise<Us
       return null;
     } catch (err: any) {
       if (isSecureProductionRuntime()) {
-        throw new DatabaseUnavailableError("PostgreSQL database unavailable in production mode");
+        throw new DatabaseUnavailableError(`PostgreSQL findUserByEmailOrAdmission failed: ${err.message}`);
       }
       console.warn("⚠️ [PostgreSQL findUserByEmailOrAdmission Warning]:", err.message);
     }
@@ -2081,15 +2081,18 @@ export async function initDatabaseSchema(): Promise<void> {
 
     console.log("✅ [MTTI PostgreSQL]: Centralized institutional tables verified.");
   } catch (err: any) {
+    lastInitError = err?.message || String(err);
     console.warn("⚠️ [PostgreSQL Init Warning]:", err.message);
   }
 }
 
+export let lastInitError: string | null = null;
 let schemaInitPromise: Promise<void> | null = null;
 export function ensureSchemaInitialized(): Promise<void> {
   if (!pool) return Promise.resolve();
   if (!schemaInitPromise) {
     schemaInitPromise = initDatabaseSchema().catch((err) => {
+      lastInitError = err?.message || String(err);
       console.warn("⚠️ [PostgreSQL Init Warning]:", err.message);
       schemaInitPromise = null;
     });

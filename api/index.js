@@ -571,7 +571,7 @@ async function findUserByEmailOrAdmission(identifier) {
       return null;
     } catch (err) {
       if (isSecureProductionRuntime()) {
-        throw new DatabaseUnavailableError("PostgreSQL database unavailable in production mode");
+        throw new DatabaseUnavailableError(`PostgreSQL findUserByEmailOrAdmission failed: ${err.message}`);
       }
       console.warn("\u26A0\uFE0F [PostgreSQL findUserByEmailOrAdmission Warning]:", err.message);
     }
@@ -1559,14 +1559,17 @@ async function initDatabaseSchema() {
     }
     console.log("\u2705 [MTTI PostgreSQL]: Centralized institutional tables verified.");
   } catch (err) {
+    lastInitError = err?.message || String(err);
     console.warn("\u26A0\uFE0F [PostgreSQL Init Warning]:", err.message);
   }
 }
+var lastInitError = null;
 var schemaInitPromise = null;
 function ensureSchemaInitialized() {
   if (!pool) return Promise.resolve();
   if (!schemaInitPromise) {
     schemaInitPromise = initDatabaseSchema().catch((err) => {
+      lastInitError = err?.message || String(err);
       console.warn("\u26A0\uFE0F [PostgreSQL Init Warning]:", err.message);
       schemaInitPromise = null;
     });
@@ -7690,7 +7693,8 @@ apiRouter.get("/health", async (_req, res) => {
     memory: {
       rss: `${Math.round(memoryUsage.rss / 1024 / 1024)}MB`,
       heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`
-    }
+    },
+    initError: lastInitError
   });
 });
 apiRouter.get("/verify-document", async (req, res) => {
@@ -7930,7 +7934,7 @@ apiRouter.post("/auth/login", async (req, res) => {
   } catch (err) {
     logger.error("Authentication error", { event: "login_error", error: err });
     captureServerException(err, { event: "login_error" });
-    res.status(500).json({ error: "Internal server error during authentication" });
+    res.status(500).json({ error: `Internal server error during authentication: ${err?.message || "unknown"}` });
   }
 });
 apiRouter.use(authenticateUser);

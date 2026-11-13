@@ -51,6 +51,7 @@ import {
   loadComplianceRulesets,
   loadAuditLogs,
   recordAuditLog,
+  lastInitError,
 } from "./db.ts";
 import {
   DEFAULT_COMPLIANCE_RULESETS,
@@ -658,6 +659,7 @@ apiRouter.get("/health", async (_req: Request, res: Response) => {
       rss: `${Math.round(memoryUsage.rss / 1024 / 1024)}MB`,
       heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`,
     },
+    initError: lastInitError,
   });
 });
 
@@ -956,7 +958,7 @@ apiRouter.post("/auth/login", async (req: Request, res: Response) => {
   } catch (err: any) {
     logger.error("Authentication error", { event: "login_error", error: err });
     captureServerException(err, { event: "login_error" });
-    res.status(500).json({ error: "Internal server error during authentication" });
+    res.status(500).json({ error: `Internal server error during authentication: ${err?.message || "unknown"}` });
   }
 });
 
