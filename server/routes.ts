@@ -638,7 +638,7 @@ export function verifyHODDepartmentScope(hodDepartmentId: string | undefined, ex
 
 // ─── HEALTH & MONITORING ENDPOINTS (Public, Unauthenticated) ──────────────────
 apiRouter.get("/health", async (_req: Request, res: Response) => {
-  let dbStatus = "connected";
+  let dbStatus = pool ? "connected" : "fallback_local";
   if (pool) {
     try {
       await pool.query("SELECT 1");
