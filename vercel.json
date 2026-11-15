@@ -5,18 +5,18 @@
   "buildCommand": "npm run build",
   "outputDirectory": "build",
   "functions": {
-    "api/index.js": {
+    "api/index.ts": {
       "includeFiles": "database/seeds/**"
     }
   },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "destination": "/api/index.ts"
     },
     {
       "source": "/api",
-      "destination": "/api/index.js"
+      "destination": "/api/index.ts"
     },
     {
       "source": "/((?!api/).*)",
