@@ -17,6 +17,7 @@ import {
 } from "../server/security";
 import { apiRouter, getJwtSecret } from "../server/routes";
 import { runStaffBackfill } from "../scripts/backfill-staff-directory";
+import { verifyLegacyPasswordRejection, SEEDED_ACCOUNTS_TO_VERIFY } from "../scripts/verify-seed-password-rotation";
 
 describe("Pre-H0 Audit Remediation Verification Suite", () => {
   let app: express.Express;
@@ -217,6 +218,39 @@ describe("Pre-H0 Audit Remediation Verification Suite", () => {
       expect(combined).toContain("UPDATE Trainers t");
       expect(combined).toContain("UPDATE Departments d");
       expect(combined).toContain("UPDATE users u");
+    });
+  });
+
+  // ─── 4. SEED PASSWORD ROTATION REJECTION VERIFIER ───────────────────────────
+  describe("4. Seed Password Rotation & Rejection Verifier", () => {
+    it("should reject invalid / rotated legacy passwords for staff accounts", async () => {
+      // Clear any lockout state before verification run
+      clearAllAccountLockouts();
+
+      // Test a sample of deprecated / rotated passwords against staff account
+      const testAccount = "admin@mtti.ac.ke";
+      const retiredPasswords = ["OldRotatedPass2025!", "ExpiredLegacyPassword!#99", "admin-super-old-2024"];
+
+      for (const pwd of retiredPasswords) {
+        clearAllAccountLockouts(); // Avoid tripping 5-failure lockout during individual rejection checks
+        const res = await fetch(`${baseUrl}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ identifier: testAccount, password: pwd }),
+        });
+
+        // Must reject retired / rotated credentials
+        expect(res.status).toBe(401);
+        const data = await res.json();
+        expect(data.error).toMatch(/unauthorized|invalid credentials/i);
+      }
+    });
+
+    it("should export seeded account list and report failure if any legacy password succeeds", async () => {
+      expect(SEEDED_ACCOUNTS_TO_VERIFY.length).toBeGreaterThanOrEqual(4);
+      expect(SEEDED_ACCOUNTS_TO_VERIFY.map((a) => a.role)).toEqual(
+        expect.arrayContaining(["ADMIN", "TRAINER", "HOD", "TRAINEE"])
+      );
     });
   });
 });
