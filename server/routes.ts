@@ -92,6 +92,9 @@ import {
   submissionsRateLimiter,
   examsRateLimiter,
   getLabSafeRateLimitKey,
+  getAccountLockoutStatus,
+  recordFailedAuthAttempt,
+  resetAccountLockout,
 } from "./security.ts";
 import {
   signDocumentPayload,
@@ -942,8 +945,29 @@ apiRouter.post("/auth/login", async (req: Request, res: Response) => {
       return;
     }
 
+    const lockout = getAccountLockoutStatus(identifier);
+    if (lockout.isLocked) {
+      const remainingMinutes = Math.ceil(lockout.remainingMs / 60000);
+      res.status(423).json({
+        error: `Account temporarily locked due to 5 consecutive failed login attempts. Please wait ${remainingMinutes} minutes before trying again.`,
+        locked: true,
+        remaining_minutes: remainingMinutes,
+      });
+      return;
+    }
+
     const user = await findUserByEmailOrAdmission(identifier);
     if (!user) {
+      const postFailLockout = recordFailedAuthAttempt(identifier);
+      if (postFailLockout.isLocked) {
+        const remainingMinutes = Math.ceil(postFailLockout.remainingMs / 60000);
+        res.status(423).json({
+          error: `Account temporarily locked due to 5 consecutive failed login attempts. Please wait ${remainingMinutes} minutes before trying again.`,
+          locked: true,
+          remaining_minutes: remainingMinutes,
+        });
+        return;
+      }
       res.status(401).json({
         error: "Unauthorized: Invalid credentials",
       });
@@ -961,11 +985,23 @@ apiRouter.post("/auth/login", async (req: Request, res: Response) => {
     }
 
     if (!isMatch) {
+      const postFailLockout = recordFailedAuthAttempt(identifier);
+      if (postFailLockout.isLocked) {
+        const remainingMinutes = Math.ceil(postFailLockout.remainingMs / 60000);
+        res.status(423).json({
+          error: `Account temporarily locked due to 5 consecutive failed login attempts. Please wait ${remainingMinutes} minutes before trying again.`,
+          locked: true,
+          remaining_minutes: remainingMinutes,
+        });
+        return;
+      }
       res.status(401).json({
         error: "Unauthorized: Invalid credentials",
       });
       return;
     }
+
+    resetAccountLockout(identifier);
 
     const userRole = String(user.role || "trainee").trim().toLowerCase();
     const token = signToken({
@@ -1143,7 +1179,7 @@ apiRouter.post("/documents/sign", requireRoles("admin", "hod"), async (req: Auth
   } catch (err: any) {
     logger.error("Document signing error", { event: "document_signing_error", error: err });
     captureServerException(err, { event: "document_signing_error" });
-    res.status(500).json({ error: err.message || "Failed to sign academic document" });
+    res.status(500).json({ error: "Failed to sign academic document" });
   }
 });
 
@@ -1565,7 +1601,7 @@ apiRouter.get("/trainees", requireRoles("admin", "hod", "trainer"), async (req: 
         logger.warn("PostgreSQL read trainees notice", { event: "read_trainees_notice", error: err.message });
         if (process.env.NODE_ENV === "production" || process.env.STRICT_DB === "true" || err?.status === 503 || err?.statusCode === 503) {
           res.status(503).json({
-            error: `Database Service Unavailable: Failed to load trainees from PostgreSQL: ${err.message}`,
+            error: "Database Service Unavailable: Failed to load trainees from database",
             service_status: "database_unavailable"
           });
           return;
@@ -1606,7 +1642,7 @@ apiRouter.get("/trainees", requireRoles("admin", "hod", "trainer"), async (req: 
   } catch (err: any) {
     const status = err?.status || err?.statusCode || (err?.message?.toLowerCase().includes("database") || err?.message?.toLowerCase().includes("pool") ? 503 : 500);
     res.status(status).json({
-      error: err.message || "Failed to load trainees",
+      error: "Failed to load trainees",
       service_status: status === 503 ? "database_unavailable" : undefined
     });
   }
@@ -1690,7 +1726,7 @@ apiRouter.post("/trainees", requireRoles("admin", "hod"), validateBody(TraineeCr
         logger.error("PostgreSQL insert trainee error", { event: "insert_trainee_error", error: err.message });
         captureServerException(err, { event: "insert_trainee_error" });
         const status = err?.status || err?.statusCode || 500;
-        res.status(status).json({ error: `Supabase database error creating trainee: ${err.message}` });
+        res.status(status).json({ error: "Failed to persist trainee record to database." });
         return;
       }
     }
@@ -1727,7 +1763,7 @@ apiRouter.post("/trainees", requireRoles("admin", "hod"), validateBody(TraineeCr
     });
   } catch (err: any) {
     const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: err.message || "Failed to persist trainee" });
+    res.status(status).json({ error: "Failed to persist trainee" });
   }
 });
 
@@ -1811,7 +1847,7 @@ apiRouter.put(
           captureServerException(err, { event: "update_trainee_error" });
           const status = err?.status || err?.statusCode || 500;
           res.status(status).json({
-            error: `Supabase database error updating trainee: ${err.message}`,
+            error: "Failed to update trainee record in database.",
             service_status: status === 503 ? "database_unavailable" : undefined,
           });
           return;
@@ -1852,7 +1888,7 @@ apiRouter.put(
     } catch (err: any) {
       const status = err?.status || err?.statusCode || (err?.message?.toLowerCase().includes("database") || err?.message?.toLowerCase().includes("pool") ? 503 : 500);
       res.status(status).json({
-        error: err.message || "Failed to update trainee",
+        error: "Failed to update trainee",
         service_status: status === 503 ? "database_unavailable" : undefined,
       });
     }
@@ -1879,7 +1915,7 @@ apiRouter.delete(
           captureServerException(err, { event: "delete_trainee_error" });
           const status = err?.status || err?.statusCode || 500;
           res.status(status).json({
-            error: `Supabase database error deleting trainee: ${err.message}`,
+            error: "Failed to delete trainee record from database.",
             service_status: status === 503 ? "database_unavailable" : undefined,
           });
           return;
@@ -1907,7 +1943,7 @@ apiRouter.delete(
     } catch (err: any) {
       const status = err?.status || err?.statusCode || (err?.message?.toLowerCase().includes("database") || err?.message?.toLowerCase().includes("pool") ? 503 : 500);
       res.status(status).json({
-        error: err.message || "Failed to delete trainee",
+        error: "Failed to delete trainee",
         service_status: status === 503 ? "database_unavailable" : undefined,
       });
     }
@@ -2009,7 +2045,7 @@ apiRouter.get("/attendance", async (req: AuthenticatedRequest, res: Response) =>
     });
   } catch (err: any) {
     const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: err.message || "Failed to load attendance" });
+    res.status(status).json({ error: "Failed to load attendance" });
   }
 });
 
@@ -2079,7 +2115,7 @@ apiRouter.post("/attendance/mark", async (req: AuthenticatedRequest, res: Respon
         logger.error("PostgreSQL attendance mark error", { event: "attendance_mark_error", error: err.message });
         captureServerException(err, { event: "attendance_mark_error" });
         const status = err?.status || err?.statusCode || 500;
-        res.status(status).json({ error: `Supabase database error recording attendance: ${err.message}` });
+        res.status(status).json({ error: "Failed to record attendance in database." });
         return;
       }
     }
@@ -2124,7 +2160,7 @@ apiRouter.post("/attendance/mark", async (req: AuthenticatedRequest, res: Respon
     });
   } catch (err: any) {
     const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: err.message || "Failed to mark attendance" });
+    res.status(status).json({ error: "Failed to mark attendance" });
   }
 });
 
@@ -2226,7 +2262,7 @@ apiRouter.post("/attendance/bulk", async (req: AuthenticatedRequest, res: Respon
         logger.error("PostgreSQL bulk attendance error", { event: "bulk_attendance_error", error: err.message });
         captureServerException(err, { event: "bulk_attendance_error" });
         const status = err?.status || err?.statusCode || 500;
-        res.status(status).json({ error: `Supabase database error during bulk attendance upsert: ${err.message}` });
+        res.status(status).json({ error: "Failed to process bulk attendance in database." });
         return;
       }
     }
@@ -2272,7 +2308,7 @@ apiRouter.post("/attendance/bulk", async (req: AuthenticatedRequest, res: Respon
     });
   } catch (err: any) {
     const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: err.message || "Failed to process bulk attendance" });
+    res.status(status).json({ error: "Failed to process bulk attendance" });
   }
 });
 
@@ -2776,7 +2812,7 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: Aut
       logger.error("PostgreSQL save exam submission error", { event: "save_exam_submission_error", error: err.message });
       captureServerException(err, { event: "save_exam_submission_error" });
       const status = err?.status || err?.statusCode || 500;
-      res.status(status).json({ error: `Supabase database error saving submission: ${err.message}` });
+      res.status(status).json({ error: "Failed to save submission in database." });
       return;
     }
     res.status(200).json({ success: true, submission_id: existingSub.id, score: objectiveScore });
@@ -2821,7 +2857,7 @@ apiRouter.post("/submissions", requireRoles("trainee", "admin"), async (req: Aut
     logger.error("PostgreSQL save new exam submission error", { event: "save_new_exam_submission_error", error: err.message });
     captureServerException(err, { event: "save_new_exam_submission_error" });
     const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: `Supabase database error saving submission: ${err.message}` });
+    res.status(status).json({ error: "Failed to save submission in database." });
     return;
   }
   res.status(201).json({ success: true, submission_id: newSub.id, score: objectiveScore });
@@ -2963,7 +2999,7 @@ apiRouter.post("/submissions/:id/grade", requireRoles("trainer", "admin"), async
     logger.error("PostgreSQL grade submission error", { event: "grade_submission_error", error: err.message });
     captureServerException(err, { event: "grade_submission_error" });
     const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: `Supabase database error saving grade: ${err.message}` });
+    res.status(status).json({ error: "Failed to save grade in database." });
     return;
   }
   res.json({ success: true, updated: sub });
@@ -2990,7 +3026,7 @@ apiRouter.post("/submissions/:id/reopen", requireRoles("trainer", "admin"), asyn
     logger.error("PostgreSQL reopen submission error", { event: "reopen_submission_error", error: err.message });
     captureServerException(err, { event: "reopen_submission_error" });
     const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: `Supabase database error reopening submission: ${err.message}` });
+    res.status(status).json({ error: "Failed to reopen submission in database." });
     return;
   }
   res.json({ success: true, submission: sub });
@@ -3185,7 +3221,7 @@ const handleBatchMarks = async (req: AuthenticatedRequest, res: Response) => {
     logger.error("PostgreSQL batch marks error", { event: "batch_marks_error", error: err.message });
     captureServerException(err, { event: "batch_marks_error" });
     const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: `Supabase database error saving assessment marks: ${err.message}` });
+    res.status(status).json({ error: "Failed to save assessment marks in database." });
     return;
   }
 
@@ -3600,7 +3636,7 @@ async function handleCreateCohort(req: AuthenticatedRequest, res: Response) {
     res.status(201).json({ success: true, cohort });
   } catch (error: any) {
     if (error?.code === "COHORT_EXISTS") {
-      res.status(409).json({ error: error.message });
+      res.status(409).json({ error: "A cohort with this code already exists." });
       return;
     }
     logger.error("Cohort creation error", { event: "cohort_creation_error", error });
@@ -3920,7 +3956,7 @@ apiRouter.post("/documents/session-plans/batch", requireRoles("trainer", "hod", 
       logger.error("PostgreSQL session plans sync error", { event: "session_plans_sync_error", error: err.message });
       captureServerException(err, { event: "session_plans_sync_error" });
       const status = err?.status || err?.statusCode || 500;
-      res.status(status).json({ error: `Supabase database error synchronizing session plans: ${err.message}` });
+      res.status(status).json({ error: "Failed to synchronize session plans in database." });
       return;
     }
   }
@@ -3981,7 +4017,7 @@ apiRouter.post("/documents/learning-plans/batch", requireRoles("trainer", "hod",
       logger.error("PostgreSQL learning plans sync error", { event: "learning_plans_sync_error", error: err.message });
       captureServerException(err, { event: "learning_plans_sync_error" });
       const status = err?.status || err?.statusCode || 500;
-      res.status(status).json({ error: `Supabase database error synchronizing learning plans: ${err.message}` });
+      res.status(status).json({ error: "Failed to synchronize learning plans in database." });
       return;
     }
   }
@@ -4046,7 +4082,7 @@ apiRouter.post("/documents/records-of-work/batch", requireRoles("trainer", "hod"
       logger.error("PostgreSQL records of work sync error", { event: "records_of_work_sync_error", error: err.message });
       captureServerException(err, { event: "records_of_work_sync_error" });
       const status = err?.status || err?.statusCode || 500;
-      res.status(status).json({ error: `Supabase database error synchronizing records of work: ${err.message}` });
+      res.status(status).json({ error: "Failed to synchronize records of work in database." });
       return;
     }
   }
@@ -4094,7 +4130,7 @@ async function handlePostClassRegister(req: AuthenticatedRequest, res: Response)
       logger.error("PostgreSQL class register metadata error", { event: "class_register_metadata_error", error: err.message });
       captureServerException(err, { event: "class_register_metadata_error" });
       const status = err?.status || err?.statusCode || 500;
-      res.status(status).json({ error: `Supabase database error saving class register metadata: ${err.message}` });
+      res.status(status).json({ error: "Failed to save class register metadata in database." });
       return;
     }
   }
@@ -4657,7 +4693,7 @@ apiRouter.post("/evidence", requireRoles("trainee", "admin"), async (req: Authen
     logger.error("PostgreSQL upload evidence error", { event: "upload_evidence_error", error: err.message });
     captureServerException(err, { event: "upload_evidence_error" });
     const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: `Supabase database error saving evidence: ${err.message}` });
+    res.status(status).json({ error: "Failed to save assessment evidence in database." });
     return;
   }
   res.status(201).json({ success: true, evidence: newEvidence });
@@ -4687,7 +4723,7 @@ apiRouter.put("/evidence/:id/verify", requireRoles("trainer", "hod", "admin"), a
     logger.error("PostgreSQL verify evidence error", { event: "verify_evidence_error", error: err.message });
     captureServerException(err, { event: "verify_evidence_error" });
     const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: `Supabase database error verifying evidence: ${err.message}` });
+    res.status(status).json({ error: "Failed to verify assessment evidence in database." });
     return;
   }
 
@@ -4802,7 +4838,7 @@ apiRouter.put("/evidence/:id/grade", requireRoles("trainer", "hod", "admin"), as
     logger.error("PostgreSQL grade evidence error", { event: "grade_evidence_error", error: err.message });
     captureServerException(err, { event: "grade_evidence_error" });
     const status = err?.status || err?.statusCode || 500;
-    res.status(status).json({ error: `Supabase database error grading evidence: ${err.message}` });
+    res.status(status).json({ error: "Failed to grade assessment evidence in database." });
     return;
   }
 
@@ -4848,7 +4884,7 @@ apiRouter.delete("/evidence/:id", async (req: AuthenticatedRequest, res: Respons
         logger.error("PostgreSQL delete evidence error", { event: "delete_evidence_error", error: err.message });
         captureServerException(err, { event: "delete_evidence_error" });
         const status = err?.status || err?.statusCode || 500;
-        res.status(status).json({ error: `Supabase database error deleting evidence: ${err.message}` });
+        res.status(status).json({ error: "Failed to delete assessment evidence from database." });
         return;
       }
     }
@@ -4946,7 +4982,9 @@ apiRouter.post("/parse-doc", requireRoles("trainer", "hod", "admin"), (req: Auth
       })),
     });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: `Document parsing error: ${err.message}` });
+    logger.error("Document parsing failure", { event: "doc_parse_error", error: err?.message, stack: err?.stack });
+    captureServerException(err, { event: "doc_parse_error" });
+    res.status(500).json({ success: false, error: "Failed to parse curriculum document." });
   }
 });
 
@@ -4996,7 +5034,9 @@ apiRouter.post("/auto-grade", requireRoles("trainer", "hod", "admin"), (req: Aut
       rule_applied: "semi_objective_keyword_match",
     });
   } catch (err: any) {
-    res.status(500).json({ error: `Auto-grading error: ${err.message}` });
+    logger.error("Auto-grading execution failure", { event: "auto_grade_error", error: err?.message, stack: err?.stack });
+    captureServerException(err, { event: "auto_grade_error" });
+    res.status(500).json({ error: "Failed to auto-grade assessment item." });
   }
 });
 

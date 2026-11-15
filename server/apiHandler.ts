@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import express from "express";
 import { apiRouter } from "./routes.ts";
 import {
@@ -23,6 +24,7 @@ process.on("uncaughtException", (error) => {
 });
 
 const app = express();
+app.set("trust proxy", 1);
 
 // Apply Enterprise Security Layer
 app.use(securityHeaders);
@@ -67,17 +69,36 @@ app.use((req, res) => {
 
 // Global error handler (always returns valid JSON without internal stack/DB error leaks)
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error("[API Serverless Error]", { error: err?.message, stack: err?.stack });
-  captureServerException(err);
+  const reqId = (req.headers["x-request-id"] as string) || crypto.randomUUID();
+  logger.error("[API Serverless Error]", {
+    requestId: reqId,
+    method: req.method,
+    url: req.url,
+    error: err?.message,
+    stack: err?.stack,
+  });
+  captureServerException(err, { requestId: reqId });
+
   if (res.headersSent) {
     return next(err);
   }
-  const status = err?.status || err?.statusCode || 500;
-  const isProd = process.env.NODE_ENV === "production";
-  const sanitizedError = isProd && status === 500
-    ? "An internal server error occurred."
-    : err?.message || "Internal server error";
-  res.status(status).json({ error: sanitizedError });
+
+  const status = typeof err?.status === "number" ? err.status : typeof err?.statusCode === "number" ? err.statusCode : 500;
+  let clientMessage = "An internal server error occurred.";
+  if (status === 400 && err?.isClientSafe) {
+    clientMessage = err.message;
+  } else if (status === 404) {
+    clientMessage = "Resource not found.";
+  } else if (status === 403) {
+    clientMessage = "Forbidden: Access denied.";
+  } else if (status === 401) {
+    clientMessage = "Unauthorized: Authentication required.";
+  }
+
+  res.status(status).json({
+    error: clientMessage,
+    request_id: reqId,
+  });
 });
 
 export default app;
