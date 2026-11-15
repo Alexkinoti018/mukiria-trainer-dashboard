@@ -460,6 +460,27 @@ export default function LearningPlan() {
     if (allPlans.length > 0) {
       setActivePlanId(allPlans[0].id);
     }
+
+    // Hydrate persisted learning plans from central server
+    try {
+      fetch("/api/documents/learning-plans")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && Array.isArray(data.learning_plans) && data.learning_plans.length > 0) {
+            setPlans((prev) => {
+              const existingIds = new Set(prev.map((p) => p.id));
+              const merged = [...prev];
+              for (const sp of data.learning_plans) {
+                if (!existingIds.has(sp.id)) {
+                  merged.push(sp);
+                }
+              }
+              return merged;
+            });
+          }
+        })
+        .catch(() => {});
+    } catch {}
   }, []);
 
   // React to URL query parameters when location changes
@@ -508,6 +529,13 @@ export default function LearningPlan() {
   const savePlansToStorage = (updatedPlans: LearningPlanDocument[]) => {
     setPlans(updatedPlans);
     localStorage.setItem("mtti_custom_learning_plans", JSON.stringify(updatedPlans));
+    try {
+      fetch("/api/documents/learning-plans/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ learning_plans: updatedPlans }),
+      }).catch(() => {});
+    } catch {}
   };
 
   // Currently active Learning Plan

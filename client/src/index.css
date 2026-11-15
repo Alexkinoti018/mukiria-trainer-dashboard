@@ -596,4 +596,17 @@
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
+
+  table.mtti-print-table tr,
+  .mtti-print-row,
+  .print-avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
 }
+
+/* WCAG 2.1 AA Compliant Gold Color for Text on White (>= 4.5:1 contrast) */
+.text-mtti-gold-accessible {
+  color: #8C5D0F !important;
+}
+

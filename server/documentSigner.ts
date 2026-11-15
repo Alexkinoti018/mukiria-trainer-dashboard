@@ -18,6 +18,7 @@ export interface DocumentMetadata {
   competent_count?: number;
   nyc_count?: number;
   average_mark?: number;
+  content_digest?: string;
   hod_name?: string;
   hod_signoff: boolean;
   issued_at: string;
@@ -58,8 +59,9 @@ export function canonicalizeDocMetadata(doc: DocumentMetadata): string {
   const avg = Number((doc.average_mark || 0).toFixed(2));
   const signoff = Boolean(doc.hod_signoff);
   const issued = (doc.issued_at || "").trim();
+  const digest = (doc.content_digest || "").trim();
 
-  return [
+  const parts = [
     `type=${docType}`,
     `unit=${unit}`,
     `term=${term}`,
@@ -69,7 +71,13 @@ export function canonicalizeDocMetadata(doc: DocumentMetadata): string {
     `avg=${avg}`,
     `hod_signoff=${signoff}`,
     `issued_at=${issued}`,
-  ].join("|");
+  ];
+
+  if (digest) {
+    parts.push(`digest=${digest}`);
+  }
+
+  return parts.join("|");
 }
 
 /**

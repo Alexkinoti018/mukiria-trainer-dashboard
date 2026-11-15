@@ -200,15 +200,17 @@ const AttendanceRow = React.memo(function AttendanceRow({
           <div className="flex items-center justify-center gap-1">
             <button
               onClick={() => onEditStudent(trainee)}
-              className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+              className="p-2 sm:p-1 min-w-[36px] min-h-[36px] sm:min-w-0 sm:min-h-0 flex items-center justify-center text-blue-600 hover:bg-blue-100 rounded"
               title="Edit Student Details"
+              aria-label="Edit Student Details"
             >
               <Edit2 className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => onDeleteStudent(trainee.id, trainee.name)}
-              className="p-1 text-red-600 hover:bg-red-100 rounded"
+              className="p-2 sm:p-1 min-w-[36px] min-h-[36px] sm:min-w-0 sm:min-h-0 flex items-center justify-center text-red-600 hover:bg-red-100 rounded"
               title="Remove Student"
+              aria-label="Remove Student"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
