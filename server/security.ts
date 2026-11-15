@@ -57,7 +57,7 @@ export const corsMiddleware = cors({
     ) {
       return callback(null, true);
     }
-    return callback(null, true);
+    return callback(null, false);
   },
   credentials: true,
   allowedHeaders: [
@@ -96,14 +96,16 @@ export function getLabSafeRateLimitKey(req: Request): string {
     if (user.adm_no) return `trainee:${String(user.adm_no).trim().toUpperCase()}`;
   }
 
-  // 2. Client header identifiers (e.g. from authenticated client fetches)
-  const headerUserId = req.headers["x-user-id"];
-  if (typeof headerUserId === "string" && headerUserId.trim()) {
-    return `user:${headerUserId.trim()}`;
-  }
-  const headerReg = req.headers["x-user-reg"];
-  if (typeof headerReg === "string" && headerReg.trim()) {
-    return `trainee:${headerReg.trim().toUpperCase()}`;
+  // 2. Client header identifiers (Only trusted in non-production environments to avoid spoofing rate limit quotas in production)
+  if (process.env.NODE_ENV !== "production") {
+    const headerUserId = req.headers["x-user-id"];
+    if (typeof headerUserId === "string" && headerUserId.trim()) {
+      return `user:${headerUserId.trim()}`;
+    }
+    const headerReg = req.headers["x-user-reg"];
+    if (typeof headerReg === "string" && headerReg.trim()) {
+      return `trainee:${headerReg.trim().toUpperCase()}`;
+    }
   }
 
   // 3. Authorization Bearer Token peek (without throwing on expired/invalid)

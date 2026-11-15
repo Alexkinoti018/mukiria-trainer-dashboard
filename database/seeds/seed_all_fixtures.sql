@@ -14,7 +14,7 @@ INSERT INTO trainees (id, name, reg_number, adm_no, reg_code, class_code, depart
 VALUES ('tr_1791576675220_xm5wbvuxz', 'Alex  Teacher', 'TED/092/18', 'TED/092/18', 'TED/092/18', 'ADMIN5/6/J/26 MOD 3', 'Business Studies', 'M', '', '', CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, class_code = EXCLUDED.class_code, updated_at = CURRENT_TIMESTAMP;
 INSERT INTO trainees (id, name, reg_number, adm_no, reg_code, class_code, department, gender, phone, remarks, updated_at)
-VALUES ('tr_1791577241020_4dqoi35vr', 'Harriet Mwendwa', 'D/UPNUT/25042/069', 'D/UPNUT/25042/069', 'D/UPNUT/25042/069', 'ADMIN5/6/J/26 MOD 3', 'Business Studies', 'F', '0114282240', 'External learner', CURRENT_TIMESTAMP)
+VALUES ('tr_1791577241020_4dqoi35vr', 'Harriet Mwendwa', 'D/UPNUT/25042/069', 'D/UPNUT/25042/069', 'D/UPNUT/25042/069', 'ADMIN5/6/J/26 MOD 3', 'Business Studies', 'F', '+254700000010', 'External learner', CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, class_code = EXCLUDED.class_code, updated_at = CURRENT_TIMESTAMP;
 
 -- 2. Attendance Records (738 entries)

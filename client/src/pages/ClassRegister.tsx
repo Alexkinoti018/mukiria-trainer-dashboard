@@ -1086,14 +1086,31 @@ export default function ClassRegister() {
 
       const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
 
-      if (isSupabaseConfigured() && isOnline) {
+      if (isOnline) {
         try {
-          await (supabase.from("attendance_register" as any) as any).upsert(rows as any);
-        } catch (supaErr) {
-          console.warn("Supabase attendance sync warning:", supaErr);
+          const bulkPayload = {
+            records: rows.map(r => ({
+              unit_offering_id: r.unit_offering_id,
+              trainee_id: r.trainee_id,
+              week_number: r.week_number,
+              session_date: new Date().toISOString().split("T")[0],
+              status: r.status,
+            })),
+          };
+          const res = await fetch("/api/attendance/bulk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(bulkPayload),
+          });
+          if (!res.ok) {
+            console.warn("Backend attendance sync responded with error, caching offline.");
+            await enqueueSyncItem("ATTENDANCE_REGISTER_SAVE", { rows });
+          }
+        } catch (apiErr) {
+          console.warn("Backend attendance sync network error, enqueuing:", apiErr);
           await enqueueSyncItem("ATTENDANCE_REGISTER_SAVE", { rows });
         }
-      } else if (isSupabaseConfigured()) {
+      } else {
         await enqueueSyncItem("ATTENDANCE_REGISTER_SAVE", { rows });
       }
 

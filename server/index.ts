@@ -43,6 +43,20 @@ async function startServer() {
 
   app.use("/api", apiRouter);
 
+  // Global sanitized API error handler (Zero Stack/DB Leakage)
+  app.use("/api", (err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+    logger.error("Unhandled API Error", { error: err?.message, stack: err?.stack });
+    if (res.headersSent) {
+      return next(err);
+    }
+    const status = err?.status || err?.statusCode || 500;
+    const isProd = serverConfig.isProduction;
+    const sanitizedError = isProd && status === 500
+      ? "An internal server error occurred."
+      : err?.message || "Internal server error";
+    res.status(status).json({ error: sanitizedError });
+  });
+
   // Serve static files from dist/public in production
   const staticPath = serverConfig.isProduction
     ? path.resolve(__dirname, "public")

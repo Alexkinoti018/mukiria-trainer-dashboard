@@ -709,7 +709,7 @@ export default function HODDashboard() {
               {[
                 { title: "Standard Written Assessments (CT1-3)", status: "Active & Ingested", icon: CheckCircle2, ok: true },
                 { title: "Formative Practical Rubrics (Section B)", status: "40 Marks Configured", icon: CheckCircle2, ok: true },
-                { title: "Auto-Grader Deterministic & NLP Engine", status: "Active on Port 8000", icon: CheckCircle2, ok: true },
+                { title: "Auto-Grader Deterministic & NLP Engine", status: "Native TypeScript Engine Active", icon: CheckCircle2, ok: true },
                 { title: "Departmental Records of Work (RoW)", status: "Ready for HOD Stamp", icon: CheckCircle2, ok: true },
                 { title: "Workshop QR Code Access Posters", status: "Enabled on Session Plans", icon: CheckCircle2, ok: true },
                 { title: "Internal Verification (IV) Sampling", status: "Sampling Scheduled", icon: Clock, ok: false },

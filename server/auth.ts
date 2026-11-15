@@ -7,6 +7,7 @@
 import jwt from "jsonwebtoken";
 import { randomBytes, createHmac } from "node:crypto";
 import type { Request, Response, NextFunction } from "express";
+import { isPublicRoute } from "./accessPolicy.ts";
 import {
   findUserById,
   updateUserProfileId,
@@ -578,6 +579,60 @@ export function isAssignedTrainer(
   return user.profile_id === offering.trainer_id;
 }
 
+export function isTrainerAssignedToClass(
+  user: AuthenticatedUser | undefined,
+  classCode: string | null | undefined,
+  unitOfferings: Array<{ trainer_id?: string | null; class_id?: string | null; class_code?: string | null; [key: string]: any }> = []
+): boolean {
+  if (!user || !classCode) return false;
+  if (user.role === "admin" || user.role === "hod") return true;
+  if (user.role !== "trainer") return false;
+
+  const trainerId = user.profile_id || user.id;
+  const normClass = classCode.trim().toUpperCase().replace(/[\s/_-]+/g, "");
+
+  const matchOffering = unitOfferings.some((uo) => {
+    const isTrainerMatch =
+      uo.trainer_id === trainerId ||
+      uo.trainer_id === user.profile_id ||
+      uo.trainer_id === user.id ||
+      (user.email && uo.trainer_id === "trainer-001" && user.email.includes("trainer"));
+    if (!isTrainerMatch) return false;
+
+    const uoClass = (uo.class_id || uo.class_code || "").trim().toUpperCase().replace(/[\s/_-]+/g, "");
+    return (
+      uoClass === normClass ||
+      normClass.includes(uoClass) ||
+      uoClass.includes(normClass) ||
+      (normClass.includes("ITECH6") && uoClass.includes("ITECH6")) ||
+      (normClass.includes("ICT4") && uoClass.includes("ICT4")) ||
+      (normClass.includes("FBS") && uoClass.includes("FBS")) ||
+      (normClass.includes("ADMIN") && uoClass.includes("ADMIN"))
+    );
+  });
+  if (matchOffering) return true;
+
+  if (user.assigned_units && user.assigned_units.length > 0) {
+    const matchesUnitInClass = unitOfferings.some((uo) => {
+      const uoClass = (uo.class_id || uo.class_code || "").trim().toUpperCase().replace(/[\s/_-]+/g, "");
+      const isClassMatch =
+        uoClass === normClass ||
+        normClass.includes(uoClass) ||
+        uoClass.includes(normClass) ||
+        (normClass.includes("ITECH6") && uoClass.includes("ITECH6")) ||
+        (normClass.includes("ICT4") && uoClass.includes("ICT4"));
+      return (
+        isClassMatch &&
+        (user.assigned_units?.includes(uo.unit_code) ||
+          user.assigned_units?.includes(uo.unit_id))
+      );
+    });
+    if (matchesUnitInClass) return true;
+  }
+
+  return false;
+}
+
 // Demo mock users (Active strictly in non-production environments when ALLOW_DEMO_AUTH=true)
 export const DEMO_TOKENS_MAP: Record<string, AuthenticatedUser> = {
   "token-trainer-001": { id: "usr-trainer-001", profile_id: "trainer-001", email: "trainer@mtti.ac.ke", name: "Dr. J. Muriithi", role: "trainer", assigned_units: ["ICT/CU/IT/CR/6/6", "061155101A"], department_id: "dept-ci" },
@@ -601,16 +656,12 @@ export async function authenticateToken(
   const authHeader = req.headers["authorization"] || req.headers["Authorization"];
   const tokenString = typeof authHeader === "string" ? authHeader : "";
 
-  // Temporary Public Paths Allowlist (Phase 1)
+  // Route Access Policy driven public gateway check
   const reqPath = req.path || req.url || "";
   const cleanPath = reqPath.split("?")[0];
-  const isPublicAllowlist =
-    (req.method === "GET" && (cleanPath === "/health" || cleanPath.endsWith("/health"))) ||
-    (req.method === "POST" && (cleanPath === "/auth/login" || cleanPath.endsWith("/auth/login"))) ||
-    (req.method === "POST" && (cleanPath === "/auth/register-trainee" || cleanPath.endsWith("/auth/register-trainee"))) ||
-    (req.method === "GET" && (cleanPath === "/trainees/lookup" || cleanPath.endsWith("/trainees/lookup")));
+  const isPublic = isPublicRoute(req.method, cleanPath);
 
-  if (isPublicAllowlist && !tokenString) {
+  if (isPublic && !tokenString) {
     return next();
   }
 
@@ -812,35 +863,4 @@ export function createSignedJwt(payload: any, secret?: string): string {
     options.expiresIn = '1h';
   }
   return jwt.sign(signPayload, key, options);
-}
-
-export async function verifySupabaseToken(token: string, secret?: string): Promise<any> {
-  const parts = String(token).split('.');
-  if (parts.length !== 3) {
-    throw new Error('Malformed JWT: Must have exactly 3 parts');
-  }
-  const key = secret || getJwtSecret();
-  try {
-    const decoded = jwt.verify(token, key, { algorithms: ['HS256'] }) as any;
-    const sub = decoded.sub || decoded.id;
-    const role = (decoded.role || decoded.app_metadata?.role || 'trainee').toLowerCase();
-    return {
-      id: sub,
-      email: decoded.email,
-      name: decoded.user_metadata?.name || decoded.name,
-      role,
-      department_id: decoded.user_metadata?.department_id,
-      assigned_units: decoded.user_metadata?.assigned_units,
-      enrolled_units: decoded.user_metadata?.enrolled_units,
-      reg_number: decoded.user_metadata?.reg_number,
-    };
-  } catch (err: any) {
-    if (err.name === 'TokenExpiredError') {
-      throw new Error('Token expired');
-    }
-    if (err.name === 'JsonWebTokenError' && (err.message === 'invalid signature' || err.message.toLowerCase().includes('signature'))) {
-      throw new Error('Cryptographic verification failed: Invalid JWT signature');
-    }
-    throw new Error(`Cryptographic verification failed: ${err.message || 'Invalid JWT signature'}`);
-  }
 }

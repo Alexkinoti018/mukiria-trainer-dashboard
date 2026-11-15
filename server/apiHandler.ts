@@ -65,14 +65,19 @@ app.use((req, res) => {
   res.status(404).json({ error: `Endpoint not found: ${req.method} ${req.url}` });
 });
 
-// Global error handler (always returns valid JSON, preventing unexpected token errors)
+// Global error handler (always returns valid JSON without internal stack/DB error leaks)
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   logger.error("[API Serverless Error]", { error: err?.message, stack: err?.stack });
   captureServerException(err);
   if (res.headersSent) {
     return next(err);
   }
-  res.status(err?.status || 500).json({ error: err?.message || "Internal server error" });
+  const status = err?.status || err?.statusCode || 500;
+  const isProd = process.env.NODE_ENV === "production";
+  const sanitizedError = isProd && status === 500
+    ? "An internal server error occurred."
+    : err?.message || "Internal server error";
+  res.status(status).json({ error: sanitizedError });
 });
 
 export default app;

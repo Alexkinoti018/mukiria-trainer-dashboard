@@ -8,7 +8,7 @@ import {
   authenticateUser,
   requireRoles,
   getAuthConfiguration,
-  verifySupabaseToken,
+  verifyToken,
   createSignedJwt,
 } from "../server/routes.ts";
 
@@ -96,82 +96,63 @@ describe("Phase 2: Secure Cryptographic Authentication & RBAC Suite", () => {
   // ─── 2. CRYPTOGRAPHIC TOKEN VERIFICATION ─────────────────────────────────────
   describe("2. Cryptographic JWT Verification Engine", () => {
     it("should verify valid signed JWT and extract full trainer identity claims", async () => {
+      process.env.JWT_SECRET = TEST_JWT_SECRET;
       const payload = {
         sub: "trainer-uuid-007",
-        email: "alexander.kinoti@mtti.ac.ke",
+        role: "trainer",
         exp: Math.floor(Date.now() / 1000) + 3600,
-        app_metadata: { role: "trainer" },
-        user_metadata: {
-          name: "Alexander Kinoti",
-          department_id: "dept-ci",
-          assigned_units: ["ICT/OS/IT/CR/1/6"],
-        },
       };
 
       const token = createSignedJwt(payload, TEST_JWT_SECRET);
-      const user = await verifySupabaseToken(token, TEST_JWT_SECRET);
+      const verified = await verifyToken(token);
 
-      expect(user.id).toBe("trainer-uuid-007");
-      expect(user.email).toBe("alexander.kinoti@mtti.ac.ke");
-      expect(user.name).toBe("Alexander Kinoti");
-      expect(user.role).toBe("trainer");
-      expect(user.department_id).toBe("dept-ci");
-      expect(user.assigned_units).toEqual(["ICT/OS/IT/CR/1/6"]);
+      expect(verified.sub).toBe("trainer-uuid-007");
+      expect(verified.role).toBe("trainer");
     });
 
     it("should verify valid signed JWT for trainee with admission/reg number", async () => {
+      process.env.JWT_SECRET = TEST_JWT_SECRET;
       const payload = {
         sub: "trainee-uuid-101",
+        role: "trainee",
         exp: Math.floor(Date.now() / 1000) + 3600,
-        app_metadata: { role: "trainee" },
-        user_metadata: {
-          name: "Nthiga Gakii Doris",
-          reg_number: "14179/S2026",
-          department_id: "dept-ci",
-          enrolled_units: ["ICT/CU/IT/CR/6/6"],
-        },
       };
 
       const token = createSignedJwt(payload, TEST_JWT_SECRET);
-      const user = await verifySupabaseToken(token, TEST_JWT_SECRET);
+      const verified = await verifyToken(token);
 
-      expect(user.id).toBe("trainee-uuid-101");
-      expect(user.role).toBe("trainee");
-      expect(user.reg_number).toBe("14179/S2026");
-      expect(user.enrolled_units).toEqual(["ICT/CU/IT/CR/6/6"]);
+      expect(verified.sub).toBe("trainee-uuid-101");
+      expect(verified.role).toBe("trainee");
     });
 
     it("should reject a token with tampered signature (invalid signature)", async () => {
+      process.env.JWT_SECRET = TEST_JWT_SECRET;
       const payload = {
         sub: "imposter-001",
-        app_metadata: { role: "admin" },
+        role: "admin",
         exp: Math.floor(Date.now() / 1000) + 3600,
       };
 
       const token = createSignedJwt(payload, "wrong-secret");
-      await expect(verifySupabaseToken(token, TEST_JWT_SECRET)).rejects.toThrow(
-        "Cryptographic verification failed: Invalid JWT signature"
-      );
+      await expect(verifyToken(token)).rejects.toThrow("Token verification failed");
     });
 
     it("should reject an expired token", async () => {
+      process.env.JWT_SECRET = TEST_JWT_SECRET;
       const payload = {
         sub: "expired-user",
-        app_metadata: { role: "trainer" },
+        role: "trainer",
         exp: Math.floor(Date.now() / 1000) - 60, // expired 60 seconds ago
       };
 
       const token = createSignedJwt(payload, TEST_JWT_SECRET);
-      await expect(verifySupabaseToken(token, TEST_JWT_SECRET)).rejects.toThrow("Token expired");
+      await expect(verifyToken(token)).rejects.toThrow("Token verification failed: jwt expired");
     });
 
     it("should reject malformed JWT tokens lacking 3 dot-separated segments", async () => {
-      await expect(verifySupabaseToken("not-a-jwt", TEST_JWT_SECRET)).rejects.toThrow(
-        "Malformed JWT"
-      );
-      await expect(verifySupabaseToken("header.payload", TEST_JWT_SECRET)).rejects.toThrow(
-        "Malformed JWT"
-      );
+      process.env.JWT_SECRET = TEST_JWT_SECRET;
+      await expect(verifyToken("not-a-jwt")).rejects.toThrow("Token verification failed");
+      await expect(verifyToken("header.payload")).rejects.toThrow("Token verification failed");
     });
   });
 
