@@ -9,7 +9,6 @@
  * - Authentic binary file downloads with exact file metadata
  */
 
-import { supabase, isSupabaseConfigured } from "./supabase";
 import jsPDF from "jspdf";
 
 export interface EvidenceFilePayload {

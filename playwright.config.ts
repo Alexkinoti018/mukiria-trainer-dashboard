@@ -29,5 +29,12 @@ export default defineConfig({
     url: "http://localhost:3000",
     reuseExistingServer: true,
     timeout: 30000,
+    env: {
+      NODE_ENV: "test",
+      JWT_SECRET: "mtti-e2e-jwt-secret-verification-key-2026-secure",
+      DOCUMENT_SIGNING_SECRET: "mtti-doc-signer-secret-key-2026-production",
+      PORT: "3000",
+      ALLOW_DEMO_AUTH: "true",
+    },
   },
 });

@@ -617,34 +617,6 @@ export function AssessmentMarksSheet() {
 
   const submitData = async () => {
     try {
-      const batchPayload = {
-        unitOfferingId,
-        marks: rows.map(r => ({
-          traineeId: r.id,
-          cpScore: r.cpAvg,
-          ctScore: r.ctAvg,
-        })),
-      };
-
-      try {
-        const res = await fetch("/api/marks/batch", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(batchPayload),
-        });
-
-        if (res.status === 400) {
-          const errData = await res.json().catch(() => ({}));
-          if (errData.error?.includes("locked") || errData.error?.includes("finalized")) {
-            setIsLocked(true);
-            toast.error("Assessment marksheet is finalized and locked");
-            return;
-          }
-        }
-      } catch (apiErr) {
-        console.warn("Backend API /api/marks/batch call:", apiErr);
-      }
-
       const payload = rows.map(r => ({
         unit_offering_id: unitOfferingId,
         trainee_id: r.id,
@@ -660,7 +632,7 @@ export function AssessmentMarksSheet() {
 
       // Authoritative save through Backend API (Decoupled from direct Supabase table access)
       try {
-        const token = localStorage.getItem("mtti_token") || localStorage.getItem("token") || "";
+        const token = localStorage.getItem("mtti_auth_token") || localStorage.getItem("mtti_token") || localStorage.getItem("token") || "";
         const batchMarks = payload.map((p: any) => ({
           traineeId: p.trainee_id,
           cpScore: typeof p.computed_average_practical === "number" ? p.computed_average_practical : (typeof p.cp_avg === "number" ? p.cp_avg : undefined),
@@ -687,6 +659,11 @@ export function AssessmentMarksSheet() {
           toast.success("Assessment marks saved & synchronized with MTTI database!");
         } else {
           const errData = await apiRes.json().catch(() => ({}));
+          if (apiRes.status === 400 && (errData.error?.includes("locked") || errData.error?.includes("finalized"))) {
+            setIsLocked(true);
+            toast.error("Assessment marksheet is finalized and locked");
+            return;
+          }
           console.warn("Backend API marks save notice:", errData);
         }
       } catch (apiErr) {

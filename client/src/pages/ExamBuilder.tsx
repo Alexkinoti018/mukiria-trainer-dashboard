@@ -221,6 +221,306 @@ export const EMPTY_PAYLOAD = (): ExamPayload => ({
   },
 });
 
+export const synthesizeBlueprintFromUnit = (u: CurriculumUnit, isPractical: boolean = false): ExamPayload => {
+  const level = u.level || getLevelFromUnitCode(u.unit_code);
+  const outcomes = (u.learning_outcomes || []).map((o: any) => o.title || String(o));
+  const cleanUnitTitle = u.unit_title || u.unit_code;
+
+  if (isPractical) {
+    // Practical Observation Checklist: Exactly 10 to 25 evaluation items mapped to Critical Aspects
+    const checklistItems: Array<{ id: string; text: string; critical_aspect: string; max_score: number }> = [];
+    const baseOutcomes = outcomes.length > 0 ? outcomes : [
+      "Adhere to occupational safety and health standards",
+      "Select and inspect required workshop tools and PPE",
+      "Execute technical task in accordance with standard operating procedure",
+      "Perform diagnostics and quality control verification",
+      "Document task handover and clean workspace"
+    ];
+
+    for (let i = 0; i < 15; i++) {
+      const outc = baseOutcomes[i % baseOutcomes.length];
+      checklistItems.push({
+        id: `item-${i + 1}`,
+        text: `Demonstrate proficiency in: ${outc} (Step ${i + 1})`,
+        critical_aspect: `Candidate must adhere to TVET CDACC performance criteria for ${cleanUnitTitle} element ${i + 1}`,
+        max_score: 5,
+      });
+    }
+
+    return {
+      title: `PRACTICAL PERFORMANCE ASSESSMENT - ${cleanUnitTitle.toUpperCase()}`,
+      instructions: "Assess candidate performance using the standardized TVET CDACC observation checklist (15 criteria).",
+      duration_minutes: 180,
+      total_marks: 75,
+      task_code: "CP1",
+      assessment_category: "Practical",
+      type: "practical",
+      checklist_items: checklistItems,
+    } as any;
+  }
+
+  if (level === 3) {
+    // Level 3: 50m (Sec A: 20m, Sec B: 30m)
+    const secA: ExamQuestion[] = [
+      {
+        id: "l3-q1",
+        q_num: 1,
+        type: "short_answer",
+        text: `Identify four fundamental workplace safety rules applicable when performing tasks in ${cleanUnitTitle}.`,
+        marks: 8,
+        critical_aspect: "2 marks per valid safety rule with TVET workshop justification.",
+        correct_answer: "PPE compliance, machine isolation, proper tool usage, and hazardous waste disposal.",
+      },
+      {
+        id: "l3-q2",
+        q_num: 2,
+        type: "short_answer",
+        text: `List and briefly describe three basic tools or software components utilized in ${cleanUnitTitle}.`,
+        marks: 6,
+        critical_aspect: "2 marks per tool identified with correct occupational function.",
+        correct_answer: "Tool identification and functional description conforming to syllabus elements.",
+      },
+      {
+        id: "l3-q3",
+        q_num: 3,
+        type: "short_answer",
+        text: `Outline two routine maintenance actions required for tools or equipment in ${cleanUnitTitle}.`,
+        marks: 6,
+        critical_aspect: "3 marks per maintenance procedure.",
+        correct_answer: "Inspection, cleaning, calibration, and secure storage.",
+      },
+    ];
+
+    const secB: ExamQuestion[] = [
+      {
+        id: "l3-qb1",
+        q_num: 4,
+        type: "structured",
+        text: `Explain the step-by-step procedure for preparing and setting up equipment for operations in ${cleanUnitTitle}. Include safety precautions.`,
+        marks: 15,
+        critical_aspect: "Preparation (5m), step-by-step setup (6m), safety checks (4m).",
+        correct_answer: "Detailed step-by-step procedure according to CDACC performance criteria.",
+      },
+      {
+        id: "l3-qb2",
+        q_num: 5,
+        type: "structured",
+        text: `Describe a common operational failure or fault that occurs during tasks in ${cleanUnitTitle}, and detail the corrective action taken.`,
+        marks: 15,
+        critical_aspect: "Fault symptom identification (5m), root cause analysis (5m), corrective action (5m).",
+        correct_answer: "Systematic troubleshooting procedure.",
+      },
+    ];
+
+    return {
+      title: `LEVEL 3 WRITTEN ASSESSMENT - ${cleanUnitTitle.toUpperCase()}`,
+      instructions: "Answer ALL questions in Section A (20 Marks) and Section B (30 Marks).",
+      duration_minutes: 120,
+      total_marks: 50,
+      task_code: "CT1",
+      assessment_category: "Exam",
+      type: "written",
+      section_a: {
+        title: "Section A: Compulsory Short Answer Questions",
+        instructions: "Answer all questions in this section (20 Marks).",
+        total_marks: 20,
+        questions: secA,
+      },
+      section_b: {
+        title: "Section B: Structured Problem-Solving Questions",
+        instructions: "Answer all questions in this section (30 Marks).",
+        total_marks: 30,
+        questions: secB,
+      },
+    };
+  }
+
+  if (level === 4) {
+    // Level 4: 50m (Sec A: 10m strictly MCQs, Sec B: 40m structured/essay; NO True/False or Matching allowed)
+    const secA: ExamQuestion[] = [
+      {
+        id: "l4-mcq1",
+        q_num: 1,
+        type: "mcq",
+        text: `Which of the following represents the primary regulatory standard for quality assurance in ${cleanUnitTitle}?`,
+        options: ["KNQF Occupational Standard", "ISO 9001 Guidelines", "MTTI Internal Memo", "Manufacturer Brochure"],
+        marks: 2,
+        critical_aspect: "Correct identification of accredited TVET occupational benchmark.",
+        correct_answer: "KNQF Occupational Standard",
+      },
+      {
+        id: "l4-mcq2",
+        q_num: 2,
+        type: "mcq",
+        text: `When inspecting operational parameters for ${cleanUnitTitle}, what is the mandatory initial action?`,
+        options: ["Isolate electrical/power sources", "Begin high-speed operation", "Bypass protective interlocks", "Record final output"],
+        marks: 2,
+        critical_aspect: "Zero-harm safety isolation procedure.",
+        correct_answer: "Isolate electrical/power sources",
+      },
+      {
+        id: "l4-mcq3",
+        q_num: 3,
+        type: "mcq",
+        text: `Which tool or command is most effective for diagnostic testing in ${cleanUnitTitle}?`,
+        options: ["Standard diagnostic utility", "Hammer and pry bar", "Overclocking module", "Manual override valve"],
+        marks: 2,
+        critical_aspect: "Application of standard diagnostic utilities.",
+        correct_answer: "Standard diagnostic utility",
+      },
+      {
+        id: "l4-mcq4",
+        q_num: 4,
+        type: "mcq",
+        text: `In TVET CDACC assessment, a trainee who achieves 68% in Continuous Practical and 44% in Continuous Theory is graded as:`,
+        options: ["Not Yet Competent (NYC)", "Competent (C)", "Distinction", "Exempt"],
+        marks: 2,
+        critical_aspect: "Double-hurdle continuous theory minimum 50% pass threshold.",
+        correct_answer: "Not Yet Competent (NYC)",
+      },
+      {
+        id: "l4-mcq5",
+        q_num: 5,
+        type: "mcq",
+        text: `What is the minimal attendance percentage required under KNQF guidelines to be certified as Competent?`,
+        options: ["75%", "50%", "60%", "90%"],
+        marks: 2,
+        critical_aspect: "KNQF 75% attendance hurdle compliance.",
+        correct_answer: "75%",
+      },
+    ];
+
+    const secB: ExamQuestion[] = [
+      {
+        id: "l4-qb1",
+        q_num: 6,
+        type: "structured",
+        text: `A client reports intermittent failure during operational tasks in ${cleanUnitTitle}. Prepare a technical diagnosis workflow outlining equipment checks, potential failure causes, and test verification procedures.`,
+        marks: 20,
+        critical_aspect: "Equipment inspection (6m), root-cause analysis (8m), post-repair verification (6m).",
+        correct_answer: "Systematic troubleshooting workflow according to CDACC standards.",
+      },
+      {
+        id: "l4-qb2",
+        q_num: 7,
+        type: "structured",
+        text: `Discuss the principles of preventative maintenance applicable to ${cleanUnitTitle}. Detail the schedule, required lubrication/calibration materials, and logbook recording requirements.`,
+        marks: 20,
+        critical_aspect: "Maintenance schedule formulation (6m), materials and calibration (8m), regulatory recordkeeping (6m).",
+        correct_answer: "Complete maintenance protocol fulfilling TVET institutional standards.",
+      },
+    ];
+
+    return {
+      title: `LEVEL 4 WRITTEN ASSESSMENT - ${cleanUnitTitle.toUpperCase()}`,
+      instructions: "Answer ALL questions in Section A (10 Marks MCQs) and Section B (40 Marks Structured Questions). Note: True/False and Matching are prohibited.",
+      duration_minutes: 120,
+      total_marks: 50,
+      task_code: "CT1",
+      assessment_category: "Exam",
+      type: "written",
+      section_a: {
+        title: "Section A: Multiple Choice Questions (Compulsory)",
+        instructions: "Answer all 5 multiple choice questions (10 Marks).",
+        total_marks: 10,
+        questions: secA,
+      },
+      section_b: {
+        title: "Section B: Structured Problem-Solving Questions",
+        instructions: "Answer all structured scenario questions (40 Marks).",
+        total_marks: 40,
+        questions: secB,
+      },
+    };
+  }
+
+  // Default Level 5 & Level 6: 100m (Sec A: 40m short-answer, Sec B: 60m Choose 3 of 4, 20m each)
+  const secA: ExamQuestion[] = outcomes.slice(0, 8).map((outcome, idx) => ({
+    id: `l56-qa-${idx + 1}`,
+    q_num: idx + 1,
+    type: "short_answer",
+    text: `Explain the technical specifications and occupational standards governing ${outcome.toLowerCase().replace(/^(demonstrate|apply|perform|describe|explain)\s+/i, "")}.`,
+    marks: 5,
+    critical_aspect: "3 marks for technical accuracy; 2 marks for occupational context.",
+    correct_answer: `Accurate technical definition and occupational application aligned with CDACC unit ${u.unit_code}.`,
+  }));
+
+  // Ensure Section A totals exactly 40 marks (8 questions of 5 marks)
+  while (secA.length < 8) {
+    const idx = secA.length;
+    secA.push({
+      id: `l56-qa-${idx + 1}`,
+      q_num: idx + 1,
+      type: "short_answer",
+      text: `State two critical performance indicators when evaluating outcomes for element ${idx + 1} of ${cleanUnitTitle}.`,
+      marks: 5,
+      critical_aspect: "2.5 marks per correctly identified performance indicator.",
+      correct_answer: "Identification of CDACC critical aspects and performance standards.",
+    });
+  }
+
+  const secB: ExamQuestion[] = [
+    {
+      id: "l56-qb1",
+      q_num: 9,
+      type: "essay",
+      text: `Analyze the architectural framework and operational lifecycle of ${cleanUnitTitle}. Evaluate the risk factors associated with system deployment and propose a mitigation matrix.`,
+      marks: 20,
+      critical_aspect: "Lifecycle analysis (8m), risk factor identification (6m), mitigation matrix (6m).",
+      correct_answer: "Comprehensive architectural essay with detailed risk matrix.",
+    },
+    {
+      id: "l56-qb2",
+      q_num: 10,
+      type: "essay",
+      text: `You are appointed as Lead Technical Officer at Mukiria TTI to oversee project delivery in ${cleanUnitTitle}. Develop a comprehensive implementation plan including resource allocation, Gantt milestones, and quality control protocols.`,
+      marks: 20,
+      critical_aspect: "Implementation plan (8m), resource and scheduling (6m), quality assurance (6m).",
+      correct_answer: "Structured operational delivery plan meeting CDACC project criteria.",
+    },
+    {
+      id: "l56-qb3",
+      q_num: 11,
+      type: "essay",
+      text: `Evaluate emerging trends and modern technological paradigms impacting ${cleanUnitTitle}. How should technical training institutions adapt their practical workshops to maintain curriculum relevance?`,
+      marks: 20,
+      critical_aspect: "Trend evaluation (8m), workshop adaptation strategies (6m), pedagogical recommendations (6m).",
+      correct_answer: "Critical evaluation of industry shifts and institutional responses.",
+    },
+    {
+      id: "l56-qb4",
+      q_num: 12,
+      type: "essay",
+      text: `Formulate a standardized diagnostic and troubleshooting algorithm for complex system failures in ${cleanUnitTitle}. Contrast heuristic vs algorithmic fault-finding methodologies.`,
+      marks: 20,
+      critical_aspect: "Algorithm formulation (8m), methodology comparison (6m), practical validation (6m).",
+      correct_answer: "Step-by-step troubleshooting algorithm with comparative methodological analysis.",
+    },
+  ];
+
+  return {
+    title: `LEVEL ${level} COMPREHENSIVE ASSESSMENT - ${cleanUnitTitle.toUpperCase()}`,
+    instructions: "Answer ALL questions in Section A (40 Marks). In Section B, choose and answer any THREE (3) out of the FOUR (4) questions (20 Marks each = 60 Marks). Total: 100 Marks.",
+    duration_minutes: 180,
+    total_marks: 100,
+    task_code: "CT1",
+    assessment_category: "Exam",
+    type: "written",
+    section_a: {
+      title: "Section A: Compulsory Short Answer Questions",
+      instructions: "Answer ALL 8 questions in this section (Compulsory - 40 Marks).",
+      total_marks: 40,
+      questions: secA,
+    },
+    section_b: {
+      title: "Section B: Extended Essay & Structured Questions",
+      instructions: "Answer ANY THREE (3) questions from this section (Each question carries 20 marks - 60 Marks total).",
+      total_marks: 60,
+      questions: secB,
+    },
+  };
+};
+
 export default function ExamBuilder() {
   const [activeTab, setActiveTab] = useState<"builder" | "marks">("builder");
   const { exams, addExam, updateExamSchedule } = useExam();
@@ -267,74 +567,6 @@ export default function ExamBuilder() {
       } catch (e) {}
     }
   }, []);
-
-  const synthesizeBlueprintFromUnit = (u: CurriculumUnit, isPractical: boolean = false): ExamPayload => {
-    const outcomes = (u.learning_outcomes || []).map((o: any) => o.title || String(o));
-
-    const secAQuestions: ExamQuestion[] = outcomes.slice(0, 5).map((outcome, idx) => ({
-      id: `q-a-${idx + 1}`,
-      q_num: idx + 1,
-      type: "short_answer",
-      text: `State and explain two key industrial requirements or principles related to ${outcome.toLowerCase().replace(/^(demonstrate|apply|perform|describe|explain)\s+/i, "")}.`,
-      marks: 4,
-      critical_aspect: "2 marks for clear identification; 2 marks for practical industrial application context.",
-      correct_answer: `Identification of core requirements aligned with ${outcome}. Appropriate technical explanation in accordance with CDACC standards.`
-    }));
-
-    const secBQuestions: ExamQuestion[] = outcomes.slice(0, 3).map((outcome, idx) => ({
-      id: `q-b-${idx + 1}`,
-      q_num: idx + 6,
-      type: "structured",
-      text: isPractical
-        ? `You are assigned to carry out an industrial task on "${outcome}". Detail the step-by-step procedure, required safety PPE, tools, and quality verification checklist.`
-        : `Analyze the technical framework for "${outcome}". Explain the common failure modes or errors encountered in practice and outline systematic troubleshooting methodologies to resolve them.`,
-      marks: 10,
-      critical_aspect: "Step-by-step methodology (4 marks), tools and safety precautions (3 marks), verification and troubleshooting (3 marks).",
-      correct_answer: `Comprehensive procedural plan for ${outcome}, including risk assessment, tool preparation, execution steps, and testing verification.`
-    }));
-
-    return {
-      title: `${isPractical ? "PRACTICAL PERFORMANCE" : "COGNITIVE THEORY"} CONTINUOUS ASSESSMENT TEST`,
-      instructions: "Answer ALL questions in Section A and Section B. Adhere to TVET CDACC standard occupational regulations.",
-      duration_minutes: isPractical ? 180 : 120,
-      total_marks: 50,
-      task_code: isPractical ? "CP1" : "CT1",
-      assessment_category: isPractical ? "Practical" : "Exam",
-      type: isPractical ? "practical" : "written",
-      section_a: {
-        title: "Section A: Compulsory Short Answer Questions",
-        instructions: "Answer ALL questions in this section (Compulsory - 20 Marks).",
-        total_marks: 20,
-        questions: secAQuestions.length > 0 ? secAQuestions : [
-          {
-            id: "q-a-1",
-            q_num: 1,
-            type: "short_answer",
-            text: `Explain three fundamental workshop safety and operational rules applicable to ${u.unit_title}.`,
-            marks: 6,
-            critical_aspect: "2 marks for each correct rule with operational justification.",
-            correct_answer: "PPE compliance, proper equipment isolation, and maintaining clear workspace."
-          }
-        ]
-      },
-      section_b: {
-        title: "Section B: Structured Problem-Solving Questions",
-        instructions: "Answer the following structured scenario-based questions (30 Marks).",
-        total_marks: 30,
-        questions: secBQuestions.length > 0 ? secBQuestions : [
-          {
-            id: "q-b-1",
-            q_num: 2,
-            type: "structured",
-            text: `Describe the end-to-end execution workflow for standard tasks in ${u.unit_title}, specifying tools, equipment, and verification standards.`,
-            marks: 15,
-            critical_aspect: "Preparation (5 marks), Execution (6 marks), Testing/Handover (4 marks).",
-            correct_answer: "Structured workflow covering planning, safety, implementation, and quality verification."
-          }
-        ]
-      }
-    };
-  };
 
   const handleCompileFromUnit = async (u: CurriculumUnit, isPractical: boolean = false) => {
     setGeneratingAi(true);

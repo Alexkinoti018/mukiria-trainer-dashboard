@@ -103,6 +103,11 @@ import {
 } from "./documentSigner.ts";
 import { logger } from "./logger.ts";
 import { captureServerException } from "./sentry.ts";
+import {
+  getGovernanceAlerts,
+  resolveGovernanceAlert,
+  runGovernanceAudit,
+} from "./workers/proactiveAnalyticsWorker.ts";
 
 export type { AuthenticatedUser, AuthenticatedRequest };
 export {
@@ -759,6 +764,94 @@ apiRouter.get("/verify-document", async (req: Request, res: Response) => {
   }
 
   res.json(baseResponse);
+});
+
+// ─── ENDPOINT: POST /api/attendance/hardware-checkin (IoT Biometric / RFID Scanner) ───
+apiRouter.post("/attendance/hardware-checkin", async (req: Request, res: Response) => {
+  const hardwareKey = req.headers["x-mtti-hardware-key"] as string;
+  const configuredSecret = process.env.HARDWARE_CHECKIN_SECRET || "mtti-iot-hardware-key-2026";
+
+  if (!hardwareKey || hardwareKey.trim() !== configuredSecret) {
+    res.status(401).json({ error: "Unauthorized: Invalid or missing hardware authentication key (X-MTTI-Hardware-Key)." });
+    return;
+  }
+
+  const { device_id, admission_number, unit_offering_id, week_number, session_index, status, hours_attended } = req.body || {};
+
+  if (!admission_number || typeof admission_number !== "string") {
+    res.status(400).json({ error: "Missing required 'admission_number' in hardware check-in payload." });
+    return;
+  }
+
+  const cleanAdm = admission_number.trim().toUpperCase();
+  const trainees = loadPersistentTrainees();
+  const matchedTrainee = trainees.find(
+    (t) =>
+      (t.adm_no && t.adm_no.toUpperCase() === cleanAdm) ||
+      (t.reg_number && t.reg_number.toUpperCase() === cleanAdm) ||
+      (t.reg_code && t.reg_code.toUpperCase() === cleanAdm)
+  );
+
+  const traineeId = matchedTrainee ? matchedTrainee.id : cleanAdm;
+  const traineeName = matchedTrainee ? matchedTrainee.name : `Candidate ${cleanAdm}`;
+  const now = new Date();
+  const sessionDate = now.toISOString().split("T")[0];
+
+  const newRecord: AttendanceRecord = {
+    id: `att-hw-${Date.now()}-${randomBytes(4).toString("hex")}`,
+    unit_offering_id: unit_offering_id || matchedTrainee?.class_id || "uo-general",
+    trainee_id: traineeId,
+    week_number: Number(week_number) || 1,
+    session_date: sessionDate,
+    session_index: Number(session_index) || 1,
+    status: status || "present",
+    hours_attended: Number(hours_attended) || 2.0,
+    remarks: `Biometric Hardware Ingestion via ${device_id || "terminal-01"} at ${now.toISOString()}`,
+    marked_by: `HARDWARE_${device_id || "IOT_TERMINAL"}`,
+    created_at: now.toISOString(),
+    updated_at: now.toISOString(),
+  };
+
+  try {
+    const persistent = loadPersistentAttendance();
+    persistent.push(newRecord);
+    savePersistentAttendance(persistent);
+
+    if (pool) {
+      await query(
+        `INSERT INTO attendance_register (id, unit_offering_id, trainee_id, week_number, session_date, session_index, status, hours_attended, remarks, marked_by, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status, updated_at = EXCLUDED.updated_at;`,
+        [
+          newRecord.id,
+          newRecord.unit_offering_id,
+          newRecord.trainee_id,
+          newRecord.week_number,
+          newRecord.session_date,
+          newRecord.session_index,
+          newRecord.status,
+          newRecord.hours_attended,
+          newRecord.remarks,
+          newRecord.marked_by,
+          newRecord.created_at,
+          newRecord.updated_at,
+        ]
+      ).catch(() => {});
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Biometric hardware check-in registered successfully.",
+      trainee: {
+        id: traineeId,
+        name: traineeName,
+        admission_number: cleanAdm,
+      },
+      record: newRecord,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to persist hardware check-in record." });
+  }
 });
 
 // ─── UNIFIED USER AUTHENTICATION & MANAGEMENT ENDPOINTS (Public) ─────────────
@@ -3964,6 +4057,31 @@ apiRouter.post("/documents/session-plans/batch", requireRoles("trainer", "hod", 
   res.json({ success: true, message: `Successfully synchronized ${session_plans.length} session plans to central database`, total: DB.session_plans.length });
 });
 
+apiRouter.delete("/documents/session-plans/:id", requireRoles("trainer", "hod", "admin"), async (req: AuthenticatedRequest, res: Response) => {
+  const planId = req.params.id;
+  const idx = DB.session_plans.findIndex((p: any) => p.id === planId);
+  if (idx >= 0) {
+    if (DB.session_plans[idx].approval_status === "approved" && req.user?.role !== "admin") {
+      res.status(403).json({ error: "Cannot delete an approved Session Plan." });
+      return;
+    }
+    DB.session_plans.splice(idx, 1);
+    savePersistentSessionPlans(DB.session_plans);
+  }
+
+  if (pool) {
+    try {
+      await query(`DELETE FROM session_plans WHERE id = $1;`, [planId]);
+    } catch (err: any) {
+      logger.error("Failed to delete session plan in DB", { id: planId, error: err.message });
+      res.status(500).json({ error: "Failed to delete session plan from database." });
+      return;
+    }
+  }
+
+  res.json({ success: true, message: "Session plan deleted successfully." });
+});
+
 // 2. Learning Plans (MTTI/F/CUR/02)
 apiRouter.get("/documents/learning-plans", requireRoles("trainer", "hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
   const { class_code, unit_code } = req.query as Record<string, string>;
@@ -5051,4 +5169,75 @@ apiRouter.post("/export-exam-results-pdf", requireRoles("trainer", "hod", "admin
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", 'attachment; filename="MTTI_Exam_Results.pdf"');
   res.send(Buffer.from("%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\nxref\n0 3\n0000000000 65535 f \n0000000010 00000 n \n0000000053 00000 n \ntrailer<</Size 3/Root 1 0 R>>\nstartxref\n102\n%%EOF"));
+});
+
+// ─── ENDPOINT: GET /api/governance/alerts (Proactive Decision Support) ───────
+apiRouter.get("/governance/alerts", requireRoles("hod", "admin"), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userRole = req.user?.role?.toLowerCase();
+    const departmentId = userRole === "admin" ? undefined : req.user?.department_id;
+    const status = typeof req.query.status === "string" ? req.query.status : undefined;
+
+    const alerts = getGovernanceAlerts(departmentId, status);
+    res.json({
+      success: true,
+      department_id: departmentId || "ALL_INSTITUTIONAL",
+      count: alerts.length,
+      alerts,
+    });
+  } catch (err: any) {
+    logger.error("Failed to retrieve governance alerts", { error: err?.message });
+    captureServerException(err, { event: "governance_alerts_error" });
+    res.status(500).json({ error: "Failed to retrieve governance alerts." });
+  }
+});
+
+// ─── ENDPOINT: POST /api/governance/alerts/run-audit (On-Demand Evaluation) ───
+apiRouter.post("/governance/alerts/run-audit", requireRoles("hod", "admin"), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userRole = req.user?.role?.toLowerCase();
+    const departmentId = userRole === "admin" ? undefined : req.user?.department_id;
+
+    const allAlerts = runGovernanceAudit();
+    const filtered = departmentId
+      ? allAlerts.filter((a) => a.department_id === departmentId)
+      : allAlerts;
+
+    res.json({
+      success: true,
+      message: "Governance compliance audit executed successfully.",
+      audited_at: new Date().toISOString(),
+      department_id: departmentId || "ALL_INSTITUTIONAL",
+      total_alerts: filtered.length,
+      alerts: filtered,
+    });
+  } catch (err: any) {
+    logger.error("Failed to run governance audit", { error: err?.message });
+    captureServerException(err, { event: "governance_audit_error" });
+    res.status(500).json({ error: "Failed to execute governance compliance audit." });
+  }
+});
+
+// ─── ENDPOINT: POST /api/governance/alerts/:id/resolve ───────────────────────
+apiRouter.post("/governance/alerts/:id/resolve", requireRoles("hod", "admin"), (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const alertId = req.params.id;
+    const resolvedBy = req.user?.id || req.user?.email || "GOVERNANCE_ACTOR";
+
+    const updated = resolveGovernanceAlert(alertId, resolvedBy);
+    if (!updated) {
+      res.status(404).json({ error: `Governance alert '${alertId}' not found.` });
+      return;
+    }
+
+    res.json({
+      success: true,
+      message: "Alert marked as resolved.",
+      alert: updated,
+    });
+  } catch (err: any) {
+    logger.error("Failed to resolve governance alert", { error: err?.message });
+    captureServerException(err, { event: "resolve_alert_error" });
+    res.status(500).json({ error: "Failed to resolve governance alert." });
+  }
 });

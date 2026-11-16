@@ -29,7 +29,6 @@ import { useExam } from "@/contexts/ExamContext";
 import { getStoredRecordsOfWork, saveStoredRecordsOfWork } from "@/lib/mockSessionPlans";
 import WorkshopDoorQRModal from "@/components/WorkshopDoorQRModal";
 import AttendanceQuickMarkModal from "@/components/AttendanceQuickMarkModal";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { getAttendanceScansFromOffline, enqueueSyncItem } from "@/lib/offlineStore";
 import { syncEngine } from "@/lib/syncEngine";
 import { getAcademicContext, getActiveTeachingWeek } from "@/lib/academicCalendar";

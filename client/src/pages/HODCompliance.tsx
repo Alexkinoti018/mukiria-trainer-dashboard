@@ -25,6 +25,8 @@ import {
   UserCheck,
   Plus,
   X,
+  RefreshCw,
+  Bell,
 } from "lucide-react";
 import HODLayout from "@/components/HODLayout";
 import { toast } from "sonner";
@@ -98,6 +100,91 @@ export default function HODCompliance() {
   const [searchQuery, setSearchQuery] = useState("");
   const [deptFilter, setDeptFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  // Proactive Decision Support Alerts State
+  interface GovernanceAlertItem {
+    id: string;
+    alert_type: string;
+    severity: "critical" | "warning" | "info";
+    title: string;
+    message: string;
+    action_url: string;
+    created_at: string;
+    status: "active" | "resolved";
+  }
+
+  const [alerts, setAlerts] = useState<GovernanceAlertItem[]>([]);
+  const [loadingAlerts, setLoadingAlerts] = useState(false);
+  const [runningAudit, setRunningAudit] = useState(false);
+
+  const fetchAlerts = async () => {
+    setLoadingAlerts(true);
+    try {
+      const token = localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "token-hod";
+      const res = await fetch("/api/governance/alerts?status=active", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-user-role": "hod",
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAlerts(data.alerts || []);
+      }
+    } catch (e) {
+      // Non-blocking
+    } finally {
+      setLoadingAlerts(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAlerts();
+  }, []);
+
+  const handleRunAudit = async () => {
+    setRunningAudit(true);
+    try {
+      const token = localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "token-hod";
+      const res = await fetch("/api/governance/alerts/run-audit", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-user-role": "hod",
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        toast.success(`Governance Audit Completed: ${data.total_alerts || 0} active alert(s) evaluated.`);
+        fetchAlerts();
+      } else {
+        toast.error("Failed to execute on-demand audit.");
+      }
+    } catch (e) {
+      toast.error("Error executing governance audit.");
+    } finally {
+      setRunningAudit(false);
+    }
+  };
+
+  const handleResolveAlert = async (id: string) => {
+    try {
+      const token = localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "token-hod";
+      const res = await fetch(`/api/governance/alerts/${encodeURIComponent(id)}/resolve`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-user-role": "hod",
+        },
+      });
+      if (res.ok) {
+        toast.success("Alert marked as resolved.");
+        setAlerts((prev) => prev.filter((a) => a.id !== id));
+      }
+    } catch (e) {
+      toast.error("Failed to resolve alert.");
+    }
+  };
 
   const availableDepartments = useMemo(() => {
     const depts = new Set<string>();
@@ -214,6 +301,94 @@ export default function HODCompliance() {
       subtitle="Faculty pedagogical records, daily session plans, and Record of Work (RoW) verification"
     >
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
+        {/* Proactive Decision Support Alerts Banner */}
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+                <Bell className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground flex items-center gap-2">
+                  Proactive Governance & Decision Support
+                  {alerts.length > 0 && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-700">
+                      {alerts.length} Active
+                    </span>
+                  )}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Automated background evaluations enforcing KNQF 75% attendance, pedagogical delivery, and score hurdles
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleRunAudit}
+              disabled={runningAudit}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#000953] text-white hover:bg-[#000953]/90 transition disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${runningAudit ? "animate-spin" : ""}`} />
+              {runningAudit ? "Running Audit..." : "Run Governance Audit"}
+            </button>
+          </div>
+
+          {alerts.length === 0 ? (
+            <div className="flex items-center justify-between py-2 px-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-emerald-700 text-xs font-medium">
+              <span className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                All CDACC compliance indicators, faculty registers, and double-hurdle criteria are within normal thresholds.
+              </span>
+              <span className="text-[11px] text-muted-foreground">Zero active alerts</span>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {alerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={`p-4 rounded-xl border text-xs flex flex-col justify-between ${
+                    alert.severity === "critical"
+                      ? "border-red-500/30 bg-red-500/5 text-red-900"
+                      : "border-amber-500/30 bg-amber-500/5 text-amber-900"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          alert.severity === "critical"
+                            ? "bg-red-500 text-white"
+                            : "bg-amber-500 text-white"
+                        }`}
+                      >
+                        {alert.severity}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {new Date(alert.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                    <h4 className="font-semibold text-foreground mb-1">{alert.title}</h4>
+                    <p className="text-muted-foreground text-[11px] leading-relaxed mb-3">{alert.message}</p>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                    <button
+                      onClick={() => navigate(alert.action_url)}
+                      className="text-[#000953] font-semibold hover:underline flex items-center gap-1 text-[11px]"
+                    >
+                      Resolve Issue <ArrowRight className="h-3 w-3" />
+                    </button>
+                    <button
+                      onClick={() => handleResolveAlert(alert.id)}
+                      className="text-muted-foreground hover:text-foreground text-[11px]"
+                    >
+                      Acknowledge
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Compliance Header Banner */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="p-5 rounded-2xl bg-card border border-border shadow-sm">

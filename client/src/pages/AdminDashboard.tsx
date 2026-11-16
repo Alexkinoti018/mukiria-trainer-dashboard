@@ -626,42 +626,7 @@ export default function AdminDashboard() {
     try {
       const cohortCode = defaultCohort;
 
-      // 1. Direct Supabase Cloud Database Batch Upsert (Supabase-First Architecture)
-      let supabaseSuccessCount = 0;
-      if (isSupabaseConfigured()) {
-        try {
-          const supabaseRows = validRows.map((r) => {
-            const cleanAdm = r.admNo.trim();
-            const id = `tr_${cleanAdm.replace(/[^a-zA-Z0-9]/g, "_")}`;
-            return {
-              id,
-              name: r.name.trim(),
-              adm_no: cleanAdm,
-              reg_number: cleanAdm,
-              reg_code: cleanAdm,
-              class_code: r.cohortCode || cohortCode,
-              department: "Computing & Informatics",
-              gender: "M",
-              phone: r.phone || "",
-              remarks: "CSV Batch Ingested",
-            };
-          });
-
-          const { error: sbError } = await (supabase as any)
-            .from("trainees")
-            .upsert(supabaseRows, { onConflict: "id" });
-
-          if (sbError) {
-            console.warn("Supabase batch upsert warning:", sbError.message);
-          } else {
-            supabaseSuccessCount = supabaseRows.length;
-          }
-        } catch (sbErr: any) {
-          console.warn("Supabase batch upsert exception:", sbErr);
-        }
-      }
-
-      // 2. Register into frontend TraineeContext (Local State + Cloud Sync)
+      // 1. Register into frontend TraineeContext (Local State)
       validRows.forEach((r) => {
         addTrainee({
           admNo: r.admNo,
@@ -676,9 +641,12 @@ export default function AdminDashboard() {
         });
       });
 
-      // 3. Backend API sync (PostgreSQL transaction + Persistent storage)
+      // 2. Authoritative Backend API sync (PostgreSQL transaction + Persistent storage)
       let serverSucceeded = false;
       try {
+        const token = typeof localStorage !== "undefined"
+          ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+          : "";
         const payload = {
           cohortCode,
           trainees: validRows.map((r) => ({
@@ -695,7 +663,10 @@ export default function AdminDashboard() {
 
         const res = await fetch("/api/trainees/batch", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: JSON.stringify(payload),
         });
 
@@ -710,7 +681,7 @@ export default function AdminDashboard() {
       }
 
       toast.success("Roster Batch Ingestion Complete", {
-        description: `Persisted ${validRows.length} trainees into database and active registry${serverSucceeded ? " (Cloud & Server synced)" : " (Locally cached & Cloud synced)"}.`,
+        description: `Persisted ${validRows.length} trainees into database and active registry${serverSucceeded ? " (Server synced)" : " (Locally cached)"}.`,
       });
 
       setIsRosterModalOpen(false);

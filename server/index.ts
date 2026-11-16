@@ -13,6 +13,7 @@ import {
 import { initServerSentry, sentryContextMiddleware, captureServerException } from "./sentry.ts";
 import { logger } from "./logger.ts";
 import { ensureSchemaInitialized } from "./db.ts";
+import { startProactiveCronWorker } from "./workers/proactiveAnalyticsWorker.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +26,9 @@ async function startServer() {
 
   // Ensure database schema and seed accounts exist
   ensureSchemaInitialized().catch(() => {});
+
+  // Start background proactive governance & analytics worker
+  startProactiveCronWorker();
 
   const app = express();
   app.set("trust proxy", 1);

@@ -8,11 +8,17 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@font-face {
+  font-family: "Maiandra GD";
+  src: local("Maiandra GD"), local("MaiandraGD-Regular");
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Inter", "Outfit", system-ui, sans-serif;
-  --font-display: "Outfit", "Inter", system-ui, sans-serif;
+  --font-sans: "Maiandra GD", "Inter", "Outfit", system-ui, sans-serif;
+  --font-display: "Maiandra GD", "Outfit", "Inter", system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

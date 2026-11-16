@@ -13,10 +13,10 @@ import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { CheckCircle2, User, Check, X, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 import { OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
 import { applyRollCallToRegister } from "@/lib/attendanceStorage";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 interface Trainee {
   id: string;
@@ -105,23 +105,17 @@ export default function AttendanceQuickMarkModal({
         }
       } catch (e) {}
 
-      if (isSupabaseConfigured()) {
-        // First find the class ID
-        const { data: classData } = await (supabase as any)
-          .from("classes")
-          .select("id")
-          .eq("class_code", classCode)
-          .single();
-
-        if (classData) {
-          const { data: traineesData, error } = await (supabase as any)
-            .from("trainees")
-            .select("*")
-            .eq("class_id", classData.id);
-
-          if (error) throw error;
-          
-          if (traineesData && traineesData.length > 0) {
+      const token = typeof localStorage !== "undefined"
+        ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+        : "";
+      try {
+        const res = await fetch(`/api/trainees?class_code=${encodeURIComponent(classCode)}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (res.ok) {
+          const json = await res.json().catch(() => ({}));
+          const traineesData = json.data || json.trainees || [];
+          if (Array.isArray(traineesData) && traineesData.length > 0) {
             setTrainees(traineesData);
             const initialAttendance: Record<string, "X" | "0"> = existingAttendance || {};
             if (!existingAttendance) {
@@ -134,6 +128,8 @@ export default function AttendanceQuickMarkModal({
             return;
           }
         }
+      } catch (apiErr) {
+        console.warn("Backend API trainee lookup notice:", apiErr);
       }
       
       // Official roster fallback matching requested class
@@ -201,33 +197,20 @@ export default function AttendanceQuickMarkModal({
         hours_attended: 2.0,
       }));
 
-      fetch("/api/attendance/bulk", {
+      const token = localStorage.getItem("mtti_auth_token") || localStorage.getItem("mtti_token") || localStorage.getItem("token") || "";
+      await fetch("/api/attendance/bulk", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           unit_offering_id: "uo-1",
           class_code: classCode,
           session_plan_id: sessionPlanId,
           records: recordsToPersist,
         }),
-      }).catch(err => console.warn("Background bulk attendance save notice:", err));
-
-      // 4. Supabase upsert if configured
-      if (isSupabaseConfigured() && sessionPlanId) {
-        try {
-          const payload = trainees.map((t) => ({
-            session_plan_id: sessionPlanId,
-            trainee_id: t.id,
-            status: attendance[t.id] || "X"
-          }));
-
-          await (supabase as any)
-            .from("attendance_register")
-            .upsert(payload, { onConflict: "session_plan_id,trainee_id" });
-        } catch (supabaseErr: any) {
-          console.warn("Supabase save warning:", supabaseErr);
-        }
-      }
+      }).catch(err => console.warn("Authoritative bulk attendance save notice:", err));
 
       toast.success(`Register saved successfully! ${presentCount}/${trainees.length} Trainees Present in Week ${targetWeek}, Session ${targetSession}.`);
       onSaveComplete(trainees.length, presentCount);

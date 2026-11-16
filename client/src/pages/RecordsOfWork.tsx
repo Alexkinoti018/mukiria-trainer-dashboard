@@ -342,14 +342,14 @@ export default function RecordsOfWork() {
   // Filtered records
   const filteredRecords = records.filter(r => {
     const matchesUnit = selectedUnit === "all" || r.unit_code === selectedUnit;
-    const unitName = getUnitNameByCode(r.unit_code).toLowerCase();
-    const query = searchTerm.toLowerCase();
-    const matchesSearch = !searchTerm || 
+    const unitName = String(getUnitNameByCode(r.unit_code) || "").toLowerCase();
+    const query = String(searchTerm || "").toLowerCase().trim();
+    const matchesSearch = !query || 
       unitName.includes(query) ||
-      r.unit_code.toLowerCase().includes(query) ||
-      r.work_actually_covered.toLowerCase().includes(query) ||
-      r.reflection.toLowerCase().includes(query) ||
-      `week ${r.week_number}`.includes(query);
+      String(r.unit_code || "").toLowerCase().includes(query) ||
+      String(r.work_actually_covered || "").toLowerCase().includes(query) ||
+      String(r.reflection || "").toLowerCase().includes(query) ||
+      `week ${r.week_number || ""}`.toLowerCase().includes(query);
     return matchesUnit && matchesSearch;
   });
 

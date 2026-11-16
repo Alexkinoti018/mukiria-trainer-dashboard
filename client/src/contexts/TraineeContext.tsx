@@ -5,7 +5,6 @@ import {
   calculateAverages, 
   calculateWeightedMark 
 } from "@/lib/evidenceStorage";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
 
 export interface Trainee {
@@ -866,34 +865,24 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("mtti_trainees", JSON.stringify(trainees));
   }, [trainees]);
 
-  // Synchronize with live Supabase cloud database & API
+  // Authoritative roster synchronization via backend API (Decoupled from direct Supabase table access)
   const refreshRoster = async () => {
     try {
       let remoteTrainees: any[] = [];
+      const token = typeof localStorage !== "undefined"
+        ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+        : "";
 
-      // 1. Direct Supabase Cloud Database Query
-      if (isSupabaseConfigured()) {
-        try {
-          const { data, error } = await (supabase as any).from("trainees").select("*");
-          if (!error && Array.isArray(data) && data.length > 0) {
-            remoteTrainees = data;
-          }
-        } catch (e) {
-          console.warn("Supabase direct query notice:", e);
+      try {
+        const res = await fetch("/api/trainees", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          remoteTrainees = json.data;
         }
-      }
-
-      // 2. Centralized REST Fallback
-      if (remoteTrainees.length === 0) {
-        try {
-          const res = await fetch("/api/trainees");
-          const json = await res.json();
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            remoteTrainees = json.data;
-          }
-        } catch (e) {
-          console.warn("API trainees query notice:", e);
-        }
+      } catch (e) {
+        console.warn("API trainees query notice:", e);
       }
 
       if (remoteTrainees.length > 0) {
@@ -972,32 +961,16 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
     };
     setTrainees(prev => [trainee, ...prev]);
 
-    // 1. Direct Supabase Cloud Database Upsert
-    if (isSupabaseConfigured()) {
-      Promise.resolve(
-        (supabase as any).from("trainees").upsert({
-          id: trainee.id,
-          name: trainee.name,
-          adm_no: trainee.admNo,
-          reg_number: trainee.admNo,
-          reg_code: trainee.regCode,
-          class_code: trainee.classCode,
-          department: trainee.department,
-          gender: trainee.gender,
-          phone: trainee.phone,
-          remarks: trainee.remarks,
-        })
-      )
-        .then(({ error }: any) => {
-          if (error) console.warn("Supabase trainee upsert notice:", error.message);
-        })
-        .catch((err: any) => console.warn("Supabase trainee upsert exception:", err));
-    }
-
-    // 2. Persist to backend API & PostgreSQL
+    // Persist to backend API & PostgreSQL (Decoupled from direct Supabase table access)
+    const token = typeof localStorage !== "undefined"
+      ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+      : "";
     fetch("/api/trainees", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify(trainee),
     }).catch(err => console.warn("Backend trainee persist warning:", err));
 
@@ -1009,34 +982,16 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
       prev.map(t => (t.id === id ? { ...t, ...updates } : t))
     );
 
-    // 1. Direct Supabase Cloud Database Update
-    if (isSupabaseConfigured()) {
-      Promise.resolve(
-        (supabase as any)
-          .from("trainees")
-          .update({
-            name: updates.name,
-            adm_no: updates.admNo,
-            reg_number: updates.admNo,
-            reg_code: updates.regCode,
-            class_code: updates.classCode,
-            department: updates.department,
-            gender: updates.gender,
-            phone: updates.phone,
-            remarks: updates.remarks,
-          })
-          .eq("id", id)
-      )
-        .then(({ error }: any) => {
-          if (error) console.warn("Supabase trainee update notice:", error.message);
-        })
-        .catch((err: any) => console.warn("Supabase trainee update exception:", err));
-    }
-
-    // 2. Backend API / PostgreSQL Update
+    // Backend API / PostgreSQL Update
+    const token = typeof localStorage !== "undefined"
+      ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+      : "";
     fetch(`/api/trainees/${encodeURIComponent(id)}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify(updates),
     }).catch(err => console.warn("Backend trainee update notice:", err));
   };
@@ -1044,18 +999,13 @@ export function TraineeProvider({ children }: { children: ReactNode }) {
   const deleteTrainee = (id: string) => {
     setTrainees(prev => prev.filter(t => t.id !== id));
 
-    // 1. Direct Supabase Cloud Database Delete
-    if (isSupabaseConfigured()) {
-      Promise.resolve((supabase as any).from("trainees").delete().eq("id", id))
-        .then(({ error }: any) => {
-          if (error) console.warn("Supabase trainee delete notice:", error.message);
-        })
-        .catch((err: any) => console.warn("Supabase trainee delete exception:", err));
-    }
-
-    // 2. Backend API / PostgreSQL Delete
+    // Backend API / PostgreSQL Delete
+    const token = typeof localStorage !== "undefined"
+      ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+      : "";
     fetch(`/api/trainees/${encodeURIComponent(id)}`, {
       method: "DELETE",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     }).catch(err => console.warn("Backend trainee delete notice:", err));
   };
 
