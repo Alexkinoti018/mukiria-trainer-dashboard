@@ -325,20 +325,20 @@ export default function LearningPlan() {
 
     let displayPlans = allPlans;
     if (!isPrivileged) {
-      const trainerClasses = new Set((profile.classes || []).map((c: string) => c.toUpperCase().trim()));
-      const trainerUnits = (profile.units || []).map((u: string) => u.toUpperCase().trim());
-      const trainerNameClean = profile.name.toLowerCase().trim();
+      const trainerClasses = new Set((profile?.classes || []).map((c: string) => String(c || "").toUpperCase().trim()));
+      const trainerUnits = (profile?.units || []).map((u: string) => String(u || "").toUpperCase().trim());
+      const trainerNameClean = String(profile?.name || "").toLowerCase().trim();
 
       displayPlans = allPlans
         .filter((p) => {
           // Matches by trainer name
-          if (p.trainerName && p.trainerName.toLowerCase().includes(trainerNameClean)) return true;
+          if (p.trainerName && String(p.trainerName).toLowerCase().includes(trainerNameClean)) return true;
           // Matches by assigned class
-          if (p.classCode && trainerClasses.has(p.classCode.toUpperCase().trim())) return true;
+          if (p.classCode && trainerClasses.has(String(p.classCode).toUpperCase().trim())) return true;
           // Matches by assigned unit
           if (
             trainerUnits.some(
-              (u: string) => p.unitTitle.toUpperCase().includes(u) || p.unitCode.toUpperCase().includes(u)
+              (u: string) => String(p.unitTitle || "").toUpperCase().includes(u) || String(p.unitCode || "").toUpperCase().includes(u)
             )
           ) {
             return true;
@@ -347,8 +347,8 @@ export default function LearningPlan() {
         })
         .map((p) => ({
           ...p,
-          trainerName: profile.name,
-          department: profile.department || p.department,
+          trainerName: profile?.name || p.trainerName,
+          department: profile?.department || p.department,
         }));
 
       // If no pre-existing plans matched, auto-synthesize official plans for this trainer's assigned classes
@@ -460,6 +460,27 @@ export default function LearningPlan() {
     if (allPlans.length > 0) {
       setActivePlanId(allPlans[0].id);
     }
+
+    // Hydrate persisted learning plans from central server
+    try {
+      fetch("/api/documents/learning-plans")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && Array.isArray(data.learning_plans) && data.learning_plans.length > 0) {
+            setPlans((prev) => {
+              const existingIds = new Set(prev.map((p) => p.id));
+              const merged = [...prev];
+              for (const sp of data.learning_plans) {
+                if (!existingIds.has(sp.id)) {
+                  merged.push(sp);
+                }
+              }
+              return merged;
+            });
+          }
+        })
+        .catch(() => {});
+    } catch {}
   }, []);
 
   // React to URL query parameters when location changes
@@ -508,6 +529,13 @@ export default function LearningPlan() {
   const savePlansToStorage = (updatedPlans: LearningPlanDocument[]) => {
     setPlans(updatedPlans);
     localStorage.setItem("mtti_custom_learning_plans", JSON.stringify(updatedPlans));
+    try {
+      fetch("/api/documents/learning-plans/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ learning_plans: updatedPlans }),
+      }).catch(() => {});
+    } catch {}
   };
 
   // Currently active Learning Plan
@@ -517,12 +545,13 @@ export default function LearningPlan() {
 
   // Filtered available plans for selector/tabs
   const filteredPlans = useMemo(() => {
+    const searchClean = String(searchTerm || "").toLowerCase().trim();
     return plans.filter(p => {
-      const matchSearch = 
-        p.unitCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.unitTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.classCode.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchLevel = selectedLevel === "all" || p.level.toString() === selectedLevel;
+      const matchSearch = !searchClean ||
+        String(p.unitCode || "").toLowerCase().includes(searchClean) ||
+        String(p.unitTitle || "").toLowerCase().includes(searchClean) ||
+        String(p.classCode || "").toLowerCase().includes(searchClean);
+      const matchLevel = selectedLevel === "all" || String(p.level || "") === selectedLevel;
       return matchSearch && matchLevel;
     });
   }, [plans, searchTerm, selectedLevel]);
@@ -530,14 +559,15 @@ export default function LearningPlan() {
   // Filtered weeks within current active plan (for live schedule search)
   const filteredWeeks = useMemo(() => {
     if (!activePlan) return [];
-    if (!searchTerm.trim()) return activePlan.weeks;
+    const searchClean = String(searchTerm || "").toLowerCase().trim();
+    if (!searchClean) return activePlan.weeks || [];
     
-    return activePlan.weeks.filter(w => 
-      w.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      w.outcome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      w.resources.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      w.assessments.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `week ${w.week}`.includes(searchTerm.toLowerCase())
+    return (activePlan.weeks || []).filter(w => 
+      String(w.title || "").toLowerCase().includes(searchClean) ||
+      String(w.outcome || "").toLowerCase().includes(searchClean) ||
+      String(w.resources || "").toLowerCase().includes(searchClean) ||
+      String(w.assessments || "").toLowerCase().includes(searchClean) ||
+      `week ${w.week || ""}`.toLowerCase().includes(searchClean)
     );
   }, [activePlan, searchTerm]);
 

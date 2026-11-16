@@ -32,7 +32,6 @@ import { AcademicGovernanceManager } from "@/components/AcademicGovernanceManage
 import { useExam } from "@/contexts/ExamContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 export interface DepartmentRecord {
   name: string;
@@ -172,29 +171,17 @@ export default function HODDashboard() {
     status: "Compliant" as "Exemplary" | "Compliant" | "Review Due",
   });
 
-  // Dynamic live Supabase/REST synchronization
+  // Authoritative live API synchronization (decoupled from direct Supabase table access)
   useEffect(() => {
     const fetchLiveDepts = async () => {
       try {
-        if (isSupabaseConfigured()) {
-          const { data, error } = await (supabase as any).from("departments").select("*");
-          if (!error && Array.isArray(data) && data.length > 0) {
-            const mapped: DepartmentRecord[] = data.map((d: any) => ({
-              name: d.name,
-              code: d.code,
-              hod: d.hod || d.hod_name || "Head of Department",
-              trainers: d.trainers || 6,
-              activeUnits: d.active_units || 10,
-              complianceRate: d.compliance_rate || 92,
-              passRate: d.pass_rate || 80,
-              status: (d.status as any) || "Compliant",
-            }));
-            setDepartments(mapped);
-            localStorage.setItem("mtti_departments", JSON.stringify(mapped));
-            return;
-          }
-        }
-        const res = await fetch("/api/departments").catch(() => null);
+        const token = typeof localStorage !== "undefined"
+          ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+          : "";
+        const res = await fetch("/api/departments", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }).catch(() => null);
+
         if (res && res.ok) {
           const live = await res.json();
           if (Array.isArray(live) && live.length > 0) {
@@ -301,26 +288,16 @@ export default function HODDashboard() {
     setDepartments(updated);
     localStorage.setItem("mtti_departments", JSON.stringify(updated));
 
-    // Dynamic database persistence
-    if (isSupabaseConfigured()) {
-      Promise.resolve(
-        (supabase as any).from("departments").upsert({
-          name: newRecord.name,
-          code: newRecord.code,
-          hod_name: newRecord.hod,
-          trainers: newRecord.trainers,
-          active_units: newRecord.activeUnits,
-          compliance_rate: newRecord.complianceRate,
-          status: newRecord.status,
-        })
-      ).catch((err: any) => {
-        console.warn("Notice: Supabase department upsert error:", err);
-      });
-    }
-
+    // Authoritative API persistence (Decoupled from direct Supabase table access)
+    const token = typeof localStorage !== "undefined"
+      ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+      : "";
     fetch("/api/departments", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify(newRecord),
     }).catch(() => {});
 
@@ -709,7 +686,7 @@ export default function HODDashboard() {
               {[
                 { title: "Standard Written Assessments (CT1-3)", status: "Active & Ingested", icon: CheckCircle2, ok: true },
                 { title: "Formative Practical Rubrics (Section B)", status: "40 Marks Configured", icon: CheckCircle2, ok: true },
-                { title: "Auto-Grader Deterministic & NLP Engine", status: "Active on Port 8000", icon: CheckCircle2, ok: true },
+                { title: "Auto-Grader Deterministic & NLP Engine", status: "Native TypeScript Engine Active", icon: CheckCircle2, ok: true },
                 { title: "Departmental Records of Work (RoW)", status: "Ready for HOD Stamp", icon: CheckCircle2, ok: true },
                 { title: "Workshop QR Code Access Posters", status: "Enabled on Session Plans", icon: CheckCircle2, ok: true },
                 { title: "Internal Verification (IV) Sampling", status: "Sampling Scheduled", icon: Clock, ok: false },

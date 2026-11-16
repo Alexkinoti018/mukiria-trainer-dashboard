@@ -9,7 +9,6 @@
  * - Authentic binary file downloads with exact file metadata
  */
 
-import { supabase, isSupabaseConfigured } from "./supabase";
 import jsPDF from "jspdf";
 
 export interface EvidenceFilePayload {
@@ -119,41 +118,47 @@ export async function uploadEvidenceFile(
   fileSize: number;
 }> {
   const mimeType = file.type || getMimeType(file.name);
-  const traineeFolder = options?.traineeId || "candidate";
   const safeFilename = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const storagePath = `${traineeFolder}/${Date.now()}_${safeFilename}`;
+  const { base64, dataUrl } = await fileToBase64(file);
 
-  if (isSupabaseConfigured()) {
-    try {
-      const { data, error } = await supabase.storage
-        .from("assessment-evidence")
-        .upload(storagePath, file, {
-          cacheControl: "3600",
-          upsert: true,
-          contentType: mimeType,
-        });
+  // Authoritative upload via backend API (Decoupled from direct Supabase storage)
+  try {
+    const token = localStorage.getItem("mtti_token") || localStorage.getItem("token") || "";
+    if (token) {
+      const res = await fetch("/api/evidence", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          filename: safeFilename,
+          file_data: base64,
+          mime_type: mimeType,
+          file_size: file.size,
+          unit_offering_id: options?.unitOfferingId || "uo-1",
+          task_code: options?.taskCode || "CP1",
+          trainee_id: options?.traineeId,
+        }),
+      });
 
-      if (!error && data) {
-        const { data: publicData } = supabase.storage
-          .from("assessment-evidence")
-          .getPublicUrl(storagePath);
-
-        const { base64 } = await fileToBase64(file);
+      if (res.ok) {
+        const json = await res.json();
+        const evidence = json.evidence || json.data || {};
         return {
-          fileUrl: publicData.publicUrl,
+          fileUrl: evidence.file_url || `/api/evidence/${evidence.id}/file`,
           fileData: base64,
           filename: file.name,
           mimeType,
           fileSize: file.size,
         };
       }
-    } catch (err) {
-      console.warn("Supabase bucket upload error, falling back to local Base64:", err);
     }
+  } catch (err) {
+    console.warn("Backend evidence API upload notice, falling back to local Base64:", err);
   }
 
-  // Fallback: Read file to Base64
-  const { base64, dataUrl } = await fileToBase64(file);
+  // Fallback: Return Base64 Data URL for offline preview
   return {
     fileUrl: dataUrl,
     fileData: base64,

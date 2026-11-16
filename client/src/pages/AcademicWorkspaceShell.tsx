@@ -14,7 +14,6 @@ import React, { useState, useEffect } from "react";
 import TrainerLayout from "@/components/TrainerLayout";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { getStoredSessionPlans, saveStoredSessionPlans, getStoredLearningPlans, getStoredRecordsOfWork, saveStoredRecordsOfWork, SessionDeliveryStep, SessionPlan } from "@/lib/mockSessionPlans";
 import { getCurriculumUnits, getUnitDetails, CurriculumUnit, resolveProgramUnitProfile, canonicalizeCohortCode } from "@/lib/curriculumDatabase";
 import { Plus, Trash2, Save, Printer, Sparkles, BookOpen, Clock, FileText, CheckCircle, UploadCloud, Edit3, ArrowRight, Check, ChevronDown, ChevronUp, GripVertical, QrCode } from "lucide-react";
@@ -223,17 +222,8 @@ export default function AcademicWorkspaceShell() {
         setActiveUnit(formattedDbUnits[0].unit_code);
       }
 
-      if (isSupabaseConfigured()) {
-        const { data: termsData } = await (supabase as any).from("terms").select("*");
-        const { data: classesData } = await (supabase as any).from("classes").select("*");
-        const { data: unitsData } = await (supabase as any).from("units_of_competence").select("*");
-        
-        if (termsData && termsData.length > 0) setTerms(termsData);
-        if (classesData && classesData.length > 0) setClasses(classesData);
-        if (unitsData && unitsData.length > 0) {
-          setUnits(unitsData);
-          if (!savedUnitStr) setActiveUnit(unitsData[0].unit_code);
-        }
+      if (!savedUnitStr && formattedDbUnits.length > 0) {
+        setActiveUnit(formattedDbUnits[0].unit_code);
       }
     } catch (err) {
       console.error(err);
@@ -381,18 +371,25 @@ export default function AcademicWorkspaceShell() {
         }
       }
 
-      if (isSupabaseConfigured()) {
-        const { data: lpData } = await (supabase as any)
-          .from("learning_plans")
-          .select("*, learning_outcomes(*)")
-          .eq("unit_code", activeUnit)
-          .eq("week_number", activeWeek)
-          .single();
-
-        if (lpData) {
-          setActiveLearningPlan(lpData);
-          setAvailableOutcomes(lpData.learning_outcomes.map((o: any) => o.description));
+      try {
+        const token = typeof localStorage !== "undefined"
+          ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+          : "";
+        const res = await fetch(`/api/documents/learning-plans?unit_code=${encodeURIComponent(activeUnit)}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (res.ok) {
+          const json = await res.json().catch(() => ({}));
+          const list = json.learning_plans || [];
+          const matched = list.find((lp: any) => Number(lp.week_number) === Number(activeWeek));
+          if (matched) {
+            setActiveLearningPlan(matched);
+            const outcomes = Array.isArray(matched.learning_outcomes) ? matched.learning_outcomes : [];
+            setAvailableOutcomes(outcomes.map((o: any) => (typeof o === "string" ? o : o.description || o.title || "")));
+          }
         }
+      } catch (apiErr) {
+        console.warn("Backend API learning plan context lookup notice:", apiErr);
       }
     } catch (err) {
       console.error(err);

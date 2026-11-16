@@ -201,15 +201,45 @@ describe("Phase 1 Acceptance Suite: Cryptographic Auth Core, ID Mapping & RBAC",
       }
     });
 
-    it("should throw immediately upon importing api/index.ts without valid JWT_SECRET", async () => {
+    it("should throw immediately upon importing apiHandler in production without JWT_SECRET", async () => {
       const origEnv = { ...process.env };
       try {
+        vi.resetModules();
+        process.env.NODE_ENV = "production";
         delete process.env.JWT_SECRET;
-        expect(() => {
-          validateEnvironmentInvariants();
-        }).toThrow(/JWT_SECRET must be configured/i);
+        delete process.env.ALLOW_DEMO_AUTH;
+        await expect(import("../server/apiHandler")).rejects.toThrow(/JWT_SECRET must be configured/i);
       } finally {
         process.env = origEnv;
+        vi.resetModules();
+      }
+    });
+
+    it("should throw immediately upon importing apiHandler in production with ALLOW_DEMO_AUTH", async () => {
+      const origEnv = { ...process.env };
+      try {
+        vi.resetModules();
+        process.env.NODE_ENV = "production";
+        process.env.JWT_SECRET = "production_super_secret_signing_key_at_least_32_chars!";
+        process.env.ALLOW_DEMO_AUTH = "true";
+        await expect(import("../server/apiHandler")).rejects.toThrow(/ALLOW_DEMO_AUTH is strictly forbidden in production mode/i);
+      } finally {
+        process.env = origEnv;
+        vi.resetModules();
+      }
+    });
+
+    it("should throw immediately upon importing apiHandler in production with a forbidden secret", async () => {
+      const origEnv = { ...process.env };
+      try {
+        vi.resetModules();
+        process.env.NODE_ENV = "production";
+        delete process.env.ALLOW_DEMO_AUTH;
+        process.env.JWT_SECRET = "replace_with_openssl_rand_base64_48_secret_here";
+        await expect(import("../server/apiHandler")).rejects.toThrow(/Test secret or placeholder secret cannot be used in production mode/i);
+      } finally {
+        process.env = origEnv;
+        vi.resetModules();
       }
     });
   });
@@ -720,13 +750,17 @@ describe("Phase 1 Acceptance Suite: Cryptographic Auth Core, ID Mapping & RBAC",
       }
     });
 
-    it("throws immediately upon importing api/index.ts without JWT_SECRET", () => {
+    it("throws immediately upon importing apiHandler in production without JWT_SECRET", async () => {
       const origEnv = { ...process.env };
       try {
+        vi.resetModules();
+        process.env.NODE_ENV = "production";
         delete process.env.JWT_SECRET;
-        expect(() => validateEnvironmentInvariants()).toThrow(/JWT_SECRET must be configured/i);
+        delete process.env.ALLOW_DEMO_AUTH;
+        await expect(import("../server/apiHandler")).rejects.toThrow(/JWT_SECRET must be configured/i);
       } finally {
         process.env = origEnv;
+        vi.resetModules();
       }
     });
 

@@ -18,13 +18,31 @@ export interface DocumentMetadata {
   competent_count?: number;
   nyc_count?: number;
   average_mark?: number;
+  content_digest?: string;
   hod_name?: string;
   hod_signoff: boolean;
   issued_at: string;
 }
 
 export function getSigningSecret(): string {
-  return process.env.DOCUMENT_SIGNING_SECRET || "mtti-doc-auth-secret-key-knqf-cdacc-2026";
+  const secret =
+    process.env.DOCUMENT_SIGNING_KEY_CURRENT ||
+    process.env.DOCUMENT_SIGNING_SECRET;
+
+  if (!secret || secret.trim().length < 32) {
+    if (process.env.NODE_ENV === "production" || process.env.STRICT_AUTH === "true") {
+      throw new Error(
+        "FATAL: DOCUMENT_SIGNING_KEY_CURRENT is not configured or is fewer than 32 characters in production mode."
+      );
+    }
+    // High-entropy fallback strictly for non-production tests
+    return "mtti-doc-auth-secret-key-knqf-cdacc-2026-minimum-32-chars-entropy";
+  }
+  return secret;
+}
+
+export function getPreviousSigningSecret(): string | null {
+  return process.env.DOCUMENT_SIGNING_KEY_PREVIOUS || null;
 }
 
 /**
@@ -41,8 +59,9 @@ export function canonicalizeDocMetadata(doc: DocumentMetadata): string {
   const avg = Number((doc.average_mark || 0).toFixed(2));
   const signoff = Boolean(doc.hod_signoff);
   const issued = (doc.issued_at || "").trim();
+  const digest = (doc.content_digest || "").trim();
 
-  return [
+  const parts = [
     `type=${docType}`,
     `unit=${unit}`,
     `term=${term}`,
@@ -52,7 +71,13 @@ export function canonicalizeDocMetadata(doc: DocumentMetadata): string {
     `avg=${avg}`,
     `hod_signoff=${signoff}`,
     `issued_at=${issued}`,
-  ].join("|");
+  ];
+
+  if (digest) {
+    parts.push(`digest=${digest}`);
+  }
+
+  return parts.join("|");
 }
 
 /**
@@ -92,6 +117,8 @@ export function verifyDocumentToken(token: string): {
   valid: boolean;
   docMetadata?: DocumentMetadata;
   short_hash?: string;
+  legacy_key?: boolean;
+  warning?: string;
   error?: string;
 } {
   try {
@@ -113,7 +140,22 @@ export function verifyDocumentToken(token: string): {
     const sigBuf = Buffer.from(envelope.sig, "hex");
     const expBuf = Buffer.from(expectedSig, "hex");
 
-    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+    let isLegacyKey = false;
+    let verified = sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf);
+
+    if (!verified) {
+      const prevSecret = getPreviousSigningSecret();
+      if (prevSecret) {
+        const prevExpectedSig = crypto.createHmac("sha256", prevSecret).update(canonical).digest("hex");
+        const prevExpBuf = Buffer.from(prevExpectedSig, "hex");
+        if (sigBuf.length === prevExpBuf.length && crypto.timingSafeEqual(sigBuf, prevExpBuf)) {
+          verified = true;
+          isLegacyKey = true;
+        }
+      }
+    }
+
+    if (!verified) {
       return {
         valid: false,
         error: "Cryptographic signature mismatch: Document payload has been altered or tampered with.",
@@ -124,6 +166,10 @@ export function verifyDocumentToken(token: string): {
       valid: true,
       docMetadata: envelope.d,
       short_hash: envelope.h || `MTTI-${envelope.sig.slice(0, 12).toUpperCase()}`,
+      legacy_key: isLegacyKey,
+      warning: isLegacyKey
+        ? "Document verified using previous institutional key (grace period active)."
+        : undefined,
     };
   } catch (err: any) {
     return {

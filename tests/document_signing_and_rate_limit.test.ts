@@ -5,7 +5,7 @@ import {
   canonicalizeDocMetadata,
   type DocumentMetadata,
 } from "../server/documentSigner.ts";
-import { getLabSafeRateLimitKey } from "../server/security.ts";
+import { getLabSafeRateLimitKey, getAuthRateLimitKey } from "../server/security.ts";
 import { matchesDepartment, CANONICAL_DEPARTMENTS_MAP } from "../server/db.ts";
 
 describe("Tamper-Evident Document Cryptographic Signing (HMAC-SHA256)", () => {
@@ -97,20 +97,22 @@ describe("Lab-Safe Identity-Based Rate Limiting", () => {
     expect(getLabSafeRateLimitKey(reqTrainee)).toBe("trainee:14179/S2026");
   });
 
-  it("resolves request body reg_number for zero-email candidate login", () => {
+  it("resolves request body reg_number for zero-email candidate login with authRateLimiter", () => {
     const reqBody = {
+      ip: "197.237.100.22",
       body: { reg_number: "14200/S2026" },
       headers: {},
     } as any;
-    expect(getLabSafeRateLimitKey(reqBody)).toBe("trainee-payload:14200/S2026");
+    expect(getAuthRateLimitKey(reqBody)).toBe("auth:197.237.100.22:14200/s2026");
   });
 
-  it("resolves request body email for staff login", () => {
+  it("resolves request body email for staff login with authRateLimiter", () => {
     const reqBody = {
+      ip: "197.237.100.22",
       body: { email: "trainer@mtti.ac.ke" },
       headers: {},
     } as any;
-    expect(getLabSafeRateLimitKey(reqBody)).toBe("email:trainer@mtti.ac.ke");
+    expect(getAuthRateLimitKey(reqBody)).toBe("auth:197.237.100.22:trainer@mtti.ac.ke");
   });
 
   it("falls back to institutional client IP on unauthenticated requests", () => {
@@ -123,24 +125,33 @@ describe("Lab-Safe Identity-Based Rate Limiting", () => {
 
   it("guarantees 60 concurrent trainees behind the same public lab IP have unique isolated keys", () => {
     const sharedLabIp = "197.237.100.45";
-    const keys = new Set<string>();
+    const authKeys = new Set<string>();
+    const sessionKeys = new Set<string>();
 
     for (let i = 1; i <= 60; i++) {
       const admNo = `141${String(i).padStart(2, "0")}/S2026`;
-      const fakeReq = {
-        headers: { "x-forwarded-for": sharedLabIp },
+      const authReq = {
+        ip: sharedLabIp,
         body: { reg_number: admNo },
+        headers: {},
       } as any;
+      authKeys.add(getAuthRateLimitKey(authReq));
 
-      const key = getLabSafeRateLimitKey(fakeReq);
-      keys.add(key);
+      const sessionReq = {
+        user: { reg_number: admNo, role: "trainee" },
+        headers: {},
+      } as any;
+      sessionKeys.add(getLabSafeRateLimitKey(sessionReq));
     }
 
-    // Every trainee receives their own distinct bucket key; none are grouped under the shared IP
-    expect(keys.size).toBe(60);
-    for (const key of keys) {
-      expect(key.startsWith("trainee-payload:")).toBe(true);
-      expect(key.includes(sharedLabIp)).toBe(false);
+    // Every trainee receives their own distinct bucket key for both login and authenticated sessions
+    expect(authKeys.size).toBe(60);
+    expect(sessionKeys.size).toBe(60);
+    for (const key of authKeys) {
+      expect(key.startsWith("auth:197.237.100.45:")).toBe(true);
+    }
+    for (const key of sessionKeys) {
+      expect(key.startsWith("trainee:")).toBe(true);
     }
   });
 });

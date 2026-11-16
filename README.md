@@ -12,8 +12,8 @@ Enterprise training management, pedagogical planning, attendance tracking, and C
     ```bash
     openssl rand -base64 48
     ```
-  - **CRITICAL DEPLOYMENT INVARIANT:** `JWT_SECRET` must be configured in Vercel for **BOTH Production and Preview environments** prior to pushing code. The API module load check in `server/auth.ts` will immediately fail fast and throw a fatal error if `JWT_SECRET` is missing, shorter than 32 characters, or configured with a known test/placeholder key.
-- `ALLOW_DEMO_AUTH`: Strictly forbidden in production. If set to `true` when `NODE_ENV=production` or `NODE_ENV=staging`, the application will abort startup immediately.
+  - **CRITICAL DEPLOYMENT INVARIANT:** `JWT_SECRET` must be configured in Vercel for **BOTH Production and Preview environments** prior to pushing code. The API module load check in `server/auth.ts` will immediately fail fast and throw a fatal error at module load if `JWT_SECRET` is missing, shorter than 32 characters, or configured with a known test/placeholder key. Zero runtime fallback secrets are generated.
+- `ALLOW_DEMO_AUTH`: Strictly forbidden in production. If set to `true` when `NODE_ENV=production` or `NODE_ENV=staging`, the application throws at module load and aborts startup immediately.
 - `NODE_ENV`: Secure-by-default. When unset (`""` or undefined) or set to `"staging"`, runtime strictly enforces production security invariants (zero demo tokens, zero header-based auth, mandatory cryptographically verified JWTs).
 
 ### 2. Gated Deployment Protocol (Phase 1 & Onwards)
@@ -21,7 +21,7 @@ Enterprise training management, pedagogical planning, attendance tracking, and C
 To maintain absolute database and session integrity, all production and preview rollouts must strictly follow this 6-step gated sequence:
 
 1. **Step 1: Configure Secrets in Vercel**
-   Set `JWT_SECRET` ($\ge 32$ characters, cryptographically random) in Vercel environment variables for **BOTH Production and Preview environments**. Module boot check in `server/auth.ts` will immediately reject startups if missing or using test/placeholder keys.
+   Set `JWT_SECRET` ($\ge 32$ characters, cryptographically random) in Vercel environment variables for **BOTH Production and Preview environments**. Module boot check in `server/auth.ts` will immediately reject startups at module load if missing, shorter than 32 characters, or using test/placeholder keys. Zero fallback secrets are generated.
 2. **Step 2: Apply Staff Department and Phase 1 Profile Migrations**
    On a fresh database, first apply the baseline migrations through 15. Then run the ordered Phase 1 migrations below. This applies `16_staff_department_assignment.sql` before `17_phase1_profile_link.sql`; both are idempotent, so it is safe if migration 16 has already been applied:
    ```bash

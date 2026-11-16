@@ -29,7 +29,6 @@ import { useExam } from "@/contexts/ExamContext";
 import { getStoredRecordsOfWork, saveStoredRecordsOfWork } from "@/lib/mockSessionPlans";
 import WorkshopDoorQRModal from "@/components/WorkshopDoorQRModal";
 import AttendanceQuickMarkModal from "@/components/AttendanceQuickMarkModal";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { getAttendanceScansFromOffline, enqueueSyncItem } from "@/lib/offlineStore";
 import { syncEngine } from "@/lib/syncEngine";
 import { getAcademicContext, getActiveTeachingWeek } from "@/lib/academicCalendar";
@@ -200,15 +199,17 @@ const AttendanceRow = React.memo(function AttendanceRow({
           <div className="flex items-center justify-center gap-1">
             <button
               onClick={() => onEditStudent(trainee)}
-              className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+              className="p-2 sm:p-1 min-w-[36px] min-h-[36px] sm:min-w-0 sm:min-h-0 flex items-center justify-center text-blue-600 hover:bg-blue-100 rounded"
               title="Edit Student Details"
+              aria-label="Edit Student Details"
             >
               <Edit2 className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => onDeleteStudent(trainee.id, trainee.name)}
-              className="p-1 text-red-600 hover:bg-red-100 rounded"
+              className="p-2 sm:p-1 min-w-[36px] min-h-[36px] sm:min-w-0 sm:min-h-0 flex items-center justify-center text-red-600 hover:bg-red-100 rounded"
               title="Remove Student"
+              aria-label="Remove Student"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -1086,14 +1087,31 @@ export default function ClassRegister() {
 
       const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
 
-      if (isSupabaseConfigured() && isOnline) {
+      if (isOnline) {
         try {
-          await (supabase.from("attendance_register" as any) as any).upsert(rows as any);
-        } catch (supaErr) {
-          console.warn("Supabase attendance sync warning:", supaErr);
+          const bulkPayload = {
+            records: rows.map(r => ({
+              unit_offering_id: r.unit_offering_id,
+              trainee_id: r.trainee_id,
+              week_number: r.week_number,
+              session_date: new Date().toISOString().split("T")[0],
+              status: r.status,
+            })),
+          };
+          const res = await fetch("/api/attendance/bulk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(bulkPayload),
+          });
+          if (!res.ok) {
+            console.warn("Backend attendance sync responded with error, caching offline.");
+            await enqueueSyncItem("ATTENDANCE_REGISTER_SAVE", { rows });
+          }
+        } catch (apiErr) {
+          console.warn("Backend attendance sync network error, enqueuing:", apiErr);
           await enqueueSyncItem("ATTENDANCE_REGISTER_SAVE", { rows });
         }
-      } else if (isSupabaseConfigured()) {
+      } else {
         await enqueueSyncItem("ATTENDANCE_REGISTER_SAVE", { rows });
       }
 

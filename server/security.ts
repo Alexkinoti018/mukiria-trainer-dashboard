@@ -57,7 +57,7 @@ export const corsMiddleware = cors({
     ) {
       return callback(null, true);
     }
-    return callback(null, true);
+    return callback(null, false);
   },
   credentials: true,
   allowedHeaders: [
@@ -86,70 +86,149 @@ export const corsMiddleware = cors({
  * over the same lab public IP address each have an isolated rate limit quota and are
  * never throttled or blocked by their classmates' traffic.
  */
+/**
+ * Safely extracts client IP respecting Express trust proxy configuration.
+ */
+export function getClientIp(req: Request): string {
+  if (req.ip) return req.ip;
+  const forwarded = req.headers["x-forwarded-for"];
+  if (typeof forwarded === "string") {
+    const first = forwarded.split(",")[0].trim();
+    if (first) return first;
+  }
+  return req.socket?.remoteAddress || "127.0.0.1";
+}
+
+/**
+ * Normalizes login/auth candidate identifier (email or admission number).
+ */
+export function normalizeAuthIdentifier(raw: any): string {
+  if (typeof raw !== "string") return "";
+  return raw.trim().toLowerCase().replace(/\s+/g, "");
+}
+
+/**
+ * Strict authentication limiter key generator.
+ * Strictly combines client IP with normalized candidate identifier.
+ * NEVER trusts spoofable client headers (x-user-id, x-user-reg) or unverified JWT claims.
+ */
+export function getAuthRateLimitKey(req: Request): string {
+  const ip = getClientIp(req);
+  const body = req.body || {};
+  const rawId =
+    body.identifier ||
+    body.email ||
+    body.admission_number ||
+    body.admissionNumber ||
+    body.reg_number ||
+    body.regNumber ||
+    body.adm_no ||
+    body.admNo ||
+    body.username ||
+    "";
+  const normalizedId = normalizeAuthIdentifier(rawId);
+  return normalizedId ? `auth:${ip}:${normalizedId}` : `auth:${ip}`;
+}
+
+/**
+ * Global API rate limit key:
+ * Uses cryptographically authenticated user profile if present; otherwise client IP.
+ * NEVER trusts spoofable headers or unverified tokens.
+ */
 export function getLabSafeRateLimitKey(req: Request): string {
-  // 1. Authenticated user object populated by authenticateToken middleware
   const user = (req as any).user;
-  if (user) {
+  if (user && typeof user === "object") {
     if (user.id) return `user:${user.id}`;
     if (user.user_id) return `user:${user.user_id}`;
     if (user.reg_number) return `trainee:${String(user.reg_number).trim().toUpperCase()}`;
-    if (user.adm_no) return `trainee:${String(user.adm_no).trim().toUpperCase()}`;
+    if (user.admission_number) return `trainee:${String(user.admission_number).trim().toUpperCase()}`;
+  }
+  return `ip:${getClientIp(req)}`;
+}
+
+// ─── ACCOUNT LOCKOUT STATE & ENGINE ─────────────────────────────────────────
+
+interface AccountLockoutRecord {
+  failedAttempts: number;
+  lockedUntil: number | null;
+  lastAttemptAt: number;
+}
+
+const accountLockouts = new Map<string, AccountLockoutRecord>();
+
+export const ACCOUNT_LOCKOUT_MAX_ATTEMPTS = 5;
+export const ACCOUNT_LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+export function getAccountLockoutStatus(identifier: string): {
+  isLocked: boolean;
+  remainingMs: number;
+  attempts: number;
+} {
+  const cleanId = normalizeAuthIdentifier(identifier);
+  if (!cleanId) return { isLocked: false, remainingMs: 0, attempts: 0 };
+
+  const record = accountLockouts.get(cleanId);
+  if (!record) return { isLocked: false, remainingMs: 0, attempts: 0 };
+
+  const now = Date.now();
+  if (record.lockedUntil && record.lockedUntil > now) {
+    return {
+      isLocked: true,
+      remainingMs: record.lockedUntil - now,
+      attempts: record.failedAttempts,
+    };
   }
 
-  // 2. Client header identifiers (e.g. from authenticated client fetches)
-  const headerUserId = req.headers["x-user-id"];
-  if (typeof headerUserId === "string" && headerUserId.trim()) {
-    return `user:${headerUserId.trim()}`;
-  }
-  const headerReg = req.headers["x-user-reg"];
-  if (typeof headerReg === "string" && headerReg.trim()) {
-    return `trainee:${headerReg.trim().toUpperCase()}`;
+  // If lockout expired, reset
+  if (record.lockedUntil && record.lockedUntil <= now) {
+    accountLockouts.delete(cleanId);
+    return { isLocked: false, remainingMs: 0, attempts: 0 };
   }
 
-  // 3. Authorization Bearer Token peek (without throwing on expired/invalid)
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    const rawToken = authHeader.slice(7).trim();
-    if (rawToken) {
-      if (rawToken.startsWith("token-")) {
-        return `demo:${rawToken}`;
-      }
-      try {
-        const decoded = jwt.decode(rawToken) as any;
-        if (decoded && typeof decoded === "object") {
-          const id = decoded.id || decoded.sub || decoded.user_id || decoded.reg_number || decoded.adm_no;
-          if (id) return `token:${String(id).trim().toUpperCase()}`;
-        }
-      } catch {
-        // Ignore JWT decode errors, fall back to next strategy
-      }
-    }
+  return { isLocked: false, remainingMs: 0, attempts: record.failedAttempts };
+}
+
+export function recordFailedAuthAttempt(identifier: string): {
+  isLocked: boolean;
+  remainingMs: number;
+  attempts: number;
+} {
+  const cleanId = normalizeAuthIdentifier(identifier);
+  if (!cleanId) return { isLocked: false, remainingMs: 0, attempts: 0 };
+
+  const now = Date.now();
+  const record = accountLockouts.get(cleanId) || {
+    failedAttempts: 0,
+    lockedUntil: null,
+    lastAttemptAt: now,
+  };
+
+  record.failedAttempts += 1;
+  record.lastAttemptAt = now;
+
+  if (record.failedAttempts >= ACCOUNT_LOCKOUT_MAX_ATTEMPTS) {
+    record.lockedUntil = now + ACCOUNT_LOCKOUT_DURATION_MS;
+    accountLockouts.set(cleanId, record);
+    return {
+      isLocked: true,
+      remainingMs: ACCOUNT_LOCKOUT_DURATION_MS,
+      attempts: record.failedAttempts,
+    };
   }
 
-  // 4. Request body identity parameter (for login/registration or submissions)
-  if (req.body && typeof req.body === "object") {
-    const candidateId =
-      req.body.reg_number ||
-      req.body.regNumber ||
-      req.body.adm_no ||
-      req.body.admNo ||
-      req.body.admission_number ||
-      req.body.admissionNumber;
-    if (typeof candidateId === "string" && candidateId.trim()) {
-      return `trainee-payload:${candidateId.trim().toUpperCase()}`;
-    }
-    if (typeof req.body.email === "string" && req.body.email.trim()) {
-      return `email:${req.body.email.trim().toLowerCase()}`;
-    }
-  }
+  accountLockouts.set(cleanId, record);
+  return { isLocked: false, remainingMs: 0, attempts: record.failedAttempts };
+}
 
-  // 5. Fallback to client IP (Generous institutional NAT gateway mode)
-  const ip =
-    (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
-    req.ip ||
-    req.socket.remoteAddress ||
-    "127.0.0.1";
-  return `ip:${ip}`;
+export function resetAccountLockout(identifier: string): void {
+  const cleanId = normalizeAuthIdentifier(identifier);
+  if (cleanId) {
+    accountLockouts.delete(cleanId);
+  }
+}
+
+export function clearAllAccountLockouts(): void {
+  accountLockouts.clear();
 }
 
 export function shouldSkipRateLimit(req: Request): boolean {
@@ -186,11 +265,11 @@ export const apiRateLimiter = rateLimit({
 export const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: (req: Request) => {
-    const key = getLabSafeRateLimitKey(req);
-    // Institutional NAT allows up to 1000 login/token attempts; individual identity is limited to 120
-    return key.startsWith("ip:") ? 1000 : 120;
+    const key = getAuthRateLimitKey(req);
+    // Institutional NAT allows up to 1000 general attempts; individual candidate is limited to 20
+    return key.startsWith("auth:") && key.split(":").length > 2 ? 20 : 1000;
   },
-  keyGenerator: (req: Request) => getLabSafeRateLimitKey(req),
+  keyGenerator: (req: Request) => getAuthRateLimitKey(req),
   standardHeaders: true,
   legacyHeaders: false,
   skip: shouldSkipRateLimit,

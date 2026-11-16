@@ -8,7 +8,6 @@
  * 5. Event dispatching for React UI status pills & manual triggers
  */
 
-import { supabase, isSupabaseConfigured } from "./supabase";
 import {
   getPendingSyncItems,
   updateSyncItem,
@@ -438,70 +437,36 @@ class SyncEngine {
 
   /**
    * Conflict Resolution 1: Exam Submission Locking Defense
-   * Rule: If an exam has already been submitted to remote Supabase (status === 'submitted' | 'graded'),
-   * an incoming offline draft or duplicate MUST NOT overwrite it.
+   * Dispatches submission authoritatively to /api/submissions.
    */
   private async handleSubmissionSync(item: SyncQueueItem): Promise<SyncItemResult> {
     const sub = item.payload;
     if (!sub || !sub.unit_code || !sub.reg_number) {
-      return { success: true }; // Invalid payload, discard
-    }
-
-    if (!isSupabaseConfigured()) {
-      // Local-only mode, accept write
       return { success: true };
     }
 
     try {
-      // 1. Query remote submissions table for existing submission for this student and unit
-      const { data: existing, error: queryErr } = await (supabase as any)
-        .from("submissions")
-        .select("id, status, total_score, updated_at")
-        .eq("unit_code", sub.unit_code)
-        .eq("reg_number", sub.reg_number)
-        .maybeSingle();
-
-      if (queryErr) {
-        console.warn("[SyncEngine] Query remote submission error:", queryErr);
-      }
-
-      const conflictCheck = resolveSubmissionConflict(existing, sub);
-      if (!conflictCheck.accepted && conflictCheck.conflict) {
-        const conflict: SyncConflictEvent = {
-          id: `conflict_${Date.now()}`,
-          action_type: conflictCheck.conflict.action_type,
-          entity_id: conflictCheck.conflict.entity_id,
-          resolution: conflictCheck.conflict.resolution,
-          reason: conflictCheck.conflict.reason,
-          timestamp: Date.now(),
-        };
-        console.warn(`[SyncEngine] Conflict resolved: ${conflict.reason}`);
-        return { success: true, conflict };
-      }
-
-      // 2. Perform write to Supabase
-      const payloadToUpsert = {
-        id: sub.id,
-        unit_code: sub.unit_code,
-        student_name: sub.student_name,
-        reg_number: sub.reg_number,
-        section_a: sub.section_a,
-        section_b: sub.section_b,
-        status: sub.status === "draft" ? "pending" : sub.status,
-        total_score: sub.total_score ?? null,
-        submitted_at: new Date().toISOString(),
+      const token = typeof localStorage !== "undefined"
+        ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+        : "";
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
 
-      const { error: upsertErr } = await (supabase as any)
-        .from("submissions")
-        .upsert(payloadToUpsert, { onConflict: "id" });
+      const resp = await fetch("/api/submissions", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(sub),
+      });
 
-      if (upsertErr) {
-        const code = (upsertErr as any).code === "42501" ? 403 : undefined;
-        return { success: false, statusCode: code, error: upsertErr.message };
+      if (!resp.ok) {
+        const errJson = await resp.json().catch(() => ({}));
+        if (resp.status === 400 || resp.status === 403 || resp.status === 422) {
+          return { success: false, statusCode: resp.status, error: errJson.error || `HTTP ${resp.status}: Submission rejected` };
+        }
       }
 
-      // Update local copy
       await saveSubmissionToOffline({
         ...sub,
         synced: true,
@@ -522,10 +487,18 @@ class SyncEngine {
     if (!scan || !scan.adm) return { success: true };
 
     try {
-      // 1. Dispatch to backend Express API & PostgreSQL
+      const token = typeof localStorage !== "undefined"
+        ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+        : "";
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+
+      // Dispatch to backend Express API & PostgreSQL
       const resp = await fetch("/api/attendance/mark", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           unit_offering_id: scan.unit_offering_id || "uo-1",
           trainee_id: scan.adm,
@@ -549,32 +522,6 @@ class SyncEngine {
         }
       }
 
-      if (!isSupabaseConfigured()) {
-        if (scan.id) await markAttendanceScanSynced(scan.id);
-        return { success: true };
-      }
-
-      // 2. Look up student in Supabase trainees or attendance_register
-      const { data: trainee } = await (supabase as any)
-        .from("trainees")
-        .select("id")
-        .or(`adm_no.eq.${scan.adm},reg_code.eq.${scan.adm}`)
-        .maybeSingle();
-
-      const traineeId = trainee?.id || scan.adm;
-
-      // 3. Union merge in Supabase: Record attendance with status 'Present'
-      const { error } = await (supabase as any)
-        .from("attendance_register")
-        .insert({
-          trainee_id: traineeId,
-          status: "Present",
-        });
-
-      if (error && !error.message.includes("duplicate key")) {
-        console.warn("[SyncEngine] Supabase attendance notice:", error.message);
-      }
-
       if (scan.id) {
         await markAttendanceScanSynced(scan.id);
       }
@@ -593,46 +540,38 @@ class SyncEngine {
     if (!rows || !Array.isArray(rows)) return { success: true };
 
     try {
-      // 1. Always flush to backend API / PostgreSQL
-      try {
-        const records = rows.map((r: any) => ({
-          unit_offering_id: r.unit_offering_id || "uo-1",
-          trainee_id: r.trainee_id,
-          week_number: Number(r.week_number || 1),
-          status: r.status === "Present" || r.status === "present" || r.status === "X" ? "present" : "absent",
-          hours_attended: 2.0,
-        }));
+      const token = typeof localStorage !== "undefined"
+        ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+        : "";
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
 
-        const res = await fetch("/api/attendance/bulk", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            unit_offering_id: "uo-1",
-            records,
-          }),
-        });
+      const records = rows.map((r: any) => ({
+        unit_offering_id: r.unit_offering_id || "uo-1",
+        trainee_id: r.trainee_id,
+        week_number: Number(r.week_number || 1),
+        status: r.status === "Present" || r.status === "present" || r.status === "X" ? "present" : "absent",
+        hours_attended: 2.0,
+      }));
 
-        if (!res.ok && (res.status === 400 || res.status === 403 || res.status === 422)) {
-          const errJson = await res.json().catch(() => ({}));
-          return {
-            success: false,
-            statusCode: res.status,
-            error: errJson.error || `HTTP ${res.status}: Attendance bulk sync rejected`,
-          };
-        }
-      } catch (apiErr: any) {
-        console.warn("[SyncEngine] Failed flushing attendance rows to /api/attendance/bulk:", apiErr);
-      }
+      const res = await fetch("/api/attendance/bulk", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          unit_offering_id: "uo-1",
+          records,
+        }),
+      });
 
-      // 2. Flush to Supabase if configured
-      if (isSupabaseConfigured()) {
-        const { error } = await (supabase as any)
-          .from("attendance_register")
-          .upsert(rows);
-
-        if (error) {
-          console.warn("[SyncEngine] Supabase upsert notice:", error.message);
-        }
+      if (!res.ok && (res.status === 400 || res.status === 403 || res.status === 422)) {
+        const errJson = await res.json().catch(() => ({}));
+        return {
+          success: false,
+          statusCode: res.status,
+          error: errJson.error || `HTTP ${res.status}: Attendance bulk sync rejected`,
+        };
       }
 
       return { success: true };
@@ -649,49 +588,39 @@ class SyncEngine {
     const plan = item.payload;
     if (!plan || !plan.id) return { success: true };
 
-    if (!isSupabaseConfigured()) return { success: true };
-
     try {
-      const { data: remote, error: queryErr } = await (supabase as any)
-        .from("session_plans")
-        .select("id, version, server_updated_at, updated_at")
-        .eq("id", plan.id)
-        .maybeSingle();
+      const token = typeof localStorage !== "undefined"
+        ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+        : "";
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
 
-      if (queryErr) {
-        console.warn("[SyncEngine] Query session plan notice:", queryErr.message);
-      }
-
-      if (remote) {
-        const conflictResult = resolveMonotonicVersionConflict(remote, plan);
-        if (!conflictResult.accepted && conflictResult.conflict) {
-          const conflict: SyncConflictEvent = {
-            id: `conflict_${Date.now()}`,
-            action_type: "SESSION_PLAN_SAVE",
-            entity_id: plan.id,
-            resolution: conflictResult.conflict.resolution,
-            reason: conflictResult.conflict.reason,
-            timestamp: Date.now(),
-          };
-          return { success: true, conflict };
-        }
-      }
-
-      const nextVersion = ((remote?.version ?? plan.version ?? 0) as number) + 1;
+      const nextVersion = ((plan.version ?? 0) as number) + 1;
       const payloadToUpsert = {
         ...plan,
         version: nextVersion,
         server_updated_at: new Date().toISOString(),
       };
 
-      const { error } = await (supabase as any)
-        .from("session_plans")
-        .upsert(payloadToUpsert);
+      const res = await fetch("/api/documents/session-plans/batch", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ session_plans: [payloadToUpsert] }),
+      });
 
-      if (error) {
-        const code = (error as any).code === "42501" ? 403 : undefined;
-        return { success: false, statusCode: code, error: error.message };
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        if (res.status === 400 || res.status === 403 || res.status === 422) {
+          return {
+            success: false,
+            statusCode: res.status,
+            error: errJson.error || `HTTP ${res.status}: Session plan sync rejected`,
+          };
+        }
       }
+
       return { success: true };
     } catch (e: any) {
       return { success: false, statusCode: e.status || e.statusCode, error: e.message };
@@ -705,45 +634,42 @@ class SyncEngine {
     const marksData = item.payload;
     if (!marksData) return { success: true };
 
-    if (!isSupabaseConfigured()) return { success: true };
-
     try {
-      if (marksData.id) {
-        const { data: remote } = await (supabase as any)
-          .from("assessment_marks")
-          .select("id, version, server_updated_at, updated_at")
-          .eq("id", marksData.id)
-          .maybeSingle();
+      const token = typeof localStorage !== "undefined"
+        ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+        : "";
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
 
-        if (remote) {
-          const conflictResult = resolveMonotonicVersionConflict(remote, marksData);
-          if (!conflictResult.accepted && conflictResult.conflict) {
-            const conflict: SyncConflictEvent = {
-              id: `conflict_${Date.now()}`,
-              action_type: "MARKS_UPDATE",
-              entity_id: marksData.id,
-              resolution: conflictResult.conflict.resolution,
-              reason: conflictResult.conflict.reason,
-              timestamp: Date.now(),
-            };
-            return { success: true, conflict };
-          }
+      const nextVersion = ((marksData.version ?? 0) as number) + 1;
+      const payloadToUpsert = {
+        ...marksData,
+        version: nextVersion,
+        server_updated_at: new Date().toISOString(),
+      };
+
+      const res = await fetch("/api/marks/batch", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          unitOfferingId: marksData.unit_offering_id || "uo-1",
+          marks: [payloadToUpsert],
+        }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        if (res.status === 400 || res.status === 403 || res.status === 422) {
+          return {
+            success: false,
+            statusCode: res.status,
+            error: errJson.error || `HTTP ${res.status}: Marks update rejected`,
+          };
         }
       }
 
-      const nextVersion = ((marksData.version ?? 0) as number) + 1;
-      const { error } = await (supabase as any)
-        .from("assessment_marks")
-        .upsert({
-          ...marksData,
-          version: nextVersion,
-          server_updated_at: new Date().toISOString(),
-        });
-
-      if (error) {
-        const code = (error as any).code === "42501" ? 403 : undefined;
-        return { success: false, statusCode: code, error: error.message };
-      }
       return { success: true };
     } catch (e: any) {
       return { success: false, statusCode: e.status || e.statusCode, error: e.message };

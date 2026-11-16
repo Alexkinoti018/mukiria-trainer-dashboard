@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
-import { Exam, Submission, supabase, isSupabaseConfigured, normalizeAssessmentTaskSlot, doesExamMatchTraineeCohort } from "@/lib/supabase";
+import { Exam, Submission, normalizeAssessmentTaskSlot, doesExamMatchTraineeCohort } from "@/lib/supabase";
 import { MOCK_EXAMS, MOCK_SUBMISSIONS } from "@/lib/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { syncScoreToContinuousMarksheet, OFFICIAL_MTTI_TRAINEES } from "@/contexts/TraineeContext";
@@ -209,33 +209,17 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Dynamic live Supabase & REST database synchronization
+  // Authoritative live API database synchronization (decoupled from direct Supabase query)
   const refreshExamsAndSubmissions = async () => {
     try {
-      // 1. Live Supabase Cloud Database Query
-      if (isSupabaseConfigured()) {
-        try {
-          const [examsRes, subsRes] = await Promise.all([
-            (supabase as any).from("exams").select("*"),
-            (supabase as any).from("submissions").select("*"),
-          ]);
-          if (!examsRes.error && Array.isArray(examsRes.data) && examsRes.data.length > 0) {
-            setExams(examsRes.data);
-            localStorage.setItem("mukiria_exams", JSON.stringify(examsRes.data));
-          }
-          if (!subsRes.error && Array.isArray(subsRes.data) && subsRes.data.length > 0) {
-            setAllSubmissions(subsRes.data);
-            localStorage.setItem("mukiria_submissions", JSON.stringify(subsRes.data));
-          }
-        } catch (e) {
-          console.warn("Supabase query notice in ExamContext:", e);
-        }
-      }
+      const token = typeof localStorage !== "undefined"
+        ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+        : "";
+      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
-      // 2. Centralized Live API Fetch Fallback
       const [resExams, resSubs] = await Promise.all([
-        fetch("/api/exams").catch(() => null),
-        fetch("/api/submissions").catch(() => null),
+        fetch("/api/exams", { headers }).catch(() => null),
+        fetch("/api/submissions", { headers }).catch(() => null),
       ]);
 
       if (resExams && resExams.ok) {
@@ -347,16 +331,17 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     setExams(updated);
     localStorage.setItem("mukiria_exams", JSON.stringify(updated));
 
-    // Dynamic database persistence
+    // Dynamic database persistence via backend API
     const targetPayload = existingIdx >= 0 ? updated[existingIdx] : updated[updated.length - 1];
-    if (isSupabaseConfigured()) {
-      Promise.resolve((supabase as any).from("exams").upsert(targetPayload)).catch((err) => {
-        console.warn("Supabase exam upsert notice:", err);
-      });
-    }
+    const token = typeof localStorage !== "undefined"
+      ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+      : "";
     fetch("/api/exams", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify(targetPayload),
     }).catch(() => {});
   };
@@ -381,14 +366,15 @@ export function ExamProvider({ children }: { children: ReactNode }) {
       (e) => e.id === unitCodeOrId || e.unit_code.trim().toUpperCase() === unitCodeOrId.trim().toUpperCase()
     );
     if (targetUpdated) {
-      if (isSupabaseConfigured()) {
-        Promise.resolve((supabase as any).from("exams").upsert(targetUpdated)).catch((err) => {
-          console.warn("Supabase exam schedule upsert notice:", err);
-        });
-      }
+      const token = typeof localStorage !== "undefined"
+        ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+        : "";
       fetch("/api/exams", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(targetUpdated),
       }).catch(() => {});
     }
@@ -560,14 +546,15 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     if (targetUpdated) {
       syncSubmissionWithMarksheet(targetUpdated, exams);
 
-      if (isSupabaseConfigured()) {
-        Promise.resolve((supabase as any).from("submissions").upsert(targetUpdated)).catch((err) => {
-          console.warn("Supabase submission upsert notice:", err);
-        });
-      }
+      const token = typeof localStorage !== "undefined"
+        ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+        : "";
       fetch("/api/submissions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(targetUpdated),
       }).catch(() => {});
     }

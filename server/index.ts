@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import express from "express";
 import { createServer } from "http";
 import path from "path";
@@ -9,9 +10,10 @@ import {
   corsMiddleware,
   apiRateLimiter,
 } from "./security.ts";
-import { initServerSentry, sentryContextMiddleware } from "./sentry.ts";
+import { initServerSentry, sentryContextMiddleware, captureServerException } from "./sentry.ts";
 import { logger } from "./logger.ts";
 import { ensureSchemaInitialized } from "./db.ts";
+import { startProactiveCronWorker } from "./workers/proactiveAnalyticsWorker.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,7 +27,11 @@ async function startServer() {
   // Ensure database schema and seed accounts exist
   ensureSchemaInitialized().catch(() => {});
 
+  // Start background proactive governance & analytics worker
+  startProactiveCronWorker();
+
   const app = express();
+  app.set("trust proxy", 1);
   const server = createServer(app);
 
   // Apply Enterprise Security Layer
@@ -42,6 +48,28 @@ async function startServer() {
   app.use(apiRateLimiter);
 
   app.use("/api", apiRouter);
+
+  // Global sanitized API error handler (Zero Stack/DB Leakage)
+  app.use("/api", (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const reqId = (req.headers["x-request-id"] as string) || crypto.randomUUID();
+    logger.error("Unhandled API Error", { requestId: reqId, method: req.method, url: req.url, error: err?.message, stack: err?.stack });
+    captureServerException(err, { requestId: reqId });
+    if (res.headersSent) {
+      return next(err);
+    }
+    const status = typeof err?.status === "number" ? err.status : typeof err?.statusCode === "number" ? err.statusCode : 500;
+    let clientMessage = "An internal server error occurred.";
+    if (status === 400 && err?.isClientSafe) {
+      clientMessage = err.message;
+    } else if (status === 404) {
+      clientMessage = "Resource not found.";
+    } else if (status === 403) {
+      clientMessage = "Forbidden: Access denied.";
+    } else if (status === 401) {
+      clientMessage = "Unauthorized: Authentication required.";
+    }
+    res.status(status).json({ error: clientMessage, request_id: reqId });
+  });
 
   // Serve static files from dist/public in production
   const staticPath = serverConfig.isProduction

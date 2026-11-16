@@ -465,6 +465,15 @@ export function syncTrainerToProfessionalDocuments(profile: TrainerProfile): Syn
         }
       });
       saveStoredSessionPlans(plans);
+
+      // Push to central database
+      try {
+        fetch("/api/documents/session-plans/batch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_plans: plans }),
+        }).catch(() => {});
+      } catch {}
     } catch (e) {
       console.warn("Session plans sync notice:", e);
     }
@@ -603,6 +612,15 @@ export function syncTrainerToProfessionalDocuments(profile: TrainerProfile): Syn
         }
       });
       localStorage.setItem("mtti_custom_learning_plans", JSON.stringify(customLPs));
+
+      // Push to central database
+      try {
+        fetch("/api/documents/learning-plans/batch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ learning_plans: customLPs }),
+        }).catch(() => {});
+      } catch {}
     } catch (e) {
       console.warn("Custom learning plans sync notice:", e);
     }
@@ -652,6 +670,15 @@ export function syncTrainerToProfessionalDocuments(profile: TrainerProfile): Syn
         }
       });
       saveStoredRecordsOfWork(rows);
+
+      // Push to central database
+      try {
+        fetch("/api/documents/records-of-work/batch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ records_of_work: rows }),
+        }).catch(() => {});
+      } catch {}
     } catch (e) {
       console.warn("Records of work sync notice:", e);
     }

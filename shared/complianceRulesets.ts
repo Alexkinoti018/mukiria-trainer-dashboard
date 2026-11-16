@@ -17,6 +17,16 @@ export interface ExamStructureRules {
   [key: string]: any;
 }
 
+export interface RegulatoryMetadata {
+  authority: "TVET CDACC" | "KNQA" | "KNEC" | "TVETA" | "MTTI_INSTITUTIONAL";
+  standard_title: string;
+  section: string;
+  source_url: string;
+  effective_date: string;
+  compliance_status: "CONFIRMED" | "CONTRADICTED" | "INSTITUTIONAL_ENHANCEMENT";
+  notes?: string;
+}
+
 export interface ComplianceRulesetRecord {
   id: string;
   version_tag: string;
@@ -28,6 +38,7 @@ export interface ComplianceRulesetRecord {
   required_theory_exams: number;
   missing_exam_policy: "zero_if_incomplete" | string;
   exam_structure_rules: ExamStructureRules;
+  regulatory_metadata?: RegulatoryMetadata;
   created_at?: string;
   updated_at?: string;
 }
@@ -56,6 +67,15 @@ export const DEFAULT_COMPLIANCE_RULESETS: ComplianceRulesetRecord[] = [
       section_b_marks: 30,
       total_marks: 50,
     },
+    regulatory_metadata: {
+      authority: "TVET CDACC",
+      standard_title: "TVET CDACC Competency Based Assessment Guidelines",
+      section: "Section 4.2: Continuous Assessment Ratios & Section 3.2 Written Exam Blueprints",
+      source_url: "https://tvetcdacc.go.ke",
+      effective_date: "2020-10-01",
+      compliance_status: "CONFIRMED",
+      notes: "KNQF Level 3 National Vocational Certificate II (20% CT / 80% CP, 50m blueprint, T/F allowed).",
+    },
   },
   {
     id: "ruleset-knqf-2026-t3-l4",
@@ -75,6 +95,15 @@ export const DEFAULT_COMPLIANCE_RULESETS: ComplianceRulesetRecord[] = [
       section_a_marks: 10,
       section_b_marks: 40,
       total_marks: 50,
+    },
+    regulatory_metadata: {
+      authority: "TVET CDACC",
+      standard_title: "TVET CDACC Competency Based Assessment Guidelines",
+      section: "Section 4.2: Continuous Assessment Ratios & Section 3.2 Written Exam Blueprints",
+      source_url: "https://tvetcdacc.go.ke",
+      effective_date: "2020-10-01",
+      compliance_status: "CONFIRMED",
+      notes: "KNQF Level 4 National Artisan Certificate (30% CT / 70% CP, 50m blueprint, zero T/F or Matching).",
     },
   },
   {
@@ -96,6 +125,15 @@ export const DEFAULT_COMPLIANCE_RULESETS: ComplianceRulesetRecord[] = [
       section_b_marks: 60,
       total_marks: 100,
     },
+    regulatory_metadata: {
+      authority: "TVET CDACC",
+      standard_title: "TVET CDACC Competency Based Assessment Guidelines",
+      section: "Section 4.2: Continuous Assessment Ratios & Section 3.2 Written Exam Blueprints",
+      source_url: "https://tvetcdacc.go.ke",
+      effective_date: "2020-10-01",
+      compliance_status: "CONFIRMED",
+      notes: "KNQF Level 5 National Craft Certificate (40% CT / 60% CP, 100m blueprint, zero T/F or Matching).",
+    },
   },
   {
     id: "ruleset-knqf-2026-t3-l6",
@@ -115,6 +153,15 @@ export const DEFAULT_COMPLIANCE_RULESETS: ComplianceRulesetRecord[] = [
       section_a_marks: 40,
       section_b_marks: 60,
       total_marks: 100,
+    },
+    regulatory_metadata: {
+      authority: "TVET CDACC",
+      standard_title: "TVET CDACC Competency Based Assessment Guidelines",
+      section: "Section 4.2: Continuous Assessment Ratios & Section 3.2 Written Exam Blueprints",
+      source_url: "https://tvetcdacc.go.ke",
+      effective_date: "2020-10-01",
+      compliance_status: "CONFIRMED",
+      notes: "KNQF Level 6 National Diploma (50% CT / 50% CP, 100m blueprint, zero T/F or Matching).",
     },
   },
 ];

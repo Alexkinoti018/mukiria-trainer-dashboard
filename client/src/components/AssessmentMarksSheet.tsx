@@ -617,34 +617,6 @@ export function AssessmentMarksSheet() {
 
   const submitData = async () => {
     try {
-      const batchPayload = {
-        unitOfferingId,
-        marks: rows.map(r => ({
-          traineeId: r.id,
-          cpScore: r.cpAvg,
-          ctScore: r.ctAvg,
-        })),
-      };
-
-      try {
-        const res = await fetch("/api/marks/batch", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(batchPayload),
-        });
-
-        if (res.status === 400) {
-          const errData = await res.json().catch(() => ({}));
-          if (errData.error?.includes("locked") || errData.error?.includes("finalized")) {
-            setIsLocked(true);
-            toast.error("Assessment marksheet is finalized and locked");
-            return;
-          }
-        }
-      } catch (apiErr) {
-        console.warn("Backend API /api/marks/batch call:", apiErr);
-      }
-
       const payload = rows.map(r => ({
         unit_offering_id: unitOfferingId,
         trainee_id: r.id,
@@ -656,37 +628,46 @@ export function AssessmentMarksSheet() {
         is_locked: isLocked
       }));
 
-      let savedToSupabase = false;
+      let savedToBackend = false;
 
-      if (isSupabaseConfigured()) {
-        try {
-          const { error } = await supabase.from('assessment_marks').upsert(payload as any, { onConflict: 'unit_offering_id, trainee_id' });
-          if (error) throw error;
-          savedToSupabase = true;
-          toast.success("Assessment marks saved & synchronized with TVET database!");
-        } catch (supabaseErr: any) {
-          console.warn("Supabase save failed, falling back to local storage:", supabaseErr);
-        }
+      // Authoritative save through Backend API (Decoupled from direct Supabase table access)
+      try {
+        const token = localStorage.getItem("mtti_auth_token") || localStorage.getItem("mtti_token") || localStorage.getItem("token") || "";
+        const batchMarks = payload.map((p: any) => ({
+          traineeId: p.trainee_id,
+          cpScore: typeof p.computed_average_practical === "number" ? p.computed_average_practical : (typeof p.cp_avg === "number" ? p.cp_avg : undefined),
+          ctScore: typeof p.computed_average_theory === "number" ? p.computed_average_theory : (typeof p.ct_avg === "number" ? p.ct_avg : undefined),
+          projectScore: typeof p.project_score === "number" ? p.project_score : undefined,
+          finalScore: typeof p.weighted_mark === "number" ? p.weighted_mark : undefined,
+          isLocked: Boolean(p.is_locked),
+        }));
 
-        // Synchronize with Centralized Backend Database Persistence Layer
-        try {
-          const batchMarks = payload.map((p: any) => ({
-            traineeId: p.trainee_id,
-            cpScore: typeof p.cp_avg === "number" ? p.cp_avg : undefined,
-            ctScore: typeof p.ct_avg === "number" ? p.ct_avg : undefined,
-            projectScore: typeof p.project_score === "number" ? p.project_score : undefined,
-          }));
-          await fetch('/api/marks/batch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              unitOfferingId,
-              marks: batchMarks
-            })
-          });
-        } catch (apiErr) {
-          console.warn("Backend API marks batch save warning:", apiErr);
+        const apiRes = await fetch('/api/marks/batch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            unitOfferingId,
+            marks: batchMarks,
+          }),
+        });
+
+        if (apiRes.ok) {
+          savedToBackend = true;
+          toast.success("Assessment marks saved & synchronized with MTTI database!");
+        } else {
+          const errData = await apiRes.json().catch(() => ({}));
+          if (apiRes.status === 400 && (errData.error?.includes("locked") || errData.error?.includes("finalized"))) {
+            setIsLocked(true);
+            toast.error("Assessment marksheet is finalized and locked");
+            return;
+          }
+          console.warn("Backend API marks save notice:", errData);
         }
+      } catch (apiErr) {
+        console.warn("Backend API marks batch save network notice:", apiErr);
       } 
       
       const clsKey = getClassStorageKey(selectedClass);
@@ -707,8 +688,8 @@ export function AssessmentMarksSheet() {
         localStorage.setItem(`mtti_marks_${unitOfferingId}`, JSON.stringify(payload));
       }
 
-      if (!savedToSupabase) {
-        toast.success("Assessment marks saved successfully.");
+      if (!savedToBackend) {
+        toast.success("Assessment marks cached locally.");
       }
     } catch (err: any) {
       console.error(err);

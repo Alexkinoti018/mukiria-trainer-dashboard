@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import TrainerLayout from "@/components/TrainerLayout";
 import WorkshopDoorQRModal from "@/components/WorkshopDoorQRModal";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   getStoredSessionPlans,
   saveStoredSessionPlans,
@@ -37,7 +38,6 @@ import {
   RecordOfWork,
   SessionDeliveryStep,
 } from "@/lib/mockSessionPlans";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentTrainerProfile } from "@/lib/timetableSyncService";
 import { toast } from "sonner";
@@ -121,54 +121,69 @@ export default function SessionPlans() {
   const loadAllData = async () => {
     setLoading(true);
     try {
-      if (isSupabaseConfigured()) {
-        const [plansRes, lpRes, rowRes] = await Promise.all([
-          (supabase as any).from("session_plans").select("*").order("week_number"),
-          (supabase as any).from("learning_plans").select("*").order("week_number"),
-          (supabase as any).from("records_of_work").select("*").order("week_number"),
-        ]);
+      const token = typeof localStorage !== "undefined"
+        ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+        : "";
+      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
-        if (plansRes.data && plansRes.data.length > 0) {
-          const mapped: SessionPlan[] = plansRes.data.map((d: any) => ({
-            ...d,
-            learning_outcomes: safeParseArray(d.learning_outcomes),
-            resources: safeParseArray(d.resources),
-            delivery_steps: safeParseArray(d.delivery_steps),
-          }));
-          setPlans(mapped);
-          saveStoredSessionPlans(mapped);
-          mapped.forEach((p) => saveSessionPlanToOffline(p));
-        } else {
-          const idbPlans = await getAllOfflineSessionPlans();
-          if (idbPlans && idbPlans.length > 0) {
-            setPlans(idbPlans);
-          } else {
-            setPlans(getStoredSessionPlans());
-          }
-        }
+      const [resPlans, resLp, resRow] = await Promise.all([
+        fetch("/api/documents/session-plans", { headers }).catch(() => null),
+        fetch("/api/documents/learning-plans", { headers }).catch(() => null),
+        fetch("/api/documents/records-of-work", { headers }).catch(() => null),
+      ]);
 
-        if (lpRes.data && lpRes.data.length > 0) {
-          const mappedLp: LearningPlanWeek[] = lpRes.data.map((d: any) => ({
-            ...d,
-            learning_outcomes: safeParseArray(d.learning_outcomes),
-            resources: safeParseArray(d.resources),
-          }));
-          setLearningPlans(mappedLp);
-          saveStoredLearningPlans(mappedLp);
-        } else {
-          setLearningPlans(getStoredLearningPlans());
-        }
+      let plansData: any[] = [];
+      let lpData: any[] = [];
+      let rowData: any[] = [];
 
-        if (rowRes.data && rowRes.data.length > 0) {
-          setRecordsOfWork(rowRes.data);
-          saveStoredRecordsOfWork(rowRes.data);
-        } else {
-          setRecordsOfWork(getStoredRecordsOfWork());
-        }
+      if (resPlans && resPlans.ok) {
+        const json = await resPlans.json().catch(() => ({}));
+        plansData = json.session_plans || [];
+      }
+      if (resLp && resLp.ok) {
+        const json = await resLp.json().catch(() => ({}));
+        lpData = json.learning_plans || [];
+      }
+      if (resRow && resRow.ok) {
+        const json = await resRow.json().catch(() => ({}));
+        rowData = json.records_of_work || [];
+      }
+
+      if (plansData.length > 0) {
+        const mapped: SessionPlan[] = plansData.map((d: any) => ({
+          ...d,
+          learning_outcomes: safeParseArray(d.learning_outcomes),
+          resources: safeParseArray(d.resources),
+          delivery_steps: safeParseArray(d.delivery_steps),
+        }));
+        setPlans(mapped);
+        saveStoredSessionPlans(mapped);
+        mapped.forEach((p) => saveSessionPlanToOffline(p));
       } else {
         const idbPlans = await getAllOfflineSessionPlans();
-        setPlans(idbPlans.length > 0 ? idbPlans : getStoredSessionPlans());
+        if (idbPlans && idbPlans.length > 0) {
+          setPlans(idbPlans);
+        } else {
+          setPlans(getStoredSessionPlans());
+        }
+      }
+
+      if (lpData.length > 0) {
+        const mappedLp: LearningPlanWeek[] = lpData.map((d: any) => ({
+          ...d,
+          learning_outcomes: safeParseArray(d.learning_outcomes),
+          resources: safeParseArray(d.resources),
+        }));
+        setLearningPlans(mappedLp);
+        saveStoredLearningPlans(mappedLp);
+      } else {
         setLearningPlans(getStoredLearningPlans());
+      }
+
+      if (rowData.length > 0) {
+        setRecordsOfWork(rowData);
+        saveStoredRecordsOfWork(rowData);
+      } else {
         setRecordsOfWork(getStoredRecordsOfWork());
       }
     } catch (err) {
@@ -380,30 +395,34 @@ export default function SessionPlans() {
     setRecordsOfWork(updatedRows);
     saveStoredRecordsOfWork(updatedRows);
 
-    // Sync to Supabase if configured
-    if (isSupabaseConfigured()) {
-      try {
-        await Promise.all([
-          (supabase as any).from("session_plans").update({ status: "delivered" }).eq("id", logSessionPlan.id),
-          (supabase as any).from("learning_plans").update({ status: "delivered", session_plan_id: logSessionPlan.id }).eq("unit_code", logSessionPlan.unit_code).eq("week_number", logSessionPlan.week_number),
-          (supabase as any).from("records_of_work").upsert({
-            session_plan_id: newLog.session_plan_id,
-            unit_code: newLog.unit_code,
-            class_code: newLog.class_code,
-            week_number: newLog.week_number,
-            date_delivered: newLog.date_delivered,
-            trainees_present: newLog.trainees_present,
-            hours_covered: newLog.hours_covered,
-            work_actually_covered: newLog.work_actually_covered,
-            reflection: newLog.reflection,
-            status: newLog.status,
-            signature: newLog.signature,
-            signature_date: newLog.signature_date,
-          })
-        ]);
-      } catch (err) {
-        console.error("Supabase sync error for Record of Work:", err);
-      }
+    // Sync to backend API (Decoupled from direct Supabase table access)
+    try {
+      const token = typeof localStorage !== "undefined"
+        ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+        : "";
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+      await Promise.all([
+        fetch("/api/documents/records-of-work/batch", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ records_of_work: [newLog] }),
+        }),
+        fetch("/api/documents/session-plans/batch", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            session_plans: [{
+              ...logSessionPlan,
+              status: "delivered",
+            }],
+          }),
+        }),
+      ]);
+    } catch (err) {
+      console.warn("Backend API sync warning for Record of Work:", err);
     }
 
     setIsRecordLogOpen(false);
@@ -475,45 +494,29 @@ export default function SessionPlans() {
 
     const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
 
-    if (isSupabaseConfigured() && isOnline) {
+    if (isOnline) {
       try {
-        await Promise.all([
-          (supabase as any).from("session_plans").upsert({
-            id: updatedPlan.id.startsWith("plan-") && updatedPlan.id.length > 20 ? undefined : updatedPlan.id,
-            document_code: updatedPlan.document_code,
-            trainer_name: updatedPlan.trainer_name,
-            department: updatedPlan.department,
-            unit_name: updatedPlan.unit_name,
-            unit_code: updatedPlan.unit_code,
-            class_code: updatedPlan.class_code,
-            level: updatedPlan.level,
-            trainees_count: updatedPlan.trainees_count,
-            date: updatedPlan.date,
-            time_duration: updatedPlan.time_duration,
-            week_number: updatedPlan.week_number,
-            session_title: updatedPlan.session_title,
-            learning_outcomes: updatedPlan.learning_outcomes,
-            resources: updatedPlan.resources,
-            safety_requirements: updatedPlan.safety_requirements,
-            introduction: updatedPlan.introduction,
-            delivery_steps: updatedPlan.delivery_steps,
-            session_review: updatedPlan.session_review,
-            assignment: updatedPlan.assignment,
-            reflection: updatedPlan.reflection,
-            signature: updatedPlan.signature,
-            signature_date: updatedPlan.signature_date,
-            status: updatedPlan.status
-          }),
-          (supabase as any).from("learning_plans").update({
-            status: (updatedPlan.status === "delivered" ? "delivered" : "session_plan_created"),
-            session_plan_id: updatedPlan.id
-          }).eq("unit_code", updatedPlan.unit_code).eq("week_number", updatedPlan.week_number)
-        ]);
+        const token = typeof localStorage !== "undefined"
+          ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+          : "";
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        };
+        const res = await fetch("/api/documents/session-plans/batch", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ session_plans: [updatedPlan] }),
+        });
+        if (!res.ok) {
+          console.warn("Backend API session plans sync responded non-200, queuing offline");
+          await enqueueSyncItem("SESSION_PLAN_SAVE", updatedPlan);
+        }
       } catch (err) {
-        console.error("Supabase sync failed for save session plan, queuing offline:", err);
+        console.warn("Backend API save session plan failed, queuing offline:", err);
         await enqueueSyncItem("SESSION_PLAN_SAVE", updatedPlan);
       }
-    } else if (isSupabaseConfigured()) {
+    } else {
       await enqueueSyncItem("SESSION_PLAN_SAVE", updatedPlan);
     }
 
@@ -570,15 +573,16 @@ export default function SessionPlans() {
         saveStoredLearningPlans(revertedLp);
       }
 
-      if (isSupabaseConfigured()) {
-        try {
-          await Promise.all([
-            (supabase as any).from("session_plans").delete().eq("id", id),
-            plan ? (supabase as any).from("learning_plans").update({ status: "planned", session_plan_id: null }).eq("unit_code", plan.unit_code).eq("week_number", plan.week_number) : Promise.resolve()
-          ]);
-        } catch (err) {
-          console.error("DB delete failed:", err);
-        }
+      try {
+        const token = typeof localStorage !== "undefined"
+          ? (localStorage.getItem("mtti_auth_token") || localStorage.getItem("token") || "")
+          : "";
+        await fetch(`/api/documents/session-plans/${encodeURIComponent(id)}`, {
+          method: "DELETE",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+      } catch (err) {
+        console.warn("Backend API delete session plan notice:", err);
       }
       toast.success("Session plan deleted successfully.");
     }
@@ -1093,21 +1097,23 @@ export default function SessionPlans() {
   // Multi-tenant Trainer Scoping
   const isPrivileged = user?.role === "admin" || user?.role === "hod";
   const profile = getCurrentTrainerProfile(user);
-  const trainerClasses = new Set((profile.classes || []).map((c: string) => c.toUpperCase().trim()));
-  const trainerNameClean = profile.name.toLowerCase().trim();
+  const trainerClasses = new Set((profile?.classes || []).map((c: string) => String(c || "").toUpperCase().trim()));
+  const trainerNameClean = String(profile?.name || "").toLowerCase().trim();
+  const searchClean = String(searchQuery || "").toLowerCase();
 
   // Filtered lists
   const filteredPlans = plans.filter((p) => {
     const matchesTrainer =
       isPrivileged ||
-      (p.trainer_name && p.trainer_name.toLowerCase().includes(trainerNameClean)) ||
-      (p.class_code && trainerClasses.has(p.class_code.toUpperCase().trim()));
+      (p.trainer_name && String(p.trainer_name).toLowerCase().includes(trainerNameClean)) ||
+      (p.class_code && trainerClasses.has(String(p.class_code).toUpperCase().trim()));
 
     const matchesSearch =
-      p.session_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.unit_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.unit_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.class_code.toLowerCase().includes(searchQuery.toLowerCase());
+      !searchClean ||
+      String(p.session_title || "").toLowerCase().includes(searchClean) ||
+      String(p.unit_name || "").toLowerCase().includes(searchClean) ||
+      String(p.unit_code || "").toLowerCase().includes(searchClean) ||
+      String(p.class_code || "").toLowerCase().includes(searchClean);
     
     const matchesUnit = filterUnit === "all" ? true : p.unit_code === filterUnit;
     const matchesClass = filterClass === "all" ? true : p.class_code === filterClass;
@@ -1117,13 +1123,14 @@ export default function SessionPlans() {
   const filteredLp = learningPlans.filter((lp) => {
     const matchesTrainer =
       isPrivileged ||
-      (lp.trainer_name && lp.trainer_name.toLowerCase().includes(trainerNameClean)) ||
-      (lp.class_code && trainerClasses.has(lp.class_code.toUpperCase().trim()));
+      (lp.trainer_name && String(lp.trainer_name).toLowerCase().includes(trainerNameClean)) ||
+      (lp.class_code && trainerClasses.has(String(lp.class_code).toUpperCase().trim()));
 
     const matchesSearch =
-      lp.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lp.unit_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lp.unit_code.toLowerCase().includes(searchQuery.toLowerCase());
+      !searchClean ||
+      String(lp.topic || "").toLowerCase().includes(searchClean) ||
+      String(lp.unit_name || "").toLowerCase().includes(searchClean) ||
+      String(lp.unit_code || "").toLowerCase().includes(searchClean);
     
     const matchesUnit = filterUnit === "all" ? true : lp.unit_code === filterUnit;
     const matchesClass = filterClass === "all" ? true : lp.class_code === filterClass;
@@ -1133,12 +1140,13 @@ export default function SessionPlans() {
   const filteredRows = recordsOfWork.filter((row) => {
     const matchesTrainer =
       isPrivileged ||
-      (row.signature && row.signature.toLowerCase().includes(trainerNameClean)) ||
-      (row.class_code && trainerClasses.has(row.class_code.toUpperCase().trim()));
+      (row.signature && String(row.signature).toLowerCase().includes(trainerNameClean)) ||
+      (row.class_code && trainerClasses.has(String(row.class_code).toUpperCase().trim()));
 
     const matchesSearch =
-      row.work_actually_covered.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      row.unit_code.toLowerCase().includes(searchQuery.toLowerCase());
+      !searchClean ||
+      String(row.work_actually_covered || "").toLowerCase().includes(searchClean) ||
+      String(row.unit_code || "").toLowerCase().includes(searchClean);
     
     const matchesUnit = filterUnit === "all" ? true : row.unit_code === filterUnit;
     const matchesClass = filterClass === "all" ? true : row.class_code === filterClass;
@@ -1149,15 +1157,15 @@ export default function SessionPlans() {
     ? learningPlans
     : learningPlans.filter(
         (lp) =>
-          (lp.trainer_name && lp.trainer_name.toLowerCase().includes(trainerNameClean)) ||
-          (lp.class_code && trainerClasses.has(lp.class_code.toUpperCase().trim()))
+          (lp.trainer_name && String(lp.trainer_name).toLowerCase().includes(trainerNameClean)) ||
+          (lp.class_code && trainerClasses.has(String(lp.class_code).toUpperCase().trim()))
       );
   const scopedPlans = isPrivileged
     ? plans
     : plans.filter(
         (p) =>
-          (p.trainer_name && p.trainer_name.toLowerCase().includes(trainerNameClean)) ||
-          (p.class_code && trainerClasses.has(p.class_code.toUpperCase().trim()))
+          (p.trainer_name && String(p.trainer_name).toLowerCase().includes(trainerNameClean)) ||
+          (p.class_code && trainerClasses.has(String(p.class_code).toUpperCase().trim()))
       );
   const uniqueUnits = Array.from(
     new Set([
